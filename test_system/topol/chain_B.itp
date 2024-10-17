@@ -1,4 +1,4 @@
-; MARTINI (elnedyn30nucleic) Coarse Grained topology file for "Nucleic_B"
+; MARTINI (elnedyn30nucleic) Coarse Grained topology file for "chain_B"
 ; Created by py version 3.0 
 ; Using the following options:  -sys RNA -type ss-stiff -f /scratch/dyangali/cgtools/test_system/nucleotides/chain_B.pdb -o topol.top -x /scratch/dyangali/cgtools/test_system/cgpdb/chain_B.pdb -p bb -pf 1000
 ; #####################################################################################################
@@ -11,7 +11,7 @@
 
 [ moleculetype ]
 ; Name         Exclusions
-Nucleic_B         1
+chain_B         1
 
 [ atoms ]
     1  SC2r     1     G   BB2     2  0.0000 45.0000 ; F

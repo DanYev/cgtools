@@ -114,7 +114,7 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, go_map='go.map', go_moltype="protei
         -go-low {go_low} -go-up {go_up} -go-res-dist {go_res_dist} \
         -o protein.top -x {cgpdb} -p backbone -dssp -ff martini3001 \
         -sep -scfix -cys 0.3 -resid input -maxwarn 1000'
-    # sp.run(command.split())
+    sp.run(command.split())
     append_to('go_atomtypes.itp', os.path.join(topdir, 'go_atomtypes.itp'))
     append_to('go_nbparams.itp', os.path.join(topdir, 'go_nbparams.itp'))
     shutil.move(f'{go_moltype}.itp',  os.path.join(topdir, f'{go_moltype}.itp'))
@@ -128,26 +128,6 @@ def martinize_nucleotide(wdir, topdir, aapdb, cgpdb):
     command = f'python3 {script} -sys RNA -type ss-stiff -f {aapdb} \
     -o topol.top -x {cgpdb} -p bb -pf 1000'
     sp.run(command.split())
-    os.chdir(bdir)
-    
-    
-def solvate(wdir, bt='dodecahedron', d=1.25, radius=0.21, conc=0.0):
-    r"""
-    -bt             Box type for -box and -d: triclinic, cubic, dodecahedron, octahedron (default: triclinic)
-    -d              Distance between the solute and the box (default: 1.25 nm)
-    -radius         VWD radius (default: 0.21 nm)
-    -conc           Ionic concentration (micromol/l) (default: 0.0 nm)
-    """
-    bdir = os.getcwd()
-    os.chdir(wdir)
-    command = f'gmx_mpi editconf -f protein.pdb -c -bt {bt} -d {d} -o system.gro'
-    sp.run(command.split())
-    command = f'gmx_mpi solvate -cp system.gro -cs {PRT_DICT['water.gro']} -p system.top -radius {radius} -o system.gro'
-    sp.run(command.split())
-    command = f'gmx_mpi grompp -f {PRT_DICT['ions.mdp']} -c system.gro -p system.top -o ions.tpr -maxwarn 1000'
-    sp.run(command.split())
-    command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname NA -nname CL -o system.gro'
-    sp.run(command.split(), input='W\n', text=True)
     os.chdir(bdir)
     
 

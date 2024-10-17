@@ -12,9 +12,12 @@
 #include "/scratch/dyangali/cgtools/test_system/topol/chain_B.itp"
 
 [ system ]
-Martini system for test_system
+Martini system for test_system in water
 
 [molecules]
 ; name		number
 chain_A		1
 chain_B		1
+W           17174
+NA               300
+CL               236
