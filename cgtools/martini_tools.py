@@ -1,0 +1,141 @@
+import argparse
+import importlib.resources
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import pandas as pd
+import shutil
+import subprocess as sp
+from pathlib import Path
+from pyrotini.get_go import get_go
+from . import PRT_DATA, PRT_DICT
+
+
+def prt_parser():
+    """
+    Parse command-line arguments.
+    """
+    parser = argparse.ArgumentParser(description="Runs CGMD simulation for pyRosetta")
+    parser.add_argument("-f", "--pdb", required=True, help="PDB file")
+    parser.add_argument("-d", "--wdir", required=True, help="Relative path to the working directory")
+    parser.add_argument("-n", "--ncpus", required=False, help="Number of requested CPUS for a batch job")
+    return parser.parse_args()
+
+                    
+def make_topology_file(wdir, protein='protein'):
+    r"""
+    -protein        Name of the protein (just for the reference, doesn't affect anything)
+    
+    """
+    bdir = os.getcwd()
+    os.chdir(wdir)
+    with open('system.top', 'w') as out_file:
+        out_file.write(f'#define GO_VIRT\n')
+        out_file.write(f'#include "martini.itp"\n')
+        out_file.write(f'#include "go_atomtypes.itp"\n')
+        out_file.write(f'#include "go_nbparams.itp"\n')
+        out_file.write(f'#include "protein.itp"\n')
+        out_file.write(f'#include "solvents.itp"\n')
+        out_file.write(f'#include "ions.itp"\n')
+        out_file.write(f'\n[ system ]\n')
+        out_file.write(f'Martini protein in water\n\n') 
+        out_file.write(f'\n[ molecules ]\n')
+        out_file.write(f'{protein}  1\n')
+    os.chdir(bdir)
+        
+        
+def link_itps(wdir):
+    bdir = os.getcwd()
+    os.chdir(wdir)
+    for name, path in PRT_DICT.items():
+        if name.endswith('.itp'):
+            command = f'ln -sf {path} {name}' # > /dev/null 2>&
+            sp.run(command.split())
+    os.chdir(bdir)
+    
+    
+def gmx_pdb(wdir, in_pdb, out_pdb):
+    bdir = os.getcwd()
+    os.chdir(wdir)
+    command = f'gmx_mpi pdb2gmx -f {in_pdb} -o clean.pdb -water none -ff amber94 -renum -ignh' # 
+    sp.run(command.split())
+    with open(out_pdb, 'w') as fd:
+        sp.run(['grep', '^ATOM', 'clean.pdb'], stdout=fd)
+    os.remove('clean.pdb')
+    os.chdir(bdir)
+    
+    
+def fix_go_map(wdir, in_map, out_map='go.map'):
+    bdir = os.getcwd()
+    os.chdir(wdir)
+    with open (in_map, 'r') as in_file:
+         with open (out_map, 'w') as out_file:
+            for line in in_file:
+                if line.startswith('R '):
+                    new_line = ' '.join(line.split()[:-1])
+                    out_file.write(f'{new_line}\n')
+    os.chdir(bdir)
+
+
+def prepare_files(pdb, wdir='test', mutations=None, protein='protein'):
+    r"""
+    -wdir           Relative path to the working directory
+    """
+    os.makedirs(wdir, exist_ok=True)
+    copy_from = os.path.join(wdir, 'protein_minimized.pdb')
+    copy_to = os.path.join(wdir, 'protein.pdb')
+    shutil.copy(copy_from, copy_to)
+    link_itps(wdir)
+    make_topology_file(wdir, protein=protein)
+    print("Getting Go-map...")
+    get_go(wdir, protein)
+    fix_go_map(wdir, in_map='protein_map.map')
+    print('All the files are ready!')
+    
+    
+def martinize_go(pdb, wdir, go_map='go.map', go_eps=10.0, go_moltype="protein", go_low=0.3, go_up=0.8, go_res_dist=3):
+    r"""
+    Virtual site based GoMartini:
+    -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
+    -go_moltype     Set the name of the molecule when using Virtual Sites GoMartini. (default: protein)
+    -go_eps         The strength of the Go model structural bias in kJ/mol. (default: 9.414)                        
+    -go_low         Minimum distance (nm) below which contacts are removed. (default: 0.3)
+    -go_up          Maximum distance (nm) above which contacts are removed. (default: 1.1)
+    -go_res_dist    Minimum graph distance (similar sequence distance) below whichcontacts are removed. (default: 3)
+    """
+    bdir = os.getcwd()
+    os.chdir(wdir)
+    shutil.copy(pdb, 'protein_aa.pdb')
+    command = f'martinize2 -f {pdb} -go {go_map} -go-moltype {go_moltype} -go-eps {go_eps} \
+        -go-low {go_low} -go-up {go_up} -go-res-dist {go_res_dist} \
+        -o protein.top -x protein.pdb -p backbone -dssp -ff martini3001 \
+        -sep -scfix -cys 0.3 -resid input -maxwarn 1000'
+    sp.run(command.split())
+    os.chdir(bdir)
+    
+    
+def solvate(wdir, bt='dodecahedron', d=1.25, radius=0.21, conc=0.0):
+    r"""
+    -bt             Box type for -box and -d: triclinic, cubic, dodecahedron, octahedron (default: triclinic)
+    -d              Distance between the solute and the box (default: 1.25 nm)
+    -radius         VWD radius (default: 0.21 nm)
+    -conc           Ionic concentration (micromol/l) (default: 0.0 nm)
+    """
+    bdir = os.getcwd()
+    os.chdir(wdir)
+    command = f'gmx_mpi editconf -f protein.pdb -c -bt {bt} -d {d} -o system.gro'
+    sp.run(command.split())
+    command = f'gmx_mpi solvate -cp system.gro -cs {PRT_DICT['water.gro']} -p system.top -radius {radius} -o system.gro'
+    sp.run(command.split())
+    command = f'gmx_mpi grompp -f {PRT_DICT['ions.mdp']} -c system.gro -p system.top -o ions.tpr -maxwarn 1000'
+    sp.run(command.split())
+    command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname NA -nname CL -o system.gro'
+    sp.run(command.split(), input='W\n', text=True)
+    os.chdir(bdir)
+    
+
+if __name__  == "__main__":
+    pass
+
+
+

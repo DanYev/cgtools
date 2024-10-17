@@ -1,0 +1,5 @@
+name: pytest
+channels:
+  - pip
+  - defaults
+prefix: /home/dyangali/.conda/envs/pytest
