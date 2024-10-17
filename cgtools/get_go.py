@@ -109,16 +109,14 @@ def init_webdriver(download_dir):
     return driver
 
 
-def get_go_maps(driver, wdir):
+def get_go_maps(driver, pdb_files):
     """
     Use Selenium to automate downloading Go maps from the server.
+    pdb_files - path to pdb files
     """
-    print("Submitting PDB...")
-    path_to_pdbs = wdir
-    pdb_files = [f for f in os.listdir(path_to_pdbs) if f.endswith("map.pdb")]
+    print("Submitting PDBs...")
     
     for f in pdb_files:
-        pdb_file_path = os.path.join(path_to_pdbs, f)
         print(f"Processing {f}...")
         driver.get("http://info.ifpan.edu.pl/~rcsu/rcsu/index.html")
     
@@ -172,10 +170,10 @@ def extract_go_maps(wdir):
         print(f"Directory {work2_dir} not found")
         
         
-def get_go(wdir, pdb):
+def get_go(wdir, path_to_pdbs):
     check_browsers()
     driver = init_webdriver(wdir)
-    get_go_maps(driver, wdir)
+    get_go_maps(driver, path_to_pdbs)
     extract_go_maps(wdir)
 
 

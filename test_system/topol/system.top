@@ -1,0 +1,20 @@
+#define GO_VIRT"
+#include "martini_v3.0.0.itp"
+#include "martini_v3.0.0_rna.itp"
+#include "go_atomtypes.itp"
+#include "go_nbparams.itp"
+#include "martini_v3.0.0_solvents_v1.itp"
+#include "martini_v3.0.0_phospholipids_v1.itp"
+#include "martini_v3.0.0_ions_v1.itp"
+#define RUBBER_BANDS
+
+#include "chain_A.itp"
+#include "chain_B.itp"
+
+[ system ]
+Martini system for test_system
+
+[molecules]
+; name		number
+chain_A		1
+chain_B		1

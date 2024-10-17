@@ -1,0 +1,20 @@
+#define GO_VIRT"
+#include "/scratch/dyangali/cgtools/test_system/topol/martini_v3.0.0.itp"
+#include "/scratch/dyangali/cgtools/test_system/topol/martini_v3.0.0_rna.itp"
+#include "/scratch/dyangali/cgtools/test_system/topol/go_atomtypes.itp"
+#include "/scratch/dyangali/cgtools/test_system/topol/go_nbparams.itp"
+#include "/scratch/dyangali/cgtools/test_system/topol/martini_v3.0.0_solvents_v1.itp"
+#include "/scratch/dyangali/cgtools/test_system/topol/martini_v3.0.0_phospholipids_v1.itp"
+#include "/scratch/dyangali/cgtools/test_system/topol/martini_v3.0.0_ions_v1.itp"
+#define RUBBER_BANDS
+
+#include "/scratch/dyangali/cgtools/test_system/topol/chain_A.itp"
+#include "/scratch/dyangali/cgtools/test_system/topol/chain_B.itp"
+
+[ system ]
+Martini system for test_system
+
+[molecules]
+; name		number
+chain_A		1
+chain_B		1

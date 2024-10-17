@@ -1,10 +1,9 @@
 import os
 import sys
-import openmm as mm
-from openmm import app
-from openmm import unit
+# import openmm as mm
 from pathlib import Path
 from pdbfixer.pdbfixer import PDBFixer
+from openmm.app import PDBFile
 
 
 AA_CODE_CONVERTER = {
@@ -49,16 +48,11 @@ def convert_mutation_format(mutation):
     return f"{from_aa_3letter}-{position}-{to_aa_3letter}"
 
 
-def prepare_aa_pdb(in_pdb, wdir, variant):
-    os.makedirs(wdir, exist_ok=True)
-    out_pdb = os.path.join(wdir, 'protein_fixed.pdb')
+def prepare_aa_pdb(in_pdb, out_pdb, variant=None):
     if variant:
         mutations = [convert_mutation_format(mutation) for mutation in variant]
-    print("Opening PDB")
-    if Path(in_pdb).is_file():
-        pdb = PDBFixer(filename=in_pdb)
-    else:
-        pdb = PDBFixer(pdbid=in_pdb.split('.')[0])
+    print(f"Opening {in_pdb}")
+    pdb = PDBFixer(filename=in_pdb)
     if variant:
         print("Mutating residues")
         pdb.applyMutations(mutations, "A")
@@ -79,7 +73,7 @@ def prepare_aa_pdb(in_pdb, wdir, variant):
     topology = pdb.topology
     positions = pdb.positions
     print("Writing PDB")
-    app.PDBFile.writeFile(topology, positions, open(out_pdb, 'w'))
+    PDBFile.writeFile(topology, positions, open(out_pdb, 'w'))
     
 
 def prepare_toppos(wdir):

@@ -1,14 +1,19 @@
 import argparse
 import importlib.resources
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
 import shutil
 import subprocess as sp
 from pathlib import Path
-from pyrotini.get_go import get_go
-from . import PRT_DATA, PRT_DICT
+from get_go import get_go
+
+
+def append_to(in_file, out_file):
+    with open(in_file, 'r') as src:
+        contents = src.read()
+    with open(out_file, 'a') as dest:
+        dest.write(contents)
 
 
 def prt_parser():
@@ -93,7 +98,7 @@ def prepare_files(pdb, wdir='test', mutations=None, protein='protein'):
     print('All the files are ready!')
     
     
-def martinize_go(pdb, wdir, go_map='go.map', go_eps=10.0, go_moltype="protein", go_low=0.3, go_up=0.8, go_res_dist=3):
+def martinize_go(wdir, topdir, aapdb, cgpdb, go_map='go.map', go_moltype="protein", go_eps=9.414, go_low=0.3, go_up=1.1, go_res_dist=3):
     r"""
     Virtual site based GoMartini:
     -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
@@ -101,15 +106,27 @@ def martinize_go(pdb, wdir, go_map='go.map', go_eps=10.0, go_moltype="protein", 
     -go_eps         The strength of the Go model structural bias in kJ/mol. (default: 9.414)                        
     -go_low         Minimum distance (nm) below which contacts are removed. (default: 0.3)
     -go_up          Maximum distance (nm) above which contacts are removed. (default: 1.1)
-    -go_res_dist    Minimum graph distance (similar sequence distance) below whichcontacts are removed. (default: 3)
+    -go_res_dist    Minimum graph distance (similar sequence distance) below which contacts are removed. (default: 3)
     """
     bdir = os.getcwd()
     os.chdir(wdir)
-    shutil.copy(pdb, 'protein_aa.pdb')
-    command = f'martinize2 -f {pdb} -go {go_map} -go-moltype {go_moltype} -go-eps {go_eps} \
+    command = f'martinize2 -f {aapdb} -go {go_map} -go-moltype {go_moltype} -go-eps {go_eps} \
         -go-low {go_low} -go-up {go_up} -go-res-dist {go_res_dist} \
-        -o protein.top -x protein.pdb -p backbone -dssp -ff martini3001 \
+        -o protein.top -x {cgpdb} -p backbone -dssp -ff martini3001 \
         -sep -scfix -cys 0.3 -resid input -maxwarn 1000'
+    # sp.run(command.split())
+    append_to('go_atomtypes.itp', os.path.join(topdir, 'go_atomtypes.itp'))
+    append_to('go_nbparams.itp', os.path.join(topdir, 'go_nbparams.itp'))
+    shutil.move(f'{go_moltype}.itp',  os.path.join(topdir, f'{go_moltype}.itp'))
+    os.chdir(bdir)
+    
+    
+def martinize_nucleotide(wdir, topdir, aapdb, cgpdb):
+    bdir = os.getcwd()
+    os.chdir(wdir)
+    script = os.path.join(bdir, 'cgtools/martinize_nucleotides_v3.0.py')
+    command = f'python3 {script} -sys RNA -type ss-stiff -f {aapdb} \
+    -o topol.top -x {cgpdb} -p bb -pf 1000'
     sp.run(command.split())
     os.chdir(bdir)
     
