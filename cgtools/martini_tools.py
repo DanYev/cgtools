@@ -11,9 +11,9 @@ from get_go import get_go
 
 def append_to(in_file, out_file):
     with open(in_file, 'r') as src:
-        contents = src.read()
+        lines = src.readlines()
     with open(out_file, 'a') as dest:
-        dest.write(contents)
+        dest.writelines(lines[1:])
 
 
 def prt_parser():
@@ -125,7 +125,7 @@ def martinize_nucleotide(wdir, topdir, aapdb, cgpdb):
     bdir = os.getcwd()
     os.chdir(wdir)
     script = os.path.join(bdir, 'cgtools/martinize_nucleotides_v3.0.py')
-    command = f'python3 {script} -sys RNA -type ss-stiff -f {aapdb} \
+    command = f'python3 {script} -sys 5it8 -type ss-stiff -f {aapdb} \
     -o topol.top -x {cgpdb} -p bb -pf 1000'
     sp.run(command.split())
     os.chdir(bdir)

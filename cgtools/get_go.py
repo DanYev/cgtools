@@ -122,7 +122,7 @@ def get_go_maps(driver, pdb_files):
     
         try:
             pdb_input = driver.find_element(By.NAME, "filename")
-            pdb_input.send_keys(os.path.abspath(pdb_file_path))
+            pdb_input.send_keys(f)
     
             driver.find_element(By.XPATH, "//input[@type='SUBMIT']").click()
     

@@ -348,9 +348,9 @@ def option_parser(args, options, lists, version=0):
         options['-eb'].setvalue(['BB1,BB2,BB3,SC1'])
     elif options['type'] == 'ss-stiff':
         options['-ff'].setvalue(['elnedyn30nucleic'])
-        options['-eu'].setvalue(['1.5'])
-        options['-ef'].setvalue(['100'])
-        options['-eb'].setvalue(['BB1'])
+        options['-eu'].setvalue(['1.2'])
+        options['-ef'].setvalue(['500'])
+        options['-eb'].setvalue(['BB1,BB2,BB3'])
     elif options['type'] == 'ignore':
         pass
     else: 
