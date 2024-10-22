@@ -121,11 +121,11 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, go_map='go.map', go_moltype="protei
     os.chdir(bdir)
     
     
-def martinize_nucleotide(wdir, topdir, aapdb, cgpdb):
+def martinize_nucleotide(wdir, topdir, aapdb, cgpdb, system='5it8'):
     bdir = os.getcwd()
     os.chdir(wdir)
     script = os.path.join(bdir, 'cgtools/martinize_nucleotides_v3.0.py')
-    command = f'python3 {script} -sys 5it8 -type ss-stiff -f {aapdb} \
+    command = f'python3 {script} -sys {system} -type ss-stiff -f {aapdb} \
     -o topol.top -x {cgpdb} -p bb -pf 1000'
     sp.run(command.split())
     os.chdir(bdir)

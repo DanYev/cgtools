@@ -17,7 +17,7 @@
 
 [atoms]
 ;id 	type 	resnr 	residu 	atom 	cgnr 	charge  mass 
- 1 	    TQ5 	1 	    NA       NA 	    1 	    1.0     
+ 1 	    TQ5 	1 	    Ion       NA 	    1 	    1.0     
 
 ;;;;;; Potassium ion
 
@@ -27,7 +27,7 @@
 
 [atoms]
 ;id 	type 	resnr 	residu 	atom 	cgnr 	charge  mass
- 1 	    TQ5 	1 	    K 	    K 	    1 	    1.0     39.0983
+ 1 	    TQ5 	1 	    Ion 	    K 	    1 	    1.0     39.0983
 
 
 ;;;;;; Chloride ion
@@ -37,8 +37,8 @@
    CL 		1
 
 [atoms]
-;id 	type 	resnr 	residu 	atom 	cgnr 	charge 
- 1 	TQ5 	1 	CL 	CL 	1 	-1.0     35.453
+;id 	type 	resnr 	residu 	atom 	cgnr 	charge  mass
+ 1 	    TQ3 	1 	     Ion 	CL 	    1 	    -1.0     35.453
 
  ;;;;;; Magnesium ion
 
@@ -47,8 +47,19 @@
    MG           1  
 
 [atoms]
-;id     type    resnr   residu  atom    cgnr    charge
- 1      TD      1       ION      MG     1       2.0      24.305 ;
+;id     type    resnr   residu  atom    cgnr    charge   mass
+ 1      TD      1       Ion      MG     1       2.0      24.305 ;
+ 
+ 
+ ;;;;;; Zinc ion
+
+[moleculetype]
+; molname       nrexcl
+   ZN           1  
+
+[atoms]
+;id     type    resnr   residu  atom    cgnr    charge   mass
+ 1      TD      1       Ion      ZN     1       2.0      65.38 ; 
 
 ;;;;;; Bromide ion
 

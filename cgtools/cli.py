@@ -125,7 +125,7 @@ def mdrun(mddir, mdp='../mdp/em.mdp', c='../system.pdb', r='../system.pdb', p='.
     os.chdir(mddir)
     command = f'gmx_mpi grompp -f {mdp} -c {c} -r {r} -p {p} -o {o}'
     sp.run(command.split())
-    options = f'-ntomp {ncpus} -pin on -pinstride 1'
+    options = f'-ntomp {ncpus} -pin on -pinstride 1 -nsteps -2'
     command = f'gmx_mpi mdrun {options} -deffnm {deffnm}'
     sp.run(command.split())
     os.chdir(bdir)

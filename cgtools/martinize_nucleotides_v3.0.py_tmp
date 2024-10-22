@@ -350,8 +350,8 @@ def option_parser(args, options, lists, version=0):
         options['-ff'].setvalue(['elnedyn30nucleic'])
         options['-el'].setvalue(['0.3'])
         options['-eu'].setvalue(['1.2'])
-        options['-ef'].setvalue(['200'])
-        options['-eb'].setvalue(['BB1, BB2'])
+        options['-ef'].setvalue(['500'])
+        options['-eb'].setvalue(['BB1, BB3'])
     elif options['type'] == 'ignore':
         pass
     else: 
@@ -605,9 +605,9 @@ class CoarseGrained:
     # For convenience, the list can be specified as a set of strings,
     # converted into a list of lists by 'nsplit' defined above.
     # @MAP
-    BB_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
-                            "C5' 1H5' 2H5' C4' H4' O4' C3' H3'", 
-                            "C1' C2' O2' O4'")
+    BB_mapping = nsplit("P OP1 OP2 O5' H5T H3T O1P O2P O3'", 
+                        "C5' 1H5' 2H5' C4' H4' O4'", 
+                        "C1' H1' C2' 1H2' O2' C3' H3'")
     mapping = {
             "A":  BB_mapping + nsplit(
                             "N9 C8 H8",
@@ -1313,27 +1313,33 @@ class elnedyn30nucleic():
         # RNA PARAMETERS # @ff
         ##################
 
-        # RNA BACKBONE PARAMETERS TUT
+        # RNA BACKBONE PARAMETERS
         self.rna_bb = {
-            'atom'  : spl("Q1 SN3 TN5"),     # Have a look at BB3 bead type
-            'bond'  : [(1,  0.350, 20000),          
-                       (1,  0.370, 10000)],    #8  , 0.202 50000    ],         
-            'angle' : [(10,  112.0, 40),      #2, 117.0, 140       
-                       (10,  122.0, 100)],           
-            'dih'   : [(1,   30.0, 8, 1),
-                       (1,  -15.0, 10, 1),],
+            'atom'  : spl("Q1 SC2r SN1dr"),     # Have a look at BB3 bead type
+            'bond'  : [(1,  0.363, 0),          
+                       (1,  0.202, 0),    #8  , 0.202 50000    
+                       (1,  0.354, 0)],         
+            'angle' : [(1,  117.0, 0),      #2, 117.0, 140       
+                       (1,   95.0, 0),           
+                       (1,   93.0,  0)],           
+            'dih'   : [(2,    0.0, 0),
+                       (2,    0.0, 0),
+                       (2,  -10.0, 0)],
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
         # RNA BACKBONE CONNECTIVITY
         self.rna_con  = {
             'bond'  : [(0, 1),
-                       (1, 0),],
-            'angle' : [(0, 1, 0),
-                       (1, 0, 1),],
-            'dih'   : [(0, 1, 0, 1),
-                       (1, 0, 1, 0),],
-            'excl'  : [],
+                       (1, 2),
+                       (2, 0)],
+            'angle' : [(0, 1, 2),
+                       (1, 2, 0),
+                       (2, 0, 1)],
+            'dih'   : [(0, 1, 2, 0),
+                       (1, 2, 0, 1),
+                       (2, 0, 1, 2)],
+            'excl'  : [(0, 2), (1, 0),(2, 1)],
             'pair'  : [],
         }
 
@@ -1347,11 +1353,11 @@ class elnedyn30nucleic():
         itpdir = os.path.abspath('/scratch/dyangali/cgtools/cgtools/itp/nucbonded')
         file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
         a_itp_data = elnedyn30nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_C_{version}.itp')
+        file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
         c_itp_data = elnedyn30nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_G_{version}.itp')
+        file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
         g_itp_data = elnedyn30nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_U_{version}.itp')
+        file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
         u_itp_data = elnedyn30nucleic.read_itp(file)
 
         # ADENINE
@@ -2808,25 +2814,28 @@ class Topology:
 
                 # Bonds iterate over the second atom.
                 for l in frg[ind:ind+3]:
-                    if l > k:
-                        bond = Bond((k,l), category="BB", options=self.options,)
+                    bond = Bond((k,l), category="BB", options=self.options,)
+                    if 0: # bond
                         self.bonds.append(bond)
                         
                     # The angles need a third loop.
-                    for m in frg[ind:ind+4]:
-                        if m > l > k:
-                            angle = Angle((k,l,m,), options=self.options, category="BBB")
+                    for m in frg[ind:ind+3]:
+                        angle = Angle((k,l,m,), options=self.options, category="BBB")
+                        if 0:
                             self.angles.append(angle)
                             
-                        # The dihedrals need a fourth loop. 
-                        for n in frg[ind+1:ind+6]:
-                            if n > m > l > k:
-                                dihed = Dihedral((k,l,m,n,), options=self.options, category="BBBB")
-                                if dihed.parameters == None:
-                                    continue
-                                if dihed.parameters[1] != 0:
-                                    self.dihedrals.append(dihed)
-
+                        # The dihedrals need a fourth loop.
+                        for n in frg[ind+1:ind+4]:
+                            dihed = Dihedral((k,l,m,n,), options=self.options, category="BBBB")
+                            if 0:
+                                self.dihedrals.append(dihed)
+                                # if len(dihed.parameters) > 3:
+                                #     dihed2 = Dihedral((k,l,m,n,), options=self.options, parameters=dihed.parameters[3:], category="BBBB")
+                                #     dihed.parameters = dihed.parameters[:3]
+                                #     self.dihedrals.append(dihed)
+                                #     self.dihedrals.append(dihed2)
+                                # else:
+                                #     self.dihedrals.append(dihed)
 
         # Now do the atom list, and take the sidechains along
         #
