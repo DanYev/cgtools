@@ -7,7 +7,7 @@ from cli import sbatch, run
 script = sys.argv[1]
 sysdir = 'systems'
 sysnames = ['8aw3'] # 4zt0 8aw3
-runs = ['mdrun_20', 'mdrun_21']
+runs = ['mdrun_21', ] # 'mdrun_21']
 # sysnames = [d for d in os.listdir(sysdir) if not d.startswith('#') and not d.startswith('test')]
 
 
@@ -43,7 +43,8 @@ def submit_analysis_script():
             mdrun = system.initmd(runname)
             # sbatch(script, 'run_all.py', 'analysis', sysdir, sysname, runname, N=1, n=1, c=1, t='00:15:00')
             run('bash', script, 'run_all.py', 'analysis', sysdir, sysname, runname)
-            # run(f'python geometry_3bb.py {sysname} {runname}')
+            run(f'python geometry_3bb.py {sysname} {runname}')
+            # run('bash', script, 'run_all.py', 'plot', sysdir, sysname, runname)
             
             
 def submit_plot_script():
@@ -55,7 +56,7 @@ def submit_plot_script():
             run('bash', script, 'run_all.py', 'plot', sysdir, sysname, runname)
            
             
-submit_setup_script()
-submit_md_script()
-# submit_analysis_script()
+# submit_setup_script()
+# submit_md_script()
+submit_analysis_script()
 # submit_plot_script()

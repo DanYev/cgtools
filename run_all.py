@@ -49,15 +49,17 @@ def extend(sysdir, sysname, runname, **kwargs):
 def analysis(sysdir, sysname, runname, **kwargs):  
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
+    
+    # Protein_RNA group
+    system.make_index_file(clinput='1|12\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
+    group = 'RNA'
+    mdrun.trjconv(clinput=f'{group}\n{group}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=0) 
+    exit()
     # Ugly but needed to use the index groups
     atoms = ['BB', 'BB1', 'BB2']
     ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
     trjstr = '_'.join(atoms) + '\n'
     system.make_index_file(clinput=ndxstr, f=mdrun.syspdb, o=mdrun.sysndx)
-    # # Protein_RNA group
-    # system.make_index_file(clinput='1|12\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
-    # group = 'RNA'
-    # mdrun.trjconv(clinput=f'{group}\n{group}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', dt=0) 
     mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact')
     mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', e=0)
     mdrun.get_rmsf_by_chain()
