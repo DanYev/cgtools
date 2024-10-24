@@ -53,14 +53,11 @@ def analysis(sysdir, sysname, runname, **kwargs):
     atoms = ['BB', 'BB1', 'BB2']
     ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
     trjstr = '_'.join(atoms) + '\n'
-    # 
-    # Ugly but needed to use the index groups
-    groups = ['BB', 'BB1', 'BB2']
-    ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
-    trjstr = '_'.join(atoms) + '\n'
-    # 
-    system.make_index_file(f=mdrun.syspdb, o=mdrun.sysndx) # clinput=ndxstr, 
-    mdrun.trjconv(clinput=f'{trjstr}\n{trjstr}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, fit='rot+trans') # clinput='RNA\nRNA\n', 
+    system.make_index_file(clinput=ndxstr, f=mdrun.syspdb, o=mdrun.sysndx)
+    # Protein_RNA group
+    system.make_index_file(clinput='1|12\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
+    group = 'Protein_RNA'
+    mdrun.trjconv(clinput=f'{group}\n{group}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', dt=1000) # clinput='RNA\nRNA\n', 
     exit()
     mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact')
     mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', e=0)
