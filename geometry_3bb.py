@@ -152,8 +152,9 @@ def bonded_parameters():
     resnames = ('A', 'C', 'G', 'U') # ('A', 'C', 'G', 'U')  ('A', 'U') 
     version = 'new'
     molecule = "RNA"
-    mdrun = sys.argv[1]
-    system = '100bpRNA' # sys.argv[1]
+    
+    system = sys.argv[1]
+    mdrun = sys.argv[2] # sys.argv[1]
     topology = read_topology(   a_itp=f'cgtools/itp/nucbonded/plot_A_{version}.itp', 
                                 c_itp=f'cgtools/itp/nucbonded/plot_C_{version}.itp', 
                                 g_itp=f'cgtools/itp/nucbonded/plot_G_{version}.itp', 
