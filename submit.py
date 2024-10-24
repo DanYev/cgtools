@@ -6,7 +6,7 @@ from cli import sbatch, run
 
 script = sys.argv[1]
 sysdir = 'systems'
-sysnames = ['8aw3']
+sysnames = ['100bpRNA']
 # sysnames = [d for d in os.listdir(sysdir) if not d.startswith('#') and not d.startswith('test')]
 
 
@@ -20,7 +20,7 @@ def submit_setup_script():
 def submit_md_script():
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
-        for runname in ['mdrun_0', 'mdrun_1']:
+        for runname in ['mdrun_test',]:
             mdrun = system.initmd(runname)
             sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, N=1, n=1, c=6, t='04-00:00:00', gres='gpu:1', mem='2G', qos='grp_sozkan', partition='general')
             # run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname)
@@ -38,7 +38,7 @@ def submit_extend_script():
 def submit_analysis_script():
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
-        for runname in ['mdrun_0', 'mdrun_1']:
+        for runname in ['mdrun_test']:
             mdrun = system.initmd(runname)
             # sbatch(script, 'run_all.py', 'analysis', sysdir, sysname, runname, N=1, n=1, c=1, t='00:15:00')
             run('bash', script, 'run_all.py', 'analysis', sysdir, sysname, runname)

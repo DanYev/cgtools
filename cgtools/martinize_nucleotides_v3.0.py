@@ -1316,10 +1316,10 @@ class elnedyn30nucleic():
         # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
             'atom'  : spl("Q1 SN3 TN5"),     # Have a look at BB3 bead type
-            'bond'  : [(1,  0.350, 20000),          
-                       (1,  0.376, 10000)],    #8  , 0.202 50000    ],         
-            'angle' : [(10,  112.0, 40),      #2, 117.0, 140       
-                       (10,  127.0, 100)],           
+            'bond'  : [(1,  0.352, 20000),          
+                       (1,  0.373, 10000)],    #8  , 0.202 50000    ],         
+            'angle' : [(10,  110.0, 40),      #2, 117.0, 140       
+                       (10,  115.0, 100)],           
             'dih'   : [(1,   30.0, 8, 1),
                        (1,  -15.0, 10, 1),],
             'excl'  : [(), (), ()],
@@ -2934,7 +2934,7 @@ class Topology:
                     # Generate position restraints for all atoms or Backbone beads only.
                     if 'all' in self.options['PosRes']:
                         if (aname == "BB1" or aname == "BB2"
-                                or aname == 'SC2' or aname == 'SC3' aname == 'SC4') and atid-1 > 1:
+                                or aname == 'SC2' or aname == 'SC3' or aname == 'SC4') and atid-1 > 1:
                             self.posres.append((atid-1))
                     if 'bb' in self.options['PosRes']: # @POSRES
                         if (aname == "BB1" or aname == "BB2") and atid-1 > 1:
