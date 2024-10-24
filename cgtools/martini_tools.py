@@ -7,6 +7,7 @@ import shutil
 import subprocess as sp
 from pathlib import Path
 from get_go import get_go
+import cli
 
 
 def append_to(in_file, out_file):
@@ -121,13 +122,18 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, go_map='go.map', go_moltype="protei
     os.chdir(bdir)
     
     
-def martinize_nucleotide(wdir, topdir, aapdb, cgpdb, system='5it8'):
+def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
+    kwargs.setdefault('f', aapdb)
+    kwargs.setdefault('x', cgpdb)
+    kwargs.setdefault('sys', 'RNA')
+    kwargs.setdefault('type', 'ss-stiff')
+    kwargs.setdefault('o', 'topol.top')
+    kwargs.setdefault('p', 'bb')
+    kwargs.setdefault('pf', 1000)
     bdir = os.getcwd()
     os.chdir(wdir)
     script = os.path.join(bdir, 'cgtools/martinize_nucleotides_v3.0.py')
-    command = f'python3 {script} -sys {system} -type ss-stiff -f {aapdb} \
-    -o topol.top -x {cgpdb} -p bb -pf 1000'
-    sp.run(command.split())
+    cli.run('python3', script, **kwargs)
     os.chdir(bdir)
     
 

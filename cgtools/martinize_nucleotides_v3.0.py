@@ -350,7 +350,7 @@ def option_parser(args, options, lists, version=0):
         options['-ff'].setvalue(['elnedyn30nucleic'])
         options['-el'].setvalue(['0.3'])
         options['-eu'].setvalue(['1.2'])
-        options['-ef'].setvalue(['200'])
+        options['-ef'].setvalue(['300'])
         options['-eb'].setvalue(['BB1, BB2'])
     elif options['type'] == 'ignore':
         pass
@@ -1317,9 +1317,9 @@ class elnedyn30nucleic():
         self.rna_bb = {
             'atom'  : spl("Q1 SN3 TN5"),     # Have a look at BB3 bead type
             'bond'  : [(1,  0.350, 20000),          
-                       (1,  0.370, 10000)],    #8  , 0.202 50000    ],         
+                       (1,  0.376, 10000)],    #8  , 0.202 50000    ],         
             'angle' : [(10,  112.0, 40),      #2, 117.0, 140       
-                       (10,  122.0, 100)],           
+                       (10,  127.0, 100)],           
             'dih'   : [(1,   30.0, 8, 1),
                        (1,  -15.0, 10, 1),],
             'excl'  : [(), (), ()],
@@ -2933,9 +2933,11 @@ class Topology:
                     # Doing this here saves going over all the atoms onesmore.
                     # Generate position restraints for all atoms or Backbone beads only.
                     if 'all' in self.options['PosRes']:
-                        self.posres.append((atid))
+                        if (aname == "BB1" or aname == "BB2"
+                                or aname == 'SC2' or aname == 'SC3' aname == 'SC4') and atid-1 > 1:
+                            self.posres.append((atid-1))
                     if 'bb' in self.options['PosRes']: # @POSRES
-                        if (aname == "BB1" or aname == "BB3") and atid-1 > 1:
+                        if (aname == "BB1" or aname == "BB2") and atid-1 > 1:
                             self.posres.append((atid-1))
                     if mapping:
                         self.mapping.append((atid,[i+shift for i in mapping[counter]]))

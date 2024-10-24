@@ -1,0 +1,3691 @@
+NodeName=pc001 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=2 CPUEfctv=40 CPUTot=40 CPULoad=2.07
+   AvailableFeatures=public,debug,long,intel,cascadelake,avx512,prerelease
+   ActiveFeatures=public,debug,long,intel,cascadelake,avx512,prerelease
+   Gres=(null)
+   NodeAddr=pc001 NodeHostName=pc001 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=188416 AllocMem=18432 FreeMem=119776 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=lightwork 
+   BootTime=2024-07-09T13:49:54 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T17:56:20 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=184G,billing=86
+   AllocTRES=cpu=2,mem=18G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pc002 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=0 CPUEfctv=40 CPUTot=40 CPULoad=3.37
+   AvailableFeatures=public,debug,long,intel,cascadelake,avx512,prerelease
+   ActiveFeatures=public,debug,long,intel,cascadelake,avx512,prerelease
+   Gres=(null)
+   NodeAddr=pc002 NodeHostName=pc002 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=188416 AllocMem=0 FreeMem=174927 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-09T13:49:49 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T10:40:01 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=184G,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pc003 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=40 CPUEfctv=40 CPUTot=40 CPULoad=39.06
+   AvailableFeatures=public,debug,long,intel,cascadelake,avx512,prerelease
+   ActiveFeatures=public,debug,long,intel,cascadelake,avx512,prerelease
+   Gres=(null)
+   NodeAddr=pc003 NodeHostName=pc003 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=188416 AllocMem=81920 FreeMem=159549 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-23T14:30:18 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T09:45:31 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=184G,billing=86
+   AllocTRES=cpu=40,mem=80G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pc004 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=25 CPUEfctv=40 CPUTot=40 CPULoad=24.04
+   AvailableFeatures=public,debug,long,intel,cascadelake,avx512,prerelease
+   ActiveFeatures=public,debug,long,intel,cascadelake,avx512,prerelease
+   Gres=(null)
+   NodeAddr=pc004 NodeHostName=pc004 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=188416 AllocMem=51200 FreeMem=167252 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:38:01 SlurmdStartTime=2024-09-29T21:52:46
+   LastBusyTime=2024-10-21T16:11:44 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=184G,billing=86
+   AllocTRES=cpu=25,mem=50G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pc005 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=32 CPUEfctv=40 CPUTot=40 CPULoad=25.28
+   AvailableFeatures=public,debug,long,intel,cascadelake,avx512,prerelease
+   ActiveFeatures=public,debug,long,intel,cascadelake,avx512,prerelease
+   Gres=(null)
+   NodeAddr=pc005 NodeHostName=pc005 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=188416 AllocMem=65536 FreeMem=177269 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:39:52 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T15:34:14 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=184G,billing=86
+   AllocTRES=cpu=32,mem=64G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc001 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=40 CPUEfctv=40 CPUTot=40 CPULoad=46.21
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_kawoodbu
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_kawoodbu
+   Gres=(null)
+   NodeAddr=pcc001 NodeHostName=pcc001 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=772600 AllocMem=358400 FreeMem=671628 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-19T13:18:19 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T12:27:33 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=772600M,billing=228
+   AllocTRES=cpu=40,mem=350G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc002 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=1 CPUEfctv=40 CPUTot=40 CPULoad=1.03
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_kawoodbu
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_kawoodbu
+   Gres=(null)
+   NodeAddr=pcc002 NodeHostName=pcc002 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=192000 AllocMem=32768 FreeMem=175896 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-12T16:38:39 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T11:00:33 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=187.50G,billing=86
+   AllocTRES=cpu=1,mem=32G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc003 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=16 CPUEfctv=52 CPUTot=52 CPULoad=2.78
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc003 NodeHostName=pcc003 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=70656 FreeMem=359335 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-22T11:15:15 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=cpu=16,mem=69G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc004 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=46 CPUEfctv=52 CPUTot=52 CPULoad=47.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc004 NodeHostName=pcc004 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=235520 FreeMem=344559 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-22T11:15:40 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T14:55:15 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=cpu=46,mem=230G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc005 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=47 CPUEfctv=52 CPUTot=52 CPULoad=47.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc005 NodeHostName=pcc005 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=240640 FreeMem=321903 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:41:56 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T14:54:24 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=cpu=47,mem=235G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc006 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=37 CPUEfctv=52 CPUTot=52 CPULoad=37.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc006 NodeHostName=pcc006 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=189440 FreeMem=342968 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:36:15 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T13:15:06 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=cpu=37,mem=185G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc007 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=52 CPUEfctv=52 CPUTot=52 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc007 NodeHostName=pcc007 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=358400 FreeMem=372651 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:37:15 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T12:27:33 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=cpu=52,mem=350G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc008 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=4 CPUEfctv=52 CPUTot=52 CPULoad=0.02
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc008 NodeHostName=pcc008 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=358400 FreeMem=355686 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:38:10 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=cpu=4,mem=350G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc009 Arch=x86_64 CoresPerSocket=28 
+   CPUAlloc=0 CPUEfctv=56 CPUTot=56 CPULoad=0.01
+   AvailableFeatures=private,intel,icelake,avx512,grp_mrline
+   ActiveFeatures=private,intel,icelake,avx512,grp_mrline
+   Gres=(null)
+   NodeAddr=pcc009 NodeHostName=pcc009 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=515000 AllocMem=0 FreeMem=510485 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-10-02T10:03:35 SlurmdStartTime=2024-10-02T10:06:24
+   LastBusyTime=2024-10-21T21:53:45 ResumeAfterTime=None
+   CfgTRES=cpu=56,mem=515000M,billing=181
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc010 Arch=x86_64 CoresPerSocket=28 
+   CPUAlloc=0 CPUEfctv=56 CPUTot=56 CPULoad=0.05
+   AvailableFeatures=private,intel,icelake,avx512,grp_mrline
+   ActiveFeatures=private,intel,icelake,avx512,grp_mrline
+   Gres=(null)
+   NodeAddr=pcc010 NodeHostName=pcc010 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=515000 AllocMem=0 FreeMem=439848 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-18T17:16:34 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T00:57:48 ResumeAfterTime=None
+   CfgTRES=cpu=56,mem=515000M,billing=181
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc011 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.00
+   AvailableFeatures=private,intel,broadwell,grp_mrline
+   ActiveFeatures=private,intel,broadwell,grp_mrline
+   Gres=(null)
+   NodeAddr=pcc011 NodeHostName=pcc011 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257000 AllocMem=0 FreeMem=247906 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-25T13:11:14 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T21:19:31 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=257000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc012 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.00
+   AvailableFeatures=private,intel,broadwell,grp_mrline
+   ActiveFeatures=private,intel,broadwell,grp_mrline
+   Gres=(null)
+   NodeAddr=pcc012 NodeHostName=pcc012 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257000 AllocMem=0 FreeMem=245889 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T11:57:33 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T21:19:26 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=257000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc013 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.01
+   AvailableFeatures=private,intel,broadwell,grp_mrline
+   ActiveFeatures=private,intel,broadwell,grp_mrline
+   Gres=(null)
+   NodeAddr=pcc013 NodeHostName=pcc013 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257000 AllocMem=0 FreeMem=245727 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T11:59:43 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T21:19:26 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=257000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc014 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.00
+   AvailableFeatures=private,intel,broadwell,grp_mrline
+   ActiveFeatures=private,intel,broadwell,grp_mrline
+   Gres=(null)
+   NodeAddr=pcc014 NodeHostName=pcc014 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257000 AllocMem=0 FreeMem=246436 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T12:08:21 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=257000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc015 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.01
+   AvailableFeatures=private,intel,broadwell,grp_mrline
+   ActiveFeatures=private,intel,broadwell,grp_mrline
+   Gres=(null)
+   NodeAddr=pcc015 NodeHostName=pcc015 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257000 AllocMem=0 FreeMem=251818 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-25T14:32:09 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=257000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc016 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.01
+   AvailableFeatures=private,intel,broadwell,grp_mrline
+   ActiveFeatures=private,intel,broadwell,grp_mrline
+   Gres=(null)
+   NodeAddr=pcc016 NodeHostName=pcc016 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257000 AllocMem=0 FreeMem=251707 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-25T12:45:34 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=257000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc017 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=26.00
+   AvailableFeatures=private,intel,broadwell,grp_mrline
+   ActiveFeatures=private,intel,broadwell,grp_mrline
+   Gres=(null)
+   NodeAddr=pcc017 NodeHostName=pcc017 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257000 AllocMem=0 FreeMem=251700 Sockets=2 Boards=1
+   State=IDLE+COMPLETING ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-30T08:18:37 SlurmdStartTime=2024-09-30T08:22:06
+   LastBusyTime=2024-10-21T13:59:17 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=257000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc018 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=2 CPUEfctv=32 CPUTot=32 CPULoad=0.09
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   Gres=(null)
+   NodeAddr=pcc018 NodeHostName=pcc018 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=192000 AllocMem=4096 FreeMem=155206 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:34:06 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=32,mem=187.50G,billing=78
+   AllocTRES=cpu=2,mem=4G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc019 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=32 CPUEfctv=32 CPUTot=32 CPULoad=31.78
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   Gres=(null)
+   NodeAddr=pcc019 NodeHostName=pcc019 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=192000 AllocMem=65536 FreeMem=149243 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:35:47 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T10:22:16 ResumeAfterTime=None
+   CfgTRES=cpu=32,mem=187.50G,billing=78
+   AllocTRES=cpu=32,mem=64G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc020 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=32 CPUEfctv=32 CPUTot=32 CPULoad=32.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   Gres=(null)
+   NodeAddr=pcc020 NodeHostName=pcc020 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=192000 AllocMem=65536 FreeMem=142139 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:36:51 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T10:17:30 ResumeAfterTime=None
+   CfgTRES=cpu=32,mem=187.50G,billing=78
+   AllocTRES=cpu=32,mem=64G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc021 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=32 CPUEfctv=32 CPUTot=32 CPULoad=31.99
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   Gres=(null)
+   NodeAddr=pcc021 NodeHostName=pcc021 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=192000 AllocMem=65536 FreeMem=154213 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:36:38 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T10:23:20 ResumeAfterTime=None
+   CfgTRES=cpu=32,mem=187.50G,billing=78
+   AllocTRES=cpu=32,mem=64G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc022 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=2 CPUEfctv=32 CPUTot=32 CPULoad=0.20
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   Gres=(null)
+   NodeAddr=pcc022 NodeHostName=pcc022 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=192000 AllocMem=4096 FreeMem=170351 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:40:09 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-17T11:36:27 ResumeAfterTime=None
+   CfgTRES=cpu=32,mem=187.50G,billing=78
+   AllocTRES=cpu=2,mem=4G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc023 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=32 CPUEfctv=32 CPUTot=32 CPULoad=14.51
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_qhong7
+   Gres=(null)
+   NodeAddr=pcc023 NodeHostName=pcc023 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=192000 AllocMem=65536 FreeMem=160730 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:34:57 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T10:36:10 ResumeAfterTime=None
+   CfgTRES=cpu=32,mem=187.50G,billing=78
+   AllocTRES=cpu=32,mem=64G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc024 Arch=x86_64 CoresPerSocket=32 
+   CPUAlloc=0 CPUEfctv=64 CPUTot=64 CPULoad=0.00
+   AvailableFeatures=public,private,debug,epyc,naples,grp_tpilaris
+   ActiveFeatures=public,private,debug,epyc,naples,grp_tpilaris
+   Gres=(null)
+   NodeAddr=pcc024 NodeHostName=pcc024 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257500 AllocMem=0 FreeMem=245958 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:31:59 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=64,mem=257500M,billing=126
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc025 Arch=x86_64 CoresPerSocket=32 
+   CPUAlloc=0 CPUEfctv=64 CPUTot=64 CPULoad=0.02
+   AvailableFeatures=public,private,debug,epyc,naples,grp_tpilaris
+   ActiveFeatures=public,private,debug,epyc,naples,grp_tpilaris
+   Gres=(null)
+   NodeAddr=pcc025 NodeHostName=pcc025 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257500 AllocMem=0 FreeMem=251732 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-30T15:33:28 SlurmdStartTime=2024-09-30T15:36:29
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=64,mem=257500M,billing=126
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc026 Arch=x86_64 CoresPerSocket=32 
+   CPUAlloc=0 CPUEfctv=64 CPUTot=64 CPULoad=0.01
+   AvailableFeatures=public,private,debug,epyc,naples,grp_tpilaris
+   ActiveFeatures=public,private,debug,epyc,naples,grp_tpilaris
+   Gres=(null)
+   NodeAddr=pcc026 NodeHostName=pcc026 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257500 AllocMem=0 FreeMem=252371 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:36:44 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T14:40:34 ResumeAfterTime=None
+   CfgTRES=cpu=64,mem=257500M,billing=126
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc027 Arch=x86_64 CoresPerSocket=32 
+   CPUAlloc=0 CPUEfctv=64 CPUTot=64 CPULoad=0.07
+   AvailableFeatures=public,private,debug,epyc,naples,grp_tpilaris
+   ActiveFeatures=public,private,debug,epyc,naples,grp_tpilaris
+   Gres=(null)
+   NodeAddr=pcc027 NodeHostName=pcc027 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=257500 AllocMem=0 FreeMem=243730 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:32:02 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T15:02:36 ResumeAfterTime=None
+   CfgTRES=cpu=64,mem=257500M,billing=126
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc028 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=36 CPUEfctv=52 CPUTot=52 CPULoad=36.04
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc028 NodeHostName=pcc028 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=184320 FreeMem=353496 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:41:05 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T09:32:20 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=cpu=36,mem=180G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc029 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=43 CPUEfctv=52 CPUTot=52 CPULoad=43.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc029 NodeHostName=pcc029 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=220160 FreeMem=363690 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:37:43 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T09:32:20 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=cpu=43,mem=215G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc030 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=6 CPUEfctv=52 CPUTot=52 CPULoad=6.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc030 NodeHostName=pcc030 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=30720 FreeMem=370639 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:37:18 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T09:32:20 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=cpu=6,mem=30G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc031 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=0.03
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc031 NodeHostName=pcc031 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=0 FreeMem=373779 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:37:22 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T09:32:20 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc032 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc032 NodeHostName=pcc032 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=0 FreeMem=374487 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:34:29 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T09:32:20 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc033 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=0.03
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mlynch11
+   Gres=(null)
+   NodeAddr=pcc033 NodeHostName=pcc033 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385500 AllocMem=0 FreeMem=374902 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:42:07 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T09:32:21 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=385500M,billing=146
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc034 Arch=x86_64 CoresPerSocket=14 
+   CPUAlloc=22 CPUEfctv=28 CPUTot=28 CPULoad=23.68
+   AvailableFeatures=public,private,debug,intel,skylake,avx512,grp_psulc
+   ActiveFeatures=public,private,debug,intel,skylake,avx512,grp_psulc
+   Gres=(null)
+   NodeAddr=pcc034 NodeHostName=pcc034 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=45056 FreeMem=77007 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:32:02 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=28,mem=92000M,billing=50
+   AllocTRES=cpu=22,mem=44G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc035 Arch=x86_64 CoresPerSocket=14 
+   CPUAlloc=0 CPUEfctv=28 CPUTot=28 CPULoad=1.79
+   AvailableFeatures=public,private,debug,intel,skylake,avx512,grp_psulc
+   ActiveFeatures=public,private,debug,intel,skylake,avx512,grp_psulc
+   Gres=(null)
+   NodeAddr=pcc035 NodeHostName=pcc035 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=78624 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:31:37 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:29:40 ResumeAfterTime=None
+   CfgTRES=cpu=28,mem=92000M,billing=50
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc036 Arch=x86_64 CoresPerSocket=28 
+   CPUAlloc=0 CPUEfctv=56 CPUTot=56 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,icelake,avx512,grp_gbyeon
+   ActiveFeatures=public,private,debug,intel,icelake,avx512,grp_gbyeon
+   Gres=(null)
+   NodeAddr=pcc036 NodeHostName=pcc036 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=515000 AllocMem=0 FreeMem=480151 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:31:12 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T21:25:28 ResumeAfterTime=None
+   CfgTRES=cpu=56,mem=515000M,billing=181
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc037 Arch=x86_64 CoresPerSocket=28 
+   CPUAlloc=0 CPUEfctv=56 CPUTot=56 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,icelake,avx512,grp_gbyeon
+   ActiveFeatures=public,private,debug,intel,icelake,avx512,grp_gbyeon
+   Gres=(null)
+   NodeAddr=pcc037 NodeHostName=pcc037 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=515000 AllocMem=0 FreeMem=489287 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:32:58 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T19:51:48 ResumeAfterTime=None
+   CfgTRES=cpu=56,mem=515000M,billing=181
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc038 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=49 CPUEfctv=52 CPUTot=52 CPULoad=48.20
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc038 NodeHostName=pcc038 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=100352 FreeMem=135152 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:21:58 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T12:59:34 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=49,mem=98G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc039 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=52 CPUEfctv=52 CPUTot=52 CPULoad=52.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc039 NodeHostName=pcc039 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=190000 FreeMem=176384 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:18:56 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T20:52:14 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=52,mem=190000M
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc040 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=52 CPUEfctv=52 CPUTot=52 CPULoad=53.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc040 NodeHostName=pcc040 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=190000 FreeMem=172766 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-08-13T09:42:24 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T14:33:32 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=52,mem=190000M
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc041 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=48 CPUEfctv=52 CPUTot=52 CPULoad=48.02
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc041 NodeHostName=pcc041 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=190000 FreeMem=107806 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:25:59 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T07:55:25 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=48,mem=190000M
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc042 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=52 CPUEfctv=52 CPUTot=52 CPULoad=52.02
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc042 NodeHostName=pcc042 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=153600 FreeMem=84156 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-25T14:39:04 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-17T16:47:40 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=52,mem=150G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc043 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc043 NodeHostName=pcc043 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=182116 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:25:51 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T14:48:47 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc044 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc044 NodeHostName=pcc044 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=183679 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:25:23 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T14:30:31 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc045 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=52 CPUEfctv=52 CPUTot=52 CPULoad=52.05
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc045 NodeHostName=pcc045 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=153600 FreeMem=93589 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:24:20 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-17T16:47:40 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=52,mem=150G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc046 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=0.03
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc046 NodeHostName=pcc046 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=187219 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:24:18 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T15:33:40 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc047 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=0.02
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc047 NodeHostName=pcc047 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=185108 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T09:19:50 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-21T14:53:39 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc048 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_cmuhich
+   Gres=(null)
+   NodeAddr=pcc048 NodeHostName=pcc048 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=181956 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:25:38 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-21T13:56:42 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc049 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc049 NodeHostName=pcc049 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=67944 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:20:04 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T16:29:01 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc050 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.04
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc050 NodeHostName=pcc050 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=67420 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:24:07 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T15:07:06 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc051 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc051 NodeHostName=pcc051 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=67278 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:22:36 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T19:41:48 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc052 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc052 NodeHostName=pcc052 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=67584 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:22:04 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T21:25:20 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc053 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.04
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc053 NodeHostName=pcc053 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=68854 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:26:08 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T16:05:43 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc054 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc054 NodeHostName=pcc054 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=69257 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:22:45 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T16:16:55 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc055 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=25.98
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc055 NodeHostName=pcc055 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=68063 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:18:56 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T11:56:52 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc056 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.05
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc056 NodeHostName=pcc056 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=69223 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:25:19 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T14:35:39 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc057 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.06
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc057 NodeHostName=pcc057 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=70949 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:24:09 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T13:05:28 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc058 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.02
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc058 NodeHostName=pcc058 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=67728 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:22:56 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T23:17:36 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc059 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc059 NodeHostName=pcc059 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=70026 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:24:17 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T23:18:41 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc060 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc060 NodeHostName=pcc060 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=70578 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:22:44 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T04:29:17 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc061 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=26 CPUEfctv=52 CPUTot=52 CPULoad=26.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc061 NodeHostName=pcc061 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=68655 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:26:10 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T17:33:54 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc062 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=1.02
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   Gres=(null)
+   NodeAddr=pcc062 NodeHostName=pcc062 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=181448 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:07 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-21T14:28:55 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc063 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   Gres=(null)
+   NodeAddr=pcc063 NodeHostName=pcc063 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=181294 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:32:27 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:20 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc064 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=1.03
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   Gres=(null)
+   NodeAddr=pcc064 NodeHostName=pcc064 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=180198 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:32:27 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-18T15:28:17 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc065 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=1.96
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   Gres=(null)
+   NodeAddr=pcc065 NodeHostName=pcc065 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=180468 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:32:49 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:19 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc066 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=1.02
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   Gres=(null)
+   NodeAddr=pcc066 NodeHostName=pcc066 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=182251 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:07 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-18T15:28:21 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc067 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_asing250
+   Gres=(null)
+   NodeAddr=pcc067 NodeHostName=pcc067 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=179673 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:20 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:22 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc068 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.02
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mfiacco
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mfiacco
+   Gres=(null)
+   NodeAddr=pcc068 NodeHostName=pcc068 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=179502 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:32:44 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:29:40 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc069 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.03
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mfiacco
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mfiacco
+   Gres=(null)
+   NodeAddr=pcc069 NodeHostName=pcc069 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=179882 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:04 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:29:40 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc070 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_mfiacco
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_mfiacco
+   Gres=(null)
+   NodeAddr=pcc070 NodeHostName=pcc070 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=179805 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:53 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:27:19 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc071 Arch=x86_64 CoresPerSocket=32 
+   CPUAlloc=0 CPUEfctv=64 CPUTot=64 CPULoad=0.00
+   AvailableFeatures=public,private,debug,epyc,zen2,grp_spresse
+   ActiveFeatures=public,private,debug,epyc,zen2,grp_spresse
+   Gres=(null)
+   NodeAddr=pcc071 NodeHostName=pcc071 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=255000 AllocMem=0 FreeMem=251528 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-10-04T10:41:00 SlurmdStartTime=2024-10-04T10:43:57
+   LastBusyTime=2024-10-22T01:14:26 ResumeAfterTime=None
+   CfgTRES=cpu=64,mem=255000M,billing=126
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc072 Arch=x86_64 CoresPerSocket=64 
+   CPUAlloc=16 CPUEfctv=128 CPUTot=128 CPULoad=16.80
+   AvailableFeatures=public,private,debug,epyc,zen3,grp_spresse
+   ActiveFeatures=public,private,debug,epyc,zen3,grp_spresse
+   Gres=(null)
+   NodeAddr=pcc072 NodeHostName=pcc072 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=255000 AllocMem=20480 FreeMem=236870 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:37 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T03:51:41 ResumeAfterTime=None
+   CfgTRES=cpu=128,mem=255000M,billing=190
+   AllocTRES=cpu=16,mem=20G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc073 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,broadwell,grp_gmascaro
+   ActiveFeatures=public,private,debug,intel,broadwell,grp_gmascaro
+   Gres=(null)
+   NodeAddr=pcc073 NodeHostName=pcc073 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=255000 AllocMem=0 FreeMem=244068 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:30:23 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=255000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc074 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.06
+   AvailableFeatures=public,private,debug,intel,broadwell,grp_gmascaro
+   ActiveFeatures=public,private,debug,intel,broadwell,grp_gmascaro
+   Gres=(null)
+   NodeAddr=pcc074 NodeHostName=pcc074 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=255000 AllocMem=0 FreeMem=245966 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:30:19 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=255000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc075 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,broadwell,grp_gmascaro
+   ActiveFeatures=public,private,debug,intel,broadwell,grp_gmascaro
+   Gres=(null)
+   NodeAddr=pcc075 NodeHostName=pcc075 
+   RealMemory=255000 AllocMem=0 FreeMem=N/A Sockets=2 Boards=1
+   State=DOWN+NOT_RESPONDING ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=None SlurmdStartTime=None
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=255000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+   Reason=Not responding [slurm@2024-09-26T13:11:42]
+
+NodeName=pcc076 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.02
+   AvailableFeatures=public,private,debug,intel,broadwell,grp_gmascaro
+   ActiveFeatures=public,private,debug,intel,broadwell,grp_gmascaro
+   Gres=(null)
+   NodeAddr=pcc076 NodeHostName=pcc076 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=255000 AllocMem=0 FreeMem=243794 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:34:51 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=255000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc077 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,broadwell,grp_gmascaro
+   ActiveFeatures=public,private,debug,intel,broadwell,grp_gmascaro
+   Gres=(null)
+   NodeAddr=pcc077 NodeHostName=pcc077 
+   RealMemory=255000 AllocMem=0 FreeMem=N/A Sockets=2 Boards=1
+   State=DOWN+DRAIN+NOT_RESPONDING ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=None SlurmdStartTime=None
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=255000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+   Reason=manual drain by root: not mounting home dirs : Not responding [slurm@2024-10-05T01:48:22]
+
+NodeName=pcc078 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_gmascaro,grp_evivoni
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_gmascaro,grp_evivoni
+   Gres=(null)
+   NodeAddr=pcc078 NodeHostName=pcc078 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=179551 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:26 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:29:40 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc079 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_gmascaro,grp_evivoni
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_gmascaro,grp_evivoni
+   Gres=(null)
+   NodeAddr=pcc079 NodeHostName=pcc079 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=178597 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:09 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:29:41 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc080 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=0 CPUEfctv=40 CPUTot=40 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_scrook
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_scrook
+   Gres=(null)
+   NodeAddr=pcc080 NodeHostName=pcc080 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=180425 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:32:58 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:27:27 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc081 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=0 CPUEfctv=40 CPUTot=40 CPULoad=1.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_scrook
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_scrook
+   Gres=(null)
+   NodeAddr=pcc081 NodeHostName=pcc081 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=181083 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:30 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:27:27 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc082 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=0 CPUEfctv=40 CPUTot=40 CPULoad=1.02
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_scrook
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_scrook
+   Gres=(null)
+   NodeAddr=pcc082 NodeHostName=pcc082 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=181382 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:36 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:27:29 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc083 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=1.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,grp_dwang126
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,grp_dwang126
+   Gres=(null)
+   NodeAddr=pcc083 NodeHostName=pcc083 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=179972 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:32:26 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:27:15 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=98
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc084 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc084 NodeHostName=pcc084 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=182046 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:31:30 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-19T12:35:38 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc085 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc085 NodeHostName=pcc085 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=179370 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:31:40 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:19 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc086 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc086 NodeHostName=pcc086 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=179963 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:31:36 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:18 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc087 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc087 NodeHostName=pcc087 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=180038 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:31:34 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:20 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc088 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc088 NodeHostName=pcc088 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=177672 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:36:48 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:22 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc089 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=0.44
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc089 NodeHostName=pcc089 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=176727 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T16:48:27 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:24 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc090 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc090 NodeHostName=pcc090 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=178857 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-09T23:24:09 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:27 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc091 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc091 NodeHostName=pcc091 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=178540 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:31:36 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:31 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc092 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc092 NodeHostName=pcc092 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=177388 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:33:48 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:18 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc093 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.37
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc093 NodeHostName=pcc093 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=178163 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:36:58 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:22 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc094 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=1.03
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc094 NodeHostName=pcc094 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=177782 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:31:35 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:28:31 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc095 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_mkasbaou
+   Gres=(null)
+   NodeAddr=pcc095 NodeHostName=pcc095 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=184141 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-25T12:26:00 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:25:51 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=190000M,billing=94
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc096 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=27.21
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc096 NodeHostName=pcc096 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=60344 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-28T19:35:15 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T14:28:05 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc097 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=27.08
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc097 NodeHostName=pcc097 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=60558 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-28T19:38:09 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T15:47:49 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc098 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=26.05
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc098 NodeHostName=pcc098 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=55902 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T16:48:09 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T16:08:11 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc099 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=26.03
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc099 NodeHostName=pcc099 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=60652 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T16:48:19 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T16:16:28 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc100 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=24.93
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc100 NodeHostName=pcc100 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=64017 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T16:48:38 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc101 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=27.11
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc101 NodeHostName=pcc101 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=60210 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-28T19:43:57 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-21T00:12:09 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc102 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=27.11
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc102 NodeHostName=pcc102 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=65793 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-28T19:41:58 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-21T02:44:35 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc103 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=25.59
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc103 NodeHostName=pcc103 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=60773 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T16:48:29 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T02:06:22 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc104 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=26.74
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc104 NodeHostName=pcc104 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=62357 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-28T19:40:28 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T18:59:59 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc105 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=0 CPUEfctv=40 CPUTot=40 CPULoad=1.09
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc105 NodeHostName=pcc105 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=163825 Sockets=2 Boards=1
+   State=DOWN+INVALID_REG ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-19T09:34:16 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+   Reason=Low RealMemory (reported:176933 < 100.00% of configured:190000) [slurm@2024-06-08T22:03:07]
+
+NodeName=pcc106 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=27.06
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc106 NodeHostName=pcc106 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=60453 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-28T19:41:41 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T11:52:12 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc107 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=27.13
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc107 NodeHostName=pcc107 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=60203 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-28T19:42:37 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T08:20:12 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc108 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=27.07
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc108 NodeHostName=pcc108 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=59248 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-19T15:59:53 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T16:49:56 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc109 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=27.04
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc109 NodeHostName=pcc109 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=61789 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-19T16:05:26 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T14:13:54 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc110 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=27.09
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc110 NodeHostName=pcc110 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=59402 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-19T16:03:36 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T20:22:21 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcc111 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=26 CPUEfctv=40 CPUTot=40 CPULoad=26.83
+   AvailableFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   ActiveFeatures=public,private,debug,intel,cascadelake,opa,avx512,grp_chardgro
+   Gres=(null)
+   NodeAddr=pcc111 NodeHostName=pcc111 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=186368 FreeMem=64489 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=100 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-28T19:42:18 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-20T14:32:57 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=86
+   AllocTRES=cpu=26,mem=182G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg001 Arch=x86_64 CoresPerSocket=10 
+   CPUAlloc=0 CPUEfctv=20 CPUTot=20 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   ActiveFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   Gres=gpu:v100:4
+   NodeAddr=pcg001 NodeHostName=pcg001 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=94000 AllocMem=0 FreeMem=87489 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:37:46 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:47:58 ResumeAfterTime=None
+   CfgTRES=cpu=20,mem=94000M,billing=162,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg002 Arch=x86_64 CoresPerSocket=10 
+   CPUAlloc=0 CPUEfctv=20 CPUTot=20 CPULoad=0.03
+   AvailableFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   ActiveFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   Gres=gpu:v100:4
+   NodeAddr=pcg002 NodeHostName=pcg002 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=94000 AllocMem=0 FreeMem=86697 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:34:59 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:34:26 ResumeAfterTime=None
+   CfgTRES=cpu=20,mem=94000M,billing=162,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg003 Arch=x86_64 CoresPerSocket=10 
+   CPUAlloc=0 CPUEfctv=20 CPUTot=20 CPULoad=0.02
+   AvailableFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   ActiveFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   Gres=gpu:v100:4
+   NodeAddr=pcg003 NodeHostName=pcg003 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=94000 AllocMem=0 FreeMem=87631 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:36:35 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:26:21 ResumeAfterTime=None
+   CfgTRES=cpu=20,mem=94000M,billing=162,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg004 Arch=x86_64 CoresPerSocket=10 
+   CPUAlloc=0 CPUEfctv=20 CPUTot=20 CPULoad=0.39
+   AvailableFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   ActiveFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   Gres=gpu:v100:4
+   NodeAddr=pcg004 NodeHostName=pcg004 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=94000 AllocMem=0 FreeMem=88386 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:42:31 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:06:49 ResumeAfterTime=None
+   CfgTRES=cpu=20,mem=94000M,billing=162,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg005 Arch=x86_64 CoresPerSocket=10 
+   CPUAlloc=0 CPUEfctv=20 CPUTot=20 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   ActiveFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   Gres=gpu:v100:4
+   NodeAddr=pcg005 NodeHostName=pcg005 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=94000 AllocMem=0 FreeMem=88101 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:42:36 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:26:22 ResumeAfterTime=None
+   CfgTRES=cpu=20,mem=94000M,billing=162,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg006 Arch=x86_64 CoresPerSocket=10 
+   CPUAlloc=0 CPUEfctv=20 CPUTot=20 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   ActiveFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   Gres=gpu:v100:4
+   NodeAddr=pcg006 NodeHostName=pcg006 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=94000 AllocMem=0 FreeMem=85890 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-15T16:46:00 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:28:22 ResumeAfterTime=None
+   CfgTRES=cpu=20,mem=94000M,billing=162,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg007 Arch=x86_64 CoresPerSocket=10 
+   CPUAlloc=0 CPUEfctv=20 CPUTot=20 CPULoad=0.02
+   AvailableFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   ActiveFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   Gres=gpu:v100:4
+   NodeAddr=pcg007 NodeHostName=pcg007 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=94000 AllocMem=0 FreeMem=89346 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:42:37 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:00:12 ResumeAfterTime=None
+   CfgTRES=cpu=20,mem=94000M,billing=162,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg008 Arch=x86_64 CoresPerSocket=10 
+   CPUAlloc=0 CPUEfctv=20 CPUTot=20 CPULoad=0.03
+   AvailableFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   ActiveFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   Gres=gpu:v100:4
+   NodeAddr=pcg008 NodeHostName=pcg008 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=94000 AllocMem=0 FreeMem=90718 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:43:37 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:48:08 ResumeAfterTime=None
+   CfgTRES=cpu=20,mem=94000M,billing=162,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg009 Arch=x86_64 CoresPerSocket=10 
+   CPUAlloc=0 CPUEfctv=20 CPUTot=20 CPULoad=0.11
+   AvailableFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   ActiveFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_lslade,grp_scai_courses,grp_scai_faculty,grp_scai_researchers
+   Gres=gpu:v100:4
+   NodeAddr=pcg009 NodeHostName=pcg009 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=94000 AllocMem=0 FreeMem=81986 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:38:44 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:46:17 ResumeAfterTime=None
+   CfgTRES=cpu=20,mem=94000M,billing=162,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg010 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=4 CPUEfctv=24 CPUTot=24 CPULoad=3.26
+   AvailableFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_cbaral,grp_pturaga,grp_yyang305
+   ActiveFeatures=public,private,debug,intel,skylake,prerelease,avx512,v100_16,grp_cbaral,grp_pturaga,grp_yyang305
+   Gres=gpu:v100:8
+   NodeAddr=pcg010 NodeHostName=pcg010 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=121856 FreeMem=164750 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-21T16:14:44 SlurmdStartTime=2024-09-26T13:04:15
+   LastBusyTime=2024-10-21T22:54:29 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=190000M,billing=310,gres/gpu=8,gres/gpu:v100=8
+   AllocTRES=cpu=4,mem=119G,gres/gpu=5,gres/gpu:v100=5
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg011 Arch=x86_64 CoresPerSocket=18 
+   CPUAlloc=0 CPUEfctv=36 CPUTot=36 CPULoad=0.05
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,grp_yyang409
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,grp_yyang409
+   Gres=gpu:v100:4
+   NodeAddr=pcg011 NodeHostName=pcg011 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=94000 AllocMem=0 FreeMem=84512 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:37:57 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:27:46 ResumeAfterTime=None
+   CfgTRES=cpu=36,mem=94000M,billing=178,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg012 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=0.02
+   AvailableFeatures=private,intel,skylake,avx512,v100_32,grp_mrline
+   ActiveFeatures=private,intel,skylake,avx512,v100_32,grp_mrline
+   Gres=gpu:v100:4
+   NodeAddr=pcg012 NodeHostName=pcg012 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=383000 AllocMem=0 FreeMem=366848 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-16T16:26:22 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T04:48:44 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=383000M,billing=261,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg013 Arch=x86_64 CoresPerSocket=32 
+   CPUAlloc=0 CPUEfctv=64 CPUTot=64 CPULoad=0.04
+   AvailableFeatures=private,epyc,zen3,prerelease,a100_40,grp_mrline
+   ActiveFeatures=private,epyc,zen3,prerelease,a100_40,grp_mrline
+   Gres=gpu:3g.20gb:4
+   NodeAddr=pcg013 NodeHostName=pcg013 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=255000 AllocMem=0 FreeMem=245045 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:38:14 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T19:36:15 ResumeAfterTime=None
+   CfgTRES=cpu=64,mem=255000M,billing=266,gres/gpu=4,gres/gpu:3g.20gb=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg014 CoresPerSocket=28 
+   CPUAlloc=0 CPUEfctv=56 CPUTot=56 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,icelake,avx512,a100_80,grp_bbbartel
+   ActiveFeatures=public,private,debug,intel,icelake,avx512,a100_80,grp_bbbartel
+   Gres=gpu:a100:1
+   NodeAddr=pcg014 NodeHostName=pcg014 
+   RealMemory=255000 AllocMem=0 FreeMem=N/A Sockets=2 Boards=1
+   State=DOWN+DRAIN+NOT_RESPONDING ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=None SlurmdStartTime=None
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=56,mem=255000M,billing=158,gres/gpu=1,gres/gpu:a100=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+   Reason=manual drain by root: Draining to move to GWC -Ian : Not responding [slurm@2024-07-11T09:01:34]
+
+NodeName=pcg015 Arch=x86_64 CoresPerSocket=10 
+   CPUAlloc=16 CPUEfctv=20 CPUTot=20 CPULoad=0.48
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_psulc
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_psulc
+   Gres=gpu:gtx1080:8
+   NodeAddr=pcg015 NodeHostName=pcg015 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=4096 FreeMem=54084 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:35:31 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:10:03 ResumeAfterTime=None
+   CfgTRES=cpu=20,mem=63000M,billing=283,gres/gpu=8,gres/gpu:gtx1080=8
+   AllocTRES=cpu=16,mem=4G,gres/gpu=1,gres/gpu:gtx1080=1
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg016 Arch=x86_64 CoresPerSocket=14 
+   CPUAlloc=0 CPUEfctv=28 CPUTot=28 CPULoad=0.74
+   AvailableFeatures=public,private,debug,intel,skylake,avx512,grp_psulc
+   ActiveFeatures=public,private,debug,intel,skylake,avx512,grp_psulc
+   Gres=gpu:gtx1080:4
+   NodeAddr=pcg016 NodeHostName=pcg016 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=90000 AllocMem=0 FreeMem=77467 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-15T09:32:15 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:25:43 ResumeAfterTime=None
+   CfgTRES=cpu=28,mem=90000M,billing=173,gres/gpu=4,gres/gpu:gtx1080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg017 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUEfctv=32 CPUTot=32 CPULoad=0.14
+   AvailableFeatures=public,private,debug,epyc,zen2,grp_psulc
+   ActiveFeatures=public,private,debug,epyc,zen2,grp_psulc
+   Gres=gpu:a6000:8
+   NodeAddr=pcg017 NodeHostName=pcg017 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=192000 AllocMem=0 FreeMem=164449 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-23T17:42:02 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=32,mem=187.50G,billing=326,gres/gpu=8,gres/gpu:a6000=8
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg018 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=12 CPUEfctv=48 CPUTot=48 CPULoad=12.11
+   AvailableFeatures=public,private,debug,epyc,zen3,prerelease,grp_rwang133
+   ActiveFeatures=public,private,debug,epyc,zen3,prerelease,grp_rwang133
+   Gres=gpu:a6000:8
+   NodeAddr=pcg018 NodeHostName=pcg018 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=515000 AllocMem=262144 FreeMem=468135 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-12T17:18:48 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T14:14:42 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=515000M,billing=421,gres/gpu=8,gres/gpu:a6000=8
+   AllocTRES=cpu=12,mem=256G,gres/gpu=1,gres/gpu:a6000=1
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg019 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=0.00
+   AvailableFeatures=public,private,debug,epyc,zen3,prerelease,grp_rwang133
+   ActiveFeatures=public,private,debug,epyc,zen3,prerelease,grp_rwang133
+   Gres=gpu:a6000:8
+   NodeAddr=pcg019 NodeHostName=pcg019 
+   RealMemory=515000 AllocMem=0 FreeMem=N/A Sockets=2 Boards=1
+   State=DOWN+NOT_RESPONDING ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=None SlurmdStartTime=None
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=515000M,billing=421,gres/gpu=8,gres/gpu:a6000=8
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+   Reason=Not responding [slurm@2024-06-21T10:10:03]
+
+NodeName=pcg020 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=24 CPUEfctv=24 CPUTot=24 CPULoad=24.02
+   AvailableFeatures=public,private,debug,intel,skylake,avx512,opa,prerelease,grp_wzheng38
+   ActiveFeatures=public,private,debug,intel,skylake,avx512,opa,prerelease,grp_wzheng38
+   Gres=gpu:rtx2080:3
+   NodeAddr=pcg020 NodeHostName=pcg020 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=8192 FreeMem=88656 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-18T14:44:53 SlurmdStartTime=2024-09-26T13:04:25
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=93000M,billing=139,gres/gpu=3,gres/gpu:rtx2080=3
+   AllocTRES=cpu=24,mem=8G,gres/gpu=2,gres/gpu:rtx2080=2
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg021 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=24 CPUEfctv=24 CPUTot=24 CPULoad=24.00
+   AvailableFeatures=public,private,debug,intel,skylake,avx512,opa,prerelease,grp_wzheng38
+   ActiveFeatures=public,private,debug,intel,skylake,avx512,opa,prerelease,grp_wzheng38
+   Gres=gpu:rtx2080:4
+   NodeAddr=pcg021 NodeHostName=pcg021 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=8192 FreeMem=80975 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T16:50:14 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=93000M,billing=170,gres/gpu=4,gres/gpu:rtx2080=4
+   AllocTRES=cpu=24,mem=8G,gres/gpu=2,gres/gpu:rtx2080=2
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg022 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=24 CPUEfctv=24 CPUTot=24 CPULoad=24.02
+   AvailableFeatures=public,private,debug,intel,skylake,avx512,opa,prerelease,grp_wzheng38
+   ActiveFeatures=public,private,debug,intel,skylake,avx512,opa,prerelease,grp_wzheng38
+   Gres=gpu:rtx2080:4
+   NodeAddr=pcg022 NodeHostName=pcg022 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=8192 FreeMem=80430 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-16T14:10:05 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=93000M,billing=170,gres/gpu=4,gres/gpu:rtx2080=4
+   AllocTRES=cpu=24,mem=8G,gres/gpu=2,gres/gpu:rtx2080=2
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg023 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=24 CPUEfctv=24 CPUTot=24 CPULoad=4.00
+   AvailableFeatures=public,private,debug,intel,skylake,avx512,opa,prerelease,grp_wzheng38
+   ActiveFeatures=public,private,debug,intel,skylake,avx512,opa,prerelease,grp_wzheng38
+   Gres=gpu:rtx2080:3
+   NodeAddr=pcg023 NodeHostName=pcg023 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=30720 FreeMem=80105 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:32 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=93000M,billing=139,gres/gpu=3,gres/gpu:rtx2080=3
+   AllocTRES=cpu=24,mem=30G,gres/gpu=3,gres/gpu:rtx2080=3
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg024 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=24 CPUEfctv=24 CPUTot=24 CPULoad=4.00
+   AvailableFeatures=public,private,debug,intel,skylake,avx512,opa,prerelease,grp_wzheng38
+   ActiveFeatures=public,private,debug,intel,skylake,avx512,opa,prerelease,grp_wzheng38
+   Gres=gpu:rtx2080:4
+   NodeAddr=pcg024 NodeHostName=pcg024 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=30720 FreeMem=79775 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:10 SlurmdStartTime=2024-09-26T13:04:11
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=93000M,billing=170,gres/gpu=4,gres/gpu:rtx2080=4
+   AllocTRES=cpu=24,mem=30G,gres/gpu=3,gres/gpu:rtx2080=3
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg025 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=1.26
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_mfiacco
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_mfiacco
+   Gres=gpu:v100:4
+   NodeAddr=pcg025 NodeHostName=pcg025 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=1545000 AllocMem=0 FreeMem=1508801 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-06-10T13:41:27 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T15:25:27 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=1545000M,billing=549,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg026 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=4 CPUEfctv=40 CPUTot=40 CPULoad=5.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,v100_32,prerelease,grp_joswald,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,v100_32,prerelease,grp_joswald,grp_cmuhich
+   Gres=gpu:v100:4
+   NodeAddr=pcg026 NodeHostName=pcg026 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=110592 FreeMem=147696 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-08-09T01:01:56 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=206,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=cpu=4,mem=108G,gres/gpu=4,gres/gpu:v100=4
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg027 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=4 CPUEfctv=40 CPUTot=40 CPULoad=5.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_joswald,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_joswald,grp_cmuhich
+   Gres=gpu:v100:4
+   NodeAddr=pcg027 NodeHostName=pcg027 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=49152 FreeMem=67694 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-08-06T11:37:02 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T15:49:45 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=93000M,billing=182,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=cpu=4,mem=48G,gres/gpu=4,gres/gpu:v100=4
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg028 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=4 CPUEfctv=40 CPUTot=40 CPULoad=5.02
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,v100_32,prerelease,grp_joswald,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,v100_32,prerelease,grp_joswald,grp_cmuhich
+   Gres=gpu:v100:4
+   NodeAddr=pcg028 NodeHostName=pcg028 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=49152 FreeMem=167053 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-08-06T09:39:22 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T13:57:01 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=190000M,billing=206,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=cpu=4,mem=48G,gres/gpu=4,gres/gpu:v100=4
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg029 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=40 CPUEfctv=40 CPUTot=40 CPULoad=2.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_joswald,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_joswald,grp_cmuhich
+   Gres=gpu:v100:4
+   NodeAddr=pcg029 NodeHostName=pcg029 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=40960 FreeMem=85197 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-08-06T11:56:33 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T09:56:35 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=93000M,billing=182,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=cpu=40,mem=40G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg030 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=4 CPUEfctv=40 CPUTot=40 CPULoad=5.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_joswald,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_joswald,grp_cmuhich
+   Gres=gpu:v100:4
+   NodeAddr=pcg030 NodeHostName=pcg030 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=49152 FreeMem=69166 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-08-06T11:56:14 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T15:49:44 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=93000M,billing=182,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=cpu=4,mem=48G,gres/gpu=4,gres/gpu:v100=4
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg031 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=4 CPUEfctv=40 CPUTot=40 CPULoad=5.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_joswald,grp_cmuhich
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_joswald,grp_cmuhich
+   Gres=gpu:v100:4
+   NodeAddr=pcg031 NodeHostName=pcg031 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=49152 FreeMem=68745 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-08-06T11:56:06 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T15:49:44 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=93000M,billing=182,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=cpu=4,mem=48G,gres/gpu=4,gres/gpu:v100=4
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg032 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.08
+   AvailableFeatures=public,private,debug,epyc,zen2,prerelease,grp_cmuhich
+   ActiveFeatures=public,private,debug,epyc,zen2,prerelease,grp_cmuhich
+   Gres=gpu:rtx2080:3
+   NodeAddr=pcg032 NodeHostName=pcg032 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=127000 AllocMem=0 FreeMem=109344 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-18T11:00:06 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=127000M,billing=148,gres/gpu=3,gres/gpu:rtx2080=3
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg033 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.12
+   AvailableFeatures=public,private,debug,epyc,zen2,prerelease,grp_cmuhich
+   ActiveFeatures=public,private,debug,epyc,zen2,prerelease,grp_cmuhich
+   Gres=gpu:rtx2080:4
+   NodeAddr=pcg033 NodeHostName=pcg033 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=127000 AllocMem=0 FreeMem=109685 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T13:45:15 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=127000M,billing=179,gres/gpu=4,gres/gpu:rtx2080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg034 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.02
+   AvailableFeatures=public,private,debug,epyc,zen2,prerelease,grp_cmuhich
+   ActiveFeatures=public,private,debug,epyc,zen2,prerelease,grp_cmuhich
+   Gres=gpu:rtx2080:4
+   NodeAddr=pcg034 NodeHostName=pcg034 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=127000 AllocMem=0 FreeMem=107025 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T13:45:17 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:55 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=127000M,billing=179,gres/gpu=4,gres/gpu:rtx2080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg035 Arch=x86_64 CoresPerSocket=28 
+   CPUAlloc=0 CPUEfctv=56 CPUTot=56 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,icelake,avx512,prerelease,grp_obeckste
+   ActiveFeatures=public,private,debug,intel,icelake,avx512,prerelease,grp_obeckste
+   Gres=gpu:a40:4
+   NodeAddr=pcg035 NodeHostName=pcg035 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=255000 AllocMem=0 FreeMem=236114 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:28:40 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:02:14 ResumeAfterTime=None
+   CfgTRES=cpu=56,mem=255000M,billing=242,gres/gpu=4,gres/gpu:a40=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg036 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.14
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:4
+   NodeAddr=pcg036 NodeHostName=pcg036 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=0 FreeMem=57914 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:06 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-20T11:12:26 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=163,gres/gpu=4,gres/gpu:gtx1080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg037 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=2.09
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:2
+   NodeAddr=pcg037 NodeHostName=pcg037 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=0 FreeMem=55331 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-08-26T12:45:05 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-17T23:02:57 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=101,gres/gpu=2,gres/gpu:gtx1080=2
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg038 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.11
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:3
+   NodeAddr=pcg038 NodeHostName=pcg038 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=0 FreeMem=53224 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:58:08 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T01:06:48 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=132,gres/gpu=3,gres/gpu:gtx1080=3
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg039 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.13
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:4
+   NodeAddr=pcg039 NodeHostName=pcg039 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=0 FreeMem=49660 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:10 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-20T19:36:53 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=163,gres/gpu=4,gres/gpu:gtx1080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg040 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.13
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:4
+   NodeAddr=pcg040 NodeHostName=pcg040 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=0 FreeMem=49977 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:26 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-17T23:06:57 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=163,gres/gpu=4,gres/gpu:gtx1080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg041 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.10
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:2,gpu:a4000:2
+   NodeAddr=pcg041 NodeHostName=pcg041 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=0 FreeMem=54418 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:01 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-19T12:26:45 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=121,gres/gpu=4,gres/gpu:a4000=2,gres/gpu:gtx1080=2
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg042 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.14
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:4
+   NodeAddr=pcg042 NodeHostName=pcg042 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=0 FreeMem=52187 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:30:02 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T17:35:52 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=163,gres/gpu=4,gres/gpu:gtx1080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg043 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.09
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:4
+   NodeAddr=pcg043 NodeHostName=pcg043 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=0 FreeMem=60994 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-10-17T09:21:37 SlurmdStartTime=2024-10-17T09:25:05
+   LastBusyTime=2024-10-21T22:54:59 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=163,gres/gpu=4,gres/gpu:gtx1080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg044 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=8 CPUEfctv=24 CPUTot=24 CPULoad=8.78
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:4
+   NodeAddr=pcg044 NodeHostName=pcg044 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=8192 FreeMem=49967 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T11:43:27 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=163,gres/gpu=4,gres/gpu:gtx1080=4
+   AllocTRES=cpu=8,mem=8G,gres/gpu=2,gres/gpu:gtx1080=2
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg045 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.10
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:4
+   NodeAddr=pcg045 NodeHostName=pcg045 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=0 FreeMem=56634 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-09T14:58:21 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-19T06:16:16 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=163,gres/gpu=4,gres/gpu:gtx1080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg046 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=8 CPUEfctv=24 CPUTot=24 CPULoad=8.09
+   AvailableFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,broadwell,prerelease,grp_obeckste,grp_mheyden1,grp_sozkan
+   Gres=gpu:gtx1080:4
+   NodeAddr=pcg046 NodeHostName=pcg046 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=63000 AllocMem=8192 FreeMem=49219 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:29:52 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=63000M,billing=163,gres/gpu=4,gres/gpu:gtx1080=4
+   AllocTRES=cpu=8,mem=8G,gres/gpu=2,gres/gpu:gtx1080=2
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg047 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=12 CPUEfctv=24 CPUTot=24 CPULoad=2.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sozkan
+   Gres=gpu:gtx2080:4
+   NodeAddr=pcg047 NodeHostName=pcg047 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=8192 FreeMem=87860 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:31:26 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T16:37:32 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=93000M,billing=86,gres/gpu=4
+   AllocTRES=cpu=12,mem=8G,gres/gpu=2
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg048 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sozkan
+   Gres=gpu:gtx2080:4
+   NodeAddr=pcg048 NodeHostName=pcg048 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=0 FreeMem=89154 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:32:30 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T10:41:00 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=93000M,billing=86,gres/gpu=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg049 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sozkan
+   Gres=gpu:gtx2080:4
+   NodeAddr=pcg049 NodeHostName=pcg049 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=0 FreeMem=89367 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T14:06:49 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T20:41:05 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=93000M,billing=86,gres/gpu=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg050 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=24 CPUEfctv=24 CPUTot=24 CPULoad=4.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sozkan
+   Gres=gpu:gtx2080:4
+   NodeAddr=pcg050 NodeHostName=pcg050 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=16384 FreeMem=86995 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:31:03 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:34:35 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=93000M,billing=86,gres/gpu=4
+   AllocTRES=cpu=24,mem=16G,gres/gpu=4
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg051 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=18 CPUEfctv=24 CPUTot=24 CPULoad=3.00
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sozkan
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sozkan
+   Gres=gpu:gtx2080:4
+   NodeAddr=pcg051 NodeHostName=pcg051 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=93000 AllocMem=12288 FreeMem=87221 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:30:52 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:34:34 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=93000M,billing=86,gres/gpu=4
+   AllocTRES=cpu=18,mem=12G,gres/gpu=3
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg052 Arch=x86_64 CoresPerSocket=32 
+   CPUAlloc=48 CPUEfctv=64 CPUTot=64 CPULoad=0.37
+   AvailableFeatures=public,private,debug,epyc,zen2,prerelease,a100_40,grp_yren32
+   ActiveFeatures=public,private,debug,epyc,zen2,prerelease,a100_40,grp_yren32
+   Gres=gpu:a100:6
+   NodeAddr=pcg052 NodeHostName=pcg052 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=255000 AllocMem=131072 FreeMem=205114 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T13:05:28 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=64,mem=255000M,billing=366,gres/gpu=6,gres/gpu:a100=6
+   AllocTRES=cpu=48,mem=128G,gres/gpu=4,gres/gpu:a100=4
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg053 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=8 CPUEfctv=52 CPUTot=52 CPULoad=0.03
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,a100_40,grp_lsankar
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,a100_40,grp_lsankar
+   Gres=gpu:a100:3
+   NodeAddr=pcg053 NodeHostName=pcg053 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=65536 FreeMem=147161 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-15T14:59:39 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=218,gres/gpu=3,gres/gpu:a100=3
+   AllocTRES=cpu=8,mem=64G,gres/gpu=1,gres/gpu:a100=1
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg054 Arch=x86_64 CoresPerSocket=24 
+   CPUAlloc=24 CPUEfctv=48 CPUTot=48 CPULoad=0.07
+   AvailableFeatures=public,private,debug,intel,icelake,avx512,prerelease,a100_80,grp_lsankar
+   ActiveFeatures=public,private,debug,intel,icelake,avx512,prerelease,a100_80,grp_lsankar
+   Gres=gpu:a100:2
+   NodeAddr=pcg054 NodeHostName=pcg054 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=255000 AllocMem=81920 FreeMem=236301 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T08:28:47 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=255000M,billing=190,gres/gpu=2,gres/gpu:a100=2
+   AllocTRES=cpu=24,mem=80G,gres/gpu=1,gres/gpu:a100=1
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg055 Arch=x86_64 CoresPerSocket=16 
+   CPUAlloc=0 CPUEfctv=32 CPUTot=32 CPULoad=0.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_lsankar
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_lsankar
+   Gres=gpu:gtx2080:4
+   NodeAddr=pcg055 NodeHostName=pcg055 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=188206 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-10-15T10:47:30 SlurmdStartTime=2024-10-15T10:50:56
+   LastBusyTime=2024-10-16T15:49:11 ResumeAfterTime=None
+   CfgTRES=cpu=32,mem=190000M,billing=118,gres/gpu=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg056 Arch=x86_64 CoresPerSocket=28 
+   CPUAlloc=56 CPUEfctv=56 CPUTot=56 CPULoad=0.01
+   AvailableFeatures=public,private,debug,intel,icelake,avx512,prerelease,a100_40,grp_tmcdani
+   ActiveFeatures=public,private,debug,intel,icelake,avx512,prerelease,a100_40,grp_tmcdani
+   Gres=gpu:a100:2
+   NodeAddr=pcg056 NodeHostName=pcg056 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=190000 FreeMem=179087 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-10-15T10:46:41 SlurmdStartTime=2024-10-15T10:49:28
+   LastBusyTime=2024-10-16T15:48:50 ResumeAfterTime=None
+   CfgTRES=cpu=56,mem=190000M,billing=182,gres/gpu=2,gres/gpu:a100=2
+   AllocTRES=cpu=56,mem=190000M,gres/gpu=2,gres/gpu:a100=2
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg057 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=0 CPUEfctv=52 CPUTot=52 CPULoad=0.01
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sjayasur
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sjayasur
+   Gres=gpu:rtx6000:3
+   NodeAddr=pcg057 NodeHostName=pcg057 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=187384 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-10-15T10:47:25 SlurmdStartTime=2024-10-15T10:50:07
+   LastBusyTime=2024-10-16T15:46:46 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=190000M,billing=128,gres/gpu=3,gres/gpu:rtx6000=3
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg058 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.09
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sjayasur
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,prerelease,grp_sjayasur
+   Gres=gpu:rtx2080:4
+   NodeAddr=pcg058 NodeHostName=pcg058 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=188007 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-10-15T10:50:18 SlurmdStartTime=2024-10-15T10:54:33
+   LastBusyTime=2024-10-16T15:57:07 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=190000M,billing=194,gres/gpu=4,gres/gpu:rtx2080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg059 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=1 CPUEfctv=24 CPUTot=24 CPULoad=2.03
+   AvailableFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_scrook
+   ActiveFeatures=public,private,debug,intel,cascadelake,avx512,v100_16,prerelease,grp_scrook
+   Gres=gpu:v100:1
+   NodeAddr=pcg059 NodeHostName=pcg059 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=13312 FreeMem=177129 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:58:41 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T09:19:24 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=190000M,billing=100,gres/gpu=1,gres/gpu:v100=1
+   AllocTRES=cpu=1,mem=13G,gres/gpu=1,gres/gpu:v100=1
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg060 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=36 CPUEfctv=40 CPUTot=40 CPULoad=0.14
+   AvailableFeatures=public,private,debug,intel,broadwell,v100_32,grp_jliang12
+   ActiveFeatures=public,private,debug,intel,broadwell,v100_32,grp_jliang12
+   Gres=gpu:v100:8
+   NodeAddr=pcg060 NodeHostName=pcg060 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=515000 AllocMem=262144 FreeMem=509001 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-27T13:57:36 SlurmdStartTime=2024-09-27T14:01:27
+   LastBusyTime=2024-10-18T14:16:58 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=515000M,billing=405,gres/gpu=8,gres/gpu:v100=8
+   AllocTRES=cpu=36,mem=256G,gres/gpu=8,gres/gpu:v100=8
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg061 Arch=x86_64 CoresPerSocket=28 
+   CPUAlloc=0 CPUEfctv=56 CPUTot=56 CPULoad=0.00
+   AvailableFeatures=public,private,debug,prerelease,intel,icelake,avx512,grp_dmatyus
+   ActiveFeatures=public,private,debug,prerelease,intel,icelake,avx512,grp_dmatyus
+   Gres=gpu:a40:1
+   NodeAddr=pcg061 NodeHostName=pcg061 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=515000 AllocMem=0 FreeMem=502454 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-09-25T09:02:21 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:03:58 ResumeAfterTime=None
+   CfgTRES=cpu=56,mem=515000M,billing=212,gres/gpu=1,gres/gpu:a40=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg062 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=1.10
+   AvailableFeatures=public,private,debug,prerelease,intel,cascadelake,opa,avx512,grp_gasner
+   ActiveFeatures=public,private,debug,prerelease,intel,cascadelake,opa,avx512,grp_gasner
+   Gres=gpu:rtx2080:4
+   NodeAddr=pcg062 NodeHostName=pcg062 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=0 FreeMem=182314 Sockets=2 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T11:46:00 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:44:55 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=190000M,billing=194,gres/gpu=4,gres/gpu:rtx2080=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg064 Arch=x86_64 CoresPerSocket=12 
+   CPUAlloc=8 CPUEfctv=24 CPUTot=24 CPULoad=8.10
+   AvailableFeatures=public,private,debug,prerelease,intel,cascadelake,opa,avx512,v100_32,grp_gasner
+   ActiveFeatures=public,private,debug,prerelease,intel,cascadelake,opa,avx512,v100_32,grp_gasner
+   Gres=gpu:v100:2
+   NodeAddr=pcg064 NodeHostName=pcg064 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=190000 AllocMem=131072 FreeMem=160405 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T17:12:10 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T09:25:50 ResumeAfterTime=None
+   CfgTRES=cpu=24,mem=190000M,billing=130,gres/gpu=2,gres/gpu:v100=2
+   AllocTRES=cpu=8,mem=128G,gres/gpu=1,gres/gpu:v100=1
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg066 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=6 CPUEfctv=8 CPUTot=8 CPULoad=0.24
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg066 NodeHostName=pcg066 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=92000 FreeMem=15899 Sockets=1 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T17:12:07 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T12:35:36 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=cpu=6,mem=92000M,gres/gpu=1,gres/gpu:gtx1080=1
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg067 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=6 CPUEfctv=8 CPUTot=8 CPULoad=0.80
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg067 NodeHostName=pcg067 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=92000 FreeMem=28726 Sockets=1 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T17:12:11 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-17T16:40:19 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=cpu=6,mem=92000M,gres/gpu=1,gres/gpu:gtx1080=1
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg068 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=6 CPUEfctv=8 CPUTot=8 CPULoad=1.16
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg068 NodeHostName=pcg068 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=92000 FreeMem=29438 Sockets=1 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:34 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:49:15 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=cpu=6,mem=92000M,gres/gpu=1,gres/gpu:gtx1080=1
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg069 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.02
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg069 NodeHostName=pcg069 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=86049 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:58:42 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:57:26 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg070 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg070 NodeHostName=pcg070 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=90671 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:58:45 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:49:19 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg071 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg071 NodeHostName=pcg071 
+   RealMemory=92000 AllocMem=0 FreeMem=N/A Sockets=1 Boards=1
+   State=DOWN+NOT_RESPONDING ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=None SlurmdStartTime=None
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+   Reason=Not responding [slurm@2024-05-29T15:11:59]
+
+NodeName=pcg072 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.03
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg072 NodeHostName=pcg072 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=90647 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:53 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:52:27 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg073 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.03
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg073 NodeHostName=pcg073 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=90629 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:58:43 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:47:50 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg074 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.01
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg074 NodeHostName=pcg074 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=90684 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:58:33 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T16:05:09 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg075 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.01
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg075 NodeHostName=pcg075 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=82931 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:31 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:46:07 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg076 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg076 NodeHostName=pcg076 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=83770 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T15:00:15 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:57:11 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg077 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg077 NodeHostName=pcg077 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=83215 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:54 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:56:31 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg078 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg078 NodeHostName=pcg078 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=88039 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:31 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:46:01 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg079 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg079 NodeHostName=pcg079 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=80765 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T17:13:17 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:59:52 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg080 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.05
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg080 NodeHostName=pcg080 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=87753 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-19T13:51:46 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:45:55 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg081 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=0.00
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg081 NodeHostName=pcg081 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=80740 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T17:12:16 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:46:05 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg082 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=0.03
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg082 NodeHostName=pcg082 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=80821 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-05-29T17:12:11 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:48:10 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg083 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.00
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg083 NodeHostName=pcg083 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=88168 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:59:09 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:48:02 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pcg084 Arch=x86_64 CoresPerSocket=8 
+   CPUAlloc=0 CPUEfctv=8 CPUTot=8 CPULoad=1.02
+   AvailableFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   ActiveFeatures=public,private,debug,intel,skylake,opa,avx512,grp_asinghar
+   Gres=gpu:gtx1080:1
+   NodeAddr=pcg084 NodeHostName=pcg084 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=92000 AllocMem=0 FreeMem=87819 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-03T14:57:00 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T15:49:28 ResumeAfterTime=None
+   CfgTRES=cpu=8,mem=92000M,billing=61,gres/gpu=1,gres/gpu:gtx1080=1
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pch001 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=52 CPUEfctv=52 CPUTot=52 CPULoad=1.80
+   AvailableFeatures=public,private,debug,prerelease,intel,cascadelake,avx512,grp_breadhea
+   ActiveFeatures=public,private,debug,prerelease,intel,cascadelake,avx512,grp_breadhea
+   Gres=(null)
+   NodeAddr=pch001 NodeHostName=pch001 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=1545000 AllocMem=1545000 FreeMem=1383840 Sockets=2 Boards=1
+   State=ALLOCATED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=highmem,htc 
+   BootTime=2024-04-12T11:26:16 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-22T09:01:00 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=1545000M,billing=429
+   AllocTRES=cpu=52,mem=1545000M
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pg001 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=20 CPUEfctv=40 CPUTot=40 CPULoad=2.01
+   AvailableFeatures=public,debug,long,intel,skylake,avx512,v100_32,prerelease
+   ActiveFeatures=public,debug,long,intel,skylake,avx512,v100_32,prerelease
+   Gres=gpu:v100:4
+   NodeAddr=pg001 NodeHostName=pg001 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385024 AllocMem=307200 FreeMem=371361 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-09T13:49:49 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-18T08:00:26 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=376G,billing=254,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=cpu=20,mem=300G,gres/gpu=4,gres/gpu:v100=4
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pg002 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=22 CPUEfctv=40 CPUTot=40 CPULoad=4.06
+   AvailableFeatures=public,debug,long,intel,skylake,avx512,v100_32,prerelease
+   ActiveFeatures=public,debug,long,intel,skylake,avx512,v100_32,prerelease
+   Gres=gpu:v100:4
+   NodeAddr=pg002 NodeHostName=pg002 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=385024 AllocMem=372736 FreeMem=349495 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-07-09T13:49:56 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-20T23:25:52 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=376G,billing=254,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=cpu=22,mem=364G,gres/gpu=4,gres/gpu:v100=4
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pg003 Arch=x86_64 CoresPerSocket=26 
+   CPUAlloc=24 CPUEfctv=52 CPUTot=52 CPULoad=24.00
+   AvailableFeatures=public,debug,long,intel,cascadelake,avx512,v100_16,prerelease
+   ActiveFeatures=public,debug,long,intel,cascadelake,avx512,v100_16,prerelease
+   Gres=gpu:v100:4
+   NodeAddr=pg003 NodeHostName=pg003 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=186000 AllocMem=8192 FreeMem=173928 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T13:40:32 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=52,mem=186000M,billing=217,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=cpu=24,mem=8G,gres/gpu=2,gres/gpu:v100=2
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pg004 Arch=x86_64 CoresPerSocket=20 
+   CPUAlloc=1 CPUEfctv=40 CPUTot=40 CPULoad=1.01
+   AvailableFeatures=public,debug,long,intel,cascadelake,avx512,v100_16,prerelease
+   ActiveFeatures=public,debug,long,intel,cascadelake,avx512,v100_16,prerelease
+   Gres=gpu:v100:4
+   NodeAddr=pg004 NodeHostName=pg004 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=186000 AllocMem=15360 FreeMem=157745 Sockets=2 Boards=1
+   State=MIXED ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=2024-04-17T15:06:01 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-17T13:08:35 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=186000M,billing=205,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=cpu=1,mem=15G,gres/gpu=1,gres/gpu:v100=1
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=pg005 CoresPerSocket=20 
+   CPUAlloc=0 CPUEfctv=40 CPUTot=40 CPULoad=0.00
+   AvailableFeatures=public,debug,long,intel,cascadelake,avx512,v100_16,prerelease
+   ActiveFeatures=public,debug,long,intel,cascadelake,avx512,v100_16,prerelease
+   Gres=gpu:v100:4
+   NodeAddr=pg005 NodeHostName=pg005 
+   RealMemory=186000 AllocMem=0 FreeMem=N/A Sockets=2 Boards=1
+   State=DOWN+NOT_RESPONDING ThreadsPerCore=1 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=general,htc 
+   BootTime=None SlurmdStartTime=None
+   LastBusyTime=2024-10-16T13:05:52 ResumeAfterTime=None
+   CfgTRES=cpu=40,mem=186000M,billing=205,gres/gpu=4,gres/gpu:v100=4
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+   Reason=Not responding [slurm@2024-05-29T09:13:59]
+
+NodeName=ph001 Arch=x86_64 CoresPerSocket=14 
+   CPUAlloc=2 CPUEfctv=112 CPUTot=112 CPULoad=0.01
+   AvailableFeatures=public,debug,intel,skylake,avx512
+   ActiveFeatures=public,debug,intel,skylake,avx512
+   Gres=(null)
+   NodeAddr=ph001 NodeHostName=ph001 Version=23.11.5
+   OS=Linux 4.18.0-513.18.1.el8_9.x86_64 #1 SMP Wed Feb 21 21:34:36 UTC 2024 
+   RealMemory=1545000 AllocMem=4096 FreeMem=1538383 Sockets=4 Boards=1
+   State=MIXED ThreadsPerCore=2 TmpDisk=4096 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=highmem 
+   BootTime=2024-07-19T12:33:46 SlurmdStartTime=2024-09-26T13:04:10
+   LastBusyTime=2024-10-21T16:36:35 ResumeAfterTime=None
+   CfgTRES=cpu=112,mem=1545000M,billing=489
+   AllocTRES=cpu=2,mem=4G
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+

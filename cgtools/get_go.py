@@ -89,6 +89,17 @@ def check_browsers():
         print(f"{browser.capitalize()}: {'Installed' if installed else 'Not installed'}")
 
 
+def check_geckodriver_installed():
+    try:
+        # Try to run 'geckodriver --version' and capture output
+        sp.run(['geckodriver', '--version'], capture_output=True, text=True, check=True)
+        return True  # Geckodriver is installed
+    except sp.CalledProcessError:
+        return False  # Geckodriver command failed, but it exists
+    except FileNotFoundError:
+        return False  # Geckodriver is not installed or not in PATH
+
+
 def init_webdriver(download_dir):
     """
     Initialize the Firefox WebDriver with specified options.
@@ -104,7 +115,10 @@ def init_webdriver(download_dir):
     options.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/x-gzip")
 
     # Initialize the web driver
-    driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options)
+    if check_geckodriver_installed():
+        driver = webdriver.Firefox(options=options)
+    else:
+        driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options)
     print("WebDriver initialized.")
     return driver
 

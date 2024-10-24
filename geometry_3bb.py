@@ -151,12 +151,13 @@ def update_topology(topology, bonds, angles, dihedrals, std_bonds, std_angles, s
 def bonded_parameters():
     resnames = ('A', 'C', 'G', 'U') # ('A', 'C', 'G', 'U')  ('A', 'U') 
     version = 'new'
-    molecule = "test"
-    system = sys.argv[1]
-    topology = read_topology(   a_itp=f'cgtools/itp/nucbonded/RNA_A_{version}.itp', 
-                                c_itp=f'cgtools/itp/nucbonded/RNA_C_{version}.itp', 
-                                g_itp=f'cgtools/itp/nucbonded/RNA_G_{version}.itp', 
-                                u_itp=f'cgtools/itp/nucbonded/RNA_U_{version}.itp')
+    molecule = "RNA"
+    mdrun = sys.argv[1]
+    system = '100bpRNA' # sys.argv[1]
+    topology = read_topology(   a_itp=f'cgtools/itp/nucbonded/plot_A_{version}.itp', 
+                                c_itp=f'cgtools/itp/nucbonded/plot_C_{version}.itp', 
+                                g_itp=f'cgtools/itp/nucbonded/plot_G_{version}.itp', 
+                                u_itp=f'cgtools/itp/nucbonded/plot_U_{version}.itp')
                                 
     # if mode == 'aa':
     #     mapping = cgmap.get_mapping_byname(version)
@@ -164,8 +165,9 @@ def bonded_parameters():
     #     mapping = None
     
     # AA structure
-    aa_structure = make_structure_pdb(f"systems/all_atom/test.pdb")
-    cg_structure = make_structure_pdb(f"systems/{system}/mdrun_test/mdc.pdb")
+    aa_structure = make_structure_pdb(f"systems/#all_atom/test.pdb")
+    cg_structure = make_structure_pdb(f"systems/{system}/mdruns/{mdrun}/trj.pdb")
+    # cg_structure = make_structure_pdb(f"systems/{system}/cgpdb/chain_A.pdb")
     mapping = cgmap.get_mapping_byname('new')
     for resname in resnames:
         name = f"{molecule}_{resname}_{version}"
@@ -220,8 +222,6 @@ def main():
         atoms, resids = get_atoms_by_name(residues, atom_name='BB3')
         coords = get_coords(atoms)
             
-        
-
 
 if __name__ == "__main__":
     bonded_parameters()

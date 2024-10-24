@@ -5,35 +5,44 @@ import shutil
 import subprocess as sp
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB import PDBIO, Atom
-from itertools import chain
 import cli
+from cli import from_wdir
 
 
 ################################################################################
 # CG system class
 ################################################################################   
 
-class System:
+class CGSystem:
     """
-    Class to set up and analyze protein-nucliotide-lipid systems
+    Class to set up and analyze protein-nucliotide-lipid systems for MD with GROMACS
     All the attributes are the paths to files and directories needed to set up and run CG MD
     """    
     DATADIR = 'cgtools/data'
     ITPDIR = 'cgtools/itp'
-    nuc_resnames = ['A', 'C', 'G', 'U', 'RA3', 'RA5', 'RC3', 'RC5', 'RG3', 'RG5', 'RU3', 'RU5']
+    NUC_RESNAMES = ['A', 'C', 'G', 'U', 'RA3', 'RA5', 'RC3', 'RC5', 'RG3', 'RG5', 'RU3', 'RU5']
     
-    def __init__(self, sysdir, sysname, pdb, **kwargs):
+    def __init__(self, sysdir, sysname, **kwargs):
         """
-        Initialize system with required directories and files.
+        Initializes the system with the required directories and files.
+        
+        Args:
+            sysdir (str): Directory for the system files.
+            sysname (str): Name of the system.
+            pdb (str): PDB file of the system.
+            kwargs: Additional keyword arguments.
+            
+        Sets up paths to various files required for CG MD simulation.
         """
         self.sysname    = sysname
         self.sysdir     = os.path.abspath(sysdir)
         self.wdir       = os.path.join(self.sysdir, sysname)
-        self.syspdb     = os.path.join(self.wdir, pdb)
+        self.inpdb      = os.path.join(self.wdir, 'inpdb.pdb')
         self.sysgro     = os.path.join(self.wdir, 'system.gro')
-        self.syscg      = os.path.join(self.wdir, 'system.pdb')
+        self.syspdb     = os.path.join(self.wdir, 'system.pdb')
         self.systop     = os.path.join(self.wdir, 'system.top')
         self.sysndx     = os.path.join(self.wdir, 'system.ndx')
+        self.pcapdb     = os.path.join(self.wdir, 'pca.pdb')
         self.pcandx     = os.path.join(self.wdir, 'pca.ndx')
         self.prodir     = os.path.join(self.wdir, 'proteins')
         self.nucdir     = os.path.join(self.wdir, 'nucleotides')
@@ -49,7 +58,9 @@ class System:
     @property
     def chains(self):
         """
-        A list of chain ids. Either provide or look in self.cgdir
+        A list of chain ids. Either provide or look up in self.cgdir
+        Returns:
+            list: List of chain identifiers.
         """
         if self._chains:
             return self._chains
@@ -68,7 +79,9 @@ class System:
     @property
     def mdruns(self):
         """
-        A list of mdruns. Either provide or look in self.mddir
+        A list of mdruns. Either provide or look up in self.mddir
+        Returns:
+            list: List of chain identifiers.
         """
         if self._mdruns:
             return self._mdruns
@@ -86,9 +99,10 @@ class System:
 
     def prepare_files(self):
         """
-        Initialize system with required directories and files.
+        Creates the necessary directories for the simulation and copies the 
+        relevant input files to the working directory.
         """
-        print('Preparing files and directories')
+        print('Preparing files and directories', file=sys.stderr)
         os.makedirs(self.prodir, exist_ok=True)
         os.makedirs(self.nucdir, exist_ok=True)
         os.makedirs(self.topdir, exist_ok=True)
@@ -96,68 +110,88 @@ class System:
         os.makedirs(self.mdpdir, exist_ok=True)
         os.makedirs(self.cgdir,  exist_ok=True)
         os.makedirs(self.grodir, exist_ok=True)
-        for file in os.listdir(DATADIR):
+        for file in os.listdir(self.DATADIR):
             if file.endswith('.mdp'):
-                fpath = os.path.join(DATADIR, file)
+                fpath = os.path.join(self.DATADIR, file)
                 outpath = os.path.join(self.mdpdir, file)
                 shutil.copy(fpath, outpath)
-        shutil.copy(os.path.join(DATADIR, 'water.gro'), self.wdir)
-        for file in os.listdir(ITPDIR):
+        shutil.copy(os.path.join(self.DATADIR, 'water.gro'), self.wdir)
+        for file in os.listdir(self.ITPDIR):
             if file.endswith('.itp'):
-                fpath = os.path.join(ITPDIR, file)
+                fpath = os.path.join(self.ITPDIR, file)
                 outpath = os.path.join(self.topdir, file)
                 # command = f'ln -sf {fpath} {out}' # > /dev/null 2>&
                 # sp.run(command.split())
                 shutil.copy(fpath, outpath)
         
-    def clean_pdb(self):
+    def clean_inpdb(self, **kwargs):
         from pdbtools import prepare_aa_pdb
-        in_pdb = self.syspdb
+        in_pdb = self.inpdb
         out_pdb = in_pdb.replace('.pdb', '_clean.pdb')
-        prepare_aa_pdb(in_pdb, out_pdb)    
+        prepare_aa_pdb(in_pdb, out_pdb, **kwargs)    
         
     def split_chains(self):
         parser = PDBParser()
-        in_pdb = self.syspdb.replace('.pdb', '_clean.pdb')
+        in_pdb = self.inpdb.replace('.pdb', '_clean.pdb')
         structure = parser.get_structure(self.sysname, in_pdb)
         io = PDBIO()
         for model in structure:
             for chain in model:
                 io.set_structure(chain)
                 chain_id = chain.id
-                if chain.get_unpacked_list()[0].get_resname() in self.nuc_resnames:
+                if chain.get_unpacked_list()[0].get_resname() in self.NUC_RESNAMES:
                     out_pdb = os.path.join(self.nucdir, f'chain_{chain_id}.pdb')
                 else:
                     out_pdb = os.path.join(self.prodir, f'chain_{chain_id}.pdb')
                 io.save(out_pdb)
                 
     def get_go_maps(self):
+        print('Getting GO-maps', file=sys.stderr)
         from get_go import get_go
-        pbds = [os.path.join(self.prodir, file) for file in os.listdir(self.prodir)]
-        get_go(self.mapdir, pbds)
+        pdbs = [os.path.join(self.prodir, file) for file in os.listdir(self.prodir)]
+        map_names = [f.replace('pdb', 'map') for f in os.listdir(self.prodir)]
+        # Filter out existing maps
+        pdbs = [pdb for pdb, amap in zip(pdbs, map_names) if amap not in os.listdir(self.mapdir)]
+        if pdbs:
+            get_go(self.mapdir, pdbs)
+        else:
+            print('Maps already there', file=sys.stderr)
         
-    def martinize_proteins(self):
-        print("Working on proteins")
-        with open(os.path.join(self.topdir, 'go_atomtypes.itp'), 'w') as file:
-            file.write(f'[ atomtypes ]\n')
-        with open(os.path.join(self.topdir, 'go_nbparams.itp'), 'w') as file:
-            file.write(f'[ nonbond_params ]\n')
+    def martinize_proteins(self, **kwargs):
+        kwargs.setdefault('go_eps', 9.414)
+        kwargs.setdefault('go_low', 0.3)
+        kwargs.setdefault('go_up', 1.1)
+        kwargs.setdefault('go_res_dist', 3)
+        print("Working on proteins", file=sys.stderr)
+        # Make itp files to dump all the virtual CA's parameters into
+        file = os.path.join(self.topdir, 'go_atomtypes.itp')
+        if not os.path.isfile(file):
+            with open(file, 'w') as f:
+                f.write(f'[ atomtypes ]\n')
+        file = os.path.join(self.topdir, 'go_nbparams.itp')
+        if not os.path.isfile(file):
+            with open(file, 'w') as f:        
+                f.write(f'[ nonbond_params ]\n')
+        # Actually martinizing
         from martini_tools import martinize_go
-        for file in sorted(os.listdir(self.prodir)):
+        pdbs = sorted(os.listdir(self.prodir))
+        itps = [f.replace('pdb', 'itp') for f in pdbs]
+        # Filter out existing topologies
+        pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
+        for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
             go_moltype = file.split('.')[0]
             go_map = os.path.join(self.mapdir, f'{go_moltype}.map')
-            martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_map, go_moltype, go_eps=9.414, go_low=0.3, go_up=1.1, go_res_dist=3)
+            martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_map, go_moltype, **kwargs)
     
     def martinize_nucleotides(self, **kwargs):
-        print("Working on nucleotides")
+        print("Working on nucleotides", file=sys.stderr)
         from martini_tools import martinize_nucleotide
         for file in os.listdir(self.nucdir):
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
-            go_moltype = file.split('.')[0]
-            martinize_nucleotide(self.wdir, self.topdir, in_pdb, cg_pdb, **kwargs)
+            martinize_nucleotide(self.wdir, in_pdb, cg_pdb, **kwargs)
         bdir = os.getcwd()
         nfiles = [f for f in os.listdir(self.wdir) if f.startswith('Nucleic')]
         for f in nfiles:
@@ -168,9 +202,9 @@ class System:
             shutil.move(os.path.join(self.wdir, file), os.path.join(self.topdir, outfile))
 
     def make_cgpdb_file(self, d=1.25, bt='dodecahedron'):
-        with open(self.syscg, 'w') as outfile:
+        with open(self.syspdb, 'w') as outfile:
             pass 
-        with open(self.syscg, 'a') as outfile:
+        with open(self.syspdb, 'a') as outfile:
             for filename in sorted(os.listdir(self.cgdir)):
                 file_path = os.path.join(self.cgdir, filename)
                 if os.path.isfile(file_path):
@@ -178,7 +212,7 @@ class System:
                         for line in infile:
                             if line.startswith('ATOM'):
                                 outfile.write(line)
-        command = f'gmx_mpi editconf -f {self.syscg} -d {d} -bt {bt}  -o {self.syscg}'
+        command = f'gmx_mpi editconf -f {self.syspdb} -d {d} -bt {bt}  -o {self.syspdb}'
         sp.run(command.split())
             
     def make_topology_file(self):
@@ -241,36 +275,35 @@ class System:
     def solvate(self, **kwargs):
         cli.solvate(self.wdir, **kwargs)
         
-    def add_ions(self, system='system.pdb', conc=0.15, pname='NA', nname='CL'): 
+    def add_ions(self, conc=0.15, pname='NA', nname='CL'): 
         bdir = os.getcwd()
         os.chdir(self.wdir)
-        command = f'gmx_mpi grompp -f mdp/ions.mdp -c {system} -p system.top -o ions.tpr'
+        command = f'gmx_mpi grompp -f mdp/ions.mdp -c {self.syspdb} -p system.top -o ions.tpr'
         sp.run(command.split())
-        command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname {pname} -nname {nname} -o {system}'
+        command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname {pname} -nname {nname} -o {self.syspdb}'
         sp.run(command.split(), input='W\n', text=True) 
         os.chdir(bdir)
         
     def make_index_file(self, **kwargs):
         cli.make_ndx(self.wdir, **kwargs)
         
-    def init_md(self, runname):
-        mdrun = MDRun(runname, self.sysdir, self.sysname, self.syspdb)
-        self._mdruns.append(mdrun)
+    def initmd(self, runname):
+        mdrun = MDRun(runname, self.sysdir, self.sysname)
+        # self._mdruns.append(mdrun.runname)
         return mdrun
         
-    def get_masked_pdb_ndx(self, outpdb='pca.pdb', outndx='pca.ndx', mask=['BB', 'BB1', 'BB2']):
+    def get_masked_pdb_ndx(self, mask=['BB', 'BB1', 'BB2'], **kwargs):
         """
         Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
         Default is to select backbone atoms for proteins and RNA
         """
-        bdir = os.getcwd()
-        os.chdir(self.wdir)
-        System.mask_atoms(inpdb=self.syscg, outpdb=outpdb, mask=mask)
-        System.make_index_by_chain(chains=self.chains, outndx=outndx)
-        os.chdir(bdir)    
-
+        outpdb = kwargs.pop('outpdb', self.pcapdb)
+        outndx = kwargs.pop('outndx', self.pcandx)
+        CGSystem.mask_atoms(inpdb=self.syspdb, outpdb=outpdb, mask=mask)
+        CGSystem.make_index_by_chain(self.wdir, chains=self.chains, outndx=outndx)
+  
     @staticmethod    
-    def mask_atoms(inpdb='system.pdb', outpdb='pca.pdb', mask=['BB', 'BB1', 'BB2']):
+    def mask_atoms(inpdb, outpdb, mask=['BB', 'BB1', 'BB2']):
         filtered_atoms = []
         with open(inpdb, 'r') as file:
             for line in file:
@@ -284,111 +317,149 @@ class System:
                 new_atom_line = atom_line[:6] + new_serial_number + atom_line[11:]
                 output_file.write(new_atom_line)
                 
-    @staticmethod    
-    def make_index_by_chain(inpdb='pca.pdb', outndx='pca.ndx', chains=[]):
+    @staticmethod
+    @from_wdir
+    def make_index_by_chain(wdir, inpdb='pca.pdb', outndx='pca.ndx', chains=[]):
         commands = [f'chain {x}\n' for x in chains]
         clinput = 'keep 0\n' + ' '.join(commands) + 'q\n'
         cli.run('gmx_mpi make_ndx', f=inpdb, o=outndx, clinput=clinput)
 
 ################################################################################
-# MDRun
+# MDRun class
 ################################################################################   
 
-class MDRun(System):
+class MDRun(CGSystem):
+    """
+    Run molecular dynamics (MD) simulation using the specified input files.
+    This method runs the MD simulation by calling an external simulation software, 
+    such as GROMACS, with the provided input files.
+    """
     
-        def __init__(self, runname, *args, **kwargs):
-            """
-            Init
-            """
-            super().__init__(*args)
-            self.runname = runname
-            self.rundir = os.path.join(self.wdir, runname)
-            self.rmsdir = os.path.join(self.rundir, 'rms_analysis')
-            self.covdir = os.path.join(self.rundir, 'cov_analysis')
-            self.pngdir = os.path.join(self.rundir, 'png')
+    def __init__(self, runname, *args, **kwargs):
+        """
+        Initializes required directories and files.
+        
+        Args:
+            runname (str): 
+            rundir (str): Directory for the system files.
+            rmsname (str): Name of the system.
+            covdir (str): PDB file of the system
+            pngdir (str): PDB file of the system
+            kwargs: Additional keyword arguments.
             
-        def prepare_files(self):
-            os.makedirs(self.rundir, exist_ok=True)
-            os.makedirs(self.rmsdir, exist_ok=True)
-            os.makedirs(self.covdir, exist_ok=True)
-            os.makedirs(self.pngdir, exist_ok=True)
+        Sets up paths to various files required for CG MD simulation.
+        """
+        super().__init__(*args)
+        self.runname = runname
+        self.rundir = os.path.join(self.mddir, self.runname)
+        self.rmsdir = os.path.join(self.rundir, 'rms_analysis')
+        self.covdir = os.path.join(self.rundir, 'cov_analysis')
+        self.pngdir = os.path.join(self.rundir, 'png')
+        
+    def prepare_files(self):
+        """
+        Create necessary directories.
+        """
+        os.makedirs(self.rundir, exist_ok=True)
+        os.makedirs(self.rmsdir, exist_ok=True)
+        os.makedirs(self.covdir, exist_ok=True)
+        os.makedirs(self.pngdir, exist_ok=True)
+        
+    def em(self, **kwargs):
+        # mdrun kwargs
+        deffnm = kwargs.pop('deffnm', 'em')
+        nsteps = kwargs.pop('nsteps', '-2')
+        ntomp = kwargs.setdefault('ntomp', '6')
+        # grompp kwargs
+        kwargs.setdefault('f', os.path.join(self.mdpdir, 'em.mdp'))
+        kwargs.setdefault('c', self.syspdb)
+        kwargs.setdefault('r', self.syspdb)
+        kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('o', 'em.tpr')
+        cli.grompp(self.rundir, **kwargs)
+        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
             
-        def em(self, **kwargs):
-            kwargs.setdefault('mdp', os.path.join(self.mdpdir, 'em.mdp'))
-            kwargs.setdefault('c', self.syscg)
-            kwargs.setdefault('r', self.syscg)
-            kwargs.setdefault('p', self.systop)
-            kwargs.setdefault('o', 'em.tpr')
-            kwargs.setdefault('deffnm', 'em')
-            kwargs.setdefault('ncpus', '8')
-            cli.mdrun(self.rundir, **kwargs)
+    def hu(self, **kwargs):
+        # mdrun kwargs
+        deffnm = kwargs.pop('deffnm', 'hu')
+        nsteps = kwargs.pop('nsteps', '-2')
+        ntomp = kwargs.setdefault('ntomp', '6')
+        # grompp kwargs
+        kwargs.setdefault('f', os.path.join(self.mdpdir, 'hu.mdp'))
+        kwargs.setdefault('c', 'em.gro')
+        kwargs.setdefault('r', 'em.gro')
+        kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('o', 'hu.tpr')
+        cli.grompp(self.rundir, **kwargs)
+        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
+            
+    def eq(self, **kwargs):
+        # mdrun kwargs
+        deffnm = kwargs.pop('deffnm', 'eq')
+        nsteps = kwargs.pop('nsteps', '-2')
+        ntomp = kwargs.setdefault('ntomp', '6')
+        # grompp kwargs
+        kwargs.setdefault('f', os.path.join(self.mdpdir, 'eq.mdp'))
+        kwargs.setdefault('c', 'hu.gro')
+        kwargs.setdefault('r', 'hu.gro')
+        kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('o', 'eq.tpr')
+        cli.grompp(self.rundir, **kwargs)
+        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
+            
+    def md(self, **kwargs):
+        # mdrun kwargs
+        deffnm = kwargs.pop('deffnm', 'md')
+        nsteps = kwargs.pop('nsteps', '-2')
+        ntomp = kwargs.setdefault('ntomp', '6')
+        # grompp kwargs
+        kwargs.setdefault('f', os.path.join(self.mdpdir, 'md.mdp'))
+        kwargs.setdefault('c', 'eq.gro')
+        kwargs.setdefault('r', 'eq.gro')
+        kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('o', 'md.tpr')
+        cli.grompp(self.rundir, **kwargs)
+        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
+        
+    def extend(self, **kwargs):
+        """
+        Extend production run
+        nsteps: -2 mdp option, -1 indefinitely
+        """
+        kwargs.setdefault('deffnm', 'md')
+        kwargs.setdefault('ntomp', '6')
+        kwargs.setdefault('nsteps', '-2')
+        kwargs.setdefault('cpi', 'md.cpt')
+        options = f'-pin on -pinstride 1'
+        cli.run_gmx(self.rundir, f'mdrun {options}', **kwargs)
+        
+    def trjconv(self, clinput=None, **kwargs):
+         cli.trjconv(self.rundir, clinput=clinput, **kwargs)
+         
+    def rmsf(self, clinput=None, **kwargs):
+         cli.rmsf(self.rundir, clinput=clinput, **kwargs)
+         
+    def get_rmsf_by_chain(self, **kwargs):
+        """
+        Get RMSF by chain.
+        """
+        kwargs.setdefault('f', 'pca.xtc')
+        kwargs.setdefault('s', 'pca.pdb')
+        kwargs.setdefault('n', os.path.join(self.wdir, 'pca.ndx'))
+        for chain in self.chains:
+            cli.rmsf(self.rundir, clinput=f'ch{chain}\n', 
+                o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
                 
-        def hu(self, **kwargs):
-            kwargs.setdefault('mdp', os.path.join(self.mdpdir, 'hu.mdp'))
-            kwargs.setdefault('c', 'em.gro')
-            kwargs.setdefault('r', 'em.gro')
-            kwargs.setdefault('p', self.systop)
-            kwargs.setdefault('o', 'hu.tpr')
-            kwargs.setdefault('deffnm', 'hu')
-            kwargs.setdefault('ncpus', '6')
-            cli.mdrun(self.rundir, **kwargs)
-                
-        def eq(self, **kwargs):
-            kwargs.setdefault('mdp', os.path.join(self.mdpdir, 'eq.mdp'))
-            kwargs.setdefault('c', 'hu.gro')
-            kwargs.setdefault('r', 'hu.gro')
-            kwargs.setdefault('p', self.systop)
-            kwargs.setdefault('o', 'eq.tpr')
-            kwargs.setdefault('deffnm', 'eq')
-            kwargs.setdefault('ncpus', '6')
-            cli.mdrun(self.rundir, **kwargs)
-                
-        def md(self, **kwargs):
-            kwargs.setdefault('mdp', os.path.join(self.mdpdir, 'md.mdp'))
-            kwargs.setdefault('c', 'eq.gro')
-            kwargs.setdefault('r', 'eq.gro')
-            kwargs.setdefault('p', self.systop)
-            kwargs.setdefault('o', 'md.tpr')
-            kwargs.setdefault('deffnm', 'md')
-            kwargs.setdefault('ncpus', '6')
-            cli.mdrun(self.rundir, **kwargs)
-            
-        def extend(self, **kwargs):
-            """
-            Extend production run
-            nsteps: -2 mdp option, -1 indefinitely
-            """
-            kwargs.setdefault('deffnm', 'md')
-            kwargs.setdefault('ntomp', '6')
-            kwargs.setdefault('nsteps', '-2')
-            kwargs.setdefault('cpi', 'md.cpt')
-            options = f'-pin on -pinstride 1'
-            bdir = os.getcwd()
-            os.chdir(self.rundir)
-            cli.run(f'gmx_mpi mdrun {options}', **kwargs)
-            os.chdir(bdir)
-            
-        def trjconv(self, clinput=None, **kwargs):
-             cli.trjconv(self.rundir, clinput=clinput, **kwargs)
-             
-        def rmsf(self, clinput=None, **kwargs):
-             cli.rmsf(self.rundir, clinput=clinput, **kwargs)
-             
-        def get_rmsf_by_chain(self, **kwargs):
-            kwargs.setdefault('f', 'pca.xtc')
-            kwargs.setdefault('s', 'pca.pdb')
-            kwargs.setdefault('n', os.path.join(self.wdir, 'pca.ndx'))
-            for chain in self.chains:
-                cli.rmsf(self.rundir, clinput=f'ch{chain}\n', 
-                    o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
-                    
-        def get_rmsd_by_chain(self, **kwargs):
-            kwargs.setdefault('f', 'pca.xtc')
-            kwargs.setdefault('s', 'pca.pdb')
-            kwargs.setdefault('n', os.path.join(self.wdir, 'pca.ndx'))
-            for chain in self.chains:
-                cli.rms(self.rundir, clinput=f'ch{chain}\nch{chain}\n', 
-                    o=os.path.join(self.rmsdir, f'rmsd_{chain}.xvg'), **kwargs)
+    def get_rmsd_by_chain(self, **kwargs):
+        """
+        Get RMSD by chain.
+        """
+        kwargs.setdefault('f', 'pca.xtc')
+        kwargs.setdefault('s', 'pca.pdb')
+        kwargs.setdefault('n', os.path.join(self.wdir, 'pca.ndx'))
+        for chain in self.chains:
+            cli.rms(self.rundir, clinput=f'ch{chain}\nch{chain}\n', 
+                o=os.path.join(self.rmsdir, f'rmsd_{chain}.xvg'), **kwargs)
                 
             
             

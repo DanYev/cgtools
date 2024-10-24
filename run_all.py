@@ -1,11 +1,10 @@
 import os
 import sys
+import argparse
 sys.path.append('cgtools')
-from system import System
+from system import CGSystem
+import cli
 
-pdb = '4zt0' # 8aw3  4zt0 100bpRNA
-system = System('systems', f'{pdb}_test', f'{pdb}.pdb') 
-runs = ['mdrun_0', ] # 'mdrun_1'
 
 def parse_cmd():
     """
@@ -13,18 +12,17 @@ def parse_cmd():
     """
     parser = argparse.ArgumentParser(description="Runs CGMD simulations")
     parser.add_argument("-m", "--mode", required=True, help="PDB file")
-    parser.add_argument("-d", "--wdir", required=False, help="Relative path to the working directory")
-    parser.add_argument("-n", "--ncpus", required=False, help="Number of requested CPUS for a batch job")
     return parser.parse_args()
 
 
-def prep_system():
+def setup(sysdir, sysname):
+    system = CGSystem(sysdir, sysname)
     system.prepare_files()
-    system.clean_pdb()
+    system.clean_inpdb(add_missing_atoms=False, variant=None)
     system.split_chains()
-    # system.get_go_maps()
-    # system.martinize_proteins()
-    system.martinize_nucleotides(system='test')
+    system.get_go_maps()
+    system.martinize_proteins()
+    system.martinize_nucleotides(sys='test', p='all', pf=1000)
     system.make_topology_file()
     system.make_cgpdb_file()
     system.solvate()
@@ -32,34 +30,42 @@ def prep_system():
     system.get_masked_pdb_ndx()
     
     
-def run_md(): 
-    runname = runnames[0]
-    mdrun = system.init_md(runname)
-    mdrun.em(ncpus=6)
-    mdrun.hu(ncpus=6)
-    mdrun.eq(ncpus=6) # c='em.gro', r='em.gro', 
-    mdrun.md(ncpus=6)
+def md(sysdir, sysname, runname, **kwargs): 
+    system = CGSystem(sysdir, sysname)
+    mdrun = system.initmd(runname)
+    mdrun.prepare_files()
+    mdrun.em()
+    mdrun.hu()
+    mdrun.eq() # c='em.gro', r='em.gro'
+    mdrun.md()
     
     
-def extend():    
-    runname = runnames[0]
-    mdrun = system.init_md(runname)
-    mdrun.extend()
+def extend(sysdir, sysname, runname, **kwargs):    
+    system = CGSystem(sysdir, sysname)
+    mdrun = system.initmd(runname)
+    mdrun.extend(**kwargs)
 
 
-def analysis():    
-    for run in runs:
-        mdrun = system.init_md(run)
-        atoms = ['BB1', 'BB2']
-        ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
-        trjstr = '_'.join(atoms) + '\n'
-        system.make_index_file(clinput=ndxstr, f='system.pdb', o=mdrun.sysndx)
-        mdrun.trjconv(clinput=trjstr, f='md.trr', o='trj.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=1000)
-        exit()
-        mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact')
-        mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', e=0)
-        mdrun.get_rmsf_by_chain()
-        mdrun.get_rmsd_by_chain()
+def analysis(sysdir, sysname, runname, **kwargs):  
+    system = CGSystem(sysdir, sysname)
+    mdrun = system.initmd(runname)
+    # Ugly but needed to use the index groups
+    atoms = ['BB', 'BB1', 'BB2']
+    ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
+    trjstr = '_'.join(atoms) + '\n'
+    # 
+    # Ugly but needed to use the index groups
+    groups = ['BB', 'BB1', 'BB2']
+    ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
+    trjstr = '_'.join(atoms) + '\n'
+    # 
+    system.make_index_file(f=mdrun.syspdb, o=mdrun.sysndx) # clinput=ndxstr, 
+    mdrun.trjconv(clinput=f'{trjstr}\n{trjstr}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, fit='rot+trans') # clinput='RNA\nRNA\n', 
+    exit()
+    mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact')
+    mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', e=0)
+    mdrun.get_rmsf_by_chain()
+    mdrun.get_rmsd_by_chain()
     
     
 def plot():  
@@ -83,38 +89,25 @@ def plot():
             plot = Plot2D([[data]], [[label]], ylabel='RMSD, nm', xlabel='Time, ps', legend=True, loc='upper right', figname=figname)
             plot.make_plot()
             
-            
-def execute_script():
-    pass
-    
-    
-def submit_scripts():
-    pdbs = ['4zt0', '8aw3']
-    for pdb in pdbs:
-        system = System('systems', f'{pdb}_test', f'{pdb}.pdb') 
-        # mdruns = [f'mdrun_{x}' for x in range(10)]
-        # system.mdruns = mdruns
-        # for mdrun in self.mdruns
-        
-    
+           
+def test_script(sysdir, sysname, runname):
+    system = CGSystem(sysdir, sysname)
+    mdrun = system.initmd(runname)
+    mdrun.extend()
     
     
 if __name__ == '__main__':
-    mode = sys.argv[1]
-    match mode:
-        case 'sub':
-            print('Submitting scripts')
-            submit_scripts()
-        case 'exe':
-            print('Executing the script')
-        case _:
-            print("Error: the second argument needs to be either 'sub' or 'exe'")
-            
-            
-    # parse_cmd()
-    # prep_system()
-    # run_md()
-    # analysis()
-    # plot()
-    # extend()
+    todo = sys.argv[1]
+    args = sys.argv[2:]
+    match todo:
+        case 'setup':
+            setup(*args)
+        case 'md':
+            md(*args)    
+        case 'extend':
+            extend(*args, nsteps=-1)
+        case 'analysis':
+            analysis(*args)
+   
+        
     
