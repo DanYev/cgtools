@@ -606,7 +606,7 @@ class CoarseGrained:
     # converted into a list of lists by 'nsplit' defined above.
     # @MAP
     BB_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
-                            "C5' 1H5' 2H5' C4' H4' O4' C3' H3'", 
+                            "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
                             "C1' C2' O2' O4'")
     mapping = {
             "A":  BB_mapping + nsplit(
