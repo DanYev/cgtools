@@ -21,7 +21,7 @@ def setup(sysdir, sysname):
     # system.clean_inpdb(add_missing_atoms=True, variant=None)
     # system.split_chains()
     # system.get_go_maps()
-    # system.martinize_proteins()
+    # system.martinize_proteins(p='all', pf=1000)
     system.martinize_nucleotides(sys='test', p='all', pf=1000)
     # system.make_topology_file()
     # system.make_cgpdb_file()

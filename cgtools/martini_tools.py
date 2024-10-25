@@ -98,8 +98,8 @@ def prepare_files(pdb, wdir='test', mutations=None, protein='protein'):
     fix_go_map(wdir, in_map='protein_map.map')
     print('All the files are ready!')
     
-    
-def martinize_go(wdir, topdir, aapdb, cgpdb, go_map='go.map', go_moltype="protein", go_eps=9.414, go_low=0.3, go_up=1.1, go_res_dist=3):
+@cli.from_wdir    
+def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein', **kwargs):
     r"""
     Virtual site based GoMartini:
     -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
@@ -109,18 +109,29 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, go_map='go.map', go_moltype="protei
     -go_up          Maximum distance (nm) above which contacts are removed. (default: 1.1)
     -go_res_dist    Minimum graph distance (similar sequence distance) below which contacts are removed. (default: 3)
     """
-    bdir = os.getcwd()
-    os.chdir(wdir)
-    command = f'martinize2 -f {aapdb} -go {go_map} -go-moltype {go_moltype} -go-eps {go_eps} \
-        -go-low {go_low} -go-up {go_up} -go-res-dist {go_res_dist} \
-        -o protein.top -x {cgpdb} -p backbone -dssp -ff martini3001 \
-        -sep -scfix -cys 0.3 -resid input -maxwarn 1000'
-    sp.run(command.split())
+    kwargs.setdefault('f', aapdb)
+    kwargs.setdefault('x', cgpdb)
+    kwargs.setdefault('go_map', 'go_map')
+    kwargs.setdefault('o', 'protein.top')
+    kwargs.setdefault('go_moltype', go_moltype)
+    kwargs.setdefault('go_eps', 9.414)
+    kwargs.setdefault('go_low', 0.3)
+    kwargs.setdefault('go_up', 1.1)
+    kwargs.setdefault('go_res_dist', 3)
+    kwargs.setdefault('cys', 0.3)  
+    kwargs.setdefault('p', 'all')
+    kwargs.setdefault('pf', 1000)    
+    kwargs.setdefault('dssp', ' ')
+    kwargs.setdefault('sep', ' ')
+    kwargs.setdefault('scfix', ' ')
+    kwargs.setdefault('resid', 'input')
+    kwargs.setdefault('ff', 'martini3001')
+    kwargs.setdefault('maxwarn', '1000')
+    cli.run('martinize2', **kwargs)
     append_to('go_atomtypes.itp', os.path.join(topdir, 'go_atomtypes.itp'))
     append_to('go_nbparams.itp', os.path.join(topdir, 'go_nbparams.itp'))
     shutil.move(f'{go_moltype}.itp',  os.path.join(topdir, f'{go_moltype}.itp'))
-    os.chdir(bdir)
-    
+
     
 def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
     kwargs.setdefault('f', aapdb)

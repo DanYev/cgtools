@@ -158,10 +158,6 @@ class CGSystem:
             print('Maps already there', file=sys.stderr)
         
     def martinize_proteins(self, **kwargs):
-        kwargs.setdefault('go_eps', 9.414)
-        kwargs.setdefault('go_low', 0.3)
-        kwargs.setdefault('go_up', 1.1)
-        kwargs.setdefault('go_res_dist', 3)
         print("Working on proteins", file=sys.stderr)
         # Make itp files to dump all the virtual CA's parameters into
         file = os.path.join(self.topdir, 'go_atomtypes.itp')
