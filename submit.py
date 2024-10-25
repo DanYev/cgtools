@@ -6,10 +6,12 @@ from cli import sbatch, run
 
 script = sys.argv[1]
 sysdir = 'systems'
-sysnames = ['rna_test'] # 4zt0 8aw3 100bpRNA
-# runs = ['mdrun_61', 'mdrun_62', 'mdrun_63', 'mdrun_64'] 
+
+# sysnames = ['8aw3', '4zt0'] # 4zt0 8aw3 100bpRNA
+# runs = ['mdrun_71', 'mdrun_72',] # runs = ['mdrun_61', 'mdrun_62', 'mdrun_63', 'mdrun_64'] 
+
+sysnames = ['rna_test']
 runs = ['mdrun_10']
-# sysnames = [d for d in os.listdir(sysdir) if not d.startswith('#') and not d.startswith('test')]
 
 
 def submit_setup_script():
@@ -24,7 +26,7 @@ def submit_md_script():
         system = CGSystem(sysdir, sysname)
         for runname in runs:
             mdrun = system.initmd(runname)
-            sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, N=1, n=1, c=6, t='04-00:00:00', gres='gpu:1', mem='2G', qos='grp_sozkan', partition='general')
+            sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, N=1, n=1, c=6, t='00-04:00:00', gres='gpu:1', mem='2G', qos='public', partition='general')
             # run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname)
 
 
@@ -57,8 +59,8 @@ def submit_plot_script():
             run('bash', script, 'run_all.py', 'plot', sysdir, sysname, runname)
            
             
-# submit_setup_script()
-# submit_md_script()
+submit_setup_script()
+submit_md_script()
 # submit_extend_script()
-submit_analysis_script()
+# submit_analysis_script()
 # submit_plot_script()
