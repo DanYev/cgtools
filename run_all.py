@@ -52,8 +52,10 @@ def analysis(sysdir, sysname, runname, **kwargs):
     
     # Protein_RNA group
     # system.make_index_file(clinput='1|12\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
+    # group = 'Protein_RNA'
     group = 'RNA'
-    mdrun.trjconv(clinput=f'{group}\n{group}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=0) 
+    mdrun.trjconv(clinput=f'{group}\n{group}\n{group}\n', f='md.trr', s='md.tpr', o='trj.xtc', n=mdrun.sysndx, pbc='cluster', center=' ', ur='compact', dt=000) 
+    mdrun.trjconv(clinput=f'{group}\n{group}\n', f='trj.xtc', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, fit='rot+trans', dt=000)
     exit()
 
     # Ugly but needed to use the index groups
