@@ -6,9 +6,9 @@ from cli import sbatch, run
 
 script = sys.argv[1]
 sysdir = 'systems'
-sysnames = ['100bpRNA'] # 4zt0 8aw3 100bpRNA
+sysnames = ['rna_test'] # 4zt0 8aw3 100bpRNA
 runs = ['mdrun_51', 'mdrun_52', 'mdrun_53', 'mdrun_54'] # 
-runs = ['mdrun_53']
+runs = ['mdrun_10']
 # sysnames = [d for d in os.listdir(sysdir) if not d.startswith('#') and not d.startswith('test')]
 
 
@@ -58,7 +58,7 @@ def submit_plot_script():
            
             
 submit_setup_script()
-# submit_md_script()
+submit_md_script()
 # submit_extend_script()
 # submit_analysis_script()
 # submit_plot_script()

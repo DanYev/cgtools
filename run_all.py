@@ -20,14 +20,14 @@ def setup(sysdir, sysname):
     system.prepare_files()
     # system.clean_inpdb(add_missing_atoms=True, variant=None)
     # system.split_chains()
-    system.get_go_maps()
-    system.martinize_proteins()
+    # system.get_go_maps()
+    # system.martinize_proteins()
     system.martinize_nucleotides(sys='test', p='all', pf=1000)
-    system.make_topology_file()
-    system.make_cgpdb_file()
-    system.solvate()
-    system.add_ions()
-    system.get_masked_pdb_ndx()
+    # system.make_topology_file()
+    # system.make_cgpdb_file()
+    # system.solvate()
+    # system.add_ions()
+    # system.get_masked_pdb_ndx()
     
     
 def md(sysdir, sysname, runname, **kwargs): 
@@ -51,9 +51,9 @@ def analysis(sysdir, sysname, runname, **kwargs):
     mdrun = system.initmd(runname)
     
     # Protein_RNA group
-    system.make_index_file(clinput='1|12\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
+    system.make_index_file(clinput='0|12\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
     group = 'RNA'
-    mdrun.trjconv(clinput=f'{group}\n{group}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=1000) 
+    mdrun.trjconv(clinput=f'{group}\n{group}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=0) 
     exit()
     
     # Ugly but needed to use the index groups
