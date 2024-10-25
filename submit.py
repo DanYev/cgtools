@@ -6,8 +6,8 @@ from cli import sbatch, run
 
 script = sys.argv[1]
 sysdir = 'systems'
-sysnames = ['4zt0'] # 4zt0 8aw3 100bpRNA
-runs = ['mdrun_40', 'mdrun_41'] # 
+sysnames = ['8aw3'] # 4zt0 8aw3 100bpRNA
+runs = ['mdrun_51', 'mdrun_52', 'mdrun_53', 'mdrun_54'] # 
 # sysnames = [d for d in os.listdir(sysdir) if not d.startswith('#') and not d.startswith('test')]
 
 
@@ -42,9 +42,9 @@ def submit_analysis_script():
         for runname in runs:
             mdrun = system.initmd(runname)
             # sbatch(script, 'run_all.py', 'analysis', sysdir, sysname, runname, N=1, n=1, c=1, t='00:15:00')
-            run('bash', script, 'run_all.py', 'analysis', sysdir, sysname, runname)
-            # run(f'python geometry_3bb.py {sysname} {runname}')
-            run('bash', script, 'run_all.py', 'plot', sysdir, sysname, runname)
+            # run('bash', script, 'run_all.py', 'analysis', sysdir, sysname, runname)
+            run(f'python geometry_3bb.py {sysname} {runname}')
+            # run('bash', script, 'run_all.py', 'plot', sysdir, sysname, runname)
             
             
 def submit_plot_script():
