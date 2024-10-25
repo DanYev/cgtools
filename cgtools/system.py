@@ -179,7 +179,7 @@ class CGSystem:
             cg_pdb = os.path.join(self.cgdir, file)
             go_moltype = file.split('.')[0]
             go_map = os.path.join(self.mapdir, f'{go_moltype}.map')
-            martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_map, go_moltype, **kwargs)
+            martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_moltype=go_moltype, go=go_map, **kwargs)
     
     def martinize_nucleotides(self, **kwargs):
         print("Working on nucleotides", file=sys.stderr)

@@ -7,11 +7,11 @@ from cli import sbatch, run
 script = sys.argv[1]
 sysdir = 'systems'
 
-# sysnames = ['4zt0'] # 4zt0 8aw3 100bpRNA
-# runs = ['mdrun_71', 'mdrun_72',] # runs = ['mdrun_61', 'mdrun_62', 'mdrun_63', 'mdrun_64'] 
+# sysnames = ['4zt0', '8aw3'] # 4zt0 8aw3 100bpRNA rna_test
+# runs = ['mdrun_81', 'mdrun_82',] 
 # 
 sysnames = ['rna_test']
-runs = ['mdrun_10']
+runs = ['mdrun_test']
 
 
 def submit_setup_script():
@@ -46,8 +46,8 @@ def submit_analysis_script():
             mdrun = system.initmd(runname)
             # sbatch(script, 'run_all.py', 'analysis', sysdir, sysname, runname, N=1, n=1, c=1, t='00:15:00')
             run('bash', script, 'run_all.py', 'analysis', sysdir, sysname, runname)
-            # run(f'python geometry_3bb.py {sysname} {runname}')
-            run('bash', script, 'run_all.py', 'plot', sysdir, sysname, runname)
+            run(f'python geometry_3bb.py {sysname} {runname}')
+            # run('bash', script, 'run_all.py', 'plot', sysdir, sysname, runname)
             
             
 def submit_plot_script():
@@ -59,8 +59,8 @@ def submit_plot_script():
             run('bash', script, 'run_all.py', 'plot', sysdir, sysname, runname)
            
             
-submit_setup_script()
-submit_md_script()
+# submit_setup_script()
+# submit_md_script()
 # submit_extend_script()
-# submit_analysis_script()
+submit_analysis_script()
 # submit_plot_script()
