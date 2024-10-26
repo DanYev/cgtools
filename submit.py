@@ -11,7 +11,7 @@ sysdir = 'systems'
 # runs = ['mdrun_81', 'mdrun_82',] 
 # 
 sysnames = ['30S']
-runs = ['mdrun_11']
+runs = ['mdrun_31']
 
 
 def submit_setup_script():
@@ -59,8 +59,8 @@ def submit_plot_script():
             run('bash', script, 'run_all.py', 'plot', sysdir, sysname, runname)
            
             
-# submit_setup_script()
-# submit_md_script()
+submit_setup_script()
+submit_md_script()
 # submit_extend_script()
-submit_analysis_script()
+# submit_analysis_script()
 # submit_plot_script()
