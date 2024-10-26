@@ -417,6 +417,35 @@ def rms(wdir, clinput=None, **kwargs):
     kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'rms', clinput=clinput, cltext=True, **kwargs)
 
+
+@from_wdir
+def rdf(wdir, clinput=None, **kwargs):
+    """
+    Run the GROMACS 'rdf' command to calculate  calculates radial distribution functions (RDF).
+
+    Parameters:
+    wdir (str): 
+        The working directory where the command should be executed.
+    clinput (str, optional): 
+        Input string specifying atom selections.
+    **kwargs: dict
+        Additional options and flags for the 'rms' command.
+        Defaults:
+        - 's': 'md.tpr' (input run file)
+        - 'f': 'mdc.xtc' (input trajectory file)
+        - 'o': 'rms_analysis/rdf.xvg' (output file)
+        - 'b': '0' (beginning time)
+        - 'xvg': 'none' (output format)
+    """
+    defaults = {
+        's': 'md.tpr',
+        'f': 'mdc.xtc',
+        'o': 'rms_analysis/rdf.xvg',
+        'b': '0',
+        'xvg': 'none'
+    }
+    kwargs = set_defaults(kwargs, defaults)
+    run_gmx(wdir, 'rdf', clinput=clinput, cltext=True, **kwargs)
     
 ##############################################################
 # JUNK

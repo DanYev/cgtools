@@ -46,10 +46,9 @@ def extend(sysdir, sysname, runname, **kwargs):
     mdrun.extend(**kwargs)
 
 
-def analysis(sysdir, sysname, runname, **kwargs):  
+def geometry(sysdir, sysname, runname, **kwargs):  
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    
     # # Protein_RNA group
     # system.make_index_file(clinput='0\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
     # group = 'Protein_RNA'
@@ -58,10 +57,13 @@ def analysis(sysdir, sysname, runname, **kwargs):
     ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
     trjstr = '_'.join(atoms) + '\n'
     system.make_index_file(clinput=ndxstr, f=mdrun.syspdb, o=mdrun.sysndx)
-    mdrun.trjconv(clinput=f'{trjstr}\n{trjstr}\n{trjstr}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, pbc='whole', center=' ', ur='compact', dt=5000) 
+    mdrun.trjconv(clinput=f'{trjstr}\n{trjstr}\n{trjstr}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, pbc='whole', center=' ', ur='compact', dt=1000) 
     # mdrun.trjconv(clinput=f'{group}\n{group}\n', f='trj.xtc', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, fit='rot+trans', dt=0)
-    exit()
+    
 
+def trjconv(sysdir, sysname, runname, **kwargs):
+    system = CGSystem(sysdir, sysname)
+    mdrun = system.initmd(runname)
     # Ugly but needed to use the index groups
     atoms = ['BB1', 'BB2', 'BB3']
     ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
@@ -69,8 +71,17 @@ def analysis(sysdir, sysname, runname, **kwargs):
     system.make_index_file(clinput=ndxstr, f=mdrun.syspdb, o=mdrun.sysndx)
     mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact')
     mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', e=0)
-    mdrun.get_rmsf_by_chain(b=0)
-    mdrun.get_rmsd_by_chain(b=0)
+
+
+def rms_analysis(sysdir, sysname, runname, **kwargs):
+    system = CGSystem(sysdir, sysname)
+    mdrun = system.initmd(runname)
+    # Ugly but needed to use the index groups
+    atoms = ['BB1', 'BB2', 'BB3']
+    trjstr = '_'.join(atoms) + '\n'
+    mdrun.get_rdf(b=0)
+    # mdrun.get_rmsf_by_chain(b=0)
+    # mdrun.get_rmsd_by_chain(b=0)
     
     
 def plot(sysdir, sysname, runname, **kwargs): 
@@ -111,8 +122,12 @@ if __name__ == '__main__':
             md(*args)    
         case 'extend':
             extend(*args, nsteps=-1)
-        case 'analysis':
-            analysis(*args)
+        case 'trjconv':
+            trjconv(*args)
+        case 'rms_analysis':
+            rms_analysis(*args)
+        case 'geometry':
+            rms_analysis(*args)
         case 'plot':
             plot(*args)
    

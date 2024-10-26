@@ -202,7 +202,7 @@ class CGSystem:
             outfile = f.replace('Nucleic', 'chain')
             shutil.move(os.path.join(self.wdir, file), os.path.join(self.topdir, outfile))
 
-    def make_box(self, d=1.25, bt='dodecahedron', add_ions=False):
+    def make_cgpdb_file(self, d=1.25, bt='dodecahedron', add_ions=False):
         with open(self.syspdb, 'w') as outfile:
             pass  # makes a clean new file
         with open(self.syspdb, 'a') as outfile:
@@ -215,7 +215,7 @@ class CGSystem:
                         if line.startswith('ATOM') or line.startswith('HETATM'):
                             line = line[:21] + ' ' + line[22:] # dont need the chain ID
                             outfile.write(line)
-        command = f'gmx_mpi editconf -f {self.syspdb} -d {d} -bt {bt}  -o {self.syspdb} -c'
+        command = f'gmx_mpi editconf -f {self.syspdb} -d {d} -bt {bt}  -o {self.syspdb}'
         sp.run(command.split())
             
     def make_topology_file(self):
@@ -249,7 +249,7 @@ class CGSystem:
                     f.write(f'{molecule_name}\t\t1\n')
             # Ions
             for ion, count in ions.items():
-                f.write(f'{ion}\t\t{count}\n')
+                f.write(f'{ion}    {count}\n')
            
             
     def make_gro_file(self, d=1.25, bt='dodecahedron'):
@@ -297,10 +297,9 @@ class CGSystem:
                     current_ion = line[12:16].strip()
                     if current_ion in ions:
                         counts[current_ion] += 1
-        counts = {ion: count for ion, count in counts.items() if count > 0}
         return counts
         
-    def add_ions(self, conc=0.15, pname='K', nname='CL', **kwargs): 
+    def add_ions(self, conc=0.15, pname='NA', nname='CL'): 
         bdir = os.getcwd()
         os.chdir(self.wdir)
         command = f'gmx_mpi grompp -f mdp/ions.mdp -c {self.syspdb} -p system.top -o ions.tpr'
@@ -463,6 +462,12 @@ class MDRun(CGSystem):
          
     def rmsf(self, clinput=None, **kwargs):
          cli.rmsf(self.rundir, clinput=clinput, **kwargs)
+         
+    def rms(self, clinput=None, **kwargs):
+         cli.rms(self.rundir, clinput=clinput, **kwargs)
+         
+    def rdf(self, clinput=None, **kwargs):
+         cli.rdf(self.rundir, clinput=clinput, **kwargs)     
          
     def get_rmsf_by_chain(self, **kwargs):
         """
