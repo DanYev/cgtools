@@ -350,7 +350,7 @@ def option_parser(args, options, lists, version=0):
         options['-ff'].setvalue(['elnedyn30nucleic'])
         options['-el'].setvalue(['0.3'])
         options['-eu'].setvalue(['1.2'])
-        options['-ef'].setvalue(['200'])
+        options['-ef'].setvalue(['300'])
         options['-eb'].setvalue(['BB1, BB2'])
     elif options['type'] == 'ignore':
         pass

@@ -17,16 +17,16 @@ def parse_cmd():
 
 def setup(sysdir, sysname):
     system = CGSystem(sysdir, sysname)
-    system.prepare_files()
-    # system.clean_inpdb(add_missing_atoms=True, variant=None)
-    # system.split_chains(from_clean=True)
-    # system.get_go_maps()
-    # system.martinize_proteins(go_eps=10, p='bb', pf=500)
-    system.martinize_nucleotides(sys='test', p='all', pf=500)
+    # system.prepare_files()
+    # system.clean_inpdb(add_missing_atoms=True, add_hydrogens=False, variant=None)
+    # system.split_chains(from_clean=False)
+    # # system.get_go_maps()
+    # # system.martinize_proteins(go_eps=10, p='bb', pf=500)
+    system.martinize_nucleotides(sys='test', p='bb', pf=1000)
+    # system.make_box(d=1.25, bt='triclinic', add_ions=True)
     # system.make_topology_file()
-    # system.make_cgpdb_file()
     # system.solvate()
-    # system.add_ions()
+    # system.add_ions(conc=0.15, pname='K', nname='CL')
     # system.get_masked_pdb_ndx()
     
     
@@ -35,9 +35,9 @@ def md(sysdir, sysname, runname, **kwargs):
     mdrun = system.initmd(runname)
     mdrun.prepare_files()
     mdrun.em()
-    # mdrun.hu()
-    # mdrun.eq() # c='em.gro', r='em.gro'
-    # mdrun.md()
+    mdrun.hu()
+    mdrun.eq() # c='em.gro', r='em.gro'
+    mdrun.md()
     
     
 def extend(sysdir, sysname, runname, **kwargs):    
@@ -50,23 +50,27 @@ def analysis(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
     
-    # Protein_RNA group
-    system.make_index_file(clinput='0|12\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
+    # # Protein_RNA group
+    # system.make_index_file(clinput='0\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
     # group = 'Protein_RNA'
     group = 'RNA'
-    mdrun.trjconv(clinput=f'{group}\n{group}\n{group}\n', f='em.trr', s='em.tpr', o='trj.xtc', n=mdrun.sysndx, pbc='cluster', center=' ', ur='compact', dt=0) 
-    mdrun.trjconv(clinput=f'{group}\n{group}\n', f='trj.xtc', s='em.tpr', o='trj.pdb', n=mdrun.sysndx, fit='rot+trans', dt=0)
+    atoms = ['BB1', 'BB2', 'BB3', 'SC1', 'SC2', 'SC3', 'SC4', 'SC5', 'SC6']
+    ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
+    trjstr = '_'.join(atoms) + '\n'
+    system.make_index_file(clinput=ndxstr, f=mdrun.syspdb, o=mdrun.sysndx)
+    mdrun.trjconv(clinput=f'{trjstr}\n{trjstr}\n{trjstr}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, pbc='whole', center=' ', ur='compact', dt=5000) 
+    # mdrun.trjconv(clinput=f'{group}\n{group}\n', f='trj.xtc', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, fit='rot+trans', dt=0)
     exit()
 
     # Ugly but needed to use the index groups
-    atoms = ['BB', 'BB1', 'BB2']
+    atoms = ['BB1', 'BB2', 'BB3']
     ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
     trjstr = '_'.join(atoms) + '\n'
     system.make_index_file(clinput=ndxstr, f=mdrun.syspdb, o=mdrun.sysndx)
     mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact')
     mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', e=0)
-    mdrun.get_rmsf_by_chain(b=100000)
-    mdrun.get_rmsd_by_chain(b=100000)
+    mdrun.get_rmsf_by_chain(b=0)
+    mdrun.get_rmsd_by_chain(b=0)
     
     
 def plot(sysdir, sysname, runname, **kwargs): 

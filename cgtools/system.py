@@ -46,6 +46,8 @@ class CGSystem:
         self.pcandx     = os.path.join(self.wdir, 'pca.ndx')
         self.prodir     = os.path.join(self.wdir, 'proteins')
         self.nucdir     = os.path.join(self.wdir, 'nucleotides')
+        self.iondir     = os.path.join(self.wdir, 'ions')
+        self.ionpdb     = os.path.join(self.iondir, 'ions.pdb')
         self.topdir     = os.path.join(self.wdir, 'topol')
         self.mapdir     = os.path.join(self.wdir, 'map')
         self.mdpdir     = os.path.join(self.wdir, 'mdp')
@@ -200,23 +202,27 @@ class CGSystem:
             outfile = f.replace('Nucleic', 'chain')
             shutil.move(os.path.join(self.wdir, file), os.path.join(self.topdir, outfile))
 
-    def make_cgpdb_file(self, d=1.25, bt='dodecahedron'):
+    def make_box(self, d=1.25, bt='dodecahedron', add_ions=False):
         with open(self.syspdb, 'w') as outfile:
-            pass 
+            pass  # makes a clean new file
         with open(self.syspdb, 'a') as outfile:
             for filename in sorted(os.listdir(self.cgdir)):
-                file_path = os.path.join(self.cgdir, filename)
-                if os.path.isfile(file_path):
-                    with open(file_path, 'r') as infile:
-                        for line in infile:
-                            if line.startswith('ATOM'):
-                                outfile.write(line)
-        command = f'gmx_mpi editconf -f {self.syspdb} -d {d} -bt {bt}  -o {self.syspdb}'
+                with open(os.path.join(self.cgdir, filename), 'r') as infile:
+                    outfile.writelines(line for line in infile if line.startswith('ATOM'))
+            if add_ions:
+                with open(self.ionpdb, 'r') as infile:
+                    for line in infile:
+                        if line.startswith('ATOM') or line.startswith('HETATM'):
+                            line = line[:21] + ' ' + line[22:] # dont need the chain ID
+                            outfile.write(line)
+        command = f'gmx_mpi editconf -f {self.syspdb} -d {d} -bt {bt}  -o {self.syspdb} -c'
         sp.run(command.split())
             
     def make_topology_file(self):
         itp_files = sorted([f for f in os.listdir(self.topdir) if f.startswith('chain')]) #
+        ions = self.count_resolved_ions() 
         with open(self.systop, 'w') as f:
+            # Include section
             f.write(f'#define GO_VIRT"\n')
             f.write(f'#define RUBBER_BANDS\n')
             f.write(f'#include "{self.topdir}/martini_v3.0.0.itp"\n')
@@ -231,14 +237,20 @@ class CGSystem:
             for filename in itp_files:
                 if filename.endswith('.itp'):
                     f.write(f'#include "{self.topdir}/{filename}"\n')
+            # System name
             f.write(f'\n[ system ]\n')
             f.write(f'Martini system for {self.sysname}\n') 
+            # Molecules
             f.write('\n[molecules]\n')
             f.write('; name\t\tnumber\n')
             for filename in itp_files:
                 if filename.endswith('.itp'):
                     molecule_name = os.path.splitext(filename)[0]
                     f.write(f'{molecule_name}\t\t1\n')
+            # Ions
+            for ion, count in ions.items():
+                f.write(f'{ion}\t\t{count}\n')
+           
             
     def make_gro_file(self, d=1.25, bt='dodecahedron'):
         cg_pdb_files = sorted(os.listdir(self.cgdir))
@@ -274,7 +286,21 @@ class CGSystem:
     def solvate(self, **kwargs):
         cli.solvate(self.wdir, **kwargs)
         
-    def add_ions(self, conc=0.15, pname='NA', nname='CL'): 
+    def find_resolved_ions(self):
+        mask_atoms(self.inpdb, 'ions.pdb', mask=['MG', 'ZN'])
+        
+    def count_resolved_ions(self, ions=['MG', 'ZN']): # does NOT work for CA atoms for now
+        counts = {ion: 0 for ion in ions}
+        with open(self.syspdb, 'r') as file:
+            for line in file:
+                if line.startswith("ATOM") or line.startswith("HETATM"):
+                    current_ion = line[12:16].strip()
+                    if current_ion in ions:
+                        counts[current_ion] += 1
+        counts = {ion: count for ion, count in counts.items() if count > 0}
+        return counts
+        
+    def add_ions(self, conc=0.15, pname='K', nname='CL', **kwargs): 
         bdir = os.getcwd()
         os.chdir(self.wdir)
         command = f'gmx_mpi grompp -f mdp/ions.mdp -c {self.syspdb} -p system.top -o ions.tpr'
@@ -461,10 +487,3 @@ class MDRun(CGSystem):
                 o=os.path.join(self.rmsdir, f'rmsd_{chain}.xvg'), **kwargs)
                 
             
-            
-
-        
-
-        
-
-    

@@ -48,7 +48,7 @@ def convert_mutation_format(mutation):
     return f"{from_aa_3letter}-{position}-{to_aa_3letter}"
 
 
-def prepare_aa_pdb(in_pdb, out_pdb, add_missing_atoms=False, variant=None):
+def prepare_aa_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, variant=None):
     if variant:
         mutations = [convert_mutation_format(mutation) for mutation in variant]
     print(f"Opening {in_pdb}")
@@ -69,8 +69,9 @@ def prepare_aa_pdb(in_pdb, out_pdb, add_missing_atoms=False, variant=None):
         pdb.findMissingAtoms()
         print("Adding missing atoms")
         pdb.addMissingAtoms()
-    print("Adding missing hydrogens")
-    pdb.addMissingHydrogens(7.0)
+    if add_hydrogens:
+        print("Adding missing hydrogens")
+        pdb.addMissingHydrogens(7.0)
     topology = pdb.topology
     positions = pdb.positions
     print("Writing PDB")
