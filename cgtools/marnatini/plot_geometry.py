@@ -21,7 +21,7 @@ def plot_geometry(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals, topo
     cgkwargs = {'bins': n_bins, 'density': True, 'fill': False, 'rwidth': 0.8,}
 
     # Plotting bonds    
-    fig, axs = plt.subplots(2, 4, sharey=False, figsize=(12,6))
+    fig, axs = plt.subplots(3, 4, sharey=False, figsize=(12,6))
     arrout = []
     for n, key in enumerate(topology['bonds'].keys()):
         i = n // 4
