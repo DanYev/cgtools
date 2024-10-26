@@ -17,7 +17,7 @@ def parse_cmd():
 
 def setup(sysdir, sysname):
     system = CGSystem(sysdir, sysname)
-    # system.prepare_files()
+    system.prepare_files()
     # system.clean_inpdb(add_missing_atoms=True, variant=None)
     # system.split_chains(from_clean=True)
     # system.get_go_maps()
