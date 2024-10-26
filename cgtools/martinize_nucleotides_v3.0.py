@@ -2935,10 +2935,10 @@ class Topology:
                             mass = 45
                         self.atoms.append((atid,atype,resi,resname,aname,atid,charge,mass,ss))
                     # Doing this here saves going over all the atoms onesmore.
-                    # Generate position restraints for all atoms or Backbone beads only.
-                    if 'all' in self.options['PosRes']:
+                    # Generate position restraints for all atoms or Backbone beads only. @POSRES
+                    if 'all' in self.options['PosRes']:  
                         if (aname == "BB1" or aname == "BB2" or aname == "BB3"
-                                or aname == 'SC1') and atid-1 > 1:
+                                or aname == 'SC1' or aname == 'SC3' or aname == 'SC5') and atid-1 > 1:
                             self.posres.append((atid-1))
                     if 'bb' in self.options['PosRes']: # @POSRES
                         if (aname == "BB1" or aname == "BB2") and atid-1 > 1:
