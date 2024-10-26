@@ -316,7 +316,7 @@ class CGSystem:
         # self._mdruns.append(mdrun.runname)
         return mdrun
         
-    def get_masked_pdb_ndx(self, mask=['BB', 'BB1', 'BB2'], **kwargs):
+    def get_pca_pdb_ndx(self, mask=['BB', 'BB1', 'BB2', 'NA', 'K', 'CL', 'MG'], **kwargs):
         """
         Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
         Default is to select backbone atoms for proteins and RNA
@@ -345,7 +345,7 @@ class CGSystem:
     @from_wdir
     def make_index_by_chain(wdir, inpdb='pca.pdb', outndx='pca.ndx', chains=[]):
         commands = [f'chain {x}\n' for x in chains]
-        clinput = 'keep 0\n' + ' '.join(commands) + 'q\n'
+        clinput = 'case \nkeep 0\n' + ' '.join(commands) + 'q\n'
         cli.run('gmx_mpi make_ndx', f=inpdb, o=outndx, clinput=clinput)
 
 ################################################################################
@@ -467,7 +467,13 @@ class MDRun(CGSystem):
          cli.rms(self.rundir, clinput=clinput, **kwargs)
          
     def rdf(self, clinput=None, **kwargs):
-         cli.rdf(self.rundir, clinput=clinput, **kwargs)     
+        """
+        Get RDF by chain.
+        """
+        kwargs.setdefault('f', 'pca.xtc')
+        kwargs.setdefault('s', 'pca.pdb')
+        kwargs.setdefault('n', self.pcandx)
+        cli.rdf(self.rundir, clinput=clinput, **kwargs)     
          
     def get_rmsf_by_chain(self, **kwargs):
         """
@@ -475,7 +481,7 @@ class MDRun(CGSystem):
         """
         kwargs.setdefault('f', 'pca.xtc')
         kwargs.setdefault('s', 'pca.pdb')
-        kwargs.setdefault('n', os.path.join(self.wdir, 'pca.ndx'))
+        kwargs.setdefault('n', self.pcandx)
         for chain in self.chains:
             cli.rmsf(self.rundir, clinput=f'ch{chain}\n', 
                 o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
@@ -486,7 +492,7 @@ class MDRun(CGSystem):
         """
         kwargs.setdefault('f', 'pca.xtc')
         kwargs.setdefault('s', 'pca.pdb')
-        kwargs.setdefault('n', os.path.join(self.wdir, 'pca.ndx'))
+        kwargs.setdefault('n', self.pcandx)
         for chain in self.chains:
             cli.rms(self.rundir, clinput=f'ch{chain}\nch{chain}\n', 
                 o=os.path.join(self.rmsdir, f'rmsd_{chain}.xvg'), **kwargs)

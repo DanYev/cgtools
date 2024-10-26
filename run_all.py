@@ -27,7 +27,7 @@ def setup(sysdir, sysname):
     # system.make_topology_file()
     # system.solvate()
     # system.add_ions(conc=0.15, pname='K', nname='CL')
-    # system.get_masked_pdb_ndx()
+    # system.get_pca_pdb_ndx()
     
     
 def md(sysdir, sysname, runname, **kwargs): 
@@ -66,22 +66,28 @@ def trjconv(sysdir, sysname, runname, **kwargs):
     mdrun = system.initmd(runname)
     # Ugly but needed to use the index groups
     atoms = ['BB1', 'BB2', 'BB3']
+    ions = ['K', 'CL', 'MG']
+    atoms += ions
     ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
     trjstr = '_'.join(atoms) + '\n'
     system.make_index_file(clinput=ndxstr, f=mdrun.syspdb, o=mdrun.sysndx)
-    mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact')
-    mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', e=0)
-
+    mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
+    mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.xtc', n=mdrun.sysndx, pbc='atom', ur='compact', **kwargs)
+    
 
 def rms_analysis(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
     # Ugly but needed to use the index groups
     atoms = ['BB1', 'BB2', 'BB3']
-    trjstr = '_'.join(atoms) + '\n'
-    mdrun.get_rdf(b=0)
-    # mdrun.get_rmsf_by_chain(b=0)
-    # mdrun.get_rmsd_by_chain(b=0)
+    ions = ['K', 'CL', 'MG']
+    atoms += ions
+    ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
+    instr = '_'.join(atoms) + '\n'
+    # system.make_index_file(clinput=ndxstr, f=mdrun.pcapdb, o=mdrun.pcandx)
+    mdrun.rdf(b=0, **kwargs)
+    # mdrun.get_rmsf_by_chain(b=0, **kwargs)
+    # mdrun.get_rmsd_by_chain(b=0, **kwargs)
     
     
 def plot(sysdir, sysname, runname, **kwargs): 
@@ -127,7 +133,7 @@ if __name__ == '__main__':
         case 'rms_analysis':
             rms_analysis(*args)
         case 'geometry':
-            rms_analysis(*args)
+            geometry(*args)
         case 'plot':
             plot(*args)
    
