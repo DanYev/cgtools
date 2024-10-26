@@ -99,7 +99,8 @@ def prepare_files(pdb, wdir='test', mutations=None, protein='protein'):
     print('All the files are ready!')
     
 @cli.from_wdir    
-def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein', **kwargs):
+def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein', 
+    go_eps=9.414, go_low=0.3, go_up=1.1, go_res_dist=3, **kwargs):
     r"""
     Virtual site based GoMartini:
     -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
@@ -113,11 +114,6 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein', **kwargs):
     kwargs.setdefault('x', cgpdb)
     kwargs.setdefault('go', 'go_map')
     kwargs.setdefault('o', 'protein.top')
-    kwargs.setdefault('go-moltype', go_moltype)
-    kwargs.setdefault('go-eps', 9.414)
-    kwargs.setdefault('go-low', 0.3)
-    kwargs.setdefault('go-up', 1.1)
-    kwargs.setdefault('go-res-dist', 3)
     kwargs.setdefault('cys', 0.3)  
     kwargs.setdefault('p', 'all')
     kwargs.setdefault('pf', 1000)    
@@ -127,7 +123,8 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein', **kwargs):
     kwargs.setdefault('resid', 'input')
     kwargs.setdefault('ff', 'martini3001')
     kwargs.setdefault('maxwarn', '1000')
-    cli.run('martinize2', **kwargs)
+    line = f'-go-moltype {go_moltype} -go-eps {go_eps} -go-low {go_low} -go-up {go_up} -go-res-dis {go_res_dist}'
+    cli.run('martinize2', line, **kwargs)
     append_to('go_atomtypes.itp', os.path.join(topdir, 'go_atomtypes.itp'))
     append_to('go_nbparams.itp', os.path.join(topdir, 'go_nbparams.itp'))
     shutil.move(f'{go_moltype}.itp',  os.path.join(topdir, f'{go_moltype}.itp'))

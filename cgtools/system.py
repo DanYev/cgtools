@@ -125,14 +125,17 @@ class CGSystem:
                 shutil.copy(fpath, outpath)
         
     def clean_inpdb(self, **kwargs):
+        print("Cleaning the PDB", file=sys.stderr)
         from pdbtools import prepare_aa_pdb
         in_pdb = self.inpdb
         out_pdb = in_pdb.replace('.pdb', '_clean.pdb')
         prepare_aa_pdb(in_pdb, out_pdb, **kwargs)    
         
-    def split_chains(self):
+    def split_chains(self, from_clean=False):
         parser = PDBParser()
-        in_pdb = self.inpdb.replace('.pdb', '_clean.pdb')
+        in_pdb = self.inpdb
+        if from_clean:
+            in_pdb = self.inpdb.replace('.pdb', '_clean.pdb')
         structure = parser.get_structure(self.sysname, in_pdb)
         io = PDBIO()
         for model in structure:

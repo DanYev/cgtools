@@ -19,10 +19,10 @@ def setup(sysdir, sysname):
     system = CGSystem(sysdir, sysname)
     # system.prepare_files()
     # system.clean_inpdb(add_missing_atoms=True, variant=None)
-    # system.split_chains()
+    # system.split_chains(from_clean=True)
     # system.get_go_maps()
-    # system.martinize_proteins(p='backbone', pf=1000)
-    system.martinize_nucleotides(sys='test', p='all', pf=1000)
+    # system.martinize_proteins(go_eps=10, p='all', pf=1000)
+    system.martinize_nucleotides(sys='test', p='all', pf=100000)
     # system.make_topology_file()
     # system.make_cgpdb_file()
     # system.solvate()
@@ -54,8 +54,8 @@ def analysis(sysdir, sysname, runname, **kwargs):
     # system.make_index_file(clinput='1|12\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
     # group = 'Protein_RNA'
     group = 'RNA'
-    mdrun.trjconv(clinput=f'{group}\n{group}\n{group}\n', f='md.trr', s='md.tpr', o='trj.xtc', n=mdrun.sysndx, pbc='cluster', center=' ', ur='compact', dt=000) 
-    mdrun.trjconv(clinput=f'{group}\n{group}\n', f='trj.xtc', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, fit='rot+trans', dt=000)
+    mdrun.trjconv(clinput=f'{group}\n{group}\n{group}\n', f='md.trr', s='md.tpr', o='trj.xtc', n=mdrun.sysndx, pbc='cluster', center=' ', ur='compact', dt=10000) 
+    mdrun.trjconv(clinput=f'{group}\n{group}\n', f='trj.xtc', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, fit='rot+trans', dt=10000)
     exit()
 
     # Ugly but needed to use the index groups
@@ -65,8 +65,8 @@ def analysis(sysdir, sysname, runname, **kwargs):
     system.make_index_file(clinput=ndxstr, f=mdrun.syspdb, o=mdrun.sysndx)
     mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact')
     mdrun.trjconv(clinput=trjstr, f='md.trr', o='pca.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', e=0)
-    mdrun.get_rmsf_by_chain()
-    mdrun.get_rmsd_by_chain()
+    mdrun.get_rmsf_by_chain(b=100000)
+    mdrun.get_rmsd_by_chain(b=100000)
     
     
 def plot(sysdir, sysname, runname, **kwargs): 
