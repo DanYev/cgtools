@@ -107,7 +107,7 @@ def run(*args, **kwargs):
     clinput = kwargs.pop('clinput', None)
     cltext = kwargs.pop('cltext', True)
     command = args_to_str(*args) + ' ' + kwargs_to_str(**kwargs)
-    sp.run(command.split(), input=clinput, text=cltext, check=True)
+    sp.run(command.split(), input=clinput, text=cltext, check=False)
     # try:
     #     sp.run(command.split(), input=clinput, text=cltext, check=True)
     # except sp.CalledProcessError as e:
@@ -200,8 +200,7 @@ def editconf(wdir, **kwargs):
     defaults = {
         'f': 'system.pdb',
         'o': 'system.pdb',
-        'bt': 'dodecahedron',
-        'd': '1.25'
+        'bt': 'triclinic',
     }
     kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'editconf', **kwargs)
@@ -253,7 +252,7 @@ def make_ndx(wdir, clinput=None, **kwargs):
     """
     defaults = {
         'f': 'system.pdb',
-        'o': 'index.ndx'
+        'o': 'index.ndx',
     }
     kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'make_ndx', clinput=clinput, cltext=True, **kwargs)
@@ -446,6 +445,36 @@ def rdf(wdir, clinput=None, **kwargs):
     }
     kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'rdf', clinput=clinput, cltext=True, **kwargs)
+
+
+@from_wdir
+def covar(wdir, clinput=None, **kwargs):
+    """
+    Run the GROMACS 'covar' command to get covariance matrix and normal modes.
+
+    Parameters:
+    wdir (str): 
+        The working directory where the command should be executed.
+    clinput (str, optional): 
+        Input string specifying atom selections.
+    **kwargs: dict
+        Additional options and flags for the 'covar' command.
+        Defaults:
+        - 's': 'md.tpr' (input run file)
+        - 'f': 'mdc.xtc' (input trajectory file)
+        - 'o': 'rms_analysis/rmsd.xvg' (output file)
+        - 'b': '0' (beginning time)
+        - 'xvg': 'none' (output format)
+    """
+    defaults = {
+        's': 'md.tpr',
+        'f': 'mdc.xtc',
+        'ascii': 'cov_analysis/covar.dat',
+        'b': '0',
+        'last': '10',
+    }
+    kwargs = set_defaults(kwargs, defaults)
+    run_gmx(wdir, 'covar', clinput=clinput, cltext=True, **kwargs)
     
 ##############################################################
 # JUNK

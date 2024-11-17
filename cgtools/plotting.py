@@ -9,91 +9,6 @@ from scipy.stats import pearsonr
 from dci_dfi import percentile
 
 
-def read_data(fpath):
-    """ 
-    Reads a .csv or .npy data 
-    
-    Input 
-    ------
-    fname: string
-        Name of the data to read
-    Output 
-    ------
-    data: ndarray
-        Numpy array
-    """
-    ftype = fpath.split('.')[-1]
-    if ftype == 'npy':
-        try:
-            data = np.load(fpath)
-        except:
-            raise ValueError()
-    if ftype == 'csv' or ftype == 'dat':
-        try:
-            df = pd.read_csv(fpath, sep='\\s+', header=None)
-            data = df.values
-            data = np.squeeze(df.values)
-        except:
-            raise ValueError()
-    if ftype == 'xvg':
-        try:
-            df = pd.read_csv(fpath, sep='\\s+', header=None)
-            x = df[0].values
-            y = df[1].values
-            if len(df.columns) > 2:
-                err = df[2].values
-            else:
-                err = None
-        except:
-            raise ValueError()
-    return (x , y, err)
-
-
-def flatten_list(nested_list):
-    flat_list = []
-    for element in nested_list:
-        if isinstance(element, list):
-            flat_list.extend(flatten_list(element))  # Recursively flatten sublists
-        else:
-            flat_list.append(element)  # Append non-list elements directly
-    return flat_list
- 
-def plot_aa_dfi(data=f'data/extant_300_dfi_100ns_pct_chain_analysis.csv'):
-    df = pd.read_csv(data)
-    x = np.array(df[df.iloc[:, 1].notna()].iloc[:, 1])
-    y = np.array(df[df.iloc[:, 2].notna()].iloc[:, 2])
-    y = percentile(y)
-    N = len(y)
-    x = np.arange(672, N+672)
-    nsys = 1
-    fig = plt.figure(figsize=(12,4))
-    plt.plot(x, y, label='AA')
-    y = np.load('data/hM8_TMD_04_WT_300_dfi.npy')[:-1] # hM8_TMD_04 hTRPM8[672:-92]
-    y = percentile(y)
-    plt.plot(x, y, label='CG')
-    plt.grid()
-    plt.legend(loc='upper right')
-    plt.xlabel('ResN')
-    plt.ylabel('pDFI')
-    plt.autoscale(tight=True)
-    plt.tight_layout()
-    fig.savefig(f'png/test.png')
-    plt.close()
-    
-    
-def get_mutations(data):
-    datas = flatten_list(data)
-    mutations = [x.split('_')[1:-2] for x in datas]
-    mutations = set(flatten_list(mutations))
-    if 'WT' in mutations:
-        mutations.remove('WT')
-    if mutations:
-        positions = [int(x[1:-1]) for x in mutations]
-    else:
-        positions = None
-    return positions, mutations
-
-
 class Figure:
     
     def __init__(self, datas, **kwargs):
@@ -122,7 +37,7 @@ class Figure:
             axs = [axs]
         return fig, axs
 
-    def make_plot(self):
+    def save_figure(self, path):
         """
         Plot the metric for each data across a grid of subplots.
         """
@@ -131,7 +46,7 @@ class Figure:
         for ax, data, label in zip(axs, self.datas, self.labels):
             self.make_ax(ax, data, label)
         self.set_fig_parameters(fig, axs)
-        fig.savefig(self.figname)
+        fig.savefig(path)
         plt.close()
         
         
@@ -141,6 +56,7 @@ class Plot2D(Figure):
         super().__init__(datas, **kwargs)
         self.labels     = labels
         self.size       = kwargs.pop('size', (12, 5))
+        self.xlim       = kwargs.pop('xlim', None)
         self.ylim       = kwargs.pop('ylim', None)
         self.xscale     = kwargs.pop('xscale', 1.0)
         self.yscale     = kwargs.pop('yscale', 1.0)
@@ -158,8 +74,7 @@ class Plot2D(Figure):
         y = data[1]
         err = data[2]
         ax.plot(x, y, label=label, color=color)
-        if err:
-            ax.fill_between(x, y - err, y + err, color=color, alpha=self.alpha)
+        ax.fill_between(x, y - err, y + err, color=color, alpha=self.alpha)
         
     def make_ax(self, ax, subdatas, sublabels):
         colors = plt.cm.Dark2(np.arange(0, len(subdatas))) # Set1 Set2 Dark2 Accent Pastel1
@@ -175,9 +90,10 @@ class Plot2D(Figure):
         #     ax.legend(frameon=False, fontsize=12, loc=loc)
         ax.autoscale(tight=True)
         ax.grid()
-        ax.set_ylabel(self.ylabel, fontsize=14)
-        ax.set_ylim(self.ylim)
         ax.set_xlabel("Residue Number", fontsize=14)
+        ax.set_ylabel(self.ylabel, fontsize=14)
+        ax.set_xlim(self.xlim)
+        ax.set_ylim(self.ylim)
         # ax.set_title(data, fontsize=14)
         ax.legend(loc='best')  
         # self.annotate_domains(ax)
@@ -274,6 +190,59 @@ class HeatMap(Figure):
         cbar.set_label(self.cbarlabel, fontsize=12)
         fig.suptitle(self.title, fontsize=14)
         plt.tight_layout()
+  
+        
+################################################################################
+# Some functions to make figures with CGSystem data
+################################################################################    
+
+def plot_mean_sem(files, figpath, **kwargs):
+    """
+    Makes a figure with .csv files in datdir containing Mean and SEM 
+    """
+    datas = [pd.read_csv(f, header=None) for f in files]
+    labels = [f.split('/')[-3] for f in files]
+    plot = Plot2D([datas], [labels], legend=True, loc='upper right', **kwargs)
+    plot.save_figure(figpath)
+    
+    
+def plot_each_mean_sem(fpaths, system, **kwargs):
+    """
+    Do 'plot_mean_sem' for a selection of files for a system
+    """
+    for fpath in fpaths:
+        figname = fpath.split('/')[-1].replace('csv', 'png')
+        figpath = os.path.join(system.pngdir, figname)
+        plot_mean_sem([fpath], figpath, **kwargs)
+        
+        
+def plot_xvgs():
+    # importing
+    from plotting import Plot2D
+    # plot data from each run in one figure  
+    def mkfig(files, fname, **kwargs):
+        datas = []
+        labels = []
+        for file in files:
+            data = read_data(file)
+            datas.append(data)
+            label = file.split('/')[-3]
+            labels.append(label)
+        figname = os.path.join(system.pngdir, fname.replace('csv', 'png'))
+        plot = Plot2D([datas], [labels], figname=figname, legend=True, loc='upper right', **kwargs)
+        plot.make_plot()
+    # make figures by filenames   
+    def make_figs(system, fnames, **kwargs):
+        for fname in fnames:
+            files = system.pull_runs_files('rms_analysis', fname)
+            mkfig(files, fname, **kwargs)
+    # plot      
+    system = CGSystem(sysdir, sysname)  
+    system.runs_mean_sem('rms_analysis', 'rdf_MG.xvg')
+    rdf_names = [f for f in os.listdir(system.datdir) if f.startswith('rdf')]
+    make_figs(system, rdf_names)
+    # rmsf_names = [f for f in os.listdir(system.initmd('mdrun_1').rmsdir) if f.startswith('rmsf')]
+    # make_figs(rmsf_names)   
         
         
 if __name__ == '__main__':

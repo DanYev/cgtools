@@ -332,25 +332,19 @@ def option_parser(args, options, lists, version=0):
 
     # Write options based on selected topology type.
     options['type'] = options['-type'].value
-    if options['type'] == 'ss':
-        options['-ff'].setvalue(['martini30nucleic'])
-    elif options['type'] == 'ds-stiff':
+    if options['type'] == 'none':
         options['-ff'].setvalue(['elnedyn30nucleic'])
-        lists['merges'].append('A,B')
-        options['-eu'].setvalue(['1.0'])
-        options['-ef'].setvalue(['500'])
-        options['-eb'].setvalue(['BB1,BB2,BB3'])
-    elif options['type'] == 'ds-soft': 
+    elif options['type'] == 'ds': 
         options['-ff'].setvalue(['elnedyn30nucleic'])
         lists['merges'].append('A,B')
         options['-eu'].setvalue(['1.2'])
         options['-ef'].setvalue(['13'])
-        options['-eb'].setvalue(['BB1,BB2,BB3,SC1'])
-    elif options['type'] == 'ss-stiff':
+        options['-eb'].setvalue(['BB1'])
+    elif options['type'] == 'ss':
         options['-ff'].setvalue(['elnedyn30nucleic'])
         options['-el'].setvalue(['0.3'])
         options['-eu'].setvalue(['1.2'])
-        options['-ef'].setvalue(['300'])
+        options['-ef'].setvalue(['100'])
         options['-eb'].setvalue(['BB1, BB2'])
     elif options['type'] == 'ignore':
         pass
@@ -1315,15 +1309,15 @@ class elnedyn30nucleic():
 
         # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
-            'atom'  : spl("Q1 N3 N5"),     # Have a look at BB3 bead type
+            'atom'  : spl("Q1 N2 N4"),     # Have a look at BB3 bead type
             'bond'  : [(1,  0.351, 20000),          
                        (1,  0.380, 12000),
                        (1,  0.240, 20000),
                        (1,  0.407, 12000)],    #8  , 0.202 50000    ],         
-            'angle' : [(10,  110.0, 60),      #2, 117.0, 140       
-                       (10,  118.0, 190)],           
-            'dih'   : [(1,   34.0, 8, 1),
-                       (1,  -13.0, 10, 1),],
+            'angle' : [(10,  110.0, 50),      #2, 117.0, 140       
+                       (10,  118.0, 150)],           
+            'dih'   : [(1,   34.0, 8, 1), # 8
+                       (1,  -13.0, 10, 1),], # 10
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
@@ -2928,9 +2922,8 @@ class Topology:
                         charge = self.options['ForceField'].getCharge(atype,aname)
                         if aname == 'BB1':
                             mass = 72
-                        # For virtual sites
-                        #elif 'SC' in aname and (resname == 'DA' or resname == 'DG'):
-                        #    mass = 60
+                        elif (aname == "BB2" or aname == "BB3"):
+                            mass = 60
                         else: 
                             mass = 45
                         self.atoms.append((atid,atype,resi,resname,aname,atid,charge,mass,ss))

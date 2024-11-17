@@ -134,7 +134,7 @@ def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
     kwargs.setdefault('f', aapdb)
     kwargs.setdefault('x', cgpdb)
     kwargs.setdefault('sys', 'RNA')
-    kwargs.setdefault('type', 'ss-stiff')
+    kwargs.setdefault('type', 'ss')
     kwargs.setdefault('o', 'topol.top')
     kwargs.setdefault('p', 'bb')
     kwargs.setdefault('pf', 1000)

@@ -63,7 +63,7 @@ def prepare_aa_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False
     print("Replacing non-standard residues")
     pdb.replaceNonstandardResidues()
     print("Removing heterogens")
-    pdb.removeHeterogens(False)
+    pdb.removeHeterogens(True)
     if add_missing_atoms:
         print("Looking for missing atoms")
         pdb.findMissingAtoms()

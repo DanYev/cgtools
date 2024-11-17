@@ -8,6 +8,7 @@ from scipy import linalg as LA
 from scipy.stats import pearsonr
 
 
+
 def parse_covar_dat(file):
     df = pd.read_csv(file, sep='\\s+', header=None)
     covariance_matrix = np.asarray(df, dtype=np.float64)
@@ -67,65 +68,8 @@ def get_dci_asymmetry(dci):
     return dci_asymmetry    
     
     
-def save_data(data, fpath):
-    """ 
-    Saves the data as a .csv or .npy file 
-    
-    Input 
-    ------
-    data: numpy array
-        Numpy array of data
-    fpath: string
-        Path to the file to save
-    Output 
-    ------
-    """
-    ftype = fpath.split('.')[-1]
-    if ftype == 'npy':
-        np.save(fpath, data)
-    if ftype == 'csv':
-        df = pd.DataFrame(data)
-        df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=' ')
+
         
-        
-def read_data(fpath):
-    """ 
-    Reads a .csv or .npy file 
-    
-    Input 
-    ------
-    fname: string
-        Name of the file to read
-    Output 
-    ------
-    data: ndarray
-        Numpy array
-    """
-    ftype = fpath.split('.')[-1]
-    if ftype == 'npy':
-        try:
-            data = np.load(fpath)
-        except:
-            raise ValueError()
-    if ftype == 'csv' or ftype == 'dat':
-        try:
-            df = pd.read_csv(fpath, sep='\\s+', header=None)
-            data = df.values
-            data = np.squeeze(df.values)
-            if data.shape[0] != 1104:
-                raise ValueError()
-        except:
-            raise ValueError()
-    if ftype == 'xvg':
-        try:
-            df = pd.read_csv(fpath, sep='\\s+', header=None, usecols=[1])
-            data = df.values
-            data = np.squeeze(df.values)
-            if data.shape[0] != 1104:
-                raise ValueError()
-        except:
-            raise ValueError()
-    return data
         
  
 def percentile(x):
@@ -143,39 +87,6 @@ def get_system_idx(run):
     return system, idx
 
 
-def get_mean_sem(metric, runs):
-    all_files = []
-    for run in runs:
-        system, idx = get_system_idx(run)
-        adir = f'systems/{system}/analysis_{idx}/'
-        files = [os.path.join(adir, file) for file in os.listdir(adir) if file.startswith(metric)]
-        all_files.extend(files)
-    datas = []
-    for file in all_files:
-        try:
-            data = read_data(file)
-        except:
-            continue
-        datas.append(data)
-    datas = np.array(datas)
-    mean = np.average(datas, axis=0)
-    sem = np.std(datas, axis=0) / np.sqrt(datas.shape[0])
-    return mean, sem
-    
-    
-def metric_mean_sem(metric, runs):
-    mean, sem = get_mean_sem(metric, runs)
-    system, idx = get_system_idx(runs[0])
-    if len(runs) != 1:
-        datadir = f'systems/{system}/data_all'
-    else:    
-        datadir = f'systems/{system}/data_{idx}'
-    fpath = os.path.join(datadir, f'{metric}_mean.csv')
-    save_data(mean, fpath)
-    fpath = os.path.join(datadir, f'{metric}_sem.csv')
-    save_data(sem, fpath)    
-    
- 
 if __name__ == '__main__':
     pass
 

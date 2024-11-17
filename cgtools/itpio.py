@@ -140,8 +140,7 @@ def make_cross_terms(input_file, output_file, old_name, new_name):
             else:
                 continue
 
-
-if __name__ == '__main__':
+def make_marnatini_itp():
     # data = read_itp('../itp/working/1RNA_A.itp')
     # write_itp('test.itp', data)
     # print(data)
@@ -156,3 +155,32 @@ if __name__ == '__main__':
     make_in_terms('itp/martini2.itp', 'itp/martini.itp', out_file, dict_of_names)
     for new_name, old_name in dict_of_names.items():
         make_cross_terms('itp/martini.itp', out_file, old_name, new_name)
+        
+        
+def make_ions_itp():
+    import pandas as pd
+    dict_of_names = {   'TMG': 'TD',
+    }
+    out_file = 'cgtools/itp/ions.itp'
+    for new_name, old_name in dict_of_names.items():
+        make_cross_terms('cgtools/itp/martini_v3.0.0.itp', out_file, old_name, new_name)
+    df = pd.read_csv(out_file, sep='\\s+', header=None)
+    df[3] -= 0.08
+    tmp_file = 'cgtools/itp/ions_tmp.itp'
+    df.to_csv(tmp_file, sep=' ', header=None, index=False, float_format='%.6e')
+    
+    out_file = 'cgtools/itp/martini_ions.itp'
+    new_lines = ["[ atomtypes ]\n", 
+        "TMG  45.000  0.000  A  0.0  0.0\n\n", 
+        "[ nonbond_params ]\n", 
+        "TMG TMG 1 3.580000e-01 1.100000e+00\n"]
+    with open(tmp_file, "r") as file:
+        original_content = file.readlines()
+    with open(out_file, "w+") as file:
+        file.writelines(new_lines + original_content)
+        
+        
+
+
+if __name__ == '__main__':
+    make_ions_itp()
