@@ -182,7 +182,7 @@ def sbatch(script, *args, **kwargs):
 ############################################################## 
 
 @from_wdir
-def editconf(wdir, **kwargs):
+def gmx_editconf(wdir, **kwargs):
     """
     Run the GROMACS 'editconf' command to modify the configuration of the system.
 
@@ -207,7 +207,7 @@ def editconf(wdir, **kwargs):
 
 
 @from_wdir
-def solvate(wdir, **kwargs):
+def gmx_solvate(wdir, **kwargs):
     """
     Run the GROMACS 'solvate' command to solvate the system with water.
 
@@ -235,7 +235,7 @@ def solvate(wdir, **kwargs):
 
 
 @from_wdir
-def make_ndx(wdir, clinput=None, **kwargs):
+def gmx_make_ndx(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'make_ndx' command to create an index file.
 
@@ -259,7 +259,7 @@ def make_ndx(wdir, clinput=None, **kwargs):
 
 
 @from_wdir
-def grompp(wdir, **kwargs):
+def gmx_grompp(wdir, **kwargs):
     """
     Run the GROMACS 'grompp' command to preprocess the input files and generate the `.tpr` file.
 
@@ -290,7 +290,7 @@ def grompp(wdir, **kwargs):
     
     
 @from_wdir
-def mdrun(wdir, **kwargs):
+def gmx_mdrun(wdir, **kwargs):
     """
     Run the GROMACS 'mdrun' command to perform molecular dynamics or energy minimization.
 
@@ -320,7 +320,7 @@ def mdrun(wdir, **kwargs):
 
 
 @from_wdir
-def trjconv(wdir, clinput='1\n1\n', **kwargs):
+def gmx_trjconv(wdir, clinput='1\n1\n', **kwargs):
     """
     Run the GROMACS 'trjconv' command to convert trajectory files.
 
@@ -356,7 +356,7 @@ def trjconv(wdir, clinput='1\n1\n', **kwargs):
 
 
 @from_wdir
-def rmsf(wdir, clinput=None, **kwargs):
+def gmx_rmsf(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'rmsf' command to calculate root mean square fluctuation (RMSF).
 
@@ -388,7 +388,7 @@ def rmsf(wdir, clinput=None, **kwargs):
 
 
 @from_wdir
-def rms(wdir, clinput=None, **kwargs):
+def gmx_rms(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'rms' command to calculate root mean square deviation (RMSD).
 
@@ -418,7 +418,7 @@ def rms(wdir, clinput=None, **kwargs):
 
 
 @from_wdir
-def rdf(wdir, clinput=None, **kwargs):
+def gmx_rdf(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'rdf' command to calculate  calculates radial distribution functions (RDF).
 
@@ -448,7 +448,7 @@ def rdf(wdir, clinput=None, **kwargs):
 
 
 @from_wdir
-def covar(wdir, clinput=None, **kwargs):
+def gmx_covar(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'covar' command to get covariance matrix and normal modes.
 
@@ -467,14 +467,25 @@ def covar(wdir, clinput=None, **kwargs):
         - 'xvg': 'none' (output format)
     """
     defaults = {
-        's': 'md.tpr',
-        'f': 'mdc.xtc',
-        'ascii': 'cov_analysis/covar.dat',
+        'ascii': 'covar.dat',
         'b': '0',
         'last': '10',
     }
     kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'covar', clinput=clinput, cltext=True, **kwargs)
+ 
+ 
+@from_wdir
+def gmx_anaeig(wdir, clinput=None, **kwargs):
+    """
+    Run the GROMACS 'anaeig' command to get covariance matrix and normal modes.
+    """
+    defaults = {
+        'v': 'eigenvec.trr',
+    }
+    kwargs = set_defaults(kwargs, defaults)
+    run_gmx(wdir, 'anaeig', clinput=clinput, cltext=True, **kwargs)    
+    
     
 ##############################################################
 # JUNK

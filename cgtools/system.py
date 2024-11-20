@@ -46,6 +46,7 @@ class CGSystem:
         self.sysndx     = os.path.join(self.wdir, 'system.ndx')
         self.mdcpdb     = os.path.join(self.wdir, 'mdc.pdb')
         self.mdcndx     = os.path.join(self.wdir, 'mdc.ndx')
+        self.bbndx      = os.path.join(self.wdir, 'bb.ndx')
         self.prodir     = os.path.join(self.wdir, 'proteins')
         self.nucdir     = os.path.join(self.wdir, 'nucleotides')
         self.iondir     = os.path.join(self.wdir, 'ions')
@@ -240,7 +241,7 @@ class CGSystem:
                         if line.startswith('ATOM') or line.startswith('HETATM'):
                             line = line[:21] + ' ' + line[22:] # dont need the chain ID
                             outfile.write(line)
-        cli.editconf(self.wdir, **kwargs)
+        cli.gmx_editconf(self.wdir, **kwargs)
         
     def make_topology_file(self, ions=['K','MG',]):
         itp_files = sorted([f for f in os.listdir(self.topdir) if f.startswith('chain')]) #
@@ -277,7 +278,6 @@ class CGSystem:
                 if count > 0:
                     f.write(f'{ion}    {count}\n')
            
-            
     def make_gro_file(self, d=1.25, bt='dodecahedron'):
         cg_pdb_files = sorted(os.listdir(self.cgdir))
         for file in cg_pdb_files:
@@ -310,7 +310,7 @@ class CGSystem:
         sp.run(command.split())
         
     def solvate(self, **kwargs):
-        cli.solvate(self.wdir, **kwargs)
+        cli.gmx_solvate(self.wdir, **kwargs)
         
     def find_resolved_ions(self):
         mask_atoms(self.inpdb, 'ions.pdb', mask=['MG', 'ZN', 'K'])
@@ -333,7 +333,7 @@ class CGSystem:
         command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname {pname} -nname {nname} -o {self.syspdb}'
         sp.run(command.split(), input='W\n', text=True) 
         os.chdir(bdir)
-        cli.editconf(self.wdir, f=self.syspdb, o=self.sysgro)
+        cli.gmx_editconf(self.wdir, f=self.syspdb, o=self.sysgro)
         
     def initmd(self, runname):
         mdrun = MDRun(runname, self.sysdir, self.sysname)
@@ -341,11 +341,11 @@ class CGSystem:
         return mdrun
 
     def make_ndx(self, pdb, ndx='index.ndx', groups=[[]], **kwargs):
-        cli.make_ndx(self.wdir, clinput='keep 0\n q\n', f=pdb, o=ndx, **kwargs)
+        cli.gmx_make_ndx(self.wdir, clinput='keep 0\n q\n', f=pdb, o=ndx, **kwargs)
         for atoms in groups:
             ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
             instr_a = '_'.join(atoms) + '\n'
-            cli.make_ndx(self.wdir, clinput=ndxstr, f=pdb, o=ndx, n=ndx, **kwargs)
+            cli.gmx_make_ndx(self.wdir, clinput=ndxstr, f=pdb, o=ndx, n=ndx, **kwargs)
   
     @staticmethod    
     def mask_pdb(inpdb, outpdb, mask=['BB', 'BB1', 'BB2']):
@@ -361,7 +361,11 @@ class CGSystem:
                 if line.startswith('ATOM') or line.startswith('HETATM'):
                     current_atom_name = line[12:16].strip()
                     if current_atom_name in mask:
-                        filtered_atoms.append(line)
+                        # Copy chain ID to segID
+                        chain_id = line[21].strip()  # Extract chain ID
+                        seg_id = f"{chain_id:<4}"    # Format segID to occupy 4 characters
+                        updated_line = line[:72] + seg_id + line[76:]  # Update segID field
+                        filtered_atoms.append(updated_line)
         with open(outpdb, 'w') as output_file:
             for i, atom_line in enumerate(filtered_atoms, start=1):
                 new_serial_number = f'{i:>5}'  
@@ -424,7 +428,6 @@ class CGSystem:
         x = df[0]
         mean = np.average(datas, axis=0)
         sem = np.std(datas, axis=0) / np.sqrt(len(datas))
-        x = np.arange(1, len(mean)+1)
         df = pd.DataFrame({'x':x, 'mean':mean, 'sem':sem})
         fpath = os.path.join(self.datdir, fname.replace('xvg', 'csv'))
         df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
@@ -482,8 +485,8 @@ class MDRun(CGSystem):
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('o', 'em.tpr')
         if grompp:
-            cli.grompp(self.rundir, **kwargs)
-        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
+            cli.gmx_grompp(self.rundir, **kwargs)
+        cli.gmx_mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
             
     def hu(self, grompp=True, **kwargs):
         # mdrun kwargs
@@ -497,8 +500,8 @@ class MDRun(CGSystem):
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('o', 'hu.tpr')
         if grompp:
-            cli.grompp(self.rundir, **kwargs)
-        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
+            cli.gmx_grompp(self.rundir, **kwargs)
+        cli.gmx_mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
             
     def eq(self, grompp=True, **kwargs):
         # mdrun kwargs
@@ -512,8 +515,8 @@ class MDRun(CGSystem):
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('o', 'eq.tpr')
         if grompp:
-            cli.grompp(self.rundir, **kwargs)
-        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
+            cli.gmx_grompp(self.rundir, **kwargs)
+        cli.gmx_mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
             
     def md(self, grompp=True, **kwargs):
         # mdrun kwargs
@@ -527,8 +530,8 @@ class MDRun(CGSystem):
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('o', 'md.tpr')
         if grompp:
-            cli.grompp(self.rundir, **kwargs)
-        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
+            cli.gmx_grompp(self.rundir, **kwargs)
+        cli.gmx_mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
         
     def extend(self, **kwargs):
         """
@@ -543,31 +546,46 @@ class MDRun(CGSystem):
         cli.run_gmx(self.rundir, f'mdrun {options}', **kwargs)
         
     def trjconv(self, clinput=None, **kwargs):
-        cli.trjconv(self.rundir, clinput=clinput, **kwargs)
+        cli.gmx_trjconv(self.rundir, clinput=clinput, **kwargs)
          
     def rmsf(self, clinput=None, **kwargs):
         kwargs.setdefault('f', 'mdc.xtc')
         kwargs.setdefault('s', 'mdc.pdb')
         kwargs.setdefault('n', self.mdcndx)
-        cli.rmsf(self.rundir, clinput=clinput, **kwargs)
+        cli.gmx_rmsf(self.rundir, clinput=clinput, **kwargs)
          
     def rms(self, clinput=None, **kwargs):
         kwargs.setdefault('f', 'mdc.xtc')
         kwargs.setdefault('s', 'mdc.pdb')
         kwargs.setdefault('n', self.mdcndx)
-        cli.rms(self.rundir, clinput=clinput, **kwargs)
+        cli.gmx_rms(self.rundir, clinput=clinput, **kwargs)
          
     def rdf(self, clinput=None, **kwargs):
         kwargs.setdefault('f', 'mdc.xtc')
         kwargs.setdefault('s', 'mdc.pdb')
         kwargs.setdefault('n', self.mdcndx)
-        cli.rdf(self.rundir, clinput=clinput, **kwargs)  
+        cli.gmx_rdf(self.rundir, clinput=clinput, **kwargs)  
         
     def covar(self, clinput=None, **kwargs):
-        kwargs.setdefault('f', 'mdc.xtc')
-        kwargs.setdefault('s', 'mdc.pdb')
-        kwargs.setdefault('n', self.mdcndx)
-        cli.covar(self.rundir, clinput=clinput, **kwargs) 
+        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('s', '../traj.pdb')
+        kwargs.setdefault('ascii', 'covar.dat')
+        cli.gmx_covar(self.covdir, clinput=clinput, **kwargs) 
+        
+    def anaeig(self, clinput=None, **kwargs):
+        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('s', '../traj.pdb')
+        kwargs.setdefault('v', 'eigenvec.trr')
+        cli.gmx_anaeig(self.covdir, clinput=clinput, **kwargs) 
+        
+    def covmat(self, **kwargs):
+        # kwargs.setdefault('f', 'mdc.xtc')
+        # kwargs.setdefault('s', 'mdc.pdb')
+        from dci_dfi import calculate_covariance_matrix
+        f = os.path.join(self.rundir, 'mdc.xtc')
+        s = self.mdcpdb
+        o = os.path.join(self.covdir, 'cov.npy')
+        calculate_covariance_matrix(f, s, o)
         
     def pertmat(self, **kwargs):
         from dci_dfi import parse_covar_dat, get_perturbation_matrix
@@ -578,7 +596,7 @@ class MDRun(CGSystem):
         pertmat = get_perturbation_matrix(cov, resnum)
         print('Saving pertubation matrix', file=sys.stderr)
         np.save(os.path.join(self.covdir, 'pertmat.npy'), pertmat)
-         
+        
     def get_rmsf_by_chain(self, **kwargs):
         """
         Get RMSF by chain.
@@ -588,7 +606,7 @@ class MDRun(CGSystem):
         kwargs.setdefault('n', self.mdcndx)
         for idx, chain in enumerate(self.chains):
             idx = idx + 1
-            cli.rmsf(self.rundir, clinput=f'{idx}\n', 
+            cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n', 
                 o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
                 
     def get_rmsd_by_chain(self, **kwargs):
@@ -599,7 +617,7 @@ class MDRun(CGSystem):
         kwargs.setdefault('s', 'mdc.pdb')
         kwargs.setdefault('n', self.mdcndx)
         for chain in self.chains:
-            cli.rms(self.rundir, clinput=f'ch{chain}\nch{chain}\n', 
+            cli.gmx_rms(self.rundir, clinput=f'ch{chain}\nch{chain}\n', 
                 o=os.path.join(self.rmsdir, f'rmsd_{chain}.xvg'), **kwargs)
                 
             

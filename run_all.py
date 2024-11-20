@@ -15,9 +15,9 @@ def setup(sysdir, sysname):
     # system.split_chains(from_clean=False)
     # system.get_go_maps()
     # system.martinize_proteins(go_eps=10, p='all', pf=500)
-    # system.martinize_nucleotides(sys='test', p='bb', pf=1000, type='ss')
+    system.martinize_nucleotides(sys='test', p='bb', pf=500, type='ss')
     # system.make_cgpdb_file(add_ions=True, bt='triclinic', box='31.0  31.0  31.0', angles='60.00  60.00  90.00')
-    system.make_topology_file(ions=['K', 'MG',])
+    # system.make_topology_file(ions=['K', 'MG',])
     # system.solvate()
     # system.add_ions(conc=0.15, pname='K', nname='CL')
     # system.get_pca_pdb_ndx()
@@ -28,8 +28,8 @@ def md(sysdir, sysname, runname, **kwargs):
     mdrun = system.initmd(runname)
     mdrun.prepare_files()
     # mdrun.em(grompp=False, f=os.path.join(system.mdpdir, 'em0.mdp'), o='em0.tpr', deffnm='em0')
-    mdrun.em()
-    mdrun.hu()
+    # mdrun.em()
+    # mdrun.hu()
     mdrun.eq() # c='em.gro', r='em.gro'
     mdrun.md(grompp=True)
     
@@ -77,14 +77,19 @@ def trjconv(sysdir, sysname, runname, **kwargs):
     # mdrun.trjconv(clinput='1\n', f='md.trr', o='traj.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', dt=10000, **kwargs)
     mdrun.trjconv(clinput='1\n', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
     mdrun.trjconv(clinput='1\n', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='atom', ur='compact', dt=1500, **kwargs)
+    mdrun.trjconv(clinput='1\n1\n1\n', s='mdc.pdb', f='mdc.pdb', o='traj.pdb', n=mdrun.bbndx, pbc='nojump', **kwargs)
+    mdrun.trjconv(clinput='1\n1\n1\n', s='mdc.pdb', f='mdc.xtc', o='traj.xtc', n=mdrun.bbndx, pbc='nojump', **kwargs)
 
     
 def rms_analysis(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    bbndx = os.path.join(system.wdir, 'bb.ndx')
-    mdrun.rmsf(clinput=f'1\n 1\n', n=bbndx, res='yes')
-    # mdrun.get_rmsf_by_chain(b=0, **kwargs)
+    b = 400000
+    e = 1000000
+    mdrun.rmsf(clinput=f'0\n 0\n', f='traj.xtc', s='traj.pdb', res='yes', b=b, e=e, )
+    mdrun.get_rmsf_by_chain(f='traj.xtc', s='traj.pdb', b=b, e=e, **kwargs)
+    # mdrun.rmsf(clinput=f'1\n 1\n', b=b, n=mdrun.bbndx, res='yes')
+    # mdrun.get_rmsf_by_chain(b=b, **kwargs)
     # mdrun.get_rmsd_by_chain(b=0, **kwargs)
     
     
@@ -93,17 +98,22 @@ def rdf_analysis(sysdir, sysname, runname, **kwargs):
     mdrun = system.initmd(runname)
     rdfndx = os.path.join(system.wdir, 'rdf.ndx')
     ions = ['MG', 'K', 'CL']
+    b = 400000
     for ion in ions:
         mdrun.rdf(clinput=f'BB1\n {ion}\n', n=rdfndx, o=f'rms_analysis/rdf_{ion}.xvg', 
-            b=10000, rmax=10, bin=0.01, **kwargs)
+            b=b, rmax=10, bin=0.01, **kwargs)
 
 
 def cov_analysis(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    bbndx = os.path.join(system.wdir, 'bb.ndx')
-    # mdrun.covar(clinput=f'1\n 1\n', n=bbndx, last=1, **kwargs)  
-    mdrun.pertmat()
+    # shutil.copy('atommass.dat', os.path.join(mdrun.covdir, 'atommass.dat'))
+    b = 400000
+    mdrun.covar(clinput=f'0\n 0\n', b=b, last=1000)
+    mdrun.anaeig(clinput=f'0\n 0\n', b=b, last=10, filt='filtered.pdb', dt=15000, e=5000000,
+        comp='eigcomp.xvg', rmsf='eigrmsf.xvg', proj='proj.xvg', eig='eigenval.xvg', **kwargs) 
+    # mdrun.covmat()
+    # mdrun.pertmat()
 
 
 def get_averages(sysdir, sysname):
@@ -123,17 +133,13 @@ def plot_averages(sysdir, sysname, **kwargs):
             
 def test(sysdir, sysname):
     system = CGSystem(sysdir, sysname)
-    mddir = os.path.join(system.wdir, 'mdruns')
-    os.chdir(mddir)
-    for idx in range(1, 6):
-        odir = f'mdrun_{idx+5}'
-        ndir = f'mdrun_{idx}'
-        os.makedirs(ndir, exist_ok=True)
-        file = 'md.tpr'
-        opath = os.path.join(odir, file)
-        npath = os.path.join(ndir, file)
-        # print(opath, npath)
-        shutil.copy(opath, ndir)
+    runs = system.mdruns
+    files = ['eigenvec.trr', 'eigenval.xvg']
+    for run in runs:
+        mdrun = system.initmd(run)
+        os.chdir(mdrun.rundir)
+        for file in files:
+            shutil.copy(file, 'cov_analysis')
         
         
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash                     
 
-module purge
 module load mamba
-source activate cgtools
 module load gromacs
+source activate cgtools
+# source activate martini

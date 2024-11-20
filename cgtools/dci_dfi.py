@@ -1,12 +1,54 @@
 #!/bin/python
 import os
 import sys
-import pandas as pd
+import MDAnalysis as mda
 import numpy as np
+import pandas as pd
 from numba import njit
 from scipy import linalg as LA
 from scipy.stats import pearsonr
 
+
+def calculate_covariance_matrix(f, s, o="covmat.npy"):
+    """
+    Calculate the covariance matrix from a GROMACS trajectory file.
+    
+    Parameters:
+        f (str): Path to the GROMACS .trr file.
+        s (str): Path to the corresponding topology file.
+        o (str): Path to save the covariance matrix (default: 'covariance_matrix.npy').
+    """
+    # Load the trajectory and topology
+    u = mda.Universe(s, f)
+    
+    # Select atoms to analyze (e.g., backbone atoms)
+    selection = u.select_atoms('name BB or name BB1') 
+    selection = u.select_atoms('segid 0 and name BB') 
+    print(selection.positions)
+    exit()
+    n_atoms = selection.n_atoms
+    n_coords = n_atoms * 3  # Each atom contributes 3 coordinates (x, y, z)
+    
+    # Collect all frames into a single array
+    positions = []
+    for ts in u.trajectory:
+        # Flatten the positions for the selected atoms
+        positions.append(selection.positions.flatten())
+    
+    positions = np.array(positions)  # Shape: (n_frames, n_coords)
+
+    # Center the data by subtracting the mean for each coordinate
+    mean_positions = positions.mean(axis=0)
+    centered_positions = positions - mean_positions
+    
+    # Calculate the covariance matrix
+    covariance_matrix = np.cov(centered_positions, rowvar=False)  # Shape: (n_coords, n_coords)
+    
+    # Save the covariance matrix
+    np.save(o, covariance_matrix)
+    print(f"Covariance matrix saved to {output_file}")
+
+    return covariance_matrix
 
 
 def parse_covar_dat(file):
@@ -67,10 +109,6 @@ def get_dci_asymmetry(dci):
     dci_asymmetry = dci - dci.T
     return dci_asymmetry    
     
-    
-
-        
-        
  
 def percentile(x):
     sorted_x = np.argsort(x)

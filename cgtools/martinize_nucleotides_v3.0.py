@@ -330,7 +330,7 @@ def option_parser(args, options, lists, version=0):
     # logging.info('If you use this script please cite:')
     # logging.info('de Jong et al., J. Chem. Theory Comput., 2013, DOI:10.1021/ct300646g')
 
-    # Write options based on selected topology type.
+    # Write options based on selected topology type. @net
     options['type'] = options['-type'].value
     if options['type'] == 'none':
         options['-ff'].setvalue(['elnedyn30nucleic'])
@@ -343,9 +343,9 @@ def option_parser(args, options, lists, version=0):
     elif options['type'] == 'ss':
         options['-ff'].setvalue(['elnedyn30nucleic'])
         options['-el'].setvalue(['0.3'])
-        options['-eu'].setvalue(['1.2'])
-        options['-ef'].setvalue(['100'])
-        options['-eb'].setvalue(['BB1, BB2'])
+        options['-eu'].setvalue(['0.9'])
+        options['-ef'].setvalue(['50'])
+        options['-eb'].setvalue(['BB2'])
     elif options['type'] == 'ignore':
         pass
     else: 
@@ -1311,13 +1311,13 @@ class elnedyn30nucleic():
         self.rna_bb = {
             'atom'  : spl("Q1 N2 N4"),     # Have a look at BB3 bead type
             'bond'  : [(1,  0.351, 20000),          
-                       (1,  0.380, 12000),
+                       (1,  0.380, 10000),
                        (1,  0.240, 20000),
                        (1,  0.407, 12000)],    #8  , 0.202 50000    ],         
-            'angle' : [(10,  110.0, 50),      #2, 117.0, 140       
+            'angle' : [(10,  110.0, 40),      #2, 117.0, 140       
                        (10,  118.0, 150)],           
-            'dih'   : [(1,   34.0, 8, 1), # 8
-                       (1,  -13.0, 10, 1),], # 10
+            'dih'   : [(1,   34.0, 4, 1), # 8
+                       (1,  -13.0, 7, 1),], # 10
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
@@ -2934,7 +2934,7 @@ class Topology:
                                 or aname == 'SC1') and atid-1 > 1:
                             self.posres.append((atid-1))
                     if 'bb' in self.options['PosRes']: # @POSRES
-                        if (aname == "BB1" or aname == "BB2") and atid-1 > 1:
+                        if (aname == "BB2") and atid-1 > 1:
                             self.posres.append((atid-1))
                     if mapping:
                         self.mapping.append((atid,[i+shift for i in mapping[counter]]))
