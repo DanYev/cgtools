@@ -13,14 +13,14 @@ def setup(sysdir, sysname):
     # system.prepare_files()
     # system.clean_inpdb(add_missing_atoms=False, add_hydrogens=False, variant=None)
     # system.split_chains(from_clean=False)
+    # system.clean_proteins(add_hydrogens=True)
     # system.get_go_maps()
-    # system.martinize_proteins(go_eps=10, p='all', pf=500)
-    system.martinize_nucleotides(sys='test', p='bb', pf=500, type='ss')
-    # system.make_cgpdb_file(add_ions=True, bt='triclinic', box='31.0  31.0  31.0', angles='60.00  60.00  90.00')
-    # system.make_topology_file(ions=['K', 'MG',])
-    # system.solvate()
-    # system.add_ions(conc=0.15, pname='K', nname='CL')
-    # system.get_pca_pdb_ndx()
+    # system.martinize_proteins(go_eps=9.414, go_low=0.3, go_up=0.8, p='all', pf=500, resid='mol')
+    # system.martinize_nucleotides(sys='test', p='bb', pf=500, type='ss')
+    system.make_cgpdb_file(add_ions=True, bt='triclinic', box='31.0  31.0  31.0', angles='60.00  60.00  90.00')
+    system.make_topology_file(ions=['K', 'MG', 'MGH'])
+    system.solvate()
+    system.add_ions(conc=0.15, pname='K', nname='CL')
     
     
 def md(sysdir, sysname, runname, **kwargs): 
@@ -30,7 +30,7 @@ def md(sysdir, sysname, runname, **kwargs):
     # mdrun.em(grompp=False, f=os.path.join(system.mdpdir, 'em0.mdp'), o='em0.tpr', deffnm='em0')
     # mdrun.em()
     # mdrun.hu()
-    mdrun.eq() # c='em.gro', r='em.gro'
+    # mdrun.eq() # c='em.gro', r='em.gro'
     mdrun.md(grompp=True)
     
     
@@ -43,15 +43,7 @@ def extend(sysdir, sysname, runname, **kwargs):
 def geometry(sysdir, sysname, runname, **kwargs):  
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    # # Protein_RNA group
-    # system.make_index_file(clinput='0\nq\n', f=mdrun.syspdb, o=mdrun.sysndx)
-    # group = 'Protein_RNA'
-    group = 'RNA'
-    atoms = ['BB1', 'BB2', 'BB3', 'SC1', 'SC2', 'SC3', 'SC4', 'SC5', 'SC6']
-    ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
-    trjstr = '_'.join(atoms) + '\n'
-    system.make_index_file(clinput=ndxstr, f=mdrun.syspdb, o=mdrun.sysndx)
-    mdrun.trjconv(clinput=f'{trjstr}\n{trjstr}\n{trjstr}\n', f='md.trr', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, pbc='whole', center=' ', ur='compact', b=50000, dt=5000) 
+    mdrun.trjconv(clinput='17\n', s='mdc.pdb', f='mdc.xtc', o='chain.pdb', n=mdrun.mdcndx, pbc='nojump', dt=30000, **kwargs) # 
     # mdrun.trjconv(clinput=f'{group}\n{group}\n', f='trj.xtc', s='md.tpr', o='trj.pdb', n=mdrun.sysndx, fit='rot+trans', dt=0)
 
 
@@ -64,6 +56,9 @@ def make_ndx(sysdir, sysname, **kwargs):
     # mdc pdb and ndx
     mask = atoms + ions
     system.make_mdc_pdb_ndx(mask=mask)
+    # traj pdb and ndx
+    mask = ['BB', 'BB1']
+    system.make_trj_pdb_ndx(mask=mask)
     # rdf ndx
     system.make_ndx(pdb=system.mdcpdb, ndx='rdf.ndx', groups=[['BB1'], ['MG'], ['K'], ['CL']])
     # bb ndx
@@ -77,17 +72,19 @@ def trjconv(sysdir, sysname, runname, **kwargs):
     # mdrun.trjconv(clinput='1\n', f='md.trr', o='traj.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', dt=10000, **kwargs)
     mdrun.trjconv(clinput='1\n', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
     mdrun.trjconv(clinput='1\n', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='atom', ur='compact', dt=1500, **kwargs)
-    mdrun.trjconv(clinput='1\n1\n1\n', s='mdc.pdb', f='mdc.pdb', o='traj.pdb', n=mdrun.bbndx, pbc='nojump', **kwargs)
-    mdrun.trjconv(clinput='1\n1\n1\n', s='mdc.pdb', f='mdc.xtc', o='traj.xtc', n=mdrun.bbndx, pbc='nojump', **kwargs)
+    mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.xtc', o='mdc.xtc', pbc='nojump', **kwargs)
+    mdrun.trjconv(clinput='1\n1\n1\n', s='mdc.pdb', f='mdc.pdb', o='traj.pdb', n=mdrun.bbndx, fit='rot+trans', **kwargs)
+    mdrun.trjconv(clinput='1\n1\n1\n', s='mdc.pdb', f='mdc.xtc', o='traj.xtc', n=mdrun.bbndx, fit='rot+trans', **kwargs)
+    # mdrun.trjconv(clinput='0\n0\n', s='traj.pdb', f='traj.xtc', o='vis.pdb', dt=15000, fit='rot+trans', **kwargs)
 
     
 def rms_analysis(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    b = 400000
+    b = 50000
     e = 1000000
-    mdrun.rmsf(clinput=f'0\n 0\n', f='traj.xtc', s='traj.pdb', res='yes', b=b, e=e, )
-    mdrun.get_rmsf_by_chain(f='traj.xtc', s='traj.pdb', b=b, e=e, **kwargs)
+    mdrun.rmsf(clinput=f'0\n 0\n', f='traj.xtc', s='traj.pdb', n=system.trjndx, res='yes', b=b, e=e, )
+    mdrun.get_rmsf_by_chain(f='traj.xtc', s='traj.pdb', n=system.trjndx, b=b, e=e, **kwargs)
     # mdrun.rmsf(clinput=f'1\n 1\n', b=b, n=mdrun.bbndx, res='yes')
     # mdrun.get_rmsf_by_chain(b=b, **kwargs)
     # mdrun.get_rmsd_by_chain(b=0, **kwargs)
@@ -107,8 +104,7 @@ def rdf_analysis(sysdir, sysname, runname, **kwargs):
 def cov_analysis(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    # shutil.copy('atommass.dat', os.path.join(mdrun.covdir, 'atommass.dat'))
-    b = 400000
+    b = 50000
     mdrun.covar(clinput=f'0\n 0\n', b=b, last=1000)
     mdrun.anaeig(clinput=f'0\n 0\n', b=b, last=10, filt='filtered.pdb', dt=15000, e=5000000,
         comp='eigcomp.xvg', rmsf='eigrmsf.xvg', proj='proj.xvg', eig='eigenval.xvg', **kwargs) 

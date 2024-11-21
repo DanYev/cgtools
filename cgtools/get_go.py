@@ -179,7 +179,7 @@ def extract_go_maps(wdir):
                 source_file = os.path.join(source_dir, files[0])
                 shutil.move(source_file, os.path.join(wdir, files[0]))
         shutil.rmtree(work2_dir)
-        print("It worked! Here is your map!")
+        print("It worked! Here are your maps!")
     else:
         print(f"Directory {work2_dir} not found")
         

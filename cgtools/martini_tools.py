@@ -124,7 +124,10 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein',
     kwargs.setdefault('ff', 'martini3001')
     kwargs.setdefault('maxwarn', '1000')
     line = f'-go-moltype {go_moltype} -go-eps {go_eps} -go-low {go_low} -go-up {go_up} -go-res-dis {go_res_dist}'
-    cli.run('martinize2', line, **kwargs)
+    try:
+        cli.run('martinize2', line, **kwargs)
+    except:
+        print('Error')
     append_to('go_atomtypes.itp', os.path.join(topdir, 'go_atomtypes.itp'))
     append_to('go_nbparams.itp', os.path.join(topdir, 'go_nbparams.itp'))
     shutil.move(f'{go_moltype}.itp',  os.path.join(topdir, f'{go_moltype}.itp'))

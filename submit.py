@@ -9,7 +9,7 @@ def submit_setup(submit=True):
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
         if submit:
-            sbatch(script, 'run_all.py', 'setup', sysdir, sysname, mem='16G', N=1, n=1, c=1, t='03:45:00')
+            sbatch(script, 'run_all.py', 'setup', sysdir, sysname, e='slurm_output/error.%A.err', mem='10G', N=1, n=1, c=1, t='03:45:00')
         else:
             run('bash', script, 'run_all.py', 'setup', sysdir, sysname)
 
@@ -21,7 +21,7 @@ def submit_md(submit=True):
             mdrun = system.initmd(runname)
             if submit:
                 sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname,  e='slurm_output/error.%A.err', J='md',
-                    t='05-00:00:00', N=1, n=1, c=6, gres='gpu:1', mem='16G', 
+                    t='05-00:00:00', N=1, n=1, c=6, gres='gpu:1', mem='10G', 
                     qos='grp_sozkan', partition='general')
             else:
                 run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname)
@@ -33,7 +33,7 @@ def submit_extend(submit=True):
         for runname in runs:
             mdrun = system.initmd(runname)
             if submit:
-                sbatch(script, 'run_all.py', 'extend', sysdir, sysname, runname, N=1, n=1, c=6, t='04-00:00:00', gres='gpu:1', mem='4G', qos='public', partition='general')
+                sbatch(script, 'run_all.py', 'extend', sysdir, sysname, runname, N=1, n=1, c=6, t='04-00:00:00', gres='gpu:1', mem='2G', qos='public', partition='general')
             else:
                 run('bash', script, 'run_all.py', 'extend', sysdir, sysname, runname)
   
@@ -52,7 +52,7 @@ def submit_make_ndx(submit=False):
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
         if submit:
-            sbatch(script, 'run_all.py', 'make_ndx', sysdir, sysname, N=1, n=1, c=1, mem='4G', t='00:30:00')
+            sbatch(script, 'run_all.py', 'make_ndx', sysdir, sysname, N=1, n=1, c=1, mem='2G', t='00:30:00')
         else:
             run('bash', script, 'run_all.py', 'make_ndx', sysdir, sysname)
                 
@@ -96,7 +96,7 @@ def submit_cov_analysis(submit=True):
         for runname in runs:
             mdrun = system.initmd(runname)
             if submit:
-                sbatch(script, 'run_all.py', 'cov_analysis', sysdir, sysname, runname, J='cov', N=1, n=1, c=1, mem='12G', t='04:00:00')
+                sbatch(script, 'run_all.py', 'cov_analysis', sysdir, sysname, runname, J='cov', N=1, n=1, c=1, mem='10G', t='04:00:00')
             else:
                 run('bash', script, 'run_all.py', 'cov_analysis', sysdir, sysname, runname)            
  
@@ -129,25 +129,25 @@ def submit_test(submit=False):
                 
                 
 script = sys.argv[1]
-sysdir = 'ribosomes' 
+sysdir = 'ribosomes_old' 
  
-# sysnames = ['ribosome', 'ribosome_k', 'ribosome_mg',  ] # 
+# sysnames = ['ribosome', 'ribosome_k',  ] # 
 # runs = ['mdrun_1',  'mdrun_2', 'mdrun_3', 'mdrun_4', 'mdrun_5']  #  
 # runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10'] 
 
-sysnames = ['ribosome_aa',]
-runs = ['mdrun_1', 'mdrun_2']
+sysnames = ['ribosome_test', ]
+runs = ['mdrun_1', ]
 
-# submit_setup(submit=False)
+# submit_setup(submit=True)
 # submit_md()
 # submit_extend()
-# submit_geometry()
+submit_geometry()
 # submit_make_ndx(submit=False)
 # submit_trjconv(submit=True)
-submit_rms_analysis(submit=True)
+# submit_rms_analysis(submit=True)
 # submit_rdf_analysis(submit=True)
 # submit_cov_analysis(submit=True)
-# submit_get_averages(submit=False)
+# submit_get_averages(submit=True)
 # submit_plot(submit=False)
 # submit_test(submit=False)
 

@@ -153,8 +153,8 @@ def bonded_parameters():
     version = 'new'
     molecule = "RNA"
     
-    system = sys.argv[1]
-    mdrun = sys.argv[2] # sys.argv[1]
+    # system = sys.argv[1]
+    # mdrun = sys.argv[2] 
     topology = read_topology(   a_itp=f'cgtools/itp/nucbonded/plot_A_{version}.itp', 
                                 c_itp=f'cgtools/itp/nucbonded/plot_C_{version}.itp', 
                                 g_itp=f'cgtools/itp/nucbonded/plot_G_{version}.itp', 
@@ -166,8 +166,8 @@ def bonded_parameters():
     #     mapping = None
     
     # AA structure
-    aa_structure = make_structure_pdb(f"systems/#all_atom/test.pdb")
-    cg_structure = make_structure_pdb(f"systems/{system}/mdruns/{mdrun}/trj.pdb")
+    aa_structure = make_structure_pdb(f"ribosomes_old/test.pdb")
+    cg_structure = make_structure_pdb(f"ribosomes_old/ribosome_test/mdruns/mdrun_1/chain.pdb")
     # cg_structure = make_structure_pdb(f"systems/{system}/cgpdb/chain_A.pdb")
     mapping = cgmap.get_mapping_byname('new')
     for resname in resnames:

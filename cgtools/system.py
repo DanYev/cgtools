@@ -47,6 +47,8 @@ class CGSystem:
         self.mdcpdb     = os.path.join(self.wdir, 'mdc.pdb')
         self.mdcndx     = os.path.join(self.wdir, 'mdc.ndx')
         self.bbndx      = os.path.join(self.wdir, 'bb.ndx')
+        self.trjpdb     = os.path.join(self.wdir, 'traj.pdb')
+        self.trjndx     = os.path.join(self.wdir, 'traj.ndx')
         self.prodir     = os.path.join(self.wdir, 'proteins')
         self.nucdir     = os.path.join(self.wdir, 'nucleotides')
         self.iondir     = os.path.join(self.wdir, 'ions')
@@ -138,7 +140,22 @@ class CGSystem:
         from pdbtools import prepare_aa_pdb
         in_pdb = self.inpdb
         out_pdb = in_pdb.replace('.pdb', '_clean.pdb')
-        prepare_aa_pdb(in_pdb, out_pdb, **kwargs)   
+        prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
+        
+    def clean_proteins(self, **kwargs):
+        print("Cleaning protein PDBs", file=sys.stderr)
+        from pdbtools import prepare_aa_pdb, rename_chain
+        files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir) if not f.endswith('_clean.pdb')]
+        files = sorted(files)
+        for in_pdb in files:
+            print(f"Processing {in_pdb}", file=sys.stderr)
+            out_pdb = in_pdb.replace('.pdb', '_clean.pdb')
+            prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
+            os.remove(in_pdb)
+            old_chain_id = 'A'
+            new_chain_id = in_pdb.split('chain_')[-1][0]
+            rename_chain(out_pdb, in_pdb, old_chain_id, new_chain_id)
+            os.remove(out_pdb)
     
     def split_chains(self, from_clean=False):
         parser = PDBParser()
@@ -157,25 +174,6 @@ class CGSystem:
                     out_pdb = os.path.join(self.prodir, f'chain_{chain_id}.pdb')
                 io.save(out_pdb)
                 
-    def process_cif(self, infile):
-        infile = os.path.join(self.wdir, infile)
-        # Parsing CIF
-        parser = MMCIFParser(QUIET=True)
-        structure = parser.get_structure(self.sysname, infile)
-        io = PDBIO()
-        # Sequence to rename the chains
-        import string
-        name_sequence = list(string.ascii_uppercase + string.ascii_lowercase + string.digits)
-        for model in structure:
-            for idx, chain in enumerate(model):
-                chain.id = name_sequence[idx]
-                io.set_structure(chain)
-                if chain.get_unpacked_list()[0].get_resname() in self.NUC_RESNAMES:
-                    out_pdb = os.path.join(self.nucdir, f'chain_{chain.id}.pdb')
-                else:
-                    out_pdb = os.path.join(self.prodir, f'chain_{chain.id}.pdb')
-                io.save(out_pdb)
-                
     def get_go_maps(self):
         print('Getting GO-maps', file=sys.stderr)
         from get_go import get_go
@@ -189,6 +187,17 @@ class CGSystem:
             print('Maps already there', file=sys.stderr)
         
     def martinize_proteins(self, **kwargs):
+        """
+        Virtual site based GoMartini:
+        -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
+        -go_moltype     Set the name of the molecule when using Virtual Sites GoMartini. (default: protein)
+        -go_eps         The strength of the Go model structural bias in kJ/mol. (default: 9.414)                        
+        -go_low         Minimum distance (nm) below which contacts are removed. (default: 0.3)
+        -go_up          Maximum distance (nm) above which contacts are removed. (default: 1.1)
+        -go_res_dist    Minimum graph distance (similar sequence distance) below which contacts are removed. (default: 3)
+        -resid          How to handle resid. Choice of mol or input. mol: resids are numbered from 1 to n for each molecule input: 
+                        resids are the same as in the input pdb (default: mol)
+        """
         print("Working on proteins", file=sys.stderr)
         # Make itp files to dump all the virtual CA's parameters into
         file = os.path.join(self.topdir, 'go_atomtypes.itp')
@@ -380,8 +389,19 @@ class CGSystem:
         outpdb = kwargs.pop('outpdb', self.mdcpdb)
         outndx = kwargs.pop('outndx', self.mdcndx)
         CGSystem.mask_pdb(inpdb=self.syspdb, outpdb=outpdb, mask=mask)
-        CGSystem.make_index_by_chain(self.wdir, chains=self.chains, outndx=outndx)            
-                
+        CGSystem.make_index_by_chain(self.wdir, chains=self.chains, outndx=outndx)
+        
+        
+    def make_trj_pdb_ndx(self, mask=['BB', 'BB2', ], **kwargs):
+        """
+        Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
+        Default is to select backbone atoms for proteins and RNA
+        """
+        outpdb = kwargs.pop('outpdb', self.trjpdb)
+        outndx = kwargs.pop('outndx', self.trjndx)
+        CGSystem.mask_pdb(inpdb=self.syspdb, outpdb=outpdb, mask=mask)
+        CGSystem.make_index_by_chain(self.wdir, inpdb=self.trjpdb, outndx=outndx, chains=self.chains,)
+        
     @staticmethod
     @from_wdir
     def make_index_by_chain(wdir, inpdb='mdc.pdb', outndx='mdc.ndx', chains=[]):
