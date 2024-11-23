@@ -41,7 +41,7 @@ def md(sysdir, sysname, runname, **kwargs):
 def extend(sysdir, sysname, runname, **kwargs):    
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    mdrun(deffnm='md', cpi='md.cpt', ei=os.path.join(mdrun.mdpdir, 'sam_4_mol.edi')) 
+    mdrun(deffnm='md', cpi='md.cpt', nsteps='-1', ei=os.path.join(mdrun.mdpdir, 'sam_4_mol.edi')) 
 
 
 def geometry(sysdir, sysname, runname, **kwargs):  
@@ -117,8 +117,8 @@ def cov_analysis(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
     b1 = 00000
-    b2 = 150000
-    dt = 150000
+    b2 = 250000
+    dt = 250000
     # f = os.path.join(mdrun.cludir, 'trajout_Cluster_0001.xtc')
     f = '../traj.xtc'
     # s = os.path.join(mdrun.cludir, 'clusters.pdb')

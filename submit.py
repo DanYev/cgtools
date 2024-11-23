@@ -164,7 +164,7 @@ runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10']
 
 sysnames = ['1btl_meta']
 runs = ['mdrun_1', 'mdrun_2', 'mdrun_3']
-# runs = ['mdrun_4', 'mdrun_5', 'mdrun_6']
+runs += ['mdrun_4', 'mdrun_5', 'mdrun_6']
 
 
 # submit_setup(submit=False)
@@ -172,11 +172,11 @@ runs = ['mdrun_1', 'mdrun_2', 'mdrun_3']
 # submit_extend()
 # submit_geometry()
 # submit_make_ndx(submit=False)
-submit_trjconv(submit=False)
-# submit_rms_analysis(submit=False)
+# submit_trjconv(submit=False)
+submit_rms_analysis(submit=False)
 # submit_rdf_analysis(submit=True)
 # submit_cluster(submit=False)
-submit_cov_analysis(submit=False)
+# submit_cov_analysis(submit=False)
 # submit_overlap(submit=False)
 # submit_get_averages(submit=False)
 # submit_plot(submit=False)

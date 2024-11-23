@@ -498,7 +498,7 @@ class MDRun(CGSystem):
         
     def empp(self, **kwargs):
         """
-        Runs 'grompp' preprocessing for energy minimization
+        Runs 'gmx grompp' preprocessing for energy minimization
         """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'em.mdp'))
         kwargs.setdefault('c', self.sysgro)
@@ -509,7 +509,7 @@ class MDRun(CGSystem):
         
     def hupp(self, **kwargs):
         """
-        Runs 'grompp' preprocessing for heat up
+        Runs 'gmx grompp' preprocessing for heat up
         """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'hu.mdp'))
         kwargs.setdefault('c', 'em.gro')
@@ -520,7 +520,7 @@ class MDRun(CGSystem):
 
     def eqpp(self, **kwargs):
         """
-        Runs 'grompp' preprocessing for equilibration
+        Runs 'gmx grompp' preprocessing for equilibration
         """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'eq.mdp'))
         kwargs.setdefault('c', 'hu.gro')
@@ -531,7 +531,7 @@ class MDRun(CGSystem):
         
     def mdpp(self, grompp=True, **kwargs):
         """
-        Runs 'grompp' preprocessing for production
+        Runs 'gmx grompp' preprocessing for production
         """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'md.mdp'))
         kwargs.setdefault('c', 'eq.gro')
@@ -542,7 +542,7 @@ class MDRun(CGSystem):
         
     def mdrun(self,**kwargs):
         """
-        Runs md
+        Runs 'gmx mdrun'
         """
         kwargs.setdefault('deffnm', 'md')
         kwargs.setdefault('nsteps', '-2')
@@ -550,50 +550,77 @@ class MDRun(CGSystem):
         cli.gmx_mdrun(self.rundir, **kwargs) 
         
     def trjconv(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx trjconv'
+        """
         cli.gmx_trjconv(self.rundir, clinput=clinput, **kwargs)
          
     def rmsf(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx rmsf' for RMSF calculation
+        """
         kwargs.setdefault('f', 'mdc.xtc')
         kwargs.setdefault('s', 'mdc.pdb')
         kwargs.setdefault('n', self.mdcndx)
         cli.gmx_rmsf(self.rundir, clinput=clinput, **kwargs)
          
     def rms(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx rms' for RMSD calculation
+        """        
         kwargs.setdefault('f', 'mdc.xtc')
         kwargs.setdefault('s', 'mdc.pdb')
         kwargs.setdefault('n', self.mdcndx)
         cli.gmx_rms(self.rundir, clinput=clinput, **kwargs)
          
     def rdf(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx rdf' for radial distribution function calculation
+        """  
         kwargs.setdefault('f', 'mdc.xtc')
         kwargs.setdefault('s', 'mdc.pdb')
         kwargs.setdefault('n', self.mdcndx)
         cli.gmx_rdf(self.rundir, clinput=clinput, **kwargs)  
         
     def cluster(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx cluster' for clustering
+        """  
         kwargs.setdefault('f', '../traj.xtc')
         kwargs.setdefault('s', '../traj.pdb')
         kwargs.setdefault('n', self.trjndx)
         cli.gmx_cluster(self.cludir, clinput=clinput, **kwargs) 
     
     def extract_cluster(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx extract-cluster' to extract frames belonging to a cluster from the trajectory
+        """  
         kwargs.setdefault('f', '../traj.xtc')
         kwargs.setdefault('clusters', 'cluster.ndx')
         cli.gmx_extract_cluster(self.cludir, clinput=clinput, **kwargs) 
         
     def covar(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx covar' to calculate and diagonalize covariance matrix
+        """  
         kwargs.setdefault('f', '../traj.xtc')
         kwargs.setdefault('s', '../traj.pdb')
         kwargs.setdefault('n', self.trjndx)
         cli.gmx_covar(self.covdir, clinput=clinput, **kwargs) 
         
     def anaeig(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx anaeig' to analyze eigenvectors
+        """  
         kwargs.setdefault('f', '../traj.xtc')
         kwargs.setdefault('s', '../traj.pdb')
         kwargs.setdefault('v', 'eigenvec.trr')
         cli.gmx_anaeig(self.covdir, clinput=clinput, **kwargs) 
 
     def make_edi(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx make-edi' to prepare files for "essential dynamics"
+        """         
         kwargs.setdefault('f', 'eigenvec.trr')        
         kwargs.setdefault('s', '../traj.pdb')
         cli.gmx_make_edi(self.covdir, clinput=clinput, **kwargs) 
