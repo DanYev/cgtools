@@ -473,8 +473,9 @@ class MDRun(CGSystem):
             runname (str): 
             rundir (str): Directory for the system files.
             rmsname (str): Name of the system.
-            covdir (str): PDB file of the system
-            pngdir (str): PDB file of the system
+            cludir (str): clustering
+            covdir (str): covariance analysis
+            pngdir (str): figures
             kwargs: Additional keyword arguments.
         """
         super().__init__(*args)
@@ -482,6 +483,7 @@ class MDRun(CGSystem):
         self.rundir = os.path.join(self.mddir, self.runname)
         self.rmsdir = os.path.join(self.rundir, 'rms_analysis')
         self.covdir = os.path.join(self.rundir, 'cov_analysis')
+        self.cludir = os.path.join(self.rundir, 'clusters')
         self.pngdir = os.path.join(self.rundir, 'png')
         
     def prepare_files(self):
@@ -490,80 +492,62 @@ class MDRun(CGSystem):
         """
         os.makedirs(self.rundir, exist_ok=True)
         os.makedirs(self.rmsdir, exist_ok=True)
+        os.makedirs(self.cludir, exist_ok=True)
         os.makedirs(self.covdir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
         
-    def em(self, grompp=True, **kwargs):
-        # mdrun kwargs
-        deffnm = kwargs.pop('deffnm', 'em')
-        nsteps = kwargs.pop('nsteps', '-2')
-        ntomp = kwargs.setdefault('ntomp', '6')
-        # grompp kwargs
+    def empp(self, **kwargs):
+        """
+        Runs 'grompp' preprocessing for energy minimization
+        """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'em.mdp'))
         kwargs.setdefault('c', self.sysgro)
         kwargs.setdefault('r', self.sysgro)
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('o', 'em.tpr')
-        if grompp:
-            cli.gmx_grompp(self.rundir, **kwargs)
-        cli.gmx_mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
-            
-    def hu(self, grompp=True, **kwargs):
-        # mdrun kwargs
-        deffnm = kwargs.pop('deffnm', 'hu')
-        nsteps = kwargs.pop('nsteps', '-2')
-        ntomp = kwargs.setdefault('ntomp', '6')
-        # grompp kwargs
+        cli.gmx_grompp(self.rundir, **kwargs)
+        
+    def hupp(self, **kwargs):
+        """
+        Runs 'grompp' preprocessing for heat up
+        """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'hu.mdp'))
         kwargs.setdefault('c', 'em.gro')
         kwargs.setdefault('r', 'em.gro')
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('o', 'hu.tpr')
-        if grompp:
-            cli.gmx_grompp(self.rundir, **kwargs)
-        cli.gmx_mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
-            
-    def eq(self, grompp=True, **kwargs):
-        # mdrun kwargs
-        deffnm = kwargs.pop('deffnm', 'eq')
-        nsteps = kwargs.pop('nsteps', '-2')
-        ntomp = kwargs.setdefault('ntomp', '6')
-        # grompp kwargs
+        cli.gmx_grompp(self.rundir, **kwargs)
+
+    def eqpp(self, **kwargs):
+        """
+        Runs 'grompp' preprocessing for equilibration
+        """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'eq.mdp'))
         kwargs.setdefault('c', 'hu.gro')
         kwargs.setdefault('r', 'hu.gro')
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('o', 'eq.tpr')
-        if grompp:
-            cli.gmx_grompp(self.rundir, **kwargs)
-        cli.gmx_mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
-            
-    def md(self, grompp=True, **kwargs):
-        # mdrun kwargs
-        deffnm = kwargs.pop('deffnm', 'md')
-        nsteps = kwargs.pop('nsteps', '-2')
-        ntomp = kwargs.setdefault('ntomp', '6')
-        # grompp kwargs
+        cli.gmx_grompp(self.rundir, **kwargs)
+        
+    def mdpp(self, grompp=True, **kwargs):
+        """
+        Runs 'grompp' preprocessing for production
+        """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'md.mdp'))
         kwargs.setdefault('c', 'eq.gro')
         kwargs.setdefault('r', 'eq.gro')
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('o', 'md.tpr')
-        if grompp:
-            cli.gmx_grompp(self.rundir, **kwargs)
-        cli.gmx_mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
+        cli.gmx_grompp(self.rundir, **kwargs)   
         
-    def extend(self, **kwargs):
+    def mdrun(self,**kwargs):
         """
-        Extend production run
-        nsteps: -2 mdp option, -1 indefinitely
+        Runs md
         """
-        kwargs.setdefault('deffnm', 'hu')
-        kwargs.setdefault('ntomp', '6')
+        kwargs.setdefault('deffnm', 'md')
         kwargs.setdefault('nsteps', '-2')
-        kwargs.setdefault('cpi', 'hu.cpt')
-        options = f'-pin on -pinstride 1'
-        cli.run_gmx(self.rundir, f'mdrun {options}', **kwargs)
+        kwargs.setdefault('ntomp', '6')
+        cli.gmx_mdrun(self.rundir, **kwargs) 
         
     def trjconv(self, clinput=None, **kwargs):
         cli.gmx_trjconv(self.rundir, clinput=clinput, **kwargs)
@@ -586,10 +570,21 @@ class MDRun(CGSystem):
         kwargs.setdefault('n', self.mdcndx)
         cli.gmx_rdf(self.rundir, clinput=clinput, **kwargs)  
         
+    def cluster(self, clinput=None, **kwargs):
+        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('s', '../traj.pdb')
+        kwargs.setdefault('n', self.trjndx)
+        cli.gmx_cluster(self.cludir, clinput=clinput, **kwargs) 
+    
+    def extract_cluster(self, clinput=None, **kwargs):
+        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('clusters', 'cluster.ndx')
+        cli.gmx_extract_cluster(self.cludir, clinput=clinput, **kwargs) 
+        
     def covar(self, clinput=None, **kwargs):
         kwargs.setdefault('f', '../traj.xtc')
         kwargs.setdefault('s', '../traj.pdb')
-        kwargs.setdefault('ascii', 'covar.dat')
+        kwargs.setdefault('n', self.trjndx)
         cli.gmx_covar(self.covdir, clinput=clinput, **kwargs) 
         
     def anaeig(self, clinput=None, **kwargs):
@@ -597,6 +592,11 @@ class MDRun(CGSystem):
         kwargs.setdefault('s', '../traj.pdb')
         kwargs.setdefault('v', 'eigenvec.trr')
         cli.gmx_anaeig(self.covdir, clinput=clinput, **kwargs) 
+
+    def make_edi(self, clinput=None, **kwargs):
+        kwargs.setdefault('f', 'eigenvec.trr')        
+        kwargs.setdefault('s', '../traj.pdb')
+        cli.gmx_make_edi(self.covdir, clinput=clinput, **kwargs) 
         
     def covmat(self, **kwargs):
         # kwargs.setdefault('f', 'mdc.xtc')

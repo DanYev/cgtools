@@ -1309,13 +1309,13 @@ class elnedyn30nucleic():
 
         # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
-            'atom'  : spl("Q1 N2 N4"),     # Have a look at BB3 bead type
+            'atom'  : spl("Q1n N2 N4"),     # Have a look at BB3 bead type
             'bond'  : [(1,  0.351, 20000),          
-                       (1,  0.380, 10000),
+                       (1,  0.382, 10000),
                        (1,  0.240, 20000),
                        (1,  0.407, 12000)],    #8  , 0.202 50000    ],         
-            'angle' : [(10,  110.0, 40),      #2, 117.0, 140       
-                       (10,  118.0, 150)],           
+            'angle' : [(10,  110.0, 35),      #2, 117.0, 140       
+                       (10,  118.0, 110)],           
             'dih'   : [(1,   34.0, 4, 1), # 8
                        (1,  -13.0, 7, 1),], # 10
             'excl'  : [(), (), ()],

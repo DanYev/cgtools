@@ -1,6 +1,6 @@
 #!/bin/bash
 
-directory=ribosomes_old
+directory=systems
 pattern=md.log
 
 max_path_length=40  # Set the maximum length for the path

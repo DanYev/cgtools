@@ -56,14 +56,14 @@ def prepare_aa_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False
     if variant:
         print("Mutating residues")
         pdb.applyMutations(mutations, "A")
+    print("Removing heterogens")
+    pdb.removeHeterogens(False)
     print("Looking for missing residues")
     pdb.findMissingResidues()
     print("Looking for non-standard residues")
     pdb.findNonstandardResidues()
     print("Replacing non-standard residues")
     pdb.replaceNonstandardResidues()
-    print("Removing heterogens")
-    pdb.removeHeterogens(True)
     if add_missing_atoms:
         print("Looking for missing atoms")
         pdb.findMissingAtoms()
@@ -84,7 +84,7 @@ def rename_chain(in_pdb, out_pdb, old_chain_id, new_chain_id):
     updated_lines = []
     for line in lines:
         # PDB ATOM/HETATM lines have the chain ID in column 22
-        if line.startswith(('ATOM', 'HETATM', 'TER')):
+        if line.startswith(('ATOM', 'HETATM', )):
             if line[21] == old_chain_id:  # Column 22 (index 21) for chain ID
                 line = line[:21] + new_chain_id + line[22:]
         updated_lines.append(line)

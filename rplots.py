@@ -9,7 +9,7 @@ from system import CGSystem
 from cli import sbatch, run
                 
 sysdir = 'ribosomes_old' 
-sysnames = ['ribosome_test', 'ribosome', 'ribosome_k'] 
+sysnames = ['ribosome', 'ribosome_k', 'ribosome_mg'] 
 # sysnames = ['ribosome_aa']
 
 
@@ -34,7 +34,7 @@ def png():
     
     
 def pdb():
-    ribosome = 'ribosome'
+    ribosome = 'ribosome_k'
     sysnames = [ribosome, 'ribosome']
     x = []
     for sysname in sysnames:
@@ -46,21 +46,19 @@ def pdb():
         x.append((data[1], data[2]))
     
     b_factors = (x[0][0] - x[1][0]) * 10
-    b_factors = (x[0][0]) * 10
+    # b_factors = (x[0][0]) * 10
     errs = np.sqrt(x[0][1]**2 + x[1][1]**2) * 10
     sysname = ribosome
     inpdb = os.path.join(sysdir, 'pdb', f'{sysname}_tmp.pdb')
-    inpdb = os.path.join(system.mdcpdb)
+    inpdb = os.path.join(system.trjpdb)
     # CGSystem.mask_pdb(system.syspdb, inpdb, mask=['BB', 'BB2'])
     outpdb = os.path.join(sysdir, 'pdb', f'{sysname}.pdb')
     update_bfactors(inpdb, b_factors, outpdb)
-    # errpdb = os.path.join(sysdir, 'pdb', f'{sysname}_err.pdb')
-    # update_bfactors(inpdb, errs, errpdb)
+    errpdb = os.path.join(sysdir, 'pdb', f'{sysname}_err.pdb')
+    update_bfactors(inpdb, errs, errpdb)
    
     
 if __name__ == '__main__':
-    # pdb()
-    png()
-    # 
-
+    pdb()
+    # png()
 
