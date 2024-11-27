@@ -8,8 +8,8 @@ from set_bfactors import update_bfactors
 from system import CGSystem
 from cli import sbatch, run
                 
-sysdir = 'ribosomes_old' 
-sysnames = ['ribosome', 'ribosome_k', 'ribosome_mg'] 
+sysdir = 'ribosomes' 
+sysnames = ['ribosome', 'ribosome_k', ] 
 # sysnames = ['ribosome_aa']
 
 
@@ -60,5 +60,5 @@ def pdb():
     
 if __name__ == '__main__':
     pdb()
-    # png()
+    png()
 

@@ -72,10 +72,11 @@ class Plot2D(Figure):
         """
         x = data[0]
         y = data[1]
-        if len(data) == 3:
+        ax.plot(x, y, label=label, color=color)
+        if data.shape[1] == 3:
             err = data[2]
             ax.fill_between(x, y - err, y + err, color=color, alpha=self.alpha)
-        ax.plot(x, y, label=label, color=color)
+            
         
     def make_ax(self, ax, subdatas, sublabels):
         colors = plt.cm.Dark2(np.arange(0, len(subdatas))) # Set1 Set2 Dark2 Accent Pastel1

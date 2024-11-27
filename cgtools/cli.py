@@ -285,8 +285,7 @@ def gmx_grompp(wdir, **kwargs):
         'maxwarn': '1'
     }
     kwargs = set_defaults(kwargs, defaults)
-    command = f"gmx_mpi grompp -f {kwargs['f']} -c {kwargs['c']} -r {kwargs['r']} -p {kwargs['p']} -o {kwargs['o']} -maxwarn {kwargs['maxwarn']}"
-    sp.run(command.split(), check=True)    
+    run_gmx(wdir, 'grompp', **kwargs)  
     
     
 @from_wdir
@@ -329,27 +328,7 @@ def gmx_trjconv(wdir, clinput='1\n1\n', **kwargs):
         Input string specifying selections (default '1\n1\n').
     **kwargs: dict
         Additional options and flags for the 'trjconv' command.
-        Defaults:
-        - 's': 'md.tpr' (input run file)
-        - 'f': 'md.xtc' (input trajectory file)
-        - 'o': 'mdc.xtc' (output trajectory file)
-        - 'fit': 'none' (fit method)
-        - 'pbc': 'none' (periodic boundary conditions treatment)
-        - 'ur': 'rect' (unit cell representation)
-        - 'b': '0' (beginning time)
-        - 'dt': '0' (time step)
     """
-    defaults = {
-        's': 'md.tpr',
-        'f': 'md.xtc',
-        'o': 'mdc.xtc',
-        'fit': 'none',
-        'pbc': 'none',
-        'ur': 'rect',
-        'b': '0',
-        'dt': '0'
-    }
-    kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'trjconv', clinput=clinput, cltext=True, **kwargs)
 
 

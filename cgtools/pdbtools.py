@@ -90,6 +90,65 @@ def rename_chain(in_pdb, out_pdb, old_chain_id, new_chain_id):
         updated_lines.append(line)
     with open(out_pdb, 'w') as file:
         file.writelines(updated_lines)
+        
+        
+ import string
+
+def rename_pdb_chains(input_pdb, output_pdb):
+    """
+    Rename chains in a PDB file in the order: uppercase letters, lowercase letters, digits.
+
+    :param input_pdb: Path to the input PDB file.
+    :param output_pdb: Path to the output PDB file.
+    """
+    # Define the order for renaming chains
+    chain_order = list(string.ascii_uppercase + string.ascii_lowercase + string.digits)
+    chain_mapping = {}  # Map original chain IDs to new chain IDs
+    current_chain_index = 0
+
+    with open(input_pdb, 'r') as infile, open(output_pdb, 'w') as outfile:
+        for line in infile:
+            # Only modify lines that define atomic coordinates
+            if line.startswith(("ATOM", "HETATM", "TER")):
+                original_chain_id = line[21]  # Chain ID is in column 22 (index 21)
+
+                # Assign a new chain ID if this one hasn't been seen before
+                if original_chain_id not in chain_mapping:
+                    if current_chain_index >= len(chain_order):
+                        raise ValueError("Too many chains in the PDB file to rename!")
+                    chain_mapping[original_chain_id] = chain_order[current_chain_index]
+                    current_chain_index += 1
+
+                # Replace the chain ID in the line
+                new_chain_id = chain_mapping[original_chain_id]
+                line = line[:21] + new_chain_id + line[22:]
+
+            # Write the (possibly modified) line to the output file
+            outfile.write(line)
+
+    print(f"Chains renamed and saved to {output_pdb}")
+
+
+def extract_chain_names(pdb_file):
+    """
+    Extract a list of unique chain names from a PDB file.
+
+    :param pdb_file: Path to the input PDB file.
+    :return: List of unique chain names.
+    """
+    chain_names = set()
+
+    with open(pdb_file, 'r') as file:
+        for line in file:
+            # Look for lines that define atomic coordinates
+            if line.startswith(("ATOM", "HETATM", "TER")):
+                chain_id = line[21].strip()  # Chain ID is in column 22 (index 21)
+                if chain_id:  # Only add non-empty chain IDs
+                    chain_names.add(chain_id)
+
+    return sorted(chain_names)  # Return sorted list of unique chain names
+
+
     
 
     

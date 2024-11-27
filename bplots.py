@@ -9,7 +9,7 @@ from system import CGSystem
 from cli import sbatch, run
                 
 sysdir = 'systems' 
-sysnames = ['1btl_meta', '1btl', ] 
+sysnames = ['1btl', '1btl_aa'] 
 
 
 def pull_sys_files(sysnames, fdir, fname):

@@ -11,6 +11,16 @@ import cli
 from cli import from_wdir
 
 
+def sort_uld(alist):
+    """
+    Sorts characters in a list such that they appear in the following order: 
+    uppercase letters first, then lowercase letters, followed by digits. 
+    Helps with orgazing gromacs multichain files
+    """
+    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
+    return slist
+    
+
 ################################################################################
 # CG system class
 ################################################################################   
@@ -67,18 +77,22 @@ class CGSystem:
     @property
     def chains(self):
         """
-        A list of chain ids. Either provide or look up in self.cgdir
+        A list of chain ids in the system. 
+        Either provide or extract from the PDB file
         Returns:
             list: List of chain identifiers.
         """
         if self._chains:
             return self._chains
-        if not os.path.isdir(self.cgdir):
-            return self._chains
-        for filename in sorted(os.listdir(self.cgdir)):
-            if filename.endswith('.pdb'):
-                chain_id = filename.split('.')[0].split('_')[1]
-                self._chains.append(chain_id)
+        chain_names = set()
+        with open(self.syspdb, 'r') as file:
+            for line in file:
+                # Look for lines that define atomic coordinates
+                if line.startswith(("ATOM", "HETATM")):
+                    chain_id = line[21].strip()  # Chain ID is in column 22 (index 21)
+                    if chain_id:  # Only add non-empty chain IDs
+                        chain_names.add(chain_id)
+        self._chains = sort_uld(chain_names)
         return self._chains
     
     @chains.setter
@@ -136,6 +150,9 @@ class CGSystem:
                 shutil.copy(fpath, outpath)
         
     def clean_inpdb(self, **kwargs):
+        """
+        Cleans starting PDB file using PDBfixer by OpenMM
+        """
         print("Cleaning the PDB", file=sys.stderr)
         from pdbtools import prepare_aa_pdb
         in_pdb = self.inpdb
@@ -143,6 +160,9 @@ class CGSystem:
         prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
         
     def clean_proteins(self, **kwargs):
+        """
+        Cleans protein PDB files using PDBfixer by OpenMM
+        """
         print("Cleaning protein PDBs", file=sys.stderr)
         from pdbtools import prepare_aa_pdb, rename_chain
         files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir) if not f.endswith('_clean.pdb')]
@@ -158,6 +178,9 @@ class CGSystem:
             os.remove(out_pdb)
     
     def split_chains(self, from_clean=False):
+        """
+        Cleans a separate PDB file for each chain in the initial structure
+        """
         parser = PDBParser()
         in_pdb = self.inpdb
         if from_clean:
@@ -175,6 +198,9 @@ class CGSystem:
                 io.save(out_pdb)
                 
     def get_go_maps(self):
+        """
+        Get go contact maps for proteins using RCSU server
+        """
         print('Getting GO-maps', file=sys.stderr)
         from get_go import get_go
         pdbs = [os.path.join(self.prodir, file) for file in os.listdir(self.prodir)]
@@ -386,21 +412,16 @@ class CGSystem:
         Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
         Default is to select backbone atoms for proteins and RNA
         """
-        outpdb = kwargs.pop('outpdb', self.mdcpdb)
-        outndx = kwargs.pop('outndx', self.mdcndx)
-        CGSystem.mask_pdb(inpdb=self.syspdb, outpdb=outpdb, mask=mask)
-        CGSystem.make_index_by_chain(self.wdir, chains=self.chains, outndx=outndx)
-        
+        CGSystem.mask_pdb(inpdb=self.syspdb, outpdb=self.mdcpdb, mask=mask)
+        CGSystem.make_index_by_chain(self.wdir, inpdb=self.mdcpdb, chains=self.chains, outndx=self.mdcndx)
         
     def make_trj_pdb_ndx(self, mask=['BB', 'BB2', ], **kwargs):
         """
         Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
         Default is to select backbone atoms for proteins and RNA
         """
-        outpdb = kwargs.pop('outpdb', self.trjpdb)
-        outndx = kwargs.pop('outndx', self.trjndx)
-        CGSystem.mask_pdb(inpdb=self.syspdb, outpdb=outpdb, mask=mask)
-        CGSystem.make_index_by_chain(self.wdir, inpdb=self.trjpdb, outndx=outndx, chains=self.chains,)
+        CGSystem.mask_pdb(inpdb=self.syspdb, outpdb=self.trjpdb, mask=mask)
+        CGSystem.make_index_by_chain(self.wdir, inpdb=self.trjpdb,  chains=self.chains, outndx=self.trjndx)
         
     @staticmethod
     @from_wdir
@@ -408,6 +429,7 @@ class CGSystem:
         """
         Makes a GROMACS index file containing required chains
         """
+        chains = sort_uld(chains)
         commands = [f'chain {x}\n' for x in chains]
         clinput = 'case \nkeep 0\n' + ' '.join(commands) + 'q\n'
         cli.run('gmx_mpi make_ndx', f=inpdb, o=outndx, clinput=clinput)
@@ -634,7 +656,7 @@ class MDRun(CGSystem):
         o = os.path.join(self.covdir, 'cov.npy')
         calculate_covariance_matrix(f, s, o)
         
-    def pertmat(self, **kwargs):
+    def get_pertmat(self, **kwargs):
         from dci_dfi import parse_covar_dat, get_perturbation_matrix
         covdat = os.path.join(self.covdir, 'covar.dat')
         print('Reading covariance matrix', file=sys.stderr)
@@ -648,9 +670,9 @@ class MDRun(CGSystem):
         """
         Get RMSF by chain.
         """
-        kwargs.setdefault('f', 'mdc.xtc')
-        kwargs.setdefault('s', 'mdc.pdb')
-        kwargs.setdefault('n', self.mdcndx)
+        kwargs.setdefault('f', 'traj.xtc')
+        kwargs.setdefault('s', 'traj.pdb')
+        kwargs.setdefault('n', self.trjndx)
         for idx, chain in enumerate(self.chains):
             idx = idx + 1
             cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n', 
@@ -660,11 +682,12 @@ class MDRun(CGSystem):
         """
         Get RMSD by chain.
         """
-        kwargs.setdefault('f', 'mdc.xtc')
-        kwargs.setdefault('s', 'mdc.pdb')
-        kwargs.setdefault('n', self.mdcndx)
-        for chain in self.chains:
-            cli.gmx_rms(self.rundir, clinput=f'ch{chain}\nch{chain}\n', 
-                o=os.path.join(self.rmsdir, f'rmsd_{chain}.xvg'), **kwargs)
+        kwargs.setdefault('f', 'traj.xtc')
+        kwargs.setdefault('s', 'traj.pdb')
+        kwargs.setdefault('n', self.trjndx)
+        for idx, chain in enumerate(self.chains):
+            idx = idx + 1
+            cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n', 
+                o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
                 
             

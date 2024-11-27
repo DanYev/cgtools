@@ -7,6 +7,29 @@ import pandas as pd
 from numba import njit
 from scipy import linalg as LA
 from scipy.stats import pearsonr
+import time
+from functools import wraps
+
+
+def timeit(func):
+    """
+    A decorator to measure the execution time of a function.
+    Parameters:
+        func (callable): The function to be timed.
+    Returns:
+        callable: A wrapped function that prints its execution time.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.perf_counter()  # Start the timer
+        result = func(*args, **kwargs)  # Call the original function
+        end_time = time.perf_counter()  # End the timer
+        
+        execution_time = end_time - start_time
+        print(f"Function '{func.__name__}' executed in {execution_time:.6f} seconds.")
+        return result
+    
+    return wrapper
 
 
 def calculate_covariance_matrix(f, s, o="covmat.npy"):
@@ -51,17 +74,18 @@ def calculate_covariance_matrix(f, s, o="covmat.npy"):
     return covariance_matrix
 
 
-def parse_covar_dat(file):
+def parse_covar_dat(file, dtype=np.float32):
     df = pd.read_csv(file, sep='\\s+', header=None)
-    covariance_matrix = np.asarray(df, dtype=np.float64)
+    covariance_matrix = np.asarray(df, dtype=dtype)
     resnum = int(np.sqrt(len(covariance_matrix) / 3))
     covariance_matrix = np.reshape(covariance_matrix, (3*resnum, 3*resnum))
     return covariance_matrix, resnum
     
     
+@timeit    
 @njit(parallel=False)
-def get_perturbation_matrix(covariance_matrix, resnum):
-    directions = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]), dtype=np.float64)
+def get_perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32):
+    directions = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]), dtype=dtype)
     directions = directions.T / np.sqrt(np.sum(directions, axis=1)).T # normalizing directions
     directions = directions.T
     perturbation_matrix = np.zeros((resnum, resnum))
@@ -75,6 +99,35 @@ def get_perturbation_matrix(covariance_matrix, resnum):
                 perturbation_matrix[i,j] += np.sqrt(np.sum(delta * delta))
     perturbation_matrix /= np.sum(perturbation_matrix)
     return perturbation_matrix
+  
+    
+@timeit
+def calc_perturbation_matrix_cpu(covariance_matrix, resnum, dtype=np.float32):
+    """
+    Calculates perturbation matrix form a covariance matrix or a hessian on CPU
+    The result is normalized such that the total sum of the matrix elements is equal to 1
+    """
+    directions = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]), dtype=dtype)
+    directions /= np.linalg.norm(directions, axis=1, keepdims=True)
+    n = resnum
+    perturbation_matrix = np.zeros((n, n))
+    for k in range(len(directions)):
+        f = directions[k, :]
+        cov_blocks = covariance_matrix.reshape(n, 3, n, 3).swapaxes(1, 2)  # Shape: (n, n, 3, 3)
+        # Compute delta for all i, j in one step
+        delta = np.einsum('ijkl,l->ijk', cov_blocks, f)  # Shape: (n, n, 3)
+        # Compute norm (sqrt of sum of squares) for each delta
+        norm_delta = np.sqrt(np.sum(delta ** 2, axis=2))  # Shape: (n, n)
+        perturbation_matrix += norm_delta
+    perturbation_matrix /= np.sum(perturbation_matrix)
+    return perturbation_matrix
+
+
+def get_perturbation_matrix(covariance_matrix, resnum, dtype=np.float32):
+    res1 = calc_perturbation_matrix_cpu(covariance_matrix, resnum, dtype=dtype)
+    res2 = get_perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32)
+    print(res1 - res2)
+    return res
     
 
 @njit(parallel=False)
