@@ -450,7 +450,7 @@ class CGSystem:
         files = [f for f in files if os.path.exists(f)]
         return files
         
-    def get_mean_sem(self, fdir, fname, col=1):
+    def get_mean_sem(self, files, outfname, col=1):
         """
         Calculates the mean and the standard error of mean for a metric
         of all runs and save them to self.datdir
@@ -461,7 +461,6 @@ class CGSystem:
         Output: 
             data
         """
-        files = self.pull_runs_files(fdir, fname)
         dfs = []
         for file in files:
             df = pd.read_csv(file, sep='\\s+', header=None)
@@ -471,7 +470,7 @@ class CGSystem:
         mean = np.average(datas, axis=0)
         sem = np.std(datas, axis=0) / np.sqrt(len(datas))
         df = pd.DataFrame({'x':x, 'mean':mean, 'sem':sem})
-        fpath = os.path.join(self.datdir, fname.replace('xvg', 'csv'))
+        fpath = os.path.join(self.datdir, outfname)
         df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
         return x, mean, sem
         
@@ -647,24 +646,38 @@ class MDRun(CGSystem):
         kwargs.setdefault('s', '../traj.pdb')
         cli.gmx_make_edi(self.covdir, clinput=clinput, **kwargs) 
         
-    def covmat(self, **kwargs):
-        # kwargs.setdefault('f', 'mdc.xtc')
-        # kwargs.setdefault('s', 'mdc.pdb')
-        from dci_dfi import calculate_covariance_matrix
-        f = os.path.join(self.rundir, 'mdc.xtc')
-        s = self.mdcpdb
-        o = os.path.join(self.covdir, 'cov.npy')
-        calculate_covariance_matrix(f, s, o)
-        
-    def get_pertmat(self, **kwargs):
-        from dci_dfi import parse_covar_dat, get_perturbation_matrix
-        covdat = os.path.join(self.covdir, 'covar.dat')
-        print('Reading covariance matrix', file=sys.stderr)
-        cov, resnum = parse_covar_dat(covdat)
-        print('Calculating pertubation matrix', file=sys.stderr)
-        pertmat = get_perturbation_matrix(cov, resnum)
-        print('Saving pertubation matrix', file=sys.stderr)
-        np.save(os.path.join(self.covdir, 'pertmat.npy'), pertmat)
+    def get_covmats(self, **kwargs):
+        from dci_dfi import calc_covmats
+        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('s', '../traj.pdb')
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        calc_covmats(**kwargs)
+        print('DONE!', file=sys.stderr)
+        os.chdir(bdir)
+
+    def get_pertmats(self, **kwargs):
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        import dci_dfi as dd
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        cov_files = [f for f in os.listdir() if f.startswith('covmat')]
+        for cov_file in cov_files:
+            print(f'  Processing covariance matrix {cov_file}', file=sys.stderr)
+            covmat = np.load(cov_file)
+            print('  Calculating pertubation matrix', file=sys.stderr)
+            pertmat = dd.calc_perturbation_matrix(covmat)
+            pert_file = cov_file.replace('covmat', 'pertmat')
+            print(f'  Saving pertubation matrix at {pert_file}', file=sys.stderr)
+            np.save(pert_file, pertmat)
+            print('  Calculating DFI', file=sys.stderr)
+            dfi = dd.calc_dfi(pertmat)
+            dfi_file = pert_file.replace('pertmat', 'dfi').replace('.npy', '.xvg')
+            print(f'  Saving DFI at {dfi_file}',  file=sys.stderr)
+            dd.save_1d_data(dfi, fpath=dfi_file)
+        print('DONE!', file=sys.stderr)
+        os.chdir(bdir)
         
     def get_rmsf_by_chain(self, **kwargs):
         """

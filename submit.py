@@ -20,9 +20,10 @@ def submit_md(submit=True, ntomp=8):
         for runname in runs:
             mdrun = system.initmd(runname)
             if submit:
-                sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, ntomp, e='slurm_output/error.%A.err', J='md',
-                    t='05-00:00:00', N=1, n=1, c=ntomp, gres='gpu:1', mem='4G', 
-                    qos='grp_sozkan', partition='general')
+                sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, ntomp, 
+                    e='slurm_output/error.%A.err', J='md',
+                    N=1, n=1, c=ntomp, gres='gpu:1', mem='4G', 
+                    qos='grp_sozkan', partition='general', t='05-00:00:00',)
             else:
                 run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname)
 
@@ -33,9 +34,10 @@ def submit_extend(submit=True, ntomp=8):
         for runname in runs:
             mdrun = system.initmd(runname)
             if submit:
-                sbatch(script, 'run_all.py', 'extend', sysdir, sysname, runname, ntomp,  e='slurm_output/error.%A.err', J='rmd',
-                t='07-00:00:00', N=1, n=1, c=ntomp, gres='gpu:1', mem='3G', 
-                qos='grp_sozkan', partition='general')
+                sbatch(script, 'run_all.py', 'extend', sysdir, sysname, runname, ntomp, 
+                    e='slurm_output/error.%A.err', J='rmd',
+                    N=1, n=1, c=ntomp, gres='gpu:1', mem='4G', 
+                    qos='grp_sozkan', partition='general', t='05-00:00:00',)
             else:
                 run('bash', script, 'run_all.py', 'extend', sysdir, sysname, runname)
   
@@ -95,8 +97,8 @@ def submit_cluster(submit=True):
         for runname in runs:
             if submit:
                 sbatch(script, 'run_all.py', 'cluster', sysdir, sysname, runname, 
-                J='cluster', N=1, n=1, c=1, mem='2G', t='01:00:00',
-                qos='public', partition='general')
+                    J='cluster', N=1, n=1, c=1, mem='2G', t='01:00:00',
+                    qos='public', partition='general')
             else:
                 run('bash', script, 'run_all.py', 'cluster', sysdir, sysname, runname)  
                 
@@ -106,8 +108,8 @@ def submit_cov_analysis(submit=True):
         for runname in runs:
             if submit:
                 sbatch(script, 'run_all.py', 'cov_analysis', sysdir, sysname, runname, 
-                J='cov', N=1, n=1, c=1, mem='12G', t='03:50:00',
-                qos='public', partition='general')
+                N=1, n=1, c=1, mem='12G', 
+                qos='public', partition='htc', J='cov', t='03:50:00')
             else:
                 run('bash', script, 'run_all.py', 'cov_analysis', sysdir, sysname, runname)            
 
@@ -140,7 +142,9 @@ def submit_test(submit=False):
     for sysname in sysnames:
         for runname in runs:
             if submit:
-                sbatch(script, 'run_all.py', 'test', sysdir, sysname, runname, N=1, n=1, c=1, t='02:00:00')
+                sbatch(script, 'run_all.py', 'test', sysdir, sysname, runname, 
+                N=1, n=1, c=1, mem='21G', 
+                qos='public', partition='htc', t='02:00:00')
             else:
                 run('bash', script, 'run_all.py', 'test', sysdir, sysname, runname)
                 
@@ -148,17 +152,18 @@ def submit_test(submit=False):
 script = sys.argv[1]
 
 sysdir = 'ribosomes' 
-sysnames = ['ribosome', 'ribosome_k', ] 
+sysnames = ['ribosomes', 'ribosome_k',  ] 
 runs = ['mdrun_1',  'mdrun_2', 'mdrun_3', 'mdrun_4', 'mdrun_5']  
 runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10'] 
 runs += ['mdrun_11', 'mdrun_12']
 
-sysdir = 'systems' 
-sysnames = ['1btl']
-runs = ['mdrun_1', ]
+# sysdir = 'systems' 
+# sysnames = ['1btl']
+# runs = ['mdrun_1', ]
 
-# sysnames = ['ribosome', ] 
-# runs = ['mdrun_1', ] 
+sysdir = 'ribosomes'
+sysnames = ['ribosome_k', ] 
+runs = ['mdrun_1',] 
 
 
 # submit_setup(submit=False)
@@ -170,9 +175,9 @@ runs = ['mdrun_1', ]
 # submit_rdf_analysis(submit=True)
 # submit_cluster(submit=False)
 # submit_rms_analysis(submit=True)
-# submit_cov_analysis(submit=True)
+# submit_cov_analysis(submit=False)
 # submit_overlap(submit=True)
 # submit_get_averages(submit=False)
 # submit_plot(submit=False)
-submit_test(submit=False)
+# submit_test(True)
 

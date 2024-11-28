@@ -6,6 +6,7 @@ sys.path.append('cgtools')
 from dataio import read_data
 from system import CGSystem
 import cli
+import MDAnalysis as mda
 
 
 def setup(sysdir, sysname):
@@ -79,7 +80,7 @@ def trjconv(sysdir, sysname, runname, **kwargs):
     mdrun = system.initmd(runname)
     shutil.copy('atommass.dat', os.path.join(mdrun.rundir, 'atommass.dat'))
     mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
-    mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='atom', ur='compact', dt=1500, **kwargs)
+    mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='atom', ur='compact', dt=600, **kwargs)
     mdrun.trjconv(clinput='0\n', f='mdc.xtc', o='mdc.xtc', pbc='nojump', **kwargs)
     mdrun.trjconv(clinput='1\n1\n', s='mdc.pdb', f='mdc.pdb', o='traj.pdb', n=mdrun.bbndx, fit='rot+trans', e=0, **kwargs)
     mdrun.trjconv(clinput='1\n1\n', s='mdc.pdb', f='mdc.xtc', o='traj.xtc', n=mdrun.bbndx, fit='rot+trans', **kwargs)
@@ -127,7 +128,7 @@ def cov_analysis(sysdir, sysname, runname, **kwargs):
     # s = os.path.join(mdrun.cludir, 'clusters.pdb')
     f = '../traj.xtc'
     s = mdrun.trjpdb
-    b = 300000
+    b = 000000
     mdrun.covar(clinput=f'0\n 0\n', b=b, f=f, s=s, ref='no', last=1000, ascii='covar.dat', o='eigenval.xvg', v='eigenvec.trr', av='av.pdb', l='covar.log')
     mdrun.anaeig(clinput=f'0\n 0\n', b=b, dt=15000, first=1, last=10, filt='filtered.pdb', v='eigenvec.trr', eig='eigenval.xvg', proj='proj.xvg') 
     b1 = 000000
@@ -153,12 +154,40 @@ def overlap(sysdir, sysname, **kwargs):
     run1.anaeig(v=v3, v2=v1, over='overlap_3.xvg', **kwargs)
 
 
+def dci_dfi(sysdir, sysname, runname):
+    import dci_dfi as dd
+    import numpy as np
+    system = CGSystem(sysdir, sysname)
+    run = system.initmd(runname)
+    bdir = os.getcwd()
+    os.chdir(run.covdir)
+    run.get_covmats(b=300000, n=5)
+    run.get_pertmats()
+    # u = mda.Universe(system.trjpdb)
+    # permat_path = 'pertmat.npy'
+    # pertmat = np.load(permat_path)
+    # groups = u.segments.ids
+    # segids = [s.segid for s in u.segments]
+    # dcis = dd.get_i_group_dci(pertmat, groups=groups)
+    # for dci, group, segid in zip(dcis, groups, segids):
+    #     dd.save_1d_data(dci, fpath=f'dci_{segid}.xvg')
+    os.chdir(bdir)
+
+
 def get_averages(sysdir, sysname):
     system = CGSystem(sysdir, sysname)  
-    files = os.listdir(system.initmd('mdrun_1').rmsdir)
-    for file in files:
-        system.get_mean_sem('rms_analysis', file)
-        
+    # # rmsf files
+    # files = os.listdir(system.initmd('mdrun_1').rmsdir)
+    # for file in files:
+    #     system.get_mean_sem('rms_analysis', file)
+    # dfi files
+    runs = [system.initmd(run) for run in system.mdruns]
+    files = []
+    for run in runs:
+        run_files = [os.path.join(run.covdir, f) for f in os.listdir(run.covdir) if f.startswith('dfi')]
+        files.extend(run_files)
+    system.get_mean_sem(files, 'dfi.csv')        
+
 
 def plot_averages(sysdir, sysname, **kwargs):    
     from plotting import plot_each_mean_sem
@@ -167,12 +196,6 @@ def plot_averages(sysdir, sysname, **kwargs):
         fpaths = [os.path.join(system.datdir, f) for f in os.listdir(system.datdir) if f.startswith(metric)]
         plot_each_mean_sem(fpaths, system)
 
-            
-def test(sysdir, sysname, runname):
-    system = CGSystem(sysdir, sysname)
-    run = system.initmd(runname)
-    run.get_pertmat()
-        
         
 if __name__ == '__main__':
     todo = sys.argv[1]
@@ -198,6 +221,8 @@ if __name__ == '__main__':
             cov_analysis(*args)
         case 'overlap':
             overlap(*args)
+        case 'dci_dfi':
+            dci_dfi(*args)
         case 'get_averages':
             get_averages(*args)    
         case 'geometry':

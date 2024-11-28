@@ -40,9 +40,9 @@ def pdb():
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
         fdir =  os.path.join(sysdir, sysname, 'data')
-        fnames = [f for f in os.listdir(fdir) if f.startswith('rmsf.')]
+        fnames = [f for f in os.listdir(fdir) if f.startswith('dfi.')]
         datas = [pd.read_csv(os.path.join(fdir, fname), header=None) for fname in fnames]
-        data = datas[0]
+        data = datas[0] * 1e4
         x.append((data[1], data[2]))
     
     b_factors = (x[0][0] - x[1][0]) * 10
@@ -56,9 +56,29 @@ def pdb():
     update_bfactors(inpdb, b_factors, outpdb)
     errpdb = os.path.join(sysdir, 'pdb', f'{sysname}_err.pdb')
     update_bfactors(inpdb, errs, errpdb)
+    
+    
+def dci_pdb():
+    sysname = 'ribosome'
+    system = CGSystem(sysdir, sysname)
+    fdir =  os.path.join(sysdir, sysname, 'data')
+    fnames = [f for f in os.listdir(fdir) if f.startswith('dci')]
+    datas = [pd.read_csv(os.path.join(fdir, fname), header=None) for fname in fnames]
+    inpdb = os.path.join(system.trjpdb)
+    for data, fname in zip(datas, fnames):
+        print(f'Processing {fname}')
+        data = data * 1e4
+        b_factors = data[1] 
+        errs = data[2]
+        pfix = fname.split('.')[0]
+        outpdb = os.path.join(sysdir, 'pdb', f'{sysname}_{pfix}.pdb')
+        update_bfactors(inpdb, b_factors, outpdb)
+        errpdb = os.path.join(sysdir, 'pdb', f'{sysname}_{pfix}_err.pdb')
+        update_bfactors(inpdb, errs, errpdb)
    
     
 if __name__ == '__main__':
     pdb()
-    png()
+    # png()
+    # dci_pdb()
 
