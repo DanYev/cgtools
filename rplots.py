@@ -9,7 +9,7 @@ from system import CGSystem
 from cli import sbatch, run
                 
 sysdir = 'ribosomes' 
-sysnames = ['ribosome', 'ribosome_k', ] 
+# sysnames = ['ribosome', 'ribosome_k', ] 
 # sysnames = ['ribosome_aa']
 
 
@@ -35,12 +35,13 @@ def png():
     
 def pdb():
     ribosome = 'ribosome_k'
+    metric = 'dfi'
     sysnames = [ribosome, 'ribosome']
     x = []
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
         fdir =  os.path.join(sysdir, sysname, 'data')
-        fnames = [f for f in os.listdir(fdir) if f.startswith('dfi.')]
+        fnames = [f for f in os.listdir(fdir) if f.startswith(f'{metric}.')]
         datas = [pd.read_csv(os.path.join(fdir, fname), header=None) for fname in fnames]
         data = datas[0] * 1e4
         x.append((data[1], data[2]))
@@ -49,12 +50,11 @@ def pdb():
     # b_factors = (x[0][0]) * 10
     errs = np.sqrt(x[0][1]**2 + x[1][1]**2) * 10
     sysname = ribosome
-    inpdb = os.path.join(sysdir, 'pdb', f'{sysname}_tmp.pdb')
-    inpdb = os.path.join(system.trjpdb)
+    inpdb = os.path.join(system.inpdb)
     # CGSystem.mask_pdb(system.syspdb, inpdb, mask=['BB', 'BB2'])
-    outpdb = os.path.join(sysdir, 'pdb', f'{sysname}.pdb')
+    outpdb = os.path.join(sysdir, 'pdb', f'{sysname}_d{metric}.pdb')
     update_bfactors(inpdb, b_factors, outpdb)
-    errpdb = os.path.join(sysdir, 'pdb', f'{sysname}_err.pdb')
+    errpdb = os.path.join(sysdir, 'pdb', f'{sysname}_d{metric}_err.pdb')
     update_bfactors(inpdb, errs, errpdb)
     
     
@@ -62,9 +62,10 @@ def dci_pdb():
     sysname = 'ribosome'
     system = CGSystem(sysdir, sysname)
     fdir =  os.path.join(sysdir, sysname, 'data')
-    fnames = [f for f in os.listdir(fdir) if f.startswith('dci')]
+    fnames = [f for f in os.listdir(fdir) if f.startswith('dfi')]
     datas = [pd.read_csv(os.path.join(fdir, fname), header=None) for fname in fnames]
-    inpdb = os.path.join(system.trjpdb)
+    inpdb = system.inpdb
+    inpdb = os.path.join(system.wdir, 'ref.pdb')
     for data, fname in zip(datas, fnames):
         print(f'Processing {fname}')
         data = data * 1e4
@@ -78,7 +79,7 @@ def dci_pdb():
    
     
 if __name__ == '__main__':
-    pdb()
+    # pdb()
     # png()
-    # dci_pdb()
+    dci_pdb()
 

@@ -7,6 +7,7 @@ from dataio import read_data
 from system import CGSystem
 import cli
 import MDAnalysis as mda
+from pathlib import Path
 
 
 def setup(sysdir, sysname):
@@ -47,7 +48,7 @@ def md(sysdir, sysname, runname, ntomp):
 def extend(sysdir, sysname, runname, ntomp):    
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    mdrun.mdrun(deffnm='md', ntomp=ntomp, cpi='md.cpt', nsteps=-2) 
+    mdrun.mdrun(deffnm='ext', ntomp=ntomp, nsteps=-2)  # cpi='md.cpt'
 
 
 def geometry(sysdir, sysname, runname, **kwargs):  
@@ -78,12 +79,12 @@ def make_ndx(sysdir, sysname, **kwargs):
 def trjconv(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    shutil.copy('atommass.dat', os.path.join(mdrun.rundir, 'atommass.dat'))
-    mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
-    mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='atom', ur='compact', dt=600, **kwargs)
-    mdrun.trjconv(clinput='0\n', f='mdc.xtc', o='mdc.xtc', pbc='nojump', **kwargs)
-    mdrun.trjconv(clinput='1\n1\n', s='mdc.pdb', f='mdc.pdb', o='traj.pdb', n=mdrun.bbndx, fit='rot+trans', e=0, **kwargs)
-    mdrun.trjconv(clinput='1\n1\n', s='mdc.pdb', f='mdc.xtc', o='traj.xtc', n=mdrun.bbndx, fit='rot+trans', **kwargs)
+    # shutil.copy('atommass.dat', os.path.join(mdrun.rundir, 'atommass.dat'))
+    # mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
+    # mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='atom', ur='compact', dt=1500, **kwargs)
+    # mdrun.trjconv(clinput='0\n', f='mdc.xtc', o='mdc.xtc', pbc='nojump', **kwargs)
+    # mdrun.trjconv(clinput='1\n1\n', s='mdc.pdb', f='mdc.pdb', o='traj.pdb', n=mdrun.bbndx, fit='rot+trans', e=0, **kwargs)
+    # mdrun.trjconv(clinput='1\n1\n', s='mdc.pdb', f='mdc.xtc', o='traj.xtc', n=mdrun.bbndx, fit='rot+trans', **kwargs)
     # mdrun.trjconv(clinput='0\n0\n', s='traj.pdb', f='traj.xtc', o='vis.pdb', dt=30000, fit='rot+trans', **kwargs)
 
 
@@ -155,46 +156,96 @@ def overlap(sysdir, sysname, **kwargs):
 
 
 def dci_dfi(sysdir, sysname, runname):
-    import dci_dfi as dd
-    import numpy as np
     system = CGSystem(sysdir, sysname)
     run = system.initmd(runname)
-    bdir = os.getcwd()
-    os.chdir(run.covdir)
-    run.get_covmats(b=300000, n=5)
+    run.prepare_files()
+    run.get_covmats(b=400000, n=10)
     run.get_pertmats()
-    # u = mda.Universe(system.trjpdb)
-    # permat_path = 'pertmat.npy'
-    # pertmat = np.load(permat_path)
-    # groups = u.segments.ids
-    # segids = [s.segid for s in u.segments]
-    # dcis = dd.get_i_group_dci(pertmat, groups=groups)
-    # for dci, group, segid in zip(dcis, groups, segids):
-    #     dd.save_1d_data(dci, fpath=f'dci_{segid}.xvg')
-    os.chdir(bdir)
+    run.get_dfi()
+    run.get_dci()
 
 
 def get_averages(sysdir, sysname):
     system = CGSystem(sysdir, sysname)  
-    # # rmsf files
-    # files = os.listdir(system.initmd('mdrun_1').rmsdir)
-    # for file in files:
-    #     system.get_mean_sem('rms_analysis', file)
-    # dfi files
-    runs = [system.initmd(run) for run in system.mdruns]
-    files = []
-    for run in runs:
-        run_files = [os.path.join(run.covdir, f) for f in os.listdir(run.covdir) if f.startswith('dfi')]
-        files.extend(run_files)
-    system.get_mean_sem(files, 'dfi.csv')        
 
-
+    def fname_filter(f, sw='', cont='', ew=''):  
+        """
+        Filters a file name based on its start, substring, and end patterns.
+        """
+        return f.startswith(sw) and cont in f and f.endswith(ew)
+        
+    def filter_files(fpaths, sw='', cont='', ew=''):  
+        """
+        Filters files in a list using the above filter
+        """
+        files = [f for f in fpaths if fname_filter(f.name, sw=sw, cont=cont, ew=ew)]
+        return files
+        
+    def pull_all_files(directory):
+        """
+        Recursively lists all files in the given directory and its subdirectories.
+    
+        Parameters:
+            directory (str or Path): The root directory to start searching for files.
+    
+        Returns:
+            list[Path]: A list of Path objects, each representing the absolute path
+                        to a file within the directory and its subdirectories.
+        """
+        all_files = []
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                all_files.append(Path(os.path.join(root, file)))
+        return all_files
+            
+    def pull_files(directory, sw='', cont='', ew=''):
+        """
+        Pulls files all files from a directory that pass the above filter
+        """
+        fpaths = list_files_in_subdirectories(directory)
+        files = filter_files(fpaths, sw=sw, cont=cont, ew=ew)
+        return files
+    
+    print('starting')    
+    all_files = pull_all_files(system.mddir)
+    # RMSF
+    print(f'Processing DFI', file=sys.stderr )
+    files = filter_files(all_files, sw='rmsf.', ew='.xvg')
+    system.get_mean_sem(files, f'dfi.csv', col=1)
+    # DFI
+    print(f'Processing DFI', file=sys.stderr )
+    files = filter_files(all_files, sw='dfi', ew='.xvg')
+    system.get_mean_sem(files, f'dfi.csv', col=1)
+    # Chain RMSF
+    # for chain in system.chains:
+    #     print(f'Processing chain {chain}', file=sys.stderr )
+    #     sw = f'rmsf_{chain}'
+    #     files = filter_files(all_files, sw=sw, ew='.xvg')
+    #     system.get_mean_sem(files, f'{sw}.csv', col=1)
+    # # Chain DCI 
+    # for chain in system.chains:
+    #     print(f'Processing chain {chain}', file=sys.stderr )
+    #     sw = f'dci_{chain}'
+    #     files = filter_files(all_files, sw=sw, ew='.xvg')
+    #     system.get_mean_sem(files, f'{sw}.csv', col=1)
+        
+    
 def plot_averages(sysdir, sysname, **kwargs):    
     from plotting import plot_each_mean_sem
     system = CGSystem(sysdir, sysname)  
     for metric in ['rdf', ]:
         fpaths = [os.path.join(system.datdir, f) for f in os.listdir(system.datdir) if f.startswith(metric)]
         plot_each_mean_sem(fpaths, system)
+        
+        
+def working(sysdir, sysname, runname):
+    system = CGSystem(sysdir, sysname)
+    run = system.initmd(runname)
+    # cli.run_gmx(run.rundir, 'convert-trj', f='md.trr', o='md_old.trr', e=1600, tu='ns')
+    # cli.gmx_grompp(run.rundir, c=system.sysgro, p=system.systop, f=os.path.join(system.mdpdir, 'md.mdp'), t='md_old.trr',  o='ext.tpr')
+    # cli.gmx_mdrun(run.rundir, s='ext.tpr', deffnm='ext')
+    # cli.run_gmx(run.rundir, 'trjcat', clinput='c\nc\n', cltext=True, f='md_old.trr ext.trr', o='md.trr', settime='yes')
+    system.make_ref_pdb()
 
         
 if __name__ == '__main__':
@@ -229,8 +280,8 @@ if __name__ == '__main__':
             geometry(*args)
         case 'plot':
             plot_averages(*args)
-        case 'test':
-            test(*args)
+        case 'working':
+            working(*args)
    
         
     

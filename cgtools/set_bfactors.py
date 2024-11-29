@@ -23,11 +23,16 @@ def update_bfactors(pdb_file, b_factors, output_file):
         lines = file.readlines()
     lines = [line for line in lines if line.startswith("ATOM")]
     updated_lines = []
-    for idx, line in enumerate(lines):
+    idx = 0
+    previous_residue_number = int(lines[0][22:26].strip())
+    for line in lines:
         residue_number = int(line[22:26].strip())
+        if residue_number != previous_residue_number:
+            idx += 1
         b_factor = b_factors[idx]
         updated_line = f"{line[:60]}{b_factor:6.2f}{line[66:]}"
         updated_lines.append(updated_line)
+        previous_residue_number = residue_number
     with open(output_file, 'w') as file:
         file.writelines(updated_lines)
 

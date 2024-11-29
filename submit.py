@@ -67,7 +67,9 @@ def submit_trjconv(submit=True):
         for runname in runs:
             mdrun = system.initmd(runname)
             if submit:
-                sbatch(script, 'run_all.py', 'trjconv', sysdir, sysname, runname, J='trjconv', N=1, n=1, c=1, mem='4G', t='02:00:00')
+                sbatch(script, 'run_all.py', 'trjconv', sysdir, sysname, runname, 
+                N=1, n=1, c=1, mem='4G', 
+                qos='public', partition='htc', J='trjconv', t='02:00:00')
             else:
                 run('bash', script, 'run_all.py', 'trjconv', sysdir, sysname, runname)
 
@@ -97,8 +99,8 @@ def submit_cluster(submit=True):
         for runname in runs:
             if submit:
                 sbatch(script, 'run_all.py', 'cluster', sysdir, sysname, runname, 
-                    J='cluster', N=1, n=1, c=1, mem='2G', t='01:00:00',
-                    qos='public', partition='general')
+                    N=1, n=1, c=1, mem='2G',
+                    qos='public', partition='htc', J='cluster', t='01:00:00')
             else:
                 run('bash', script, 'run_all.py', 'cluster', sysdir, sysname, runname)  
                 
@@ -117,10 +119,23 @@ def submit_cov_analysis(submit=True):
 def submit_overlap(submit=False):
     for sysname in sysnames:
         if submit:
-            sbatch(script, 'run_all.py', 'overlap', sysdir, sysname, N=1, n=1, c=1, t='00:15:00')
+            sbatch(script, 'run_all.py', 'overlap', sysdir, sysname, 
+            N=1, n=1, c=1, 
+            qos='public', partition='htc', J='overlap', t='00:30:00')
         else:
             run('bash', script, 'run_all.py', 'overlap', sysdir, sysname)
  
+ 
+def submit_dci_dfi(submit=True):
+    for sysname in sysnames:
+        for runname in runs:
+            if submit:
+                sbatch(script, 'run_all.py', 'dci_dfi', sysdir, sysname, runname, 
+                N=1, n=1, c=1, mem='11G', 
+                qos='public', partition='htc', J='dci_dfi', t='02:00:00')
+            else:
+                run('bash', script, 'run_all.py', 'dci_dfi', sysdir, sysname, runname)
+
  
 def submit_get_averages(submit=False):
     for sysname in sysnames:
@@ -136,23 +151,12 @@ def submit_plot(submit=False):
             sbatch(script, 'run_all.py', 'plot', sysdir, sysname, N=1, n=1, c=1, t='00:15:00')
         else:
             run('bash', script, 'run_all.py', 'plot', sysdir, sysname)
-            
-            
-def submit_test(submit=False):
-    for sysname in sysnames:
-        for runname in runs:
-            if submit:
-                sbatch(script, 'run_all.py', 'test', sysdir, sysname, runname, 
-                N=1, n=1, c=1, mem='21G', 
-                qos='public', partition='htc', t='02:00:00')
-            else:
-                run('bash', script, 'run_all.py', 'test', sysdir, sysname, runname)
-                
+        
                 
 script = sys.argv[1]
 
 sysdir = 'ribosomes' 
-sysnames = ['ribosomes', 'ribosome_k',  ] 
+sysnames = ['ribosome', 'ribosome_k', ] 
 runs = ['mdrun_1',  'mdrun_2', 'mdrun_3', 'mdrun_4', 'mdrun_5']  
 runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10'] 
 runs += ['mdrun_11', 'mdrun_12']
@@ -161,9 +165,9 @@ runs += ['mdrun_11', 'mdrun_12']
 # sysnames = ['1btl']
 # runs = ['mdrun_1', ]
 
-sysdir = 'ribosomes'
-sysnames = ['ribosome_k', ] 
-runs = ['mdrun_1',] 
+# sysdir = 'ribosomes'
+# sysnames = ['ribosome_k', ] 
+# runs = ['mdrun_1',] 
 
 
 # submit_setup(submit=False)
@@ -174,8 +178,9 @@ runs = ['mdrun_1',]
 # submit_trjconv(submit=True)
 # submit_rdf_analysis(submit=True)
 # submit_cluster(submit=False)
-# submit_rms_analysis(submit=True)
+submit_rms_analysis(submit=True)
 # submit_cov_analysis(submit=False)
+# submit_dci_dfi(submit=True)
 # submit_overlap(submit=True)
 # submit_get_averages(submit=False)
 # submit_plot(submit=False)

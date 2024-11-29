@@ -9,6 +9,7 @@ from scipy import linalg as LA
 from scipy.stats import pearsonr
 import time
 from functools import wraps
+# from memory_profiler import profile
 
 
 def timeit(func):
@@ -30,7 +31,7 @@ def timeit(func):
     return wrapper
 
 
-def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000):
+def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
     """
     Calculate the covariance matrix from a GROMACS trajectory file.
     
@@ -46,7 +47,7 @@ def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000):
         # Flatten the positions for the selected atoms
         if ts.time > b:
             positions.append(selection.positions.flatten()) #
-    positions = np.array(positions)  #  Shape: (n_frames, n_coords)
+    positions = np.array(positions, dtype=dtype)  #  Shape: (n_frames, n_coords)
     mean_positions = positions.mean(axis=0)
     trajs = np.array_split(positions, n)
     for idx, traj in enumerate(trajs): # 
@@ -55,7 +56,7 @@ def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000):
         positions = traj
         mean_positions = positions.mean(axis=0)
         centered_positions = positions - mean_positions
-        covariance_matrix = np.cov(centered_positions, rowvar=False)  # Shape: (n_coords, n_coords)
+        covariance_matrix = np.cov(centered_positions, rowvar=False, dtype=dtype)  # Shape: (n_coords, n_coords)
         np.save(f'covmat_{idx}.npy', covariance_matrix)
         print(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'", file=sys.stderr)
 

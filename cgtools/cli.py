@@ -277,11 +277,6 @@ def gmx_grompp(wdir, **kwargs):
         - 'maxwarn': '1' (maximum number of warnings allowed)
     """
     defaults = {
-        'f': '../mdp/em.mdp',
-        'c': '../system.pdb',
-        'r': '../system.pdb',
-        'p': '../system.top',
-        'o': 'em.tpr',
         'maxwarn': '1'
     }
     kwargs = set_defaults(kwargs, defaults)
@@ -306,11 +301,9 @@ def gmx_mdrun(wdir, **kwargs):
         - 'nsteps': '-2' (run for the length defined in the .mdp file)
     """
     defaults = {
-        'deffnm': 'em',
         'ntomp': '6',
         'pin': 'on',
         'pinstride': '1',
-        'nsteps': '-2'
     }
     kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'mdrun', **kwargs)

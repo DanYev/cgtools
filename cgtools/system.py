@@ -8,6 +8,8 @@ from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB import PDBIO, Atom
 import cli
+import dci_dfi as dd
+import MDAnalysis as mda
 from cli import from_wdir
 
 
@@ -145,9 +147,65 @@ class CGSystem:
             if file.endswith('.itp'):
                 fpath = os.path.join(self.ITPDIR, file)
                 outpath = os.path.join(self.topdir, file)
-                # command = f'ln -sf {fpath} {out}' # > /dev/null 2>&
-                # sp.run(command.split())
                 shutil.copy(fpath, outpath)
+                
+    def make_ref_pdb(self):
+        os.chdir(self.wdir)
+        def rearrange_chains_and_renumber_atoms(input_pdb, output_pdb):
+            """
+            Rearrange chains in a PDB file alphabetically by chain ID and renumber atom IDs.
+        
+            Parameters:
+                input_pdb (str): Path to the input PDB file.
+                output_pdb (str): Path to save the rearranged PDB file.
+            """
+            with open(input_pdb, 'r') as file:
+                pdb_lines = file.readlines()
+        
+            # Group lines by chain ID
+            chain_dict = {}
+            other_lines = []
+        
+            for line in pdb_lines:
+                if line.startswith(("ATOM", )):
+                    chain_id = line[21]  # Extract chain ID (column 22, index 21)
+                    if chain_id not in chain_dict:
+                        chain_dict[chain_id] = []
+                    chain_dict[chain_id].append(line)
+                else:
+                    # Keep non-ATOM, HETATM, and TER lines (e.g., HEADER, REMARK, END)
+                    other_lines.append(line)
+        
+            # Sort chains alphabetically
+            sorted_chain_ids = sort_uld(chain_dict.keys())
+        
+            # Renumber atom IDs and write to the output file
+            atom_id = 1  # Start atom ID renumbering
+            with open(output_pdb, 'w') as file:
+                # Write other (non-ATOM) lines first
+                for line in other_lines:
+                    file.write(line)
+        
+                # Write the sorted chains with updated atom IDs
+                for chain_id in sorted_chain_ids:
+                    for line in chain_dict[chain_id]:
+                        if line.startswith(("ATOM", )):
+                            # Update the atom ID (columns 7-11, index 6-11)
+                            updated_line = f"{line[:6]}{atom_id:5d}{line[11:]}"
+                            file.write(updated_line)
+                            atom_id += 1  # Increment atom ID
+                            if atom_id > 99999:
+                                atom_id = 1
+                        else:
+                            # Write TER lines as-is
+                            file.write(line)
+
+        
+        # Example usage
+        input_pdb = "rearranged.pdb"  # Replace with your input file path
+        output_pdb = "ref.pdb"  # Replace with your desired output file path
+        rearrange_chains_and_renumber_atoms(input_pdb, output_pdb)
+                
         
     def clean_inpdb(self, **kwargs):
         """
@@ -504,6 +562,7 @@ class MDRun(CGSystem):
         self.rundir = os.path.join(self.mddir, self.runname)
         self.rmsdir = os.path.join(self.rundir, 'rms_analysis')
         self.covdir = os.path.join(self.rundir, 'cov_analysis')
+        self.dddir  = os.path.join(self.rundir, 'dci_dfi')
         self.cludir = os.path.join(self.rundir, 'clusters')
         self.pngdir = os.path.join(self.rundir, 'png')
         
@@ -515,6 +574,7 @@ class MDRun(CGSystem):
         os.makedirs(self.rmsdir, exist_ok=True)
         os.makedirs(self.cludir, exist_ok=True)
         os.makedirs(self.covdir, exist_ok=True)
+        os.makedirs(self.dddir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
         
     def empp(self, **kwargs):
@@ -647,22 +707,27 @@ class MDRun(CGSystem):
         cli.gmx_make_edi(self.covdir, clinput=clinput, **kwargs) 
         
     def get_covmats(self, **kwargs):
-        from dci_dfi import calc_covmats
+        """
+        Calculates several covariance matrices by splitting the trajectory into 
+        equal chunks defined by the given timestamps
+        """
         kwargs.setdefault('f', '../traj.xtc')
         kwargs.setdefault('s', '../traj.pdb')
         bdir = os.getcwd()
         os.chdir(self.covdir)
         print(f'Working dir: {self.covdir}', file=sys.stderr)
-        calc_covmats(**kwargs)
-        print('DONE!', file=sys.stderr)
+        dd.calc_covmats(**kwargs)
+        print('Finished calculating covariance matrices!', file=sys.stderr)
         os.chdir(bdir)
 
     def get_pertmats(self, **kwargs):
+        """
+        Calculates perturbation matrices from the covariance matrices
+        """
         bdir = os.getcwd()
         os.chdir(self.covdir)
-        import dci_dfi as dd
         print(f'Working dir: {self.covdir}', file=sys.stderr)
-        cov_files = [f for f in os.listdir() if f.startswith('covmat')]
+        cov_files = [f for f in sorted(os.listdir()) if f.startswith('covmat')]
         for cov_file in cov_files:
             print(f'  Processing covariance matrix {cov_file}', file=sys.stderr)
             covmat = np.load(cov_file)
@@ -671,13 +736,52 @@ class MDRun(CGSystem):
             pert_file = cov_file.replace('covmat', 'pertmat')
             print(f'  Saving pertubation matrix at {pert_file}', file=sys.stderr)
             np.save(pert_file, pertmat)
+        print('Finished calculating perturbation matrices!', file=sys.stderr)
+        os.chdir(bdir)
+        
+    def get_dfi(self, **kwargs):
+        """
+        Calculates DFI from perturbation matrices
+        """
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
+        for pert_file in pert_files:
+            print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
+            pertmat = np.load(pert_file)
             print('  Calculating DFI', file=sys.stderr)
             dfi = dd.calc_dfi(pertmat)
             dfi_file = pert_file.replace('pertmat', 'dfi').replace('.npy', '.xvg')
+            dfi_file = os.path.join('..', 'dci_dfi', dfi_file)
             print(f'  Saving DFI at {dfi_file}',  file=sys.stderr)
             dd.save_1d_data(dfi, fpath=dfi_file)
-        print('DONE!', file=sys.stderr)
-        os.chdir(bdir)
+        print('Finished calculating DFIs!', file=sys.stderr)
+        os.chdir(bdir)       
+
+    def get_dci(self, **kwargs):
+        """
+        Calculates DCI from perturbation matrices
+        """
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
+        u = mda.Universe(self.trjpdb)
+        groups = u.segments.ids
+        segids = [s.segid for s in u.segments]
+        for pert_file in pert_files:
+            print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
+            pertmat = np.load(pert_file)
+            print('  Calculating DCI', file=sys.stderr)
+            dcis = dd.calc_i_group_dci(pertmat, groups=groups)
+            for dci, group, segid in zip(dcis, groups, segids):
+                dci_file = pert_file.replace('pertmat', f'dci_{segid}').replace('.npy', '.xvg')
+                dci_file = os.path.join('..', 'dci_dfi', dci_file)
+                print(f'  Saving DCI at {dci_file}',  file=sys.stderr)
+                dd.save_1d_data(dci, fpath=dci_file)
+        print('Finished calculating DCIs!', file=sys.stderr)
+        os.chdir(bdir) 
         
     def get_rmsf_by_chain(self, **kwargs):
         """
