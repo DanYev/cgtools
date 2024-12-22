@@ -135,7 +135,10 @@ def calc_full_dci(perturbation_matrix):
     return dci    
     
 
-def calc_i_group_dci(perturbation_matrix, groups=[[]]):
+def calc_group_molecule_dci(perturbation_matrix, groups=[[]]):
+    """
+    Calculates DCI between a group of atoms in 'groups' and the rest of the molecule
+    """
     dcis = []
     dci_tot = perturbation_matrix / np.sum(perturbation_matrix, axis=-1, keepdims=True)
     for group in groups:
@@ -144,6 +147,26 @@ def calc_i_group_dci(perturbation_matrix, groups=[[]]):
         bot = 1 
         dci = top / bot
         dcis.append(dci)
+    return dcis 
+    
+    
+def calc_group_group_dci(perturbation_matrix, groups=[[]]):
+    """
+    Calculates DCI matrix between the groups of atoms in 'groups'
+    """
+    dcis = []
+    dci_tot = perturbation_matrix / np.sum(perturbation_matrix, axis=-1, keepdims=True)
+    for ch1 in groups:
+        temp = []
+        for ch2 in groups:
+            ids1 = [idx - 1 for idx in ch1]
+            ids2 = [idx - 1 for idx in ch2]
+            idx1, idx2 = np.meshgrid(ids1, ids2, indexing='ij')
+            top = np.sum(dci_tot[idx1, idx2])
+            bot = len(ids1) 
+            dci = top / bot
+            temp.append(dci)
+        dcis.append(temp)
     return dcis 
     
 
@@ -176,6 +199,19 @@ def save_1d_data(data, ids=[], fpath='dfi.xvg'):
     if not ids:
         ids = np.arange(1, len(data)+1).astype(int)
     df = pd.DataFrame({'ids': ids, 'data': data})
+    df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=' ')
+    
+    
+def save_2d_data(data, ids=[], fpath='dfi.xvg'): 
+    """ 
+    Saves 2d data like group-group DCI in the GROMACS's .xvg format
+    Input: 
+    data: list or numpy array
+    fpath: string
+        Path to the file to save
+    ------
+    """
+    df = pd.DataFrame(data)
     df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=' ')
     
 

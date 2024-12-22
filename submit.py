@@ -23,7 +23,7 @@ def submit_md(submit=True, ntomp=8):
                 sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, ntomp, 
                     e='slurm_output/error.%A.err', J='md',
                     N=1, n=1, c=ntomp, gres='gpu:1', mem='4G', 
-                    qos='grp_sozkan', partition='general', t='05-00:00:00',)
+                    qos='public', partition='general', t='07-00:00:00',)
             else:
                 run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname)
 
@@ -37,7 +37,7 @@ def submit_extend(submit=True, ntomp=8):
                 sbatch(script, 'run_all.py', 'extend', sysdir, sysname, runname, ntomp, 
                     e='slurm_output/error.%A.err', J='rmd',
                     N=1, n=1, c=ntomp, gres='gpu:1', mem='4G', 
-                    qos='grp_sozkan', partition='general', t='05-00:00:00',)
+                    qos='grp_sozkan', partition='general', t='07-00:00:00',)
             else:
                 run('bash', script, 'run_all.py', 'extend', sysdir, sysname, runname)
   
@@ -156,7 +156,7 @@ def submit_plot(submit=False):
 script = sys.argv[1]
 
 sysdir = 'ribosomes' 
-sysnames = ['ribosome', 'ribosome_k', ] 
+sysnames = ['ribosome', 'ribosome_k'] 
 runs = ['mdrun_1',  'mdrun_2', 'mdrun_3', 'mdrun_4', 'mdrun_5']  
 runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10'] 
 runs += ['mdrun_11', 'mdrun_12']
@@ -165,9 +165,9 @@ runs += ['mdrun_11', 'mdrun_12']
 # sysnames = ['1btl']
 # runs = ['mdrun_1', ]
 
-# sysdir = 'ribosomes'
-# sysnames = ['ribosome_k', ] 
-# runs = ['mdrun_1',] 
+sysdir = 'ribosomes'
+sysnames = ['ribosome', ] 
+runs = ['mdrun_1', ] 
 
 
 # submit_setup(submit=False)
@@ -178,9 +178,9 @@ runs += ['mdrun_11', 'mdrun_12']
 # submit_trjconv(submit=True)
 # submit_rdf_analysis(submit=True)
 # submit_cluster(submit=False)
-submit_rms_analysis(submit=True)
+# submit_rms_analysis(submit=True)
 # submit_cov_analysis(submit=False)
-# submit_dci_dfi(submit=True)
+submit_dci_dfi(submit=False)
 # submit_overlap(submit=True)
 # submit_get_averages(submit=False)
 # submit_plot(submit=False)

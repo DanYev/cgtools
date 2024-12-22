@@ -48,7 +48,7 @@ def md(sysdir, sysname, runname, ntomp):
 def extend(sysdir, sysname, runname, ntomp):    
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    mdrun.mdrun(deffnm='ext', ntomp=ntomp, nsteps=-2)  # cpi='md.cpt'
+    mdrun.mdrun(deffnm='md', cpi='md.cpt', ntomp=ntomp, nsteps=-2) 
 
 
 def geometry(sysdir, sysname, runname, **kwargs):  
@@ -80,11 +80,12 @@ def trjconv(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
     # shutil.copy('atommass.dat', os.path.join(mdrun.rundir, 'atommass.dat'))
-    # mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
-    # mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='atom', ur='compact', dt=1500, **kwargs)
-    # mdrun.trjconv(clinput='0\n', f='mdc.xtc', o='mdc.xtc', pbc='nojump', **kwargs)
-    # mdrun.trjconv(clinput='1\n1\n', s='mdc.pdb', f='mdc.pdb', o='traj.pdb', n=mdrun.bbndx, fit='rot+trans', e=0, **kwargs)
-    # mdrun.trjconv(clinput='1\n1\n', s='mdc.pdb', f='mdc.xtc', o='traj.xtc', n=mdrun.bbndx, fit='rot+trans', **kwargs)
+    cli.run_gmx(mdrun.rundir, 'trjcat', clinput='c\nc\n', cltext=True, f='md_old.trr ext.trr', o='md.trr', settime='yes')
+    mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
+    mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='atom', ur='compact', dt=600, **kwargs)
+    mdrun.trjconv(clinput='0\n', f='mdc.xtc', o='mdc.xtc', pbc='nojump', **kwargs)
+    mdrun.trjconv(clinput='1\n1\n', s='mdc.pdb', f='mdc.pdb', o='traj.pdb', n=mdrun.bbndx, fit='rot+trans', e=0, **kwargs)
+    mdrun.trjconv(clinput='1\n1\n', s='mdc.pdb', f='mdc.xtc', o='traj.xtc', n=mdrun.bbndx, fit='rot+trans', **kwargs)
     # mdrun.trjconv(clinput='0\n0\n', s='traj.pdb', f='traj.xtc', o='vis.pdb', dt=30000, fit='rot+trans', **kwargs)
 
 
@@ -158,10 +159,10 @@ def overlap(sysdir, sysname, **kwargs):
 def dci_dfi(sysdir, sysname, runname):
     system = CGSystem(sysdir, sysname)
     run = system.initmd(runname)
-    run.prepare_files()
-    run.get_covmats(b=400000, n=10)
-    run.get_pertmats()
-    run.get_dfi()
+    # run.prepare_files()
+    # run.get_covmats(b=400000, n=30)
+    # run.get_pertmats()
+    # run.get_dfi()
     run.get_dci()
 
 
@@ -209,25 +210,29 @@ def get_averages(sysdir, sysname):
     print('starting')    
     all_files = pull_all_files(system.mddir)
     # RMSF
-    print(f'Processing DFI', file=sys.stderr )
+    print(f'Processing RMSF', file=sys.stderr )
     files = filter_files(all_files, sw='rmsf.', ew='.xvg')
-    system.get_mean_sem(files, f'dfi.csv', col=1)
+    system.get_mean_sem(files, f'rmsf.csv', col=1)
+    # Chain RMSF
+    for chain in system.chains:
+        print(f'Processing chain {chain}', file=sys.stderr )
+        sw = f'rmsf_{chain}'
+        files = filter_files(all_files, sw=sw, ew='.xvg')
+        system.get_mean_sem(files, f'{sw}.csv', col=1)
     # DFI
     print(f'Processing DFI', file=sys.stderr )
     files = filter_files(all_files, sw='dfi', ew='.xvg')
     system.get_mean_sem(files, f'dfi.csv', col=1)
-    # Chain RMSF
-    # for chain in system.chains:
-    #     print(f'Processing chain {chain}', file=sys.stderr )
-    #     sw = f'rmsf_{chain}'
-    #     files = filter_files(all_files, sw=sw, ew='.xvg')
-    #     system.get_mean_sem(files, f'{sw}.csv', col=1)
-    # # Chain DCI 
-    # for chain in system.chains:
-    #     print(f'Processing chain {chain}', file=sys.stderr )
-    #     sw = f'dci_{chain}'
-    #     files = filter_files(all_files, sw=sw, ew='.xvg')
-    #     system.get_mean_sem(files, f'{sw}.csv', col=1)
+    # Chain Molecule DCI 
+    for chain in system.chains:
+        print(f'Processing chain {chain}', file=sys.stderr )
+        sw = f'dci_{chain}'
+        files = filter_files(all_files, sw=sw, ew='.xvg')
+        system.get_mean_sem(files, f'{sw}.csv', col=1)
+    # Chain Chain DCI
+    sw = f'ch_dci'
+    files = filter_files(all_files, sw=sw, ew='.xvg')
+    system.get_mean_sem_2d(files, out_fname=f'{sw}.csv', out_errname=f'{sw}_err.csv')
         
     
 def plot_averages(sysdir, sysname, **kwargs):    

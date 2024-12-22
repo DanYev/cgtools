@@ -532,6 +532,32 @@ class CGSystem:
         df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
         return x, mean, sem
         
+    def get_mean_sem_2d(self, files, out_fname, out_errname):
+        """
+        Calculates the mean and the standard error of mean for a metric
+        of all runs and save them to self.datdir
+        
+        Args:
+            fname(str): Name of the metric file
+               
+        Output: 
+            data
+        """
+        dfs = []
+        for file in files:
+            df = pd.read_csv(file, sep='\\s+', header=None)
+            dfs.append(df)
+        datas = dfs
+        mean = np.average(datas, axis=0)
+        sem = np.std(datas, axis=0) / np.sqrt(len(datas))
+        df = pd.DataFrame(mean)
+        fpath = os.path.join(self.datdir, out_fname)
+        df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
+        df = pd.DataFrame(sem)
+        fpath = os.path.join(self.datdir, out_errname)
+        df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
+        return mean, sem
+        
 
 ################################################################################
 # MDRun class
@@ -774,12 +800,16 @@ class MDRun(CGSystem):
             print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
             pertmat = np.load(pert_file)
             print('  Calculating DCI', file=sys.stderr)
-            dcis = dd.calc_i_group_dci(pertmat, groups=groups)
+            dcis = dd.calc_group_molecule_dci(pertmat, groups=groups)
             for dci, group, segid in zip(dcis, groups, segids):
                 dci_file = pert_file.replace('pertmat', f'dci_{segid}').replace('.npy', '.xvg')
                 dci_file = os.path.join('..', 'dci_dfi', dci_file)
                 print(f'  Saving DCI at {dci_file}',  file=sys.stderr)
                 dd.save_1d_data(dci, fpath=dci_file)
+            ch_dci_file = pert_file.replace('pertmat', f'ch_dci').replace('.npy', '.xvg')
+            ch_dci_file = os.path.join('..', 'dci_dfi', ch_dci_file)
+            ch_dci = dd.calc_group_group_dci(pertmat, groups=groups)
+            dd.save_2d_data(ch_dci, fpath=ch_dci_file)
         print('Finished calculating DCIs!', file=sys.stderr)
         os.chdir(bdir) 
         
