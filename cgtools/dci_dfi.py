@@ -156,6 +156,7 @@ def calc_group_group_dci(perturbation_matrix, groups=[[]]):
     """
     dcis = []
     dci_tot = perturbation_matrix / np.sum(perturbation_matrix, axis=-1, keepdims=True)
+    # dci_tot = dci_tot.T
     for ch1 in groups:
         temp = []
         for ch2 in groups:

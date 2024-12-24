@@ -62,36 +62,17 @@ def split_conn_params(line, tag):
     return connectivity, parameters
     
     
-def make_in_terms(input_file_1, input_file_2, output_file, dict_of_names):
+def make_in_terms(input_file, output_file, dict_of_names):
     tag = None
     pairs = []
-    with open(input_file_1, 'r') as file:
-        lines = file.readlines()
+
     with open(output_file, 'w') as file:
         file.write('[ atomtypes ]' + '\n')
         for key in dict_of_names.keys():
             file.write(f"{key}  45.000  0.000  A  0.0  0.0\n")
-        for line in lines:
-            if line.startswith(';') or len(line.split()) < 2:
-                continue
-            
-            if line.startswith('[ atomtypes ]'):
-                tag = 'atomtypes'
-                
-            if line.startswith('[ nonbond_params ]'):
-                file.write('\n' + '[ nonbond_params ]' + '\n')
-                tag = 'nonbond_params'
-                
-            if tag == 'nonbond_params':
-                parts = line.split()
-                atom_name_1 = parts[0].strip()
-                atom_name_2 = parts[1].strip()
-                if atom_name_1 in dict_of_names.keys() and atom_name_2 in dict_of_names.keys():
-                    parts[3] = "3.000000e-01"
-                    file.write('  '.join(parts) + '\n')
-                    pairs.append((atom_name_1, atom_name_2))
+        file.write('\n' + '[ nonbond_params ]' + '\n')
                     
-    with open(input_file_2, 'r') as file:
+    with open(input_file, 'r') as file:
         lines = file.readlines()
     with open(output_file, 'a') as file:
         for line in lines:
@@ -144,15 +125,29 @@ def make_marnatini_itp():
     # data = read_itp('../itp/working/1RNA_A.itp')
     # write_itp('test.itp', data)
     # print(data)
-    dict_of_names = {   'TA0': 'TN4', 
-                        'TA1': 'TN2a',
-                        'TA2': 'TN4a', 
-                        'TA3': 'TN6d',
-                        'TA4': 'TN2a', 
+    dict_of_names = {   'TA0': 'TN1', 
+                        'TA1': 'TN3a',
+                        'TA2': 'TN5a', 
+                        'TA3': 'TP1d',
+                        'TA4': 'TN1a', 
+                        'TY0': 'SN1',
+                        'TY1': 'TP3a',
+                        'TY2': 'TP1a',
+                        'TY3': 'TP3d',
+                        'TG0': 'TN1', 
+                        'TG1': 'TN3a',
+                        'TG2': 'TP1d', 
+                        'TG3': 'TP1d',
+                        'TG4': 'TP2a', 
+                        'TG5': 'TN1a',
+                        'TU0': 'SN1',
+                        'TU1': 'TP2a',
+                        'TU2': 'TN5d',
+                        'TU3': 'TP1a',
     }
     out_file = 'itp/martini_RNA.itp'
     
-    make_in_terms('itp/martini2.itp', 'itp/martini.itp', out_file, dict_of_names)
+    make_in_terms('itp/martini.itp', out_file, dict_of_names)
     for new_name, old_name in dict_of_names.items():
         make_cross_terms('itp/martini.itp', out_file, old_name, new_name)
         
@@ -183,4 +178,5 @@ def make_ions_itp():
 
 
 if __name__ == '__main__':
-    make_ions_itp()
+    # make_ions_itp()
+    make_marnatini_itp()

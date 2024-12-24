@@ -91,8 +91,6 @@ def rename_chain(in_pdb, out_pdb, old_chain_id, new_chain_id):
     with open(out_pdb, 'w') as file:
         file.writelines(updated_lines)
         
-        
- import string
 
 def rename_pdb_chains(input_pdb, output_pdb):
     """

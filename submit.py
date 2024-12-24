@@ -14,16 +14,16 @@ def submit_setup(submit=True):
             run('bash', script, 'run_all.py', 'setup', sysdir, sysname)
 
 
-def submit_md(submit=True, ntomp=8):
+def submit_md(submit=True, ntomp=8, ):
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
         for runname in runs:
             mdrun = system.initmd(runname)
             if submit:
                 sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, ntomp, 
-                    e='slurm_output/error.%A.err', J='md',
+                    e='slurm_output/error.%A.err', J=f'md_{sysname}',
                     N=1, n=1, c=ntomp, gres='gpu:1', mem='4G', 
-                    qos='public', partition='general', t='07-00:00:00',)
+                    qos='grp_sozkan', partition='general', t='00-03:00:00',)
             else:
                 run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname)
 
@@ -161,26 +161,27 @@ runs = ['mdrun_1',  'mdrun_2', 'mdrun_3', 'mdrun_4', 'mdrun_5']
 runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10'] 
 runs += ['mdrun_11', 'mdrun_12']
 
-# sysdir = 'systems' 
-# sysnames = ['1btl']
-# runs = ['mdrun_1', ]
+sysdir = 'systems' 
+sysnames = ['dsRNA']
+runs = ['mdrun_1', 'mdrun_2']
 
-sysdir = 'ribosomes'
-sysnames = ['ribosome', ] 
-runs = ['mdrun_1', ] 
+# sysdir = 'ribosomes_old'
+# sysnames = ['ribosome', ] 
+# runs = ['mdrun_1',  'mdrun_2', 'mdrun_3', 'mdrun_4', 'mdrun_5']  
+# runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10'] 
 
 
 # submit_setup(submit=False)
+# submit_make_ndx(submit=False)
 # submit_md(ntomp=8)
 # submit_extend(ntomp=8)
 # submit_geometry()
-# submit_make_ndx(submit=False)
-# submit_trjconv(submit=True)
+submit_trjconv(submit=False)
 # submit_rdf_analysis(submit=True)
 # submit_cluster(submit=False)
 # submit_rms_analysis(submit=True)
 # submit_cov_analysis(submit=False)
-submit_dci_dfi(submit=False)
+# submit_dci_dfi(submit=True)
 # submit_overlap(submit=True)
 # submit_get_averages(submit=False)
 # submit_plot(submit=False)

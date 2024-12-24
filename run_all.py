@@ -17,20 +17,20 @@ def setup(sysdir, sysname):
     # system.split_chains(from_clean=False)
     # system.clean_proteins(add_hydrogens=True)
     # system.get_go_maps()
-    system.martinize_proteins(go_eps=10.0, go_low=0.3, go_up=1.1, p='backbone', pf=500, resid='mol')
-    # system.martinize_nucleotides(sys='test', p='bb', pf=500, type='ss')
+    # system.martinize_proteins(go_eps=10.0, go_low=0.3, go_up=1.1, p='backbone', pf=500, resid='mol')
+    system.martinize_nucleotides(sys='test', p='bb', pf=500, type='ss')
     # system.make_cgpdb_file(add_ions=True, bt='triclinic', box='31.0  31.0  31.0', angles='60.00  60.00  90.00')
-    system.make_cgpdb_file(bt='octahedron', d='1.25', )
-    system.make_topology_file(ions=['K', 'MG', 'MGH'])
-    system.solvate()
-    system.add_ions(conc=0.0, pname='K', nname='CL')
+    # system.make_cgpdb_file(bt='octahedron', d='1.25', )
+    # system.make_topology_file() # ions=['K', 'MG', 'MGH']
+    # system.solvate()
+    # system.add_ions(conc=0.15, pname='K', nname='CL')
     
     
 def md(sysdir, sysname, runname, ntomp): 
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
     mdrun.prepare_files()
-    # n = os.path.join(system.wdir, 'index.ndx')
+    # n = system.sysndx
     # em
     mdrun.empp()
     mdrun.mdrun(deffnm='em', ntomp=ntomp)
@@ -79,6 +79,10 @@ def make_ndx(sysdir, sysname, **kwargs):
 def trjconv(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
+    # mdrun.trjconv(clinput='0\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
+    mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=1000, **kwargs)
+    mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='mdc.xtc', o='mdc.pdb', n=mdrun.sysndx, fit='rot+trans', **kwargs)
+    exit()
     # shutil.copy('atommass.dat', os.path.join(mdrun.rundir, 'atommass.dat'))
     cli.run_gmx(mdrun.rundir, 'trjcat', clinput='c\nc\n', cltext=True, f='md_old.trr ext.trr', o='md.trr', settime='yes')
     mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
@@ -103,7 +107,7 @@ def rdf_analysis(sysdir, sysname, runname, **kwargs):
 def rms_analysis(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
-    b = 300000
+    b = 200000
     e = 10000000
     # f = 'clusters/trajout_Cluster_0001.xtc'
     f = 'traj.xtc'
@@ -209,30 +213,34 @@ def get_averages(sysdir, sysname):
     
     print('starting')    
     all_files = pull_all_files(system.mddir)
-    # RMSF
-    print(f'Processing RMSF', file=sys.stderr )
-    files = filter_files(all_files, sw='rmsf.', ew='.xvg')
-    system.get_mean_sem(files, f'rmsf.csv', col=1)
-    # Chain RMSF
-    for chain in system.chains:
-        print(f'Processing chain {chain}', file=sys.stderr )
-        sw = f'rmsf_{chain}'
-        files = filter_files(all_files, sw=sw, ew='.xvg')
-        system.get_mean_sem(files, f'{sw}.csv', col=1)
-    # DFI
-    print(f'Processing DFI', file=sys.stderr )
-    files = filter_files(all_files, sw='dfi', ew='.xvg')
-    system.get_mean_sem(files, f'dfi.csv', col=1)
-    # Chain Molecule DCI 
-    for chain in system.chains:
-        print(f'Processing chain {chain}', file=sys.stderr )
-        sw = f'dci_{chain}'
-        files = filter_files(all_files, sw=sw, ew='.xvg')
-        system.get_mean_sem(files, f'{sw}.csv', col=1)
-    # Chain Chain DCI
-    sw = f'ch_dci'
-    files = filter_files(all_files, sw=sw, ew='.xvg')
-    system.get_mean_sem_2d(files, out_fname=f'{sw}.csv', out_errname=f'{sw}_err.csv')
+    # # RMSF
+    # print(f'Processing RMSF', file=sys.stderr )
+    # files = filter_files(all_files, sw='rmsf.', ew='.xvg')
+    # system.get_mean_sem(files, f'rmsf.csv', col=1)
+    # # Chain RMSF
+    # for chain in system.chains:
+    #     print(f'Processing chain {chain}', file=sys.stderr )
+    #     sw = f'rmsf_{chain}'
+    #     files = filter_files(all_files, sw=sw, ew='.xvg')
+    #     system.get_mean_sem(files, f'{sw}.csv', col=1)
+    # # DFI
+    # print(f'Processing DFI', file=sys.stderr )
+    # files = filter_files(all_files, sw='dfi', ew='.xvg')
+    # system.get_mean_sem(files, f'dfi.csv', col=1)
+    # DCI
+    print(f'Processing DCI', file=sys.stderr )
+    files = filter_files(all_files, sw='dci_TERY', ew='.xvg')
+    system.get_mean_sem(files, f'dci_TERY.csv', col=1)
+    # # Chain Molecule DCI 
+    # for chain in system.chains:
+    #     print(f'Processing chain {chain}', file=sys.stderr )
+    #     sw = f'dci_{chain}'
+    #     files = filter_files(all_files, sw=sw, ew='.xvg')
+    #     system.get_mean_sem(files, f'{sw}.csv', col=1)
+    # # Chain Chain DCI
+    # sw = f'ch_dci'
+    # files = filter_files(all_files, sw=sw, ew='.xvg')
+    # system.get_mean_sem_2d(files, out_fname=f'{sw}.csv', out_errname=f'{sw}_err.csv')
         
     
 def plot_averages(sysdir, sysname, **kwargs):    

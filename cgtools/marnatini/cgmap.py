@@ -55,7 +55,7 @@ def get_mapping_byndx(new_or_old="new"):
 def get_mapping_byname(new_or_old="new"):   
     if new_or_old == "new":
         BB_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
-                            "C5' 1H5' 2H5' C4' H4' O4' C3' H3'", 
+                            "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3' ", 
                             "C1' C2' O2' O4'") # H1' 1H2' 2HO'
     else:
         BB_mapping = nsplit("P OP1 OP2 O5' O1P O2P O3'", 

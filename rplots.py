@@ -9,7 +9,7 @@ from system import CGSystem
 from cli import sbatch, run
                 
 sysdir = 'ribosomes' 
-sysnames = ['ribosome', 'ribosome_k', ] 
+sysnames = [ 'ribosome', 'ribosome_k',] 
 # sysnames = ['ribosome_aa']
 
 
@@ -28,14 +28,14 @@ def plot_csvs(fnames, figdir):
     
     
 def png(): 
-    fnames = [f for f in os.listdir(os.path.join(sysdir, 'ribosome', 'data')) if f.startswith('dfi_')]
+    fnames = [f for f in os.listdir(os.path.join(sysdir, 'ribosome', 'data')) if f.startswith('rmsf_')]
     figdir = os.path.join(sysdir, 'png')    
     plot_csvs(fnames, figdir)
     
     
 def pdb():
     ribosome = 'ribosome_k'
-    metric = 'dfi'
+    metric = 'dci_A'
     sysnames = [ribosome, 'ribosome']
     x = []
     for sysname in sysnames:
@@ -47,6 +47,7 @@ def pdb():
             factor = 10
         if metric == 'dfi':
             factor = 1e4
+        factor = 1e4
         data = datas[0] * factor
         x.append((data[1], data[2]))
     b_factors = (x[0][0] - x[1][0]) * 10
@@ -71,7 +72,7 @@ def dci_pdb():
     inpdb = os.path.join(system.wdir, 'ref.pdb')
     for data, fname in zip(datas, fnames):
         print(f'Processing {fname}')
-        data = data * 1e2
+        data = data * 1e3
         b_factors = data[1] 
         errs = data[2]
         pfix = fname.split('.')[0]
@@ -116,9 +117,9 @@ def ch_dci_diff():
    
     
 if __name__ == '__main__':
-    # pdb()
+    pdb()
     # png()
     # dci_pdb()
     # ch_dci()
-    ch_dci_diff()
+    # ch_dci_diff()
 

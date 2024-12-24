@@ -611,6 +611,7 @@ class MDRun(CGSystem):
         kwargs.setdefault('c', self.sysgro)
         kwargs.setdefault('r', self.sysgro)
         kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'em.tpr')
         cli.gmx_grompp(self.rundir, **kwargs)
         
@@ -622,6 +623,7 @@ class MDRun(CGSystem):
         kwargs.setdefault('c', 'em.gro')
         kwargs.setdefault('r', 'em.gro')
         kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'hu.tpr')
         cli.gmx_grompp(self.rundir, **kwargs)
 
@@ -633,6 +635,7 @@ class MDRun(CGSystem):
         kwargs.setdefault('c', 'hu.gro')
         kwargs.setdefault('r', 'hu.gro')
         kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'eq.tpr')
         cli.gmx_grompp(self.rundir, **kwargs)
         
@@ -644,6 +647,7 @@ class MDRun(CGSystem):
         kwargs.setdefault('c', 'eq.gro')
         kwargs.setdefault('r', 'eq.gro')
         kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'md.tpr')
         cli.gmx_grompp(self.rundir, **kwargs)   
         
@@ -794,8 +798,10 @@ class MDRun(CGSystem):
         print(f'Working dir: {self.covdir}', file=sys.stderr)
         pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
         u = mda.Universe(self.trjpdb)
-        groups = u.segments.ids
-        segids = [s.segid for s in u.segments]
+        # groups = u.segments.ids
+        # segids = [s.segid for s in u.segments]
+        groups = [list(range(10392, 10410)) + [8700, 8701]]
+        segids = ['TERY']
         for pert_file in pert_files:
             print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
             pertmat = np.load(pert_file)
