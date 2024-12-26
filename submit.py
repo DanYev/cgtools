@@ -23,9 +23,9 @@ def submit_md(submit=True, ntomp=8, ):
                 sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, ntomp, 
                     e='slurm_output/error.%A.err', J=f'md_{sysname}',
                     N=1, n=1, c=ntomp, gres='gpu:1', mem='4G', 
-                    qos='grp_sozkan', partition='general', t='00-03:00:00',)
+                    qos='public', partition='htc', t='00-03:00:00',)
             else:
-                run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname)
+                run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname, 1, )
 
 
 def submit_extend(submit=True, ntomp=8):
@@ -35,7 +35,7 @@ def submit_extend(submit=True, ntomp=8):
             mdrun = system.initmd(runname)
             if submit:
                 sbatch(script, 'run_all.py', 'extend', sysdir, sysname, runname, ntomp, 
-                    e='slurm_output/error.%A.err', J='rmd',
+                    e='slurm_output/error.%A.err', J=f'ext_{sysname}',
                     N=1, n=1, c=ntomp, gres='gpu:1', mem='4G', 
                     qos='grp_sozkan', partition='general', t='07-00:00:00',)
             else:
@@ -162,18 +162,18 @@ runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10']
 runs += ['mdrun_11', 'mdrun_12']
 
 sysdir = 'systems' 
-sysnames = ['dsRNA']
-runs = ['mdrun_1', 'mdrun_2']
+sysnames = ['ssRNA']
+runs = ['mdrun_2', ]
 
 # sysdir = 'ribosomes_old'
 # sysnames = ['ribosome', ] 
 # runs = ['mdrun_1',  'mdrun_2', 'mdrun_3', 'mdrun_4', 'mdrun_5']  
 # runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10'] 
 
-
+# 
 # submit_setup(submit=False)
 # submit_make_ndx(submit=False)
-# submit_md(ntomp=8)
+# submit_md(submit=True, ntomp=8)
 # submit_extend(ntomp=8)
 # submit_geometry()
 submit_trjconv(submit=False)

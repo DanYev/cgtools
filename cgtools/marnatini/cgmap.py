@@ -85,7 +85,7 @@ def get_mapping_byname(new_or_old="new"):
             "U":  BB_mapping + nsplit(
                             "N1 C5 C6",
                             "C2 O2",
-                            "N3 H3",
+                            "N3",
                             "C4 O4"),
         }
 

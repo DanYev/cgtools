@@ -18,7 +18,7 @@ def setup(sysdir, sysname):
     # system.clean_proteins(add_hydrogens=True)
     # system.get_go_maps()
     # system.martinize_proteins(go_eps=10.0, go_low=0.3, go_up=1.1, p='backbone', pf=500, resid='mol')
-    system.martinize_nucleotides(sys='test', p='bb', pf=500, type='ss')
+    system.martinize_nucleotides(sys='test', p='bb', pf=500, type='ignore')
     # system.make_cgpdb_file(add_ions=True, bt='triclinic', box='31.0  31.0  31.0', angles='60.00  60.00  90.00')
     # system.make_cgpdb_file(bt='octahedron', d='1.25', )
     # system.make_topology_file() # ions=['K', 'MG', 'MGH']
@@ -38,7 +38,7 @@ def md(sysdir, sysname, runname, ntomp):
     mdrun.hupp()
     mdrun.mdrun(deffnm='hu', ntomp=ntomp)
     # eq
-    mdrun.eqpp() # n=n, c='em.gro', r='em.gro'
+    mdrun.eqpp() # n=n, 
     mdrun.mdrun(deffnm='eq', ntomp=ntomp)
     # md
     mdrun.mdpp()

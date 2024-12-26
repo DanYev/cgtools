@@ -347,7 +347,8 @@ def option_parser(args, options, lists, version=0):
         options['-ef'].setvalue(['50'])
         options['-eb'].setvalue(['BB2'])
     elif options['type'] == 'ignore':
-        pass
+        options['-ff'].setvalue(['elnedyn30nucleic'])
+        options['-ef'].setvalue(['0'])
     else: 
         logging.error('Undefined topology type. Giving up...')
         sys.exit()
@@ -624,7 +625,7 @@ class CoarseGrained:
             "U":  BB_mapping + nsplit(
                             "N1 C5 C6",
                             "C2 O2",
-                            "N3 H3",
+                            "N3",
                             "C4 O4"),
     }
     mapping.update({"RA3":mapping["A"],
@@ -1309,15 +1310,15 @@ class elnedyn30nucleic():
 
         # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
-            'atom'  : spl("Q1n N2 N4"),     # Have a look at BB3 bead type
-            'bond'  : [(1,  0.351, 25000),          
-                       (1,  0.381, 12000),
+            'atom'  : spl("Q1n C3 N2"),     # Have a look at BB3 bead type
+            'bond'  : [(1,  0.348, 25000),          
+                       (1,  0.380, 12000),
                        (1,  0.240, 25000),
                        (1,  0.407, 15000)],    #8  , 0.202 50000    ],         
-            'angle' : [(10,  106.0, 80),      #2, 117.0, 140       
-                       (10,  118.0, 180)],           
-            'dih'   : [(1,   32.0, 20, 1), # 8
-                       (1,  -18.0, 40, 1),], # 10
+            'angle' : [(10,  110.0, 50),      #2, 117.0, 140       
+                       (10,  118.0, 100)],           
+            'dih'   : [(5,   -30.0,  0.0, -8.0, 8.0,  ), # 
+                       (1,     0.0,  25, 1),], # 10
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
@@ -2925,7 +2926,7 @@ class Topology:
                         elif (aname == "BB2" or aname == "BB3"):
                             mass = 60
                         else: 
-                            mass = 45
+                            mass = 36
                         self.atoms.append((atid,atype,resi,resname,aname,atid,charge,mass,ss))
                     # Doing this here saves going over all the atoms onesmore.
                     # Generate position restraints for all atoms or Backbone beads only. @POSRES

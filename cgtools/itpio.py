@@ -145,11 +145,12 @@ def make_marnatini_itp():
                         'TU2': 'TN5d',
                         'TU3': 'TP1a',
     }
-    out_file = 'itp/martini_RNA.itp'
+
+    out_file = 'cgtools/itp/martini_RNA.itp'
     
-    make_in_terms('itp/martini.itp', out_file, dict_of_names)
+    make_in_terms('cgtools/itp/martini.itp', out_file, dict_of_names)
     for new_name, old_name in dict_of_names.items():
-        make_cross_terms('itp/martini.itp', out_file, old_name, new_name)
+        make_cross_terms('cgtools/itp/martini.itp', out_file, old_name, new_name)
         
         
 def make_ions_itp():
