@@ -798,10 +798,10 @@ class MDRun(CGSystem):
         print(f'Working dir: {self.covdir}', file=sys.stderr)
         pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
         u = mda.Universe(self.trjpdb)
-        # groups = u.segments.ids
-        # segids = [s.segid for s in u.segments]
-        groups = [list(range(10392, 10410)) + [8700, 8701]]
-        segids = ['TERY']
+        groups = u.segments.ids
+        segids = [s.segid for s in u.segments]
+        # groups = [list(range(10392, 10410)) + [8700, 8701]]
+        # segids = ['TERY']
         for pert_file in pert_files:
             print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
             pertmat = np.load(pert_file)

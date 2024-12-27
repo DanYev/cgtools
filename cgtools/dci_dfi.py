@@ -135,36 +135,39 @@ def calc_full_dci(perturbation_matrix):
     return dci    
     
 
-def calc_group_molecule_dci(perturbation_matrix, groups=[[]]):
+def calc_group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
     """
     Calculates DCI between a group of atoms in 'groups' and the rest of the molecule
     """
     dcis = []
     dci_tot = perturbation_matrix / np.sum(perturbation_matrix, axis=-1, keepdims=True)
+    if asym:
+        dci_tot = dci_tot - dci_tot.T
     for group in groups:
         ids = [idx - 1 for idx in group]
-        top = np.sum(dci_tot[:, ids], axis=-1)
-        bot = 1 
+        top = np.sum(dci_tot[:, ids], axis=-1) * perturbation_matrix.shape[0]
+        bot = len(ids)  
         dci = top / bot
         dcis.append(dci)
     return dcis 
     
     
-def calc_group_group_dci(perturbation_matrix, groups=[[]]):
+def calc_group_group_dci(perturbation_matrix, groups=[[]], asym=False):
     """
     Calculates DCI matrix between the groups of atoms in 'groups'
     """
     dcis = []
     dci_tot = perturbation_matrix / np.sum(perturbation_matrix, axis=-1, keepdims=True)
-    # dci_tot = dci_tot.T
+    if asym:
+        dci_tot = dci_tot - dci_tot.T
     for ch1 in groups:
         temp = []
         for ch2 in groups:
             ids1 = [idx - 1 for idx in ch1]
             ids2 = [idx - 1 for idx in ch2]
             idx1, idx2 = np.meshgrid(ids1, ids2, indexing='ij')
-            top = np.sum(dci_tot[idx1, idx2])
-            bot = len(ids1) 
+            top = np.sum(dci_tot[idx1, idx2]) * perturbation_matrix.shape[0]
+            bot = len(ids1) * len(ids2)
             dci = top / bot
             temp.append(dci)
         dcis.append(temp)

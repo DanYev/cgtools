@@ -211,8 +211,7 @@ def bonded_parameters():
         all_cg_angles.extend(cgangles)
         all_cg_dihedrals.extend(cgdihedrals)
         plot_geometry(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals, topology[resname], molecule, resname)
-    # resname = 'A'
-    # plot_geometry(all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals, topology[resname], molecule, resname)    
+    plot_geometry(all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals, topology['A'], molecule, 'all')    
         # av_bonds, av_angles, av_dihedrals = get_average(bonds), get_average(angles), get_average(dihedrals)
         # std_bonds, std_angles, std_dihedrals = get_std(bonds), get_std(angles), get_std(dihedrals)
         # update_topology(topology[resname], av_bonds, av_angles, av_dihedrals, std_bonds, std_angles, std_dihedrals)

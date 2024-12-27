@@ -63,7 +63,7 @@ def pdb():
     
     
 def dci_pdb():
-    sysname = 'ribosome'
+    sysname = 'ribosome_k'
     system = CGSystem(sysdir, sysname)
     fdir =  os.path.join(sysdir, sysname, 'data')
     fnames = [f for f in os.listdir(fdir) if f.startswith('dci_A')]
@@ -72,7 +72,7 @@ def dci_pdb():
     inpdb = os.path.join(system.wdir, 'ref.pdb')
     for data, fname in zip(datas, fnames):
         print(f'Processing {fname}')
-        data = data * 1e3
+        data = data 
         b_factors = data[1] 
         errs = data[2]
         pfix = fname.split('.')[0]
@@ -83,6 +83,7 @@ def dci_pdb():
         
         
 def ch_dci():
+    print('STARTING')
     sysname = 'ribosome'
     system = CGSystem(sysdir, sysname)
     fdir =  os.path.join(sysdir, sysname, 'data')
@@ -91,7 +92,7 @@ def ch_dci():
     files = [os.path.join(fdir, f) for f in fnames]
     figname = 'ch_dci.png'
     figpath = os.path.join(system.pngdir, figname) 
-    plot_heatmaps(files, figpath, vmin=0, vmax=0.05, cmap='Reds', shape=(2, 1))
+    plot_heatmaps(files, figpath, vmin=0, vmax=5, cmap='Reds', shape=(2, 1))
     
 
 def ch_dci_diff():
@@ -102,24 +103,24 @@ def ch_dci_diff():
         system = CGSystem(sysdir, sysname)
         dfile = os.path.join(system.datdir, 'ch_dci.csv')
         efile = os.path.join(system.datdir, 'ch_dci_err.csv')
-        data = pd.read_csv(dfile, sep=',', header=None) * 1e3
-        err = pd.read_csv(efile, sep=',', header=None) * 1e3
+        data = pd.read_csv(dfile, sep=',', header=None) 
+        err = pd.read_csv(efile, sep=',', header=None)
         datas.append(data)
         errs.append(err)
     data = datas[1] - datas[0]
     errs= np.sqrt(errs[1]**2 + errs[0]**2)
-    figname = 'ch_dci.png'
+    figname = 'ch_ddci.png'
     figpath = os.path.join(sysdir, 'png', figname) 
     datas = [[data], [errs]]
     labels = [['dDCI'], ['Error']]
-    plot = HeatMap(datas, labels, vmin=-3.0, vmax=3.0, cmap='bwr', shape=(2, 1))
+    plot = HeatMap(datas, labels, vmin=-0.25, vmax=0.25, cmap='bwr', shape=(2, 1))
     plot.save_figure(figpath) 
    
     
 if __name__ == '__main__':
-    pdb()
+    # pdb()
     # png()
     # dci_pdb()
     # ch_dci()
-    # ch_dci_diff()
+    ch_dci_diff()
 
