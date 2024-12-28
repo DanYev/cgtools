@@ -34,11 +34,11 @@ def md(sysdir, sysname, runname, ntomp):
     # em
     mdrun.empp()
     mdrun.mdrun(deffnm='em', ntomp=ntomp)
-    # hu
-    mdrun.hupp()
-    mdrun.mdrun(deffnm='hu', ntomp=ntomp)
+    # # hu
+    # mdrun.hupp()
+    # mdrun.mdrun(deffnm='hu', ntomp=ntomp)
     # eq
-    mdrun.eqpp() # n=n, 
+    mdrun.eqpp(c='em.gro', r='em.gro') # n=n, 
     mdrun.mdrun(deffnm='eq', ntomp=ntomp)
     # md
     mdrun.mdpp()
@@ -80,7 +80,7 @@ def trjconv(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
     # shutil.copy('atommass.dat', os.path.join(mdrun.rundir, 'atommass.dat'))
-    mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=1000, **kwargs)
+    mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=1000, e=100000, **kwargs)
     mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='mdc.xtc', o='mdc.pdb', n=mdrun.sysndx, fit='rot+trans', **kwargs)
     exit()
     cli.run_gmx(mdrun.rundir, 'trjcat', clinput='c\nc\n', cltext=True, f='md_old.trr ext.trr', o='md.trr', settime='yes')
