@@ -146,7 +146,7 @@ def make_marnatini_itp():
                         'TU3': 'TP1a',
     }
     dict_of_names = {   'TA0': 'TN1', 
-                        'TA1': 'TN3',
+                        'TA1': 'TN2',
                         'TA2': 'TN5', 
                         'TA3': 'TP1',
                         'TA4': 'TN1', 
@@ -155,7 +155,7 @@ def make_marnatini_itp():
                         'TY2': 'TN5',
                         'TY3': 'TP1',
                         'TG0': 'TN1', 
-                        'TG1': 'TN3',
+                        'TG1': 'TN2',
                         'TG2': 'TP1', 
                         'TG3': 'TP1',
                         'TG4': 'TP2', 
