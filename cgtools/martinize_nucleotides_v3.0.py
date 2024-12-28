@@ -330,30 +330,25 @@ def option_parser(args, options, lists, version=0):
     # logging.info('If you use this script please cite:')
     # logging.info('de Jong et al., J. Chem. Theory Comput., 2013, DOI:10.1021/ct300646g')
 
-    # Write options based on selected topology type.
+    # Write options based on selected topology type. @net
     options['type'] = options['-type'].value
-    if options['type'] == 'ss':
-        options['-ff'].setvalue(['martini30nucleic'])
-    elif options['type'] == 'ds-stiff':
+    if options['type'] == 'none':
         options['-ff'].setvalue(['elnedyn30nucleic'])
-        lists['merges'].append('A,B')
-        options['-eu'].setvalue(['1.0'])
-        options['-ef'].setvalue(['500'])
-        options['-eb'].setvalue(['BB1,BB2,BB3'])
-    elif options['type'] == 'ds-soft': 
+    elif options['type'] == 'ds': 
         options['-ff'].setvalue(['elnedyn30nucleic'])
         lists['merges'].append('A,B')
         options['-eu'].setvalue(['1.2'])
         options['-ef'].setvalue(['13'])
-        options['-eb'].setvalue(['BB1,BB2,BB3,SC1'])
-    elif options['type'] == 'ss-stiff':
+        options['-eb'].setvalue(['BB1'])
+    elif options['type'] == 'ss':
         options['-ff'].setvalue(['elnedyn30nucleic'])
         options['-el'].setvalue(['0.3'])
-        options['-eu'].setvalue(['1.2'])
-        options['-ef'].setvalue(['300'])
-        options['-eb'].setvalue(['BB1, BB2'])
+        options['-eu'].setvalue(['0.9'])
+        options['-ef'].setvalue(['50'])
+        options['-eb'].setvalue(['BB2'])
     elif options['type'] == 'ignore':
-        pass
+        options['-ff'].setvalue(['elnedyn30nucleic'])
+        options['-ef'].setvalue(['0'])
     else: 
         logging.error('Undefined topology type. Giving up...')
         sys.exit()
@@ -606,7 +601,7 @@ class CoarseGrained:
     # converted into a list of lists by 'nsplit' defined above.
     # @MAP
     BB_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
-                            "C5' 1H5' 2H5' C4' H4' O4' C3' H3'", 
+                            "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
                             "C1' C2' O2' O4'")
     mapping = {
             "A":  BB_mapping + nsplit(
@@ -616,21 +611,21 @@ class CoarseGrained:
                             "N6 C6 H61 H62",
                             "N7 C5"),
             "C":  BB_mapping + nsplit(
-                            "N1 C5 H5 C6 H6",
+                            "N1 C5 C6",
                             "C2 O2",
                             "N3",
                             "N4 C4 H41 H42"),
             "G":  BB_mapping + nsplit(
-                            "C8 N9",
+                            "C8 H8 N9",
                             "C4 N3",
                             "C2 N2 H21 H22",
-                            "N1 H1", 
+                            "N1", 
                             "C6 O6",
                             "C5 N7"),
             "U":  BB_mapping + nsplit(
-                            "N1 C5 H5 C6 H6",
+                            "N1 C5 C6",
                             "C2 O2",
-                            "N3 H3",
+                            "N3",
                             "C4 O4"),
     }
     mapping.update({"RA3":mapping["A"],
@@ -1315,25 +1310,29 @@ class elnedyn30nucleic():
 
         # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
-            'atom'  : spl("Q1 SN3 TN5"),     # Have a look at BB3 bead type
-            'bond'  : [(1,  0.350, 20000),          
-                       (1,  0.376, 10000)],    #8  , 0.202 50000    ],         
-            'angle' : [(10,  112.0, 40),      #2, 117.0, 140       
-                       (10,  127.0, 100)],           
-            'dih'   : [(1,   30.0, 8, 1),
-                       (1,  -15.0, 10, 1),],
+            'atom'  : spl("Q1n C6 N2"),     # Have a look at BB3 bead type
+            'bond'  : [(1,  0.350, 25000),          
+                       (1,  0.384, 12000),
+                       (1,  0.242, 25000),
+                       (1,  0.400, 12000)],    #8  , 0.202 50000    ],         
+            'angle' : [(10,  114.0, 40),      #2, 117.0, 140       
+                       (10,  118.0, 50)],           
+            'dih'   : [(3,   5.5,  -2.5, 15, 8, -18.0, -8), # (3,   10.0,  -10.0, 25.0, 5.0, -25.0, 0.0)  (3,   2.5,  -2.5, 40, 0, -40.0, 0),
+                       (1,   20.0,  6, 1),], # (3,   15.0,  -15.0, 30.0, 8.0, -30.0, 0.0) # (1,   -10.0,  20, 1)
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
         # RNA BACKBONE CONNECTIVITY
         self.rna_con  = {
             'bond'  : [(0, 1),
-                       (1, 0),],
+                       (1, 0),
+                       (1, 2),
+                       (2, 0)],
             'angle' : [(0, 1, 0),
                        (1, 0, 1),],
             'dih'   : [(0, 1, 0, 1),
                        (1, 0, 1, 0),],
-            'excl'  : [],
+            'excl'  : [(2, 0), (0, 2),],
             'pair'  : [],
         }
 
@@ -2924,20 +2923,19 @@ class Topology:
                         charge = self.options['ForceField'].getCharge(atype,aname)
                         if aname == 'BB1':
                             mass = 72
-                        # For virtual sites
-                        #elif 'SC' in aname and (resname == 'DA' or resname == 'DG'):
-                        #    mass = 60
+                        elif (aname == "BB2" or aname == "BB3"):
+                            mass = 60
                         else: 
-                            mass = 45
+                            mass = 36
                         self.atoms.append((atid,atype,resi,resname,aname,atid,charge,mass,ss))
                     # Doing this here saves going over all the atoms onesmore.
-                    # Generate position restraints for all atoms or Backbone beads only.
-                    if 'all' in self.options['PosRes']:
-                        if (aname == "BB1" or aname == "BB2"
-                                or aname == 'SC2' or aname == 'SC3' aname == 'SC4') and atid-1 > 1:
+                    # Generate position restraints for all atoms or Backbone beads only. @POSRES
+                    if 'all' in self.options['PosRes']:  
+                        if (aname == "BB1" or aname == "BB2" or aname == "BB3"
+                                or aname == 'SC1') and atid-1 > 1:
                             self.posres.append((atid-1))
                     if 'bb' in self.options['PosRes']: # @POSRES
-                        if (aname == "BB1" or aname == "BB2") and atid-1 > 1:
+                        if (aname == "BB2") and atid-1 > 1:
                             self.posres.append((atid-1))
                     if mapping:
                         self.mapping.append((atid,[i+shift for i in mapping[counter]]))

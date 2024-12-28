@@ -38,7 +38,7 @@
 
 [atoms]
 ;id 	type 	resnr 	residu 	atom 	cgnr 	charge  mass
- 1 	    TQ3 	1 	     Ion 	CL 	    1 	    -1.0     35.453
+ 1 	    TQ2 	1 	     Ion 	CL 	    1 	    -1.0     35.453
 
  ;;;;;; Magnesium ion
 
@@ -48,7 +48,7 @@
 
 [atoms]
 ;id     type    resnr   residu  atom    cgnr    charge   mass
- 1      TD      1       Ion      MG     1       2.0      24.305 ;
+ 1      TMG      1       Ion      MG     1       2.0      24.305 ;
  
  
  ;;;;;; Zinc ion

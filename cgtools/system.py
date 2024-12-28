@@ -1,13 +1,27 @@
 import os
 import sys
 import numpy as np
+import pandas as pd
 import shutil
 import subprocess as sp
 from Bio.PDB.PDBParser import PDBParser
+from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB import PDBIO, Atom
 import cli
+import dci_dfi as dd
+import MDAnalysis as mda
 from cli import from_wdir
 
+
+def sort_uld(alist):
+    """
+    Sorts characters in a list such that they appear in the following order: 
+    uppercase letters first, then lowercase letters, followed by digits. 
+    Helps with orgazing gromacs multichain files
+    """
+    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
+    return slist
+    
 
 ################################################################################
 # CG system class
@@ -42,34 +56,45 @@ class CGSystem:
         self.syspdb     = os.path.join(self.wdir, 'system.pdb')
         self.systop     = os.path.join(self.wdir, 'system.top')
         self.sysndx     = os.path.join(self.wdir, 'system.ndx')
-        self.pcapdb     = os.path.join(self.wdir, 'pca.pdb')
-        self.pcandx     = os.path.join(self.wdir, 'pca.ndx')
+        self.mdcpdb     = os.path.join(self.wdir, 'mdc.pdb')
+        self.mdcndx     = os.path.join(self.wdir, 'mdc.ndx')
+        self.bbndx      = os.path.join(self.wdir, 'bb.ndx')
+        self.trjpdb     = os.path.join(self.wdir, 'traj.pdb')
+        self.trjndx     = os.path.join(self.wdir, 'traj.ndx')
         self.prodir     = os.path.join(self.wdir, 'proteins')
         self.nucdir     = os.path.join(self.wdir, 'nucleotides')
+        self.iondir     = os.path.join(self.wdir, 'ions')
+        self.ionpdb     = os.path.join(self.iondir, 'ions.pdb')
         self.topdir     = os.path.join(self.wdir, 'topol')
         self.mapdir     = os.path.join(self.wdir, 'map')
         self.mdpdir     = os.path.join(self.wdir, 'mdp')
         self.cgdir      = os.path.join(self.wdir, 'cgpdb')
         self.grodir     = os.path.join(self.wdir, 'gro')
         self.mddir      = os.path.join(self.wdir, 'mdruns')
+        self.datdir     = os.path.join(self.wdir, 'data')
+        self.pngdir     = os.path.join(self.wdir, 'png')
         self._chains    = []
         self._mdruns    = []
 
     @property
     def chains(self):
         """
-        A list of chain ids. Either provide or look up in self.cgdir
+        A list of chain ids in the system. 
+        Either provide or extract from the PDB file
         Returns:
             list: List of chain identifiers.
         """
         if self._chains:
             return self._chains
-        if not os.path.isdir(self.cgdir):
-            return self._chains
-        for filename in sorted(os.listdir(self.cgdir)):
-            if filename.endswith('.pdb'):
-                chain_id = filename.split('.')[0].split('_')[1]
-                self._chains.append(chain_id)
+        chain_names = set()
+        with open(self.syspdb, 'r') as file:
+            for line in file:
+                # Look for lines that define atomic coordinates
+                if line.startswith(("ATOM", "HETATM")):
+                    chain_id = line[21].strip()  # Chain ID is in column 22 (index 21)
+                    if chain_id:  # Only add non-empty chain IDs
+                        chain_names.add(chain_id)
+        self._chains = sort_uld(chain_names)
         return self._chains
     
     @chains.setter
@@ -110,6 +135,8 @@ class CGSystem:
         os.makedirs(self.mdpdir, exist_ok=True)
         os.makedirs(self.cgdir,  exist_ok=True)
         os.makedirs(self.grodir, exist_ok=True)
+        os.makedirs(self.datdir, exist_ok=True)
+        os.makedirs(self.pngdir, exist_ok=True)
         for file in os.listdir(self.DATADIR):
             if file.endswith('.mdp'):
                 fpath = os.path.join(self.DATADIR, file)
@@ -120,19 +147,102 @@ class CGSystem:
             if file.endswith('.itp'):
                 fpath = os.path.join(self.ITPDIR, file)
                 outpath = os.path.join(self.topdir, file)
-                # command = f'ln -sf {fpath} {out}' # > /dev/null 2>&
-                # sp.run(command.split())
                 shutil.copy(fpath, outpath)
+                
+    def make_ref_pdb(self):
+        os.chdir(self.wdir)
+        def rearrange_chains_and_renumber_atoms(input_pdb, output_pdb):
+            """
+            Rearrange chains in a PDB file alphabetically by chain ID and renumber atom IDs.
+        
+            Parameters:
+                input_pdb (str): Path to the input PDB file.
+                output_pdb (str): Path to save the rearranged PDB file.
+            """
+            with open(input_pdb, 'r') as file:
+                pdb_lines = file.readlines()
+        
+            # Group lines by chain ID
+            chain_dict = {}
+            other_lines = []
+        
+            for line in pdb_lines:
+                if line.startswith(("ATOM", )):
+                    chain_id = line[21]  # Extract chain ID (column 22, index 21)
+                    if chain_id not in chain_dict:
+                        chain_dict[chain_id] = []
+                    chain_dict[chain_id].append(line)
+                else:
+                    # Keep non-ATOM, HETATM, and TER lines (e.g., HEADER, REMARK, END)
+                    other_lines.append(line)
+        
+            # Sort chains alphabetically
+            sorted_chain_ids = sort_uld(chain_dict.keys())
+        
+            # Renumber atom IDs and write to the output file
+            atom_id = 1  # Start atom ID renumbering
+            with open(output_pdb, 'w') as file:
+                # Write other (non-ATOM) lines first
+                for line in other_lines:
+                    file.write(line)
+        
+                # Write the sorted chains with updated atom IDs
+                for chain_id in sorted_chain_ids:
+                    for line in chain_dict[chain_id]:
+                        if line.startswith(("ATOM", )):
+                            # Update the atom ID (columns 7-11, index 6-11)
+                            updated_line = f"{line[:6]}{atom_id:5d}{line[11:]}"
+                            file.write(updated_line)
+                            atom_id += 1  # Increment atom ID
+                            if atom_id > 99999:
+                                atom_id = 1
+                        else:
+                            # Write TER lines as-is
+                            file.write(line)
+
+        
+        # Example usage
+        input_pdb = "rearranged.pdb"  # Replace with your input file path
+        output_pdb = "ref.pdb"  # Replace with your desired output file path
+        rearrange_chains_and_renumber_atoms(input_pdb, output_pdb)
+                
         
     def clean_inpdb(self, **kwargs):
+        """
+        Cleans starting PDB file using PDBfixer by OpenMM
+        """
+        print("Cleaning the PDB", file=sys.stderr)
         from pdbtools import prepare_aa_pdb
         in_pdb = self.inpdb
         out_pdb = in_pdb.replace('.pdb', '_clean.pdb')
-        prepare_aa_pdb(in_pdb, out_pdb, **kwargs)    
+        prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
         
-    def split_chains(self):
+    def clean_proteins(self, **kwargs):
+        """
+        Cleans protein PDB files using PDBfixer by OpenMM
+        """
+        print("Cleaning protein PDBs", file=sys.stderr)
+        from pdbtools import prepare_aa_pdb, rename_chain
+        files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir) if not f.endswith('_clean.pdb')]
+        files = sorted(files)
+        for in_pdb in files:
+            print(f"Processing {in_pdb}", file=sys.stderr)
+            out_pdb = in_pdb.replace('.pdb', '_clean.pdb')
+            prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
+            os.remove(in_pdb)
+            old_chain_id = 'A'
+            new_chain_id = in_pdb.split('chain_')[-1][0]
+            rename_chain(out_pdb, in_pdb, old_chain_id, new_chain_id)
+            os.remove(out_pdb)
+    
+    def split_chains(self, from_clean=False):
+        """
+        Cleans a separate PDB file for each chain in the initial structure
+        """
         parser = PDBParser()
-        in_pdb = self.inpdb.replace('.pdb', '_clean.pdb')
+        in_pdb = self.inpdb
+        if from_clean:
+            in_pdb = self.inpdb.replace('.pdb', '_clean.pdb')
         structure = parser.get_structure(self.sysname, in_pdb)
         io = PDBIO()
         for model in structure:
@@ -146,6 +256,9 @@ class CGSystem:
                 io.save(out_pdb)
                 
     def get_go_maps(self):
+        """
+        Get go contact maps for proteins using RCSU server
+        """
         print('Getting GO-maps', file=sys.stderr)
         from get_go import get_go
         pdbs = [os.path.join(self.prodir, file) for file in os.listdir(self.prodir)]
@@ -158,10 +271,17 @@ class CGSystem:
             print('Maps already there', file=sys.stderr)
         
     def martinize_proteins(self, **kwargs):
-        kwargs.setdefault('go_eps', 9.414)
-        kwargs.setdefault('go_low', 0.3)
-        kwargs.setdefault('go_up', 1.1)
-        kwargs.setdefault('go_res_dist', 3)
+        """
+        Virtual site based GoMartini:
+        -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
+        -go_moltype     Set the name of the molecule when using Virtual Sites GoMartini. (default: protein)
+        -go_eps         The strength of the Go model structural bias in kJ/mol. (default: 9.414)                        
+        -go_low         Minimum distance (nm) below which contacts are removed. (default: 0.3)
+        -go_up          Maximum distance (nm) above which contacts are removed. (default: 1.1)
+        -go_res_dist    Minimum graph distance (similar sequence distance) below which contacts are removed. (default: 3)
+        -resid          How to handle resid. Choice of mol or input. mol: resids are numbered from 1 to n for each molecule input: 
+                        resids are the same as in the input pdb (default: mol)
+        """
         print("Working on proteins", file=sys.stderr)
         # Make itp files to dump all the virtual CA's parameters into
         file = os.path.join(self.topdir, 'go_atomtypes.itp')
@@ -183,7 +303,7 @@ class CGSystem:
             cg_pdb = os.path.join(self.cgdir, file)
             go_moltype = file.split('.')[0]
             go_map = os.path.join(self.mapdir, f'{go_moltype}.map')
-            martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_map, go_moltype, **kwargs)
+            martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_moltype=go_moltype, go=go_map, **kwargs)
     
     def martinize_nucleotides(self, **kwargs):
         print("Working on nucleotides", file=sys.stderr)
@@ -201,27 +321,31 @@ class CGSystem:
             outfile = f.replace('Nucleic', 'chain')
             shutil.move(os.path.join(self.wdir, file), os.path.join(self.topdir, outfile))
 
-    def make_cgpdb_file(self, d=1.25, bt='dodecahedron'):
+    def make_cgpdb_file(self, add_ions=False, **kwargs):
         with open(self.syspdb, 'w') as outfile:
-            pass 
+            pass  # makes a clean new file
         with open(self.syspdb, 'a') as outfile:
             for filename in sorted(os.listdir(self.cgdir)):
-                file_path = os.path.join(self.cgdir, filename)
-                if os.path.isfile(file_path):
-                    with open(file_path, 'r') as infile:
-                        for line in infile:
-                            if line.startswith('ATOM'):
-                                outfile.write(line)
-        command = f'gmx_mpi editconf -f {self.syspdb} -d {d} -bt {bt}  -o {self.syspdb}'
-        sp.run(command.split())
-            
-    def make_topology_file(self):
+                with open(os.path.join(self.cgdir, filename), 'r') as infile:
+                    outfile.writelines(line for line in infile if line.startswith('ATOM'))
+            if add_ions:
+                with open(self.ionpdb, 'r') as infile:
+                    for line in infile:
+                        if line.startswith('ATOM') or line.startswith('HETATM'):
+                            line = line[:21] + ' ' + line[22:] # dont need the chain ID
+                            outfile.write(line)
+        cli.gmx_editconf(self.wdir, **kwargs)
+        
+    def make_topology_file(self, ions=['K','MG',]):
         itp_files = sorted([f for f in os.listdir(self.topdir) if f.startswith('chain')]) #
+        ions = self.count_resolved_ions(ions=ions) 
         with open(self.systop, 'w') as f:
+            # Include section
             f.write(f'#define GO_VIRT"\n')
             f.write(f'#define RUBBER_BANDS\n')
             f.write(f'#include "{self.topdir}/martini_v3.0.0.itp"\n')
             f.write(f'#include "{self.topdir}/martini_v3.0.0_rna.itp"\n')
+            f.write(f'#include "{self.topdir}/martini_ions.itp"\n')
             if 'go_atomtypes.itp' in os.listdir(self.topdir):
                 f.write(f'#include "{self.topdir}/go_atomtypes.itp"\n')
                 f.write(f'#include "{self.topdir}/go_nbparams.itp"\n')
@@ -232,15 +356,21 @@ class CGSystem:
             for filename in itp_files:
                 if filename.endswith('.itp'):
                     f.write(f'#include "{self.topdir}/{filename}"\n')
+            # System name
             f.write(f'\n[ system ]\n')
             f.write(f'Martini system for {self.sysname}\n') 
+            # Molecules
             f.write('\n[molecules]\n')
             f.write('; name\t\tnumber\n')
             for filename in itp_files:
                 if filename.endswith('.itp'):
                     molecule_name = os.path.splitext(filename)[0]
                     f.write(f'{molecule_name}\t\t1\n')
-            
+            # Ions
+            for ion, count in ions.items():
+                if count > 0:
+                    f.write(f'{ion}    {count}\n')
+           
     def make_gro_file(self, d=1.25, bt='dodecahedron'):
         cg_pdb_files = sorted(os.listdir(self.cgdir))
         for file in cg_pdb_files:
@@ -273,7 +403,20 @@ class CGSystem:
         sp.run(command.split())
         
     def solvate(self, **kwargs):
-        cli.solvate(self.wdir, **kwargs)
+        cli.gmx_solvate(self.wdir, **kwargs)
+        
+    def find_resolved_ions(self):
+        mask_atoms(self.inpdb, 'ions.pdb', mask=['MG', 'ZN', 'K'])
+        
+    def count_resolved_ions(self, ions=['K','MG',]): # does NOT work for CA atoms for now
+        counts = {ion: 0 for ion in ions}
+        with open(self.syspdb, 'r') as file:
+            for line in file:
+                if line.startswith("ATOM") or line.startswith("HETATM"):
+                    current_ion = line[12:16].strip()
+                    if current_ion in ions:
+                        counts[current_ion] += 1
+        return counts
         
     def add_ions(self, conc=0.15, pname='NA', nname='CL'): 
         bdir = os.getcwd()
@@ -283,46 +426,138 @@ class CGSystem:
         command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname {pname} -nname {nname} -o {self.syspdb}'
         sp.run(command.split(), input='W\n', text=True) 
         os.chdir(bdir)
-        
-    def make_index_file(self, **kwargs):
-        cli.make_ndx(self.wdir, **kwargs)
+        cli.gmx_editconf(self.wdir, f=self.syspdb, o=self.sysgro)
         
     def initmd(self, runname):
         mdrun = MDRun(runname, self.sysdir, self.sysname)
         # self._mdruns.append(mdrun.runname)
         return mdrun
-        
-    def get_masked_pdb_ndx(self, mask=['BB', 'BB1', 'BB2'], **kwargs):
-        """
-        Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
-        Default is to select backbone atoms for proteins and RNA
-        """
-        outpdb = kwargs.pop('outpdb', self.pcapdb)
-        outndx = kwargs.pop('outndx', self.pcandx)
-        CGSystem.mask_atoms(inpdb=self.syspdb, outpdb=outpdb, mask=mask)
-        CGSystem.make_index_by_chain(self.wdir, chains=self.chains, outndx=outndx)
+
+    def make_ndx(self, pdb, ndx='index.ndx', groups=[[]], **kwargs):
+        cli.gmx_make_ndx(self.wdir, clinput='keep 0\n q\n', f=pdb, o=ndx, **kwargs)
+        for atoms in groups:
+            ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
+            instr_a = '_'.join(atoms) + '\n'
+            cli.gmx_make_ndx(self.wdir, clinput=ndxstr, f=pdb, o=ndx, n=ndx, **kwargs)
   
     @staticmethod    
-    def mask_atoms(inpdb, outpdb, mask=['BB', 'BB1', 'BB2']):
+    def mask_pdb(inpdb, outpdb, mask=['BB', 'BB1', 'BB2']):
+        """
+        Makes a masked PDB file from the input PDB file
+        Args:
+            inpdb(str): full path to the input pdb
+            outpdb(str): full path to the output pdb
+        """
         filtered_atoms = []
         with open(inpdb, 'r') as file:
             for line in file:
                 if line.startswith('ATOM') or line.startswith('HETATM'):
                     current_atom_name = line[12:16].strip()
                     if current_atom_name in mask:
-                        filtered_atoms.append(line)
+                        # Copy chain ID to segID
+                        chain_id = line[21].strip()  # Extract chain ID
+                        seg_id = f"{chain_id:<4}"    # Format segID to occupy 4 characters
+                        updated_line = line[:72] + seg_id + line[76:]  # Update segID field
+                        filtered_atoms.append(updated_line)
         with open(outpdb, 'w') as output_file:
             for i, atom_line in enumerate(filtered_atoms, start=1):
                 new_serial_number = f'{i:>5}'  
                 new_atom_line = atom_line[:6] + new_serial_number + atom_line[11:]
                 output_file.write(new_atom_line)
                 
+    def make_mdc_pdb_ndx(self, mask=['BB', 'BB1', 'BB2'], **kwargs):
+        """
+        Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
+        Default is to select backbone atoms for proteins and RNA
+        """
+        CGSystem.mask_pdb(inpdb=self.syspdb, outpdb=self.mdcpdb, mask=mask)
+        CGSystem.make_index_by_chain(self.wdir, inpdb=self.mdcpdb, chains=self.chains, outndx=self.mdcndx)
+        
+    def make_trj_pdb_ndx(self, mask=['BB', 'BB2', ], **kwargs):
+        """
+        Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
+        Default is to select backbone atoms for proteins and RNA
+        """
+        CGSystem.mask_pdb(inpdb=self.syspdb, outpdb=self.trjpdb, mask=mask)
+        CGSystem.make_index_by_chain(self.wdir, inpdb=self.trjpdb,  chains=self.chains, outndx=self.trjndx)
+        
     @staticmethod
     @from_wdir
-    def make_index_by_chain(wdir, inpdb='pca.pdb', outndx='pca.ndx', chains=[]):
+    def make_index_by_chain(wdir, inpdb='mdc.pdb', outndx='mdc.ndx', chains=[]):
+        """
+        Makes a GROMACS index file containing required chains
+        """
+        chains = sort_uld(chains)
         commands = [f'chain {x}\n' for x in chains]
-        clinput = 'keep 0\n' + ' '.join(commands) + 'q\n'
+        clinput = 'case \nkeep 0\n' + ' '.join(commands) + 'q\n'
         cli.run('gmx_mpi make_ndx', f=inpdb, o=outndx, clinput=clinput)
+    
+    def pull_runs_files(self, fdir, fname):
+        """
+        Gets files from each run by name if the files exist
+        
+        Args:
+            fname(str): Name of the file to read
+               
+        Output: 
+            files(list): list of the fpaths
+        """
+        runs = [self.initmd(run) for run in self.mdruns]
+        rundirs = [run.rundir for run in runs]
+        files = [os.path.join(rundir, fdir, fname) for rundir in rundirs]
+        files = [f for f in files if os.path.exists(f)]
+        return files
+        
+    def get_mean_sem(self, files, outfname, col=1):
+        """
+        Calculates the mean and the standard error of mean for a metric
+        of all runs and save them to self.datdir
+        
+        Args:
+            fname(str): Name of the metric file
+               
+        Output: 
+            data
+        """
+        dfs = []
+        for file in files:
+            df = pd.read_csv(file, sep='\\s+', header=None)
+            dfs.append(df)
+        datas = [df[col] for df in dfs]
+        x = df[0]
+        mean = np.average(datas, axis=0)
+        sem = np.std(datas, axis=0) / np.sqrt(len(datas))
+        df = pd.DataFrame({'x':x, 'mean':mean, 'sem':sem})
+        fpath = os.path.join(self.datdir, outfname)
+        df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
+        return x, mean, sem
+        
+    def get_mean_sem_2d(self, files, out_fname, out_errname):
+        """
+        Calculates the mean and the standard error of mean for a metric
+        of all runs and save them to self.datdir
+        
+        Args:
+            fname(str): Name of the metric file
+               
+        Output: 
+            data
+        """
+        dfs = []
+        for file in files:
+            df = pd.read_csv(file, sep='\\s+', header=None)
+            dfs.append(df)
+        datas = dfs
+        mean = np.average(datas, axis=0)
+        sem = np.std(datas, axis=0) / np.sqrt(len(datas))
+        df = pd.DataFrame(mean)
+        fpath = os.path.join(self.datdir, out_fname)
+        df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
+        df = pd.DataFrame(sem)
+        fpath = os.path.join(self.datdir, out_errname)
+        df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
+        return mean, sem
+        
 
 ################################################################################
 # MDRun class
@@ -343,17 +578,18 @@ class MDRun(CGSystem):
             runname (str): 
             rundir (str): Directory for the system files.
             rmsname (str): Name of the system.
-            covdir (str): PDB file of the system
-            pngdir (str): PDB file of the system
+            cludir (str): clustering
+            covdir (str): covariance analysis
+            pngdir (str): figures
             kwargs: Additional keyword arguments.
-            
-        Sets up paths to various files required for CG MD simulation.
         """
         super().__init__(*args)
         self.runname = runname
         self.rundir = os.path.join(self.mddir, self.runname)
         self.rmsdir = os.path.join(self.rundir, 'rms_analysis')
         self.covdir = os.path.join(self.rundir, 'cov_analysis')
+        self.dddir  = os.path.join(self.rundir, 'dci_dfi')
+        self.cludir = os.path.join(self.rundir, 'clusters')
         self.pngdir = os.path.join(self.rundir, 'png')
         
     def prepare_files(self):
@@ -362,110 +598,249 @@ class MDRun(CGSystem):
         """
         os.makedirs(self.rundir, exist_ok=True)
         os.makedirs(self.rmsdir, exist_ok=True)
+        os.makedirs(self.cludir, exist_ok=True)
         os.makedirs(self.covdir, exist_ok=True)
+        os.makedirs(self.dddir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
         
-    def em(self, **kwargs):
-        # mdrun kwargs
-        deffnm = kwargs.pop('deffnm', 'em')
-        nsteps = kwargs.pop('nsteps', '-2')
-        ntomp = kwargs.setdefault('ntomp', '6')
-        # grompp kwargs
+    def empp(self, **kwargs):
+        """
+        Runs 'gmx grompp' preprocessing for energy minimization
+        """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'em.mdp'))
-        kwargs.setdefault('c', self.syspdb)
-        kwargs.setdefault('r', self.syspdb)
+        kwargs.setdefault('c', self.sysgro)
+        kwargs.setdefault('r', self.sysgro)
         kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'em.tpr')
-        cli.grompp(self.rundir, **kwargs)
-        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
-            
-    def hu(self, **kwargs):
-        # mdrun kwargs
-        deffnm = kwargs.pop('deffnm', 'hu')
-        nsteps = kwargs.pop('nsteps', '-2')
-        ntomp = kwargs.setdefault('ntomp', '6')
-        # grompp kwargs
+        cli.gmx_grompp(self.rundir, **kwargs)
+        
+    def hupp(self, **kwargs):
+        """
+        Runs 'gmx grompp' preprocessing for heat up
+        """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'hu.mdp'))
         kwargs.setdefault('c', 'em.gro')
         kwargs.setdefault('r', 'em.gro')
         kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'hu.tpr')
-        cli.grompp(self.rundir, **kwargs)
-        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
-            
-    def eq(self, **kwargs):
-        # mdrun kwargs
-        deffnm = kwargs.pop('deffnm', 'eq')
-        nsteps = kwargs.pop('nsteps', '-2')
-        ntomp = kwargs.setdefault('ntomp', '6')
-        # grompp kwargs
+        cli.gmx_grompp(self.rundir, **kwargs)
+
+    def eqpp(self, **kwargs):
+        """
+        Runs 'gmx grompp' preprocessing for equilibration
+        """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'eq.mdp'))
         kwargs.setdefault('c', 'hu.gro')
         kwargs.setdefault('r', 'hu.gro')
         kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'eq.tpr')
-        cli.grompp(self.rundir, **kwargs)
-        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
-            
-    def md(self, **kwargs):
-        # mdrun kwargs
-        deffnm = kwargs.pop('deffnm', 'md')
-        nsteps = kwargs.pop('nsteps', '-2')
-        ntomp = kwargs.setdefault('ntomp', '6')
-        # grompp kwargs
+        cli.gmx_grompp(self.rundir, **kwargs)
+        
+    def mdpp(self, grompp=True, **kwargs):
+        """
+        Runs 'gmx grompp' preprocessing for production
+        """
         kwargs.setdefault('f', os.path.join(self.mdpdir, 'md.mdp'))
         kwargs.setdefault('c', 'eq.gro')
         kwargs.setdefault('r', 'eq.gro')
         kwargs.setdefault('p', self.systop)
+        kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'md.tpr')
-        cli.grompp(self.rundir, **kwargs)
-        cli.mdrun(self.rundir, nsteps=nsteps, deffnm=deffnm, ntomp=ntomp)
+        cli.gmx_grompp(self.rundir, **kwargs)   
         
-    def extend(self, **kwargs):
+    def mdrun(self,**kwargs):
         """
-        Extend production run
-        nsteps: -2 mdp option, -1 indefinitely
+        Runs 'gmx mdrun'
         """
         kwargs.setdefault('deffnm', 'md')
-        kwargs.setdefault('ntomp', '6')
         kwargs.setdefault('nsteps', '-2')
-        kwargs.setdefault('cpi', 'md.cpt')
-        options = f'-pin on -pinstride 1'
-        cli.run_gmx(self.rundir, f'mdrun {options}', **kwargs)
+        kwargs.setdefault('ntomp', '6')
+        cli.gmx_mdrun(self.rundir, **kwargs) 
         
     def trjconv(self, clinput=None, **kwargs):
-         cli.trjconv(self.rundir, clinput=clinput, **kwargs)
+        """
+        Runs 'gmx trjconv'
+        """
+        cli.gmx_trjconv(self.rundir, clinput=clinput, **kwargs)
          
     def rmsf(self, clinput=None, **kwargs):
-         cli.rmsf(self.rundir, clinput=clinput, **kwargs)
+        """
+        Runs 'gmx rmsf' for RMSF calculation
+        """
+        kwargs.setdefault('f', 'mdc.xtc')
+        kwargs.setdefault('s', 'mdc.pdb')
+        kwargs.setdefault('n', self.mdcndx)
+        cli.gmx_rmsf(self.rundir, clinput=clinput, **kwargs)
          
+    def rms(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx rms' for RMSD calculation
+        """        
+        kwargs.setdefault('f', 'mdc.xtc')
+        kwargs.setdefault('s', 'mdc.pdb')
+        kwargs.setdefault('n', self.mdcndx)
+        cli.gmx_rms(self.rundir, clinput=clinput, **kwargs)
+         
+    def rdf(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx rdf' for radial distribution function calculation
+        """  
+        kwargs.setdefault('f', 'mdc.xtc')
+        kwargs.setdefault('s', 'mdc.pdb')
+        kwargs.setdefault('n', self.mdcndx)
+        cli.gmx_rdf(self.rundir, clinput=clinput, **kwargs)  
+        
+    def cluster(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx cluster' for clustering
+        """  
+        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('s', '../traj.pdb')
+        kwargs.setdefault('n', self.trjndx)
+        cli.gmx_cluster(self.cludir, clinput=clinput, **kwargs) 
+    
+    def extract_cluster(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx extract-cluster' to extract frames belonging to a cluster from the trajectory
+        """  
+        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('clusters', 'cluster.ndx')
+        cli.gmx_extract_cluster(self.cludir, clinput=clinput, **kwargs) 
+        
+    def covar(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx covar' to calculate and diagonalize covariance matrix
+        """  
+        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('s', '../traj.pdb')
+        kwargs.setdefault('n', self.trjndx)
+        cli.gmx_covar(self.covdir, clinput=clinput, **kwargs) 
+        
+    def anaeig(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx anaeig' to analyze eigenvectors
+        """  
+        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('s', '../traj.pdb')
+        kwargs.setdefault('v', 'eigenvec.trr')
+        cli.gmx_anaeig(self.covdir, clinput=clinput, **kwargs) 
+
+    def make_edi(self, clinput=None, **kwargs):
+        """
+        Runs 'gmx make-edi' to prepare files for "essential dynamics"
+        """         
+        kwargs.setdefault('f', 'eigenvec.trr')        
+        kwargs.setdefault('s', '../traj.pdb')
+        cli.gmx_make_edi(self.covdir, clinput=clinput, **kwargs) 
+        
+    def get_covmats(self, **kwargs):
+        """
+        Calculates several covariance matrices by splitting the trajectory into 
+        equal chunks defined by the given timestamps
+        """
+        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('s', '../traj.pdb')
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        dd.calc_covmats(**kwargs)
+        print('Finished calculating covariance matrices!', file=sys.stderr)
+        os.chdir(bdir)
+
+    def get_pertmats(self, **kwargs):
+        """
+        Calculates perturbation matrices from the covariance matrices
+        """
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        cov_files = [f for f in sorted(os.listdir()) if f.startswith('covmat')]
+        for cov_file in cov_files:
+            print(f'  Processing covariance matrix {cov_file}', file=sys.stderr)
+            covmat = np.load(cov_file)
+            print('  Calculating pertubation matrix', file=sys.stderr)
+            pertmat = dd.calc_perturbation_matrix(covmat)
+            pert_file = cov_file.replace('covmat', 'pertmat')
+            print(f'  Saving pertubation matrix at {pert_file}', file=sys.stderr)
+            np.save(pert_file, pertmat)
+        print('Finished calculating perturbation matrices!', file=sys.stderr)
+        os.chdir(bdir)
+        
+    def get_dfi(self, **kwargs):
+        """
+        Calculates DFI from perturbation matrices
+        """
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
+        for pert_file in pert_files:
+            print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
+            pertmat = np.load(pert_file)
+            print('  Calculating DFI', file=sys.stderr)
+            dfi = dd.calc_dfi(pertmat)
+            dfi_file = pert_file.replace('pertmat', 'dfi').replace('.npy', '.xvg')
+            dfi_file = os.path.join('..', 'dci_dfi', dfi_file)
+            print(f'  Saving DFI at {dfi_file}',  file=sys.stderr)
+            dd.save_1d_data(dfi, fpath=dfi_file)
+        print('Finished calculating DFIs!', file=sys.stderr)
+        os.chdir(bdir)       
+
+    def get_dci(self, **kwargs):
+        """
+        Calculates DCI from perturbation matrices
+        """
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
+        u = mda.Universe(self.trjpdb)
+        groups = u.segments.ids
+        segids = [s.segid for s in u.segments]
+        # groups = [list(range(10392, 10410)) + [8700, 8701]]
+        # segids = ['TERY']
+        for pert_file in pert_files:
+            print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
+            pertmat = np.load(pert_file)
+            print('  Calculating DCI', file=sys.stderr)
+            dcis = dd.calc_group_molecule_dci(pertmat, groups=groups)
+            for dci, group, segid in zip(dcis, groups, segids):
+                dci_file = pert_file.replace('pertmat', f'dci_{segid}').replace('.npy', '.xvg')
+                dci_file = os.path.join('..', 'dci_dfi', dci_file)
+                print(f'  Saving DCI at {dci_file}',  file=sys.stderr)
+                dd.save_1d_data(dci, fpath=dci_file)
+            ch_dci_file = pert_file.replace('pertmat', f'ch_dci').replace('.npy', '.xvg')
+            ch_dci_file = os.path.join('..', 'dci_dfi', ch_dci_file)
+            ch_dci = dd.calc_group_group_dci(pertmat, groups=groups)
+            dd.save_2d_data(ch_dci, fpath=ch_dci_file)
+        print('Finished calculating DCIs!', file=sys.stderr)
+        os.chdir(bdir) 
+        
     def get_rmsf_by_chain(self, **kwargs):
         """
         Get RMSF by chain.
         """
-        kwargs.setdefault('f', 'pca.xtc')
-        kwargs.setdefault('s', 'pca.pdb')
-        kwargs.setdefault('n', os.path.join(self.wdir, 'pca.ndx'))
-        for chain in self.chains:
-            cli.rmsf(self.rundir, clinput=f'ch{chain}\n', 
+        kwargs.setdefault('f', 'traj.xtc')
+        kwargs.setdefault('s', 'traj.pdb')
+        kwargs.setdefault('n', self.trjndx)
+        for idx, chain in enumerate(self.chains):
+            idx = idx + 1
+            cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n', 
                 o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
                 
     def get_rmsd_by_chain(self, **kwargs):
         """
         Get RMSD by chain.
         """
-        kwargs.setdefault('f', 'pca.xtc')
-        kwargs.setdefault('s', 'pca.pdb')
-        kwargs.setdefault('n', os.path.join(self.wdir, 'pca.ndx'))
-        for chain in self.chains:
-            cli.rms(self.rundir, clinput=f'ch{chain}\nch{chain}\n', 
-                o=os.path.join(self.rmsdir, f'rmsd_{chain}.xvg'), **kwargs)
+        kwargs.setdefault('f', 'traj.xtc')
+        kwargs.setdefault('s', 'traj.pdb')
+        kwargs.setdefault('n', self.trjndx)
+        for idx, chain in enumerate(self.chains):
+            idx = idx + 1
+            cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n', 
+                o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
                 
             
-            
-
-        
-
-        
-
-    

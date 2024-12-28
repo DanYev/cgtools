@@ -17,7 +17,7 @@ sys.path.append('./pyscripts')
 import itpio
 import cgmap
 from geometry import get_angle, get_bonds, get_angles, get_dihedrals
-from plot_geometry import plot_geometry
+from plot_geometry import plot_geometry, make_fig_one
 
 
 # Split each argument in a list                                               
@@ -159,16 +159,24 @@ def bonded_parameters():
     # AA structure
     aa_structure = make_structure_pdb(f"systems/all_atom/test.pdb")
     cg_structure = make_structure_pdb(f"systems/{system}/test.pdb")
+    all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals = [], [], [], [], [], []
     mapping = cgmap.get_mapping_byname('new')
     for resname in resnames:
         name = f"{molecule}_{resname}_{version}"
         bonds, angles, dihedrals = iterate_and_get_shizz_done(aa_structure, mapping, resname, topology)
         cgbonds, cgangles, cgdihedrals = iterate_and_get_shizz_done(cg_structure, None, resname, topology)
-        plot_geometry(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals, topology[resname], molecule, resname)
-        av_bonds, av_angles, av_dihedrals = get_average(bonds), get_average(angles), get_average(dihedrals)
-        std_bonds, std_angles, std_dihedrals = get_std(bonds), get_std(angles), get_std(dihedrals)
-        update_topology(topology[resname], av_bonds, av_angles, av_dihedrals, std_bonds, std_angles, std_dihedrals)
-        # itpio.write_itp(f"itp/working/{name}.itp", topology[resname])        
+        # plot_geometry(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals, topology[resname], molecule, resname)
+        all_aa_bonds.append(bonds)
+        all_aa_angles.append(angles)
+        all_aa_dihedrals(dihedrals)
+        all_cg_bonds.append(cgbonds)
+        all_cg_angles.append(cgangles)
+        all_cg_dihedrals(cgdihedrals)
+        # av_bonds, av_angles, av_dihedrals = get_average(bonds), get_average(angles), get_average(dihedrals)
+        # std_bonds, std_angles, std_dihedrals = get_std(bonds), get_std(angles), get_std(dihedrals)
+        # update_topology(topology[resname], av_bonds, av_angles, av_dihedrals, std_bonds, std_angles, std_dihedrals)
+        # itpio.write_itp(f"itp/working/{name}.itp", topology[resname]) 
+    make_fig_one(all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals)
 
 
 def get_residues(model):

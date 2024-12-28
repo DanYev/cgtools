@@ -107,7 +107,7 @@ def run(*args, **kwargs):
     clinput = kwargs.pop('clinput', None)
     cltext = kwargs.pop('cltext', True)
     command = args_to_str(*args) + ' ' + kwargs_to_str(**kwargs)
-    sp.run(command.split(), input=clinput, text=cltext, check=True)
+    sp.run(command.split(), input=clinput, text=cltext, check=False)
     # try:
     #     sp.run(command.split(), input=clinput, text=cltext, check=True)
     # except sp.CalledProcessError as e:
@@ -182,7 +182,7 @@ def sbatch(script, *args, **kwargs):
 ############################################################## 
 
 @from_wdir
-def editconf(wdir, **kwargs):
+def gmx_editconf(wdir, **kwargs):
     """
     Run the GROMACS 'editconf' command to modify the configuration of the system.
 
@@ -200,15 +200,14 @@ def editconf(wdir, **kwargs):
     defaults = {
         'f': 'system.pdb',
         'o': 'system.pdb',
-        'bt': 'dodecahedron',
-        'd': '1.25'
+        'bt': 'triclinic',
     }
     kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'editconf', **kwargs)
 
 
 @from_wdir
-def solvate(wdir, **kwargs):
+def gmx_solvate(wdir, **kwargs):
     """
     Run the GROMACS 'solvate' command to solvate the system with water.
 
@@ -236,7 +235,7 @@ def solvate(wdir, **kwargs):
 
 
 @from_wdir
-def make_ndx(wdir, clinput=None, **kwargs):
+def gmx_make_ndx(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'make_ndx' command to create an index file.
 
@@ -253,14 +252,14 @@ def make_ndx(wdir, clinput=None, **kwargs):
     """
     defaults = {
         'f': 'system.pdb',
-        'o': 'index.ndx'
+        'o': 'index.ndx',
     }
     kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'make_ndx', clinput=clinput, cltext=True, **kwargs)
 
 
 @from_wdir
-def grompp(wdir, **kwargs):
+def gmx_grompp(wdir, **kwargs):
     """
     Run the GROMACS 'grompp' command to preprocess the input files and generate the `.tpr` file.
 
@@ -278,20 +277,14 @@ def grompp(wdir, **kwargs):
         - 'maxwarn': '1' (maximum number of warnings allowed)
     """
     defaults = {
-        'f': '../mdp/em.mdp',
-        'c': '../system.pdb',
-        'r': '../system.pdb',
-        'p': '../system.top',
-        'o': 'em.tpr',
         'maxwarn': '1'
     }
     kwargs = set_defaults(kwargs, defaults)
-    command = f"gmx_mpi grompp -f {kwargs['f']} -c {kwargs['c']} -r {kwargs['r']} -p {kwargs['p']} -o {kwargs['o']} -maxwarn {kwargs['maxwarn']}"
-    sp.run(command.split(), check=True)    
+    run_gmx(wdir, 'grompp', **kwargs)  
     
     
 @from_wdir
-def mdrun(wdir, **kwargs):
+def gmx_mdrun(wdir, **kwargs):
     """
     Run the GROMACS 'mdrun' command to perform molecular dynamics or energy minimization.
 
@@ -308,20 +301,16 @@ def mdrun(wdir, **kwargs):
         - 'nsteps': '-2' (run for the length defined in the .mdp file)
     """
     defaults = {
-        'deffnm': 'em',
         'ntomp': '6',
         'pin': 'on',
         'pinstride': '1',
-        'nsteps': '-2'
     }
     kwargs = set_defaults(kwargs, defaults)
-    options = f"-ntomp {kwargs['ntomp']} -pin {kwargs['pin']} -pinstride {kwargs['pinstride']} -nsteps {kwargs['nsteps']}"
-    command = f"gmx_mpi mdrun {options} -deffnm {kwargs['deffnm']}"
-    sp.run(command.split(), check=True)
+    run_gmx(wdir, 'mdrun', **kwargs)
 
 
 @from_wdir
-def trjconv(wdir, clinput='1\n1\n', **kwargs):
+def gmx_trjconv(wdir, clinput='1\n1\n', **kwargs):
     """
     Run the GROMACS 'trjconv' command to convert trajectory files.
 
@@ -332,32 +321,12 @@ def trjconv(wdir, clinput='1\n1\n', **kwargs):
         Input string specifying selections (default '1\n1\n').
     **kwargs: dict
         Additional options and flags for the 'trjconv' command.
-        Defaults:
-        - 's': 'md.tpr' (input run file)
-        - 'f': 'md.xtc' (input trajectory file)
-        - 'o': 'mdc.xtc' (output trajectory file)
-        - 'fit': 'none' (fit method)
-        - 'pbc': 'none' (periodic boundary conditions treatment)
-        - 'ur': 'rect' (unit cell representation)
-        - 'b': '0' (beginning time)
-        - 'dt': '0' (time step)
     """
-    defaults = {
-        's': 'md.tpr',
-        'f': 'md.xtc',
-        'o': 'mdc.xtc',
-        'fit': 'none',
-        'pbc': 'none',
-        'ur': 'rect',
-        'b': '0',
-        'dt': '0'
-    }
-    kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'trjconv', clinput=clinput, cltext=True, **kwargs)
 
 
 @from_wdir
-def rmsf(wdir, clinput=None, **kwargs):
+def gmx_rmsf(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'rmsf' command to calculate root mean square fluctuation (RMSF).
 
@@ -389,7 +358,7 @@ def rmsf(wdir, clinput=None, **kwargs):
 
 
 @from_wdir
-def rms(wdir, clinput=None, **kwargs):
+def gmx_rms(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'rms' command to calculate root mean square deviation (RMSD).
 
@@ -417,28 +386,108 @@ def rms(wdir, clinput=None, **kwargs):
     kwargs = set_defaults(kwargs, defaults)
     run_gmx(wdir, 'rms', clinput=clinput, cltext=True, **kwargs)
 
-    
-##############################################################
-# JUNK
-##############################################################   
 
+@from_wdir
+def gmx_rdf(wdir, clinput=None, **kwargs):
+    """
+    Run the GROMACS 'rdf' command to calculate  calculates radial distribution functions (RDF).
+
+    Parameters:
+    wdir (str): 
+        The working directory where the command should be executed.
+    clinput (str, optional): 
+        Input string specifying atom selections.
+    **kwargs: dict
+        Additional options and flags for the 'rms' command.
+        Defaults:
+        - 's': 'md.tpr' (input run file)
+        - 'f': 'mdc.xtc' (input trajectory file)
+        - 'o': 'rms_analysis/rdf.xvg' (output file)
+        - 'b': '0' (beginning time)
+        - 'xvg': 'none' (output format)
+    """
+    defaults = {
+        's': 'md.tpr',
+        'f': 'mdc.xtc',
+        'o': 'rms_analysis/rdf.xvg',
+        'b': '0',
+        'xvg': 'none'
+    }
+    kwargs = set_defaults(kwargs, defaults)
+    run_gmx(wdir, 'rdf', clinput=clinput, cltext=True, **kwargs)
+
+
+@from_wdir
+def gmx_cluster(wdir, clinput=None, **kwargs):
+    """
+    Run the GROMACS 'cluster' command to get covariance matrix and normal modes.
+
+    Parameters:
+    wdir (str): 
+        The working directory where the command should be executed.
+    clinput (str, optional): 
+        Input string specifying atom selections.
+    **kwargs: dict
+        Additional options and flags for the 'covar' command.
+    """
+    run_gmx(wdir, 'cluster', clinput=clinput, cltext=True, **kwargs)
     
-def get_covariance_matrix(wdir, tb=100, te=500, tw=5, td=5):
-    bdir = os.getcwd()
-    os.chdir(wdir)
-    os.chdir('analysis')
-    for t in range(tb, te-tw-td, td):
-        b = t
-        e = t + tw
-        command = f'gmx_mpi trjconv -s ../mdrun/md.tpr -f ../mdrun/md.xtc -o mdc_{b}.xtc -fit rot+trans -b {b} -e {e} -tu ns'
-        sp.run(command.split(), input='1\n1\n', text=True)
-        command = f'gmx_mpi covar -s md.tpr -f mdc_{b}.xtc -ascii covar_{b}.dat -b {b} -e {e} -tu ns -last 50'
-        sp.run(command.split(), input='1\n3\n', text=True)
-    files_to_delete = [f for f in os.listdir() if f.startswith('#')]
-    for f in files_to_delete:
-        os.remove(f)
-    os.remove(f'covar_{te}.dat')
-    os.chdir(bdir)
+    
+@from_wdir
+def gmx_extract_cluster(wdir, clinput=None, **kwargs):
+    """
+    Run the GROMACS 'extract-cluster' command to get covariance matrix and normal modes.
+
+    Parameters:
+    wdir (str): 
+        The working directory where the command should be executed.
+    clinput (str, optional): 
+        Input string specifying atom selections.
+    **kwargs: dict
+        Additional options and flags for the 'covar' command.
+    """
+    run_gmx(wdir, 'extract-cluster', clinput=clinput, cltext=True, **kwargs)    
+
+
+@from_wdir
+def gmx_covar(wdir, clinput=None, **kwargs):
+    """
+    Run the GROMACS 'covar' command to get covariance matrix and normal modes.
+
+    Parameters:
+    wdir (str): 
+        The working directory where the command should be executed.
+    clinput (str, optional): 
+        Input string specifying atom selections.
+    **kwargs: dict
+        Additional options and flags for the 'covar' command.
+    """
+    run_gmx(wdir, 'covar', clinput=clinput, cltext=True, **kwargs)
+ 
+ 
+@from_wdir
+def gmx_anaeig(wdir, clinput=None, **kwargs):
+    """
+    Run the GROMACS 'anaeig' command to get covariance matrix and normal modes.
+    """
+    defaults = {
+        'v': 'eigenvec.trr',
+    }
+    kwargs = set_defaults(kwargs, defaults)
+    run_gmx(wdir, 'anaeig', clinput=clinput, cltext=True, **kwargs)    
+    
+    
+@from_wdir
+def gmx_make_edi(wdir, clinput=None, **kwargs):
+    """
+    Run the GROMACS 'make_edi' for essential dynamics(ED)
+    """
+    defaults = {
+        'f': 'eigenvec.trr',
+    }
+    kwargs = set_defaults(kwargs, defaults)
+    run_gmx(wdir, 'make_edi', clinput=clinput, cltext=True, **kwargs)        
+
     
     
     

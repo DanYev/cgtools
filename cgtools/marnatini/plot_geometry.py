@@ -3,6 +3,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def save_data(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals,):
+    bonds = np.array(bonds)
+    angles = np.array(angles)
+    dihedrals = np.array(dihedrals)
+    cgbonds = np.array(cgbonds)
+    cgangles = np.array(cgangles)
+    cgdihedrals = np.array(cgdihedrals)
+    np.save('data/bonds.npy', bonds)
+    np.save('data/angles.npy', angles)
+    np.save('data/dihedrals.npy', dihedrals)
+    np.save('data/cgbonds.npy', cgbonds)
+    np.save('data/cgangles.npy', cgangles)
+    np.save('data/cgdihedrals.npy', cgdihedrals)
+    
+    
+def load_data():
+    bonds = np.load('data/bonds.npy').T
+    angles = np.load('data/angles.npy').T
+    dihedrals = np.load('data/dihedrals.npy').T
+    cgbonds = np.load('data/cgbonds.npy').T
+    cgangles = np.load('data/cgangles.npy').T
+    cgdihedrals = np.load('data/cgdihedrals.npy').T
+    return bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals
+    
+
 def plot_geometry(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals, topology, molecule, resname):
     
     bonds = np.array(bonds).T * 10.0
@@ -21,7 +46,7 @@ def plot_geometry(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals, topo
     cgkwargs = {'bins': n_bins, 'density': True, 'fill': False, 'rwidth': 0.8,}
 
     # Plotting bonds    
-    fig, axs = plt.subplots(2, 4, sharey=False, figsize=(12,6))
+    fig, axs = plt.subplots(3, 4, sharey=False, figsize=(12,6))
     arrout = []
     for n, key in enumerate(topology['bonds'].keys()):
         i = n // 4
@@ -76,4 +101,68 @@ def plot_geometry(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals, topo
     fig.tight_layout()
     fig.savefig(f'{out}/dihedrals_{resname}.png')
     plt.close()
+    
+    
+def make_fig_bonded():
+    bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals = load_data()
+    bonds = np.stack((bonds[0, :], bonds[1, :], )).flat
+    cgbonds = np.stack((cgbonds[0, :], cgbonds[1, :], )).flat
+    angles = np.stack((angles[0, :], angles[1, :], )).flat
+    angles = angles[angles < 160]
+    cgangles = np.stack((cgangles[0, :], cgangles[1, :], )).flat
+    dihedrals = np.stack((dihedrals[0, :], dihedrals[1, :], )).flat
+    cgdihedrals = np.stack((cgdihedrals[0, :], cgdihedrals[1, :], )).flat
+    
+    out = os.path.join('png', 'figs')
+    if not os.path.isdir(out):
+        os.mkdir(out)
+        
+    n_bins = 1000   
+    aakwargs = {'label':'All-atom', 'bins': n_bins, 'density': True, 'histtype':'step', 'lw':2}
+    cgkwargs = {'label':'Coarse-grained', 'bins': n_bins, 'density': True, 'histtype':'step', 'lw':2}
+
+    # Plotting bonds    
+    fig = plt.figure(figsize=(8.0, 5.0))
+    plt.hist(bonds, **aakwargs)
+    plt.hist(cgbonds, **cgkwargs)
+    plt.autoscale(tight=True)
+    plt.title('Backbone Bonds', fontsize=20)
+    plt.yticks([])
+    plt.xticks(fontsize=18)
+    plt.xlabel('Distance, nm', fontsize=20)
+    plt.xlim([0.25, 0.50])
+    plt.figtext(0.58, 0.68 , 'BB1-BB2 and BB2-BB1', fontsize=18, )
+    plt.legend(frameon=False, fontsize=18, loc='upper right')
+    fig.tight_layout()
+    fig.savefig(f'{out}/fig_2_bonds.png')
+    plt.close()
+    # Plotting angles    
+    fig = plt.figure(figsize=(8.0, 5.0))
+    plt.hist(angles, **aakwargs)
+    plt.hist(cgangles, **cgkwargs)
+    plt.autoscale(tight=True)
+    plt.title('Backbone Angles', fontsize=20)
+    plt.yticks([])
+    plt.xticks(fontsize=18)
+    plt.xlabel('Angle, degrees', fontsize=20)
+    # plt.legend(frameon=False, fontsize=18, loc='lower right')
+    plt.figtext(0.67, 0.77 , 'BB1-BB2-BB1\nBB2-BB1-BB2', fontsize=18, )
+    fig.tight_layout()
+    fig.savefig(f'{out}/fig_2_angles.png')
+    plt.close()
+    # Plotting dihedrals    
+    fig = plt.figure(figsize=(8.0, 5.0))
+    plt.hist(dihedrals, **aakwargs)
+    plt.hist(cgdihedrals, **cgkwargs)
+    plt.autoscale(tight=True)
+    plt.title('Backbone Dihedrals', fontsize=20)
+    plt.yticks([])
+    plt.xticks(fontsize=18)
+    plt.xlabel('Angle, degrees', fontsize=20)
+    # plt.legend(frameon=False, fontsize=18, loc='lower right')
+    plt.figtext(0.62, 0.77 , 'BB1-BB2-BB1-BB2\nBB2-BB1-BB2-BB1', fontsize=18, )
+    fig.tight_layout()
+    fig.savefig(f'{out}/fig_2_dih.png')
+    plt.close()
+
     

@@ -65,7 +65,11 @@ def get_dihedrals(vecs, itp_data):
     quads = itp_data['dihedrals'].keys()
     for quad in quads:
         i, j, k, l = quad
-        dihedral = get_dihedral(vecs[i], vecs[j], vecs[k], vecs[l])
+        if quad == (0, 1, 2, 3):
+            flip = True
+        else:  
+            flip = False
+        dihedral = get_dihedral(vecs[i], vecs[j], vecs[k], vecs[l], flip_sign=flip)
         dihedrals.append(dihedral)
     return dihedrals
 

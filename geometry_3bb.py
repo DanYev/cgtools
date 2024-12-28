@@ -17,8 +17,9 @@ sys.path.append('./cgtools')
 import itpio
 import marnatini.cgmap as cgmap
 from marnatini.geometry import get_angle, get_bonds, get_angles, get_dihedrals
-from marnatini.plot_geometry import plot_geometry
+from marnatini.plot_geometry import plot_geometry, make_fig_bonded, save_data
 
+res_dict = {'ADE': 'A', 'CYT': 'C', 'GUA': 'G', 'URA': 'U'}
 
 # Split each argument in a list                                               
 def nsplit(*x):                                                               
@@ -97,6 +98,32 @@ def iterate_and_get_shizz_done(structure, mapping, resnames, topology):
                 if resname in resnames:
                     shizz_to_get_done(bonds, angles, dihedrals, atom_dict, resname, next_dict, next_resname, prev_dict, prev_resname, mapping, topology[resname])
     return bonds, angles, dihedrals
+    
+    
+def iterate_and_get_shizz_done_aa(structure, mapping, resnames, topology):
+    bonds = []
+    angles = []
+    dihedrals = []
+    for model in structure:
+        for chain in model:
+            residues = chain.get_unpacked_list()
+            for resi, residue in enumerate(residues):
+                if resi <= 1 or resi >= len(residues)-1:
+                    continue
+                resname = residue.get_resname()
+                resname = res_dict[resname]
+                atom_dict = cgmap.get_atom_dict(residue)
+                prev_resname = residues[resi-1].get_resname()
+                prev_resname = res_dict[prev_resname]
+                prev_dict = cgmap.get_atom_dict(residues[resi-1])
+                next_resname = residues[resi+1].get_resname()
+                next_resname = res_dict[next_resname]
+                next_dict = cgmap.get_atom_dict(residues[resi+1])
+                cgmap.update_atom_dict(resi+1, next_dict, atom_dict, ("O3'", ))
+                cgmap.update_atom_dict(resi, atom_dict, prev_dict, ("O3'", ))
+                if resname in resnames:
+                    shizz_to_get_done(bonds, angles, dihedrals, atom_dict, resname, next_dict, next_resname, prev_dict, prev_resname, mapping, topology[resname])
+    return bonds, angles, dihedrals
 
 
 def pdb_iterator(structure):
@@ -152,8 +179,10 @@ def bonded_parameters():
     resnames = ('A', 'C', 'G', 'U') # ('A', 'C', 'G', 'U')  ('A', 'U') 
     version = 'new'
     molecule = "RNA"
-    mdrun = sys.argv[1]
-    system = '100bpRNA' # sys.argv[1]
+
+    
+    # system = sys.argv[1]
+    # mdrun = sys.argv[2] 
     topology = read_topology(   a_itp=f'cgtools/itp/nucbonded/plot_A_{version}.itp', 
                                 c_itp=f'cgtools/itp/nucbonded/plot_C_{version}.itp', 
                                 g_itp=f'cgtools/itp/nucbonded/plot_G_{version}.itp', 
@@ -165,19 +194,35 @@ def bonded_parameters():
     #     mapping = None
     
     # AA structure
-    aa_structure = make_structure_pdb(f"systems/#all_atom/test.pdb")
-    cg_structure = make_structure_pdb(f"systems/{system}/mdruns/{mdrun}/trj.pdb")
+    aa_structure = make_structure_pdb(f"systems/ssRNA_aa/mdruns/mdrun_2/mdc.pdb")
+    # aa_structure = make_structure_pdb(f"ribosomes_old/test.pdb")
+    cg_structure = make_structure_pdb(f"systems/ssRNA/mdruns/mdrun_2/mdc.pdb")
     # cg_structure = make_structure_pdb(f"systems/{system}/cgpdb/chain_A.pdb")
     mapping = cgmap.get_mapping_byname('new')
+    all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals = [], [], [], [], [], []
     for resname in resnames:
         name = f"{molecule}_{resname}_{version}"
-        bonds, angles, dihedrals = iterate_and_get_shizz_done(aa_structure, mapping, resname, topology)
+        bonds, angles, dihedrals = iterate_and_get_shizz_done_aa(aa_structure, mapping, resname, topology)
         cgbonds, cgangles, cgdihedrals = iterate_and_get_shizz_done(cg_structure, None, resname, topology)
+        all_aa_bonds.extend(bonds)
+        all_aa_angles.extend(angles)
+        all_aa_dihedrals.extend(dihedrals)
+        all_cg_bonds.extend(cgbonds)
+        all_cg_angles.extend(cgangles)
+        all_cg_dihedrals.extend(cgdihedrals)
         plot_geometry(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals, topology[resname], molecule, resname)
-        av_bonds, av_angles, av_dihedrals = get_average(bonds), get_average(angles), get_average(dihedrals)
-        std_bonds, std_angles, std_dihedrals = get_std(bonds), get_std(angles), get_std(dihedrals)
-        update_topology(topology[resname], av_bonds, av_angles, av_dihedrals, std_bonds, std_angles, std_dihedrals)
-        # itpio.write_itp(f"cgtools/itp/nucbonded/{name}.itp", topology[resname])       
+    plot_geometry(all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals, topology['A'], molecule, 'all')    
+        # av_bonds, av_angles, av_dihedrals = get_average(bonds), get_average(angles), get_average(dihedrals)
+        # std_bonds, std_angles, std_dihedrals = get_std(bonds), get_std(angles), get_std(dihedrals)
+        # update_topology(topology[resname], av_bonds, av_angles, av_dihedrals, std_bonds, std_angles, std_dihedrals)
+        # itpio.write_itp(f"cgtools/itp/nucbonded/{name}.itp", topology[resname])   
+    # save_data(all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals)
+    # make_fig_one(all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals)
+    
+
+def make_figs():
+    make_fig_bonded()
+    
 
 
 def get_residues(model):
@@ -225,6 +270,7 @@ def main():
 
 if __name__ == "__main__":
     bonded_parameters()
+    # make_figs()
 
     
     

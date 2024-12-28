@@ -6,8 +6,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=1G
-#SBATCH -o slurm_output/output.%A.%a.out
-#SBATCH -e slurm_output/error.%A.%a.err
+#SBATCH -o slurm_jobs/output.%A.%a.out
+#SBATCH -e slurm_jobs/error.%A.%a.err
 
 PYSCRIPT="$@"   
 
