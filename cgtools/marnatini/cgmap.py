@@ -4,7 +4,7 @@ import copy
 import time
 import numpy as np
 
-BEADS = ['BB1', 'BB2', 'BB3', 'SC1', 'SC2', 'SC3', 'SC4', 'SC5', 'SC6']
+BEADS = ['BB1', 'BB2', 'BB3', 'SC1', 'SC2', 'SC3', 'SC4', 'SC5', 'SC6', 'SC7']
 BY_ATOM_NAME = True # how to map residues
 
 
@@ -63,31 +63,63 @@ def get_mapping_byname(new_or_old="new"):
                             "C1' O2' C2' C3'")
                             
     if new_or_old == "new":
+        # mapping = {
+        #     "A":  BB_mapping + nsplit(
+        #                     "N9 C8 H8",
+        #                     "N3 C4",
+        #                     "N1 C2 H2",
+        #                     "N6 C6 H61 H62",
+        #                     "N7 C5"),
+        #     "C":  BB_mapping + nsplit(
+        #                     "N1 C5 C6",
+        #                     "C2 O2",
+        #                     "N3",
+        #                     "N4 C4 H41 H42"),
+        #     "G":  BB_mapping + nsplit(
+        #                     "C8 H8 N9",
+        #                     "C4 N3",
+        #                     "C2 N2 H21 H22",
+        #                     "N1", 
+        #                     "C6 O6",
+        #                     "C5 N7"),
+        #     "U":  BB_mapping + nsplit(
+        #                     "N1 C5 C6",
+        #                     "C2 O2",
+        #                     "N3",
+        #                     "C4 O4"),
+        # }
         mapping = {
             "A":  BB_mapping + nsplit(
                             "N9 C8 H8",
                             "N3 C4",
-                            "N1 C2 H2",
+                            "C2 H2",
+                            "N1",
                             "N6 C6 H61 H62",
-                            "N7 C5"),
+                            "N7 C5", ),
             "C":  BB_mapping + nsplit(
                             "N1 C5 C6",
                             "C2 O2",
                             "N3",
-                            "N4 C4 H41 H42"),
+                            "N4 C4 H41 H42",
+                            "O2"),
             "G":  BB_mapping + nsplit(
                             "C8 H8 N9",
                             "C4 N3",
-                            "C2 N2 H21 H22",
+                            "C2 N2 H22 H21",
                             "N1", 
                             "C6 O6",
-                            "C5 N7"),
+                            "C5 N7",
+                            "H1",
+                            "O6"),
             "U":  BB_mapping + nsplit(
                             "N1 C5 C6",
-                            "C2 O2",
+                            "O2",
                             "N3",
-                            "C4 O4"),
-        }
+                            "O4",
+                            "C2",
+                            "H3",
+                            "C4",),
+    }
 
     mapping.update({"6MA":mapping["A"],
                     "2MA":mapping["A"],

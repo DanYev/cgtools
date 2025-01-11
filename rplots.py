@@ -66,14 +66,15 @@ def dci_pdb():
     sysname = 'ribosome_k'
     system = CGSystem(sysdir, sysname)
     fdir =  os.path.join(sysdir, sysname, 'data')
-    fnames = [f for f in os.listdir(fdir) if f.startswith('dci_A')]
+    fnames = [f for f in os.listdir(fdir) if f.startswith('dci_k')]
     datas = [pd.read_csv(os.path.join(fdir, fname), header=None) for fname in fnames]
     inpdb = system.inpdb
     inpdb = os.path.join(system.wdir, 'ref.pdb')
     for data, fname in zip(datas, fnames):
         print(f'Processing {fname}')
         data = data 
-        b_factors = data[1] 
+        b_factors = data[1]
+        # b_factors -= np.average(b_factors)
         errs = data[2]
         pfix = fname.split('.')[0]
         outpdb = os.path.join(sysdir, 'pdb', f'{sysname}_{pfix}.pdb')
@@ -120,7 +121,7 @@ def ch_dci_diff():
 if __name__ == '__main__':
     # pdb()
     # png()
-    # dci_pdb()
+    dci_pdb()
     # ch_dci()
-    ch_dci_diff()
+    # ch_dci_diff()
 

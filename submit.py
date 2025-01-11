@@ -9,7 +9,7 @@ def submit_setup(submit=True):
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
         if submit:
-            sbatch(script, 'run_all.py', 'setup', sysdir, sysname, e='slurm_output/error.%A.err', mem='10G', N=1, n=1, c=1, t='03:45:00')
+            sbatch(script, 'run_all.py', 'setup', sysdir, sysname, e='slurm_output/error.%A.err', mem='12G', N=1, n=1, c=1, t='03:45:00')
         else:
             run('bash', script, 'run_all.py', 'setup', sysdir, sysname)
 
@@ -22,8 +22,8 @@ def submit_md(submit=True, ntomp=8, ):
             if submit:
                 sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, ntomp, 
                     e='slurm_output/error.%A.err', J=f'md_{sysname}',
-                    N=1, n=1, c=ntomp, gres='gpu:1', mem='4G', 
-                    qos='public', partition='htc', t='00-03:00:00',)
+                    N=1, n=1, c=ntomp, gres='gpu:1', mem='2G', 
+                    qos='public', partition='htc', t='00-01:00:00',)
             else:
                 run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname, 1, )
 
@@ -162,14 +162,14 @@ runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10']
 runs += ['mdrun_11', 'mdrun_12']
 
 sysdir = 'systems' 
-sysnames = ['ssRNA']
-runs = ['mdrun_2', ]
+sysnames = ['1RNA']
+runs = ['mdrun_1', ]
 
-# sysdir = 'ribosomes_old'
-# sysnames = ['ribosome', ] 
+# sysdir = 'ribosomes'
+# sysnames = ['ribosome_dL11', ] 
 # runs = ['mdrun_1',  'mdrun_2', 'mdrun_3', 'mdrun_4', 'mdrun_5']  
 # runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10'] 
-
+# runs += ['mdrun_11', 'mdrun_12']
 # 
 # submit_setup(submit=False)
 # submit_make_ndx(submit=False)

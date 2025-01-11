@@ -355,7 +355,8 @@ class CGSystem:
             f.write(f'\n')
             for filename in itp_files:
                 if filename.endswith('.itp'):
-                    f.write(f'#include "{self.topdir}/{filename}"\n')
+                    filepath = os.path.join(self.topdir, filename)
+                    f.write(f'#include "{filepath}"\n')
             # System name
             f.write(f'\n[ system ]\n')
             f.write(f'Martini system for {self.sysname}\n') 
@@ -370,6 +371,35 @@ class CGSystem:
             for ion, count in ions.items():
                 if count > 0:
                     f.write(f'{ion}    {count}\n')
+    
+    @staticmethod                
+    def count_itp_atoms(file_path):
+        in_atoms_section = False
+        atom_count = 0
+        try:
+            with open(file_path, 'r') as file:
+                for line in file:
+                    # Strip whitespace and check if it's a comment or empty line
+                    line = line.strip()
+                    if not line or line.startswith(';'):
+                        continue
+                    # Detect the start of the [ atoms ] section
+                    if line.startswith("[ atoms ]"):
+                        in_atoms_section = True
+                        continue
+                    # Detect the start of a new section
+                    if in_atoms_section and line.startswith('['):
+                        break
+                    # Count valid lines in the [ atoms ] section
+                    if in_atoms_section:
+                        atom_count += 1
+            return atom_count
+        except FileNotFoundError:
+            print(f"Error: File {file_path} not found.")
+            return 0
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return 0
            
     def make_gro_file(self, d=1.25, bt='dodecahedron'):
         cg_pdb_files = sorted(os.listdir(self.cgdir))
@@ -806,7 +836,7 @@ class MDRun(CGSystem):
             print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
             pertmat = np.load(pert_file)
             print('  Calculating DCI', file=sys.stderr)
-            dcis = dd.calc_group_molecule_dci(pertmat, groups=groups)
+            dcis = dd.calc_group_molecule_dci(pertmat, groups=groups, asym=False)
             for dci, group, segid in zip(dcis, groups, segids):
                 dci_file = pert_file.replace('pertmat', f'dci_{segid}').replace('.npy', '.xvg')
                 dci_file = os.path.join('..', 'dci_dfi', dci_file)
@@ -814,7 +844,7 @@ class MDRun(CGSystem):
                 dd.save_1d_data(dci, fpath=dci_file)
             ch_dci_file = pert_file.replace('pertmat', f'ch_dci').replace('.npy', '.xvg')
             ch_dci_file = os.path.join('..', 'dci_dfi', ch_dci_file)
-            ch_dci = dd.calc_group_group_dci(pertmat, groups=groups)
+            ch_dci = dd.calc_group_group_dci(pertmat, groups=groups, asym=False)
             dd.save_2d_data(ch_dci, fpath=ch_dci_file)
         print('Finished calculating DCIs!', file=sys.stderr)
         os.chdir(bdir) 

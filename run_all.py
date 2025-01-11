@@ -14,16 +14,16 @@ def setup(sysdir, sysname):
     system = CGSystem(sysdir, sysname)
     # system.prepare_files()
     # system.clean_inpdb(add_missing_atoms=True, add_hydrogens=True, variant=None)
-    # system.split_chains(from_clean=False)
+    # system.split_chains(from_clean=True)
     # system.clean_proteins(add_hydrogens=True)
     # system.get_go_maps()
     # system.martinize_proteins(go_eps=10.0, go_low=0.3, go_up=1.1, p='backbone', pf=500, resid='mol')
-    system.martinize_nucleotides(sys='test', p='bb', pf=500, type='ignore')
+    system.martinize_nucleotides(sys='test', p='all', pf=500, type='ss')
     # system.make_cgpdb_file(add_ions=True, bt='triclinic', box='31.0  31.0  31.0', angles='60.00  60.00  90.00')
     # system.make_cgpdb_file(bt='octahedron', d='1.25', )
     # system.make_topology_file() # ions=['K', 'MG', 'MGH']
     # system.solvate()
-    # system.add_ions(conc=0.15, pname='K', nname='CL')
+    # system.add_ions(conc=0.0, pname='K', nname='CL')
     
     
 def md(sysdir, sysname, runname, ntomp): 
@@ -34,11 +34,11 @@ def md(sysdir, sysname, runname, ntomp):
     # em
     mdrun.empp()
     mdrun.mdrun(deffnm='em', ntomp=ntomp)
-    # # hu
-    # mdrun.hupp()
-    # mdrun.mdrun(deffnm='hu', ntomp=ntomp)
+    # hu
+    mdrun.hupp()
+    mdrun.mdrun(deffnm='hu', ntomp=ntomp)
     # eq
-    mdrun.eqpp(c='em.gro', r='em.gro') # n=n, 
+    mdrun.eqpp() # n=n, c='em.gro', r='em.gro'
     mdrun.mdrun(deffnm='eq', ntomp=ntomp)
     # md
     mdrun.mdpp()
@@ -61,7 +61,7 @@ def geometry(sysdir, sysname, runname, **kwargs):
 def make_ndx(sysdir, sysname, **kwargs):
     system = CGSystem(sysdir, sysname)
     atoms = ['BB', 'BB1', 'BB2', 'BB3', 'SC1', 'SC2', 'SC3', 'SC4', 'SC5', 'SC6', ]
-    ions = ['K', 'CL', 'MG']
+    ions = ['K', 'CL', 'MG', 'MGH']
     # sys ndx
     system.make_ndx(pdb=system.syspdb, ndx=system.sysndx, groups=[atoms + ions])
     # mdc pdb and ndx
