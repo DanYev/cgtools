@@ -65,6 +65,15 @@ def split_conn_params(line, tag):
 def make_in_terms(input_file, output_file, dict_of_names):
     tag = None
     pairs = []
+    
+    def get_sigma(b1, b2):
+        list_of_pairs = {('TA3', 'TU2'), ('TA4', 'TU3'), ('TA5', 'TU4'), 
+            ('TG3', 'TY2'), ('TG4', 'TY3'), ('TG5', 'TY4')}
+        if (b1, b2) in list_of_pairs or (b2, b1) in list_of_pairs:
+            sigma = "2.850000e-01"
+        else:
+            sigma = "3.400000e-01"
+        return sigma
 
     with open(output_file, 'w') as file:
         file.write('[ atomtypes ]' + '\n')
@@ -91,7 +100,7 @@ def make_in_terms(input_file, output_file, dict_of_names):
                         pairs.append((key_1, key_2))
                         parts[0] = key_1
                         parts[1] = key_2
-                        parts[3] = "3.000000e-01"
+                        parts[3] = get_sigma(key_1, key_2)
                         file.write('  '.join(parts) + '\n')
             
             
@@ -152,19 +161,25 @@ def make_marnatini_itp():
                         'TA5': 'TC5',
                         'TA6': 'TC5', 
                         'TY1': 'SN3',
-                        'TY2': 'TP1',
-                        'TY3': 'TN5',
-                        'TY4': 'TP1',
+                        'TY2': 'TC5',
+                        'TY3': 'TC5',
+                        'TY4': 'TC5',
+                        'TY5':  None,
                         'TG1': 'TN1', 
-                        'TG2': 'TN2',
-                        'TG3': 'TP1', 
-                        'TG4': 'TP1',
-                        'TG5': 'TP2', 
-                        'TG6': 'TN1',
+                        'TG2': 'TC5',
+                        'TG3': 'TC5', 
+                        'TG4': 'TC5',
+                        'TG5': 'TC5', 
+                        'TG6': 'TC5',
+                        'TG7':  None,
+                        'TG8':  None,
                         'TU1': 'SN3',
                         'TU2': 'TC5',
                         'TU3': 'TC5',
                         'TU4': 'TC5',
+                        'TU5':  None,
+                        'TU6':  None,
+                        'TU7':  None,
     }
     out_file = 'cgtools/itp/martini_RNA.itp'
     
