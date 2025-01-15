@@ -1278,11 +1278,11 @@ class elnedyn30nucleic():
         self.name = 'elnedyn30nucleic'
         
         # Charged types:
-        charges = {"TDU":0.5,  "TA1":0.4, "TA2":-0.5, "TA3":0.6, "TA4":-0.6, "TA5":0.6, "TA6":-0.5, 
+        charges = {"TDU":0.5,  "TA1":0.4, "TA2":-0.4, "TA3":0.4, "TA4":-1.0, "TA5":1.0, "TA6":-0.4, 
                                     "TY1":0.0, "TY2":-0.5, "TY3":-0.7, "TY4":0.7, "TY5":0.5,
                                     "TG1":0.4, "TG2":-0.4, "TG3":0.8, "TG4":-0.4, "TG5":-0.5, "TG6":-0.8, "TG7":0.4, "TG8":0.5,
-                                    "TU1":0.0, "TU2":-0.5, "TU3":-0.5, "TU4":-0.5, "TU5":0.5, "TU6":0.5, "TU7":0.5,}  
-        self.charges = {key: value * 2.0 for key, value in charges.items()}
+                                    "TU1":0.0, "TU2":-0.4, "TU3":-0.8, "TU4":-0.8, "TU5":0.4, "TU6":0.8, "TU7":0.8,}  
+        self.charges = {key: value * 1.2 for key, value in charges.items()}
         self.bbcharges = {"BB1":-1}                                                                                                      
         
         # Not all (eg Elnedyn) forcefields use backbone-backbone-sidechain angles and BBBB-dihedrals.
@@ -1328,7 +1328,7 @@ class elnedyn30nucleic():
                        (1,  0.402, 12000)],          
             'angle' : [(10,  118.0, 35),       
                        (10,  119.0, 150)],    # TODO UPDATE ACCORDING TO THE DISTRIBUTION       
-            'dih'   : [(3,   8,  -7, 12, 6, -12.0, -7),  # (3,   6,  -4, 11, 4, -13.0, -4) 
+            'dih'   : [(3,   7,  -6, 10, 6, -10.0, -7),  # (3,   6,  -4, 11, 4, -13.0, -4) 
                        (1,     15.0,   6, 1),],  # (1,   30.0,   6, 1), 
             'excl'  : [(), (), ()],
             'pair'  : [],

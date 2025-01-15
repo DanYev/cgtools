@@ -200,8 +200,8 @@ def bonded_parameters():
     # AA structure
     aa_structure = make_structure_pdb(f"systems/{molecule}_aa/mdruns/mdrun_2/mdc.pdb")
     # aa_structure = make_structure_pdb(f"ribosomes_old/test.pdb")
-    # cg_structure = make_structure_pdb(f"systems/{molecule}/mdruns/mdrun_1/mdc.pdb")
-    cg_structure = make_structure_pdb(f"/home/dyangali/tmp/mdc.pdb")
+    cg_structure = make_structure_pdb(f"systems/{molecule}/mdruns/mdrun_1/mdc.pdb")
+    # cg_structure = make_structure_pdb(f"/home/dyangali/tmp/mdc.pdb")
     mapping = cgmap.get_mapping_byname('new')
     all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals = [], [], [], [], [], []
     for resname in resnames:

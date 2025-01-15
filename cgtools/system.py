@@ -615,8 +615,8 @@ class MDRun(CGSystem):
         """
         super().__init__(*args)
         self.runname = runname
-        self.rundir = '/home/dyangali/tmp'
-        # self.rundir = os.path.join(self.mddir, self.runname)
+        # self.rundir = '/home/dyangali/tmp'
+        self.rundir = os.path.join(self.mddir, self.runname)
         self.rmsdir = os.path.join(self.rundir, 'rms_analysis')
         self.covdir = os.path.join(self.rundir, 'cov_analysis')
         self.dddir  = os.path.join(self.rundir, 'dci_dfi')
