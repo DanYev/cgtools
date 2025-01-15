@@ -178,7 +178,7 @@ def update_topology(topology, bonds, angles, dihedrals, std_bonds, std_angles, s
 def bonded_parameters():
     resnames = ('A', 'C', 'G', 'U') # ('A', 'C', 'G', 'U')  ('A', 'U') 
     version = 'new'
-    molecule = "RNA"
+    molecule = "dsRNA"
 
     
     # system = sys.argv[1]
@@ -198,10 +198,10 @@ def bonded_parameters():
     #     mapping = None
     
     # AA structure
-    aa_structure = make_structure_pdb(f"systems/dsRNA_aa/mdruns/mdrun_2/mdc.pdb")
+    aa_structure = make_structure_pdb(f"systems/{molecule}_aa/mdruns/mdrun_2/mdc.pdb")
     # aa_structure = make_structure_pdb(f"ribosomes_old/test.pdb")
-    cg_structure = make_structure_pdb(f"systems/dsRNA/mdruns/mdrun_1/mdc.pdb")
-    # cg_structure = make_structure_pdb(f"systems/{system}/cgpdb/chain_A.pdb")
+    # cg_structure = make_structure_pdb(f"systems/{molecule}/mdruns/mdrun_1/mdc.pdb")
+    cg_structure = make_structure_pdb(f"/home/dyangali/tmp/mdc.pdb")
     mapping = cgmap.get_mapping_byname('new')
     all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals = [], [], [], [], [], []
     for resname in resnames:

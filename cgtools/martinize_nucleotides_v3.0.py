@@ -1278,10 +1278,11 @@ class elnedyn30nucleic():
         self.name = 'elnedyn30nucleic'
         
         # Charged types:
-        self.charges = {"TDU":0.5, "TA1":0.6, "TA2":-0.5, "TA3":1.0, "TA4":-1.6, "TA5":1.0, "TA6":-0.5, # "TA1":0.4, "TA2":-0.3, "TA3":0.6, "TA4":-0.6, "TA5":0.4, "TA6":-0.4,
-                                    "TY1":0.0, "TY2":-1.0, "TY3":-1.4, "TY4":1.4, "TY5":1.0,
-                                    "TG1":0.4, "TG2":-0.4, "TG3":0.8, "TG4":-0.6, "TG5":-1.0, "TG6":-0.8, "TG7":0.6, "TG8":1.0,
-                                    "TU1":0.0, "TU2":-1.0, "TU3":-1.0, "TU4":-1.0, "TU5":1.0, "TU6":1.0, "TU7":1.0,}   # "TU1":0.0, "TU2":0.5, "TU3":-0.4, "TU4":0.5, "TU5":-0.5, "TU6":0.4, "TU7":-0.5,                 
+        charges = {"TDU":0.5,  "TA1":0.4, "TA2":-0.5, "TA3":0.6, "TA4":-0.6, "TA5":0.6, "TA6":-0.5, 
+                                    "TY1":0.0, "TY2":-0.5, "TY3":-0.7, "TY4":0.7, "TY5":0.5,
+                                    "TG1":0.4, "TG2":-0.4, "TG3":0.8, "TG4":-0.4, "TG5":-0.5, "TG6":-0.8, "TG7":0.4, "TG8":0.5,
+                                    "TU1":0.0, "TU2":-0.5, "TU3":-0.5, "TU4":-0.5, "TU5":0.5, "TU6":0.5, "TU7":0.5,}  
+        self.charges = {key: value * 2.0 for key, value in charges.items()}
         self.bbcharges = {"BB1":-1}                                                                                                      
         
         # Not all (eg Elnedyn) forcefields use backbone-backbone-sidechain angles and BBBB-dihedrals.
@@ -1320,15 +1321,15 @@ class elnedyn30nucleic():
 
         # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
-            'atom'  : spl("Q1n C6 N1"),    
+            'atom'  : spl("Q1n N1 N4"),    
             'bond'  : [(1,  0.349, 25000),          
-                       (1,  0.382, 12000),
+                       (1,  0.383, 12000),
                        (1,  0.240, 25000),
                        (1,  0.402, 12000)],          
-            'angle' : [(10,  113.0, 35),       
-                       (10,  120.0, 160)],    # TODO UPDATE ACCORDING TO THE DISTRIBUTION       
-            'dih'   : [(3,   6,  -4, 11, 4, -13.0, -4),  # (3,   6,  -4, 11, 4, -13.0, -4) # (1,      0.0,   6, 1)
-                       (1,      8.0,   12, 1),],  # (1,   30.0,   6, 1),
+            'angle' : [(10,  118.0, 35),       
+                       (10,  119.0, 150)],    # TODO UPDATE ACCORDING TO THE DISTRIBUTION       
+            'dih'   : [(3,   8,  -7, 12, 6, -12.0, -7),  # (3,   6,  -4, 11, 4, -13.0, -4) 
+                       (1,     15.0,   6, 1),],  # (1,   30.0,   6, 1), 
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
