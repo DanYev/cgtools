@@ -69,34 +69,72 @@ def make_in_terms(input_file, output_file, dict_of_names):
     pairs = []
     
     def get_sigma(b1, b2):
-        list_of_pairs_1 = {('TA3', 'TA3'),  ('TA4', 'TA4'), ('TA3', 'TU2'), 
-            ('TY2', 'TY2'),  ('TY3', 'TY3'),
-            ('TG4', 'TG4'),  ('TG5', 'TG5'),
-            ('TU2', 'TU2'),   ('TU3', 'TU3'),  ('TU4', 'TU4'),
-            ('TG3', 'TY2'),  ('TG4', 'TY3'), ('TG5', 'TY4'),
+        list_of_pairs_1 = { 
+            ('TA3', 'TU2'), ('TA4', 'TU3'), ('TA5', 'TU4'), 
+            ('TG3', 'TY2'), ('TG4', 'TY3'), ('TG5', 'TY4'),
         }
-        list_of_pairs_2 = {('TA3', 'TU3'), ('TA3', 'TU4'),
-            ('TA4', 'TU2'),  ('TA4', 'TU4'),
-            ('TA5', 'TU2'), ('TA5', 'TU3'), 
-            ('TG3', 'TY3'), ('TG3', 'TY4'),
-            ('TG4', 'TY2'),  ('TG4', 'TY4'),
-            ('TG5', 'TY2'), ('TG5', 'TY3'), 
+        
+        list_of_pairs_2 = {
+            ('TA3', 'TA3'), ('TA4', 'TA4'), 
+            ('TA3', 'TY2'), ('TA4', 'TY3'), 
+            ('TG4', 'TG4'), ('TG5', 'TG5'),
+            ('TG4', 'TU3'), ('TG5', 'TU4'),
+            ('TA3', 'TG3'), ('TA4', 'TG4'), ('TA5', 'TG5'), 
+            ('TA3', 'TU3'), ('TA3', 'TU4'), ('TA4', 'TU2'), ('TA4', 'TU4'), ('TA5', 'TU2'), ('TA5', 'TU3'), 
+            ('TG3', 'TY3'), ('TG3', 'TY4'), ('TG4', 'TY2'), ('TG4', 'TY4'), ('TG5', 'TY2'), ('TG5', 'TY3'),
+            ('TG4', 'TU2'), ('TG4', 'TU4'), ('TG5', 'TU2'), ('TG5', 'TU3'),
         }
-        list_of_pairs_3 = {
-            ('TA4', 'TU3'),  ('TA5', 'TU4'), 
+        
+        list_of_pairs_3 = { 
+            ('TY2', 'TY2'), ('TY3', 'TY3'),
+            ('TY2', 'TU2'), ('TY3', 'TU3'), ('TY4', 'TU4'),
+            ('TY2', 'TU3'), ('TY2', 'TU4'), ('TY3', 'TU2'), ('TY3', 'TU4'), ('TY4', 'TU2'), ('TY4', 'TU3'),
+            ('TU2', 'TU2'), ('TU3', 'TU3'), ('TU4', 'TU4'),
+            
         }
+        
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
-            sigma = "2.800000e-01"
-        elif (b1, b2) in list_of_pairs_3 or (b2, b1) in list_of_pairs_3:
-             sigma = "2.700000e-01"
+            sigma = "2.80000e-01"
+        # elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
+        #      sigma = "3.000000e-01"
+        # elif (b1, b2) in list_of_pairs_3 or (b2, b1) in list_of_pairs_3:
+        #      sigma = "3.200000e-01"
         else:
             sigma = "3.400000e-01"
         return sigma
 
     with open(output_file, 'w') as file:
         file.write('[ atomtypes ]' + '\n')
+        dict_of_vdw = {   
+            'TA1': ('3.400000e-01', '8.368000e-02'), 
+            'TA2': ('3.400000e-01', '8.368000e-02'),
+            'TA3': ('3.400000e-01', '8.368000e-02'), 
+            'TA4': ('3.400000e-01', '8.368000e-02'),
+            'TA5': ('3.400000e-01', '8.368000e-02'),
+            'TA6': ('3.400000e-01', '8.368000e-02'), 
+            'TY1': ('3.400000e-01', '8.368000e-02'),
+            'TY2': ('3.400000e-01', '8.368000e-02'),
+            'TY3': ('3.400000e-01', '8.368000e-02'),
+            'TY4': ('3.400000e-01', '8.368000e-02'),
+            'TY5': ('3.400000e-01', '8.368000e-02'),
+            'TG1': ('3.400000e-01', '8.368000e-02'), 
+            'TG2': ('3.400000e-01', '8.368000e-02'),
+            'TG3': ('3.400000e-01', '8.368000e-02'), 
+            'TG4': ('3.400000e-01', '8.368000e-02'),
+            'TG5': ('3.400000e-01', '8.368000e-02'), 
+            'TG6': ('3.400000e-01', '8.368000e-02'),
+            'TG7': ('0.500000e-01', '8.368000e-02'),
+            'TG8': ('3.400000e-01', '8.368000e-02'),
+            'TU1': ('3.400000e-01', '8.368000e-02'),
+            'TU2': ('3.400000e-01', '8.368000e-02'),
+            'TU3': ('3.400000e-01', '8.368000e-02'),
+            'TU4': ('3.400000e-01', '8.368000e-02'),
+            'TU5': ('3.400000e-01', '8.368000e-02'),
+            'TU6': ('0.500000e-01', '8.368000e-02'),
+            'TU7': ('3.400000e-01', '8.368000e-02'),
+        }
         for key in dict_of_names.keys():
-            file.write(f"{key}  45.000  0.000  A  0.0  0.0\n")
+            file.write(f"{key}  45.000  0.000  A  {dict_of_vdw[key][0]}  {dict_of_vdw[key][1]}\n")
         file.write('\n' + '[ nonbond_params ]' + '\n')
                     
     with open(input_file, 'r') as file:
@@ -173,55 +211,27 @@ def make_marnatini_itp():
                         'TU3': 'TP1a',
     }
     dict_of_names = {   'TA1': 'TN1', 
-                        'TA2': 'TP1a',
-                        'TA3': 'TC3', 
-                        'TA4': 'TC5',
-                        'TA5': 'TC5',
-                        'TA6': 'TP1a', 
-                        'TY1': 'SN1',
-                        'TY2': 'TP1a',
-                        'TY3': 'TP1a',
-                        'TY4': 'TN2d',
-                        'TY5':  None,
-                        'TG1': 'TP1', 
-                        'TG2': 'TP1a',
-                        'TG3': 'TN2d', 
-                        'TG4': 'TP1d',
-                        'TG5': 'TP1a', 
-                        'TG6': 'TP1a',
-                        'TG7':  None,
-                        'TG8':  None,
-                        'TU1': 'SN1',
-                        'TU2': 'TP1a',
-                        'TU3': 'TP1d',
-                        'TU4': 'TP1a',
-                        'TU5':  None,
-                        'TU6':  None,
-                        'TU7':  None,
-    }
-    
-    dict_of_names = {   'TA1': 'TN1', 
                         'TA2': 'TN1a',
                         'TA3': 'TC3', 
-                        'TA4': 'TN5a',
+                        'TA4': 'TN3a',
                         'TA5': 'TP2d',
                         'TA6': 'TN1a', 
                         'TY1': 'SN1',
                         'TY2': 'TP2a',
-                        'TY3': 'TN5a',
+                        'TY3': 'TN3a',
                         'TY4': 'TP2d',
                         'TY5':  None,
                         'TG1': 'TN1', 
                         'TG2': 'TN1a',
                         'TG3': 'TP2d', 
-                        'TG4': 'TN5d',
+                        'TG4': 'TN3d',
                         'TG5': 'TP2a', 
                         'TG6': 'TN1a',
                         'TG7':  None,
                         'TG8':  None,
                         'TU1': 'SN1',
                         'TU2': 'TP2a',
-                        'TU3': 'TN5d',
+                        'TU3': 'TN3d',
                         'TU4': 'TP2a',
                         'TU5':  None,
                         'TU6':  None,
