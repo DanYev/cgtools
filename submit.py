@@ -173,7 +173,7 @@ runs = ['mdrun_1', ]
 # 
 # submit_setup(submit=False)
 # submit_make_ndx(submit=False)
-# submit_md(submit=True, ntomp=6)
+# submit_md(submit=True, ntomp=8)
 # submit_extend(ntomp=8)
 # submit_geometry()
 submit_trjconv(submit=False)
