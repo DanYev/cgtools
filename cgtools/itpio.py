@@ -85,20 +85,15 @@ def make_in_terms(input_file, output_file, dict_of_names):
             ('TG4', 'TU2'), ('TG4', 'TU4'), ('TG5', 'TU2'), ('TG5', 'TU3'),
         }
         
-        list_of_pairs_3 = { 
-            ('TY2', 'TY2'), ('TY3', 'TY3'),
-            ('TY2', 'TU2'), ('TY3', 'TU3'), ('TY4', 'TU4'),
-            ('TY2', 'TU3'), ('TY2', 'TU4'), ('TY3', 'TU2'), ('TY3', 'TU4'), ('TY4', 'TU2'), ('TY4', 'TU3'),
-            ('TU2', 'TU2'), ('TU3', 'TU3'), ('TU4', 'TU4'),
-            
+        list_of_pairs_3 = { ('TA3', 'TU2'),
         }
         
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
-            sigma = "2.9000000e-01"
+            sigma = "2.8000000e-01"
         # elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
         #      sigma = "3.000000e-01"
-        # elif (b1, b2) in list_of_pairs_3 or (b2, b1) in list_of_pairs_3:
-        #      sigma = "3.200000e-01"
+        elif (b1, b2) in list_of_pairs_3 or (b2, b1) in list_of_pairs_3:
+             sigma = "3.100000e-01"
         else:
             sigma = "3.4000000e-01"
         return sigma
@@ -123,14 +118,14 @@ def make_in_terms(input_file, output_file, dict_of_names):
             'TG4': ('3.200000e-01', '8.368000e-02'),
             'TG5': ('3.200000e-01', '8.368000e-02'), 
             'TG6': ('3.200000e-01', '8.368000e-02'),
-            'TG7': ('0.500000e-01', '8.368000e-02'),
+            'TG7': ('1.000000e-01', '8.368000e-02'),
             'TG8': ('3.200000e-01', '8.368000e-02'),
             'TU1': ('3.200000e-01', '8.368000e-02'),
             'TU2': ('3.200000e-01', '8.368000e-02'),
             'TU3': ('3.200000e-01', '8.368000e-02'),
             'TU4': ('3.200000e-01', '8.368000e-02'),
             'TU5': ('3.200000e-01', '8.368000e-02'),
-            'TU6': ('0.500000e-01', '8.368000e-02'),
+            'TU6': ('1.000000e-01', '8.368000e-02'),
             'TU7': ('3.200000e-01', '8.368000e-02'),
         }
         for key in dict_of_names.keys():

@@ -1278,10 +1278,10 @@ class elnedyn30nucleic():
         self.name = 'elnedyn30nucleic'
         
         # Charged types:
-        charges = {"TDU":0.5,   "TA1":0.4, "TA2":-0.4, "TA3":0.4, "TA4":-0.7, "TA5":0.7, "TA6":-0.4, 
-                                "TY1":0.0, "TY2":-0.5, "TY3":-0.6, "TY4":0.6, "TY5":0.5,
-                                "TG1":0.4, "TG2":-0.5, "TG3":0.6, "TG4":-0.5, "TG5":-0.5, "TG6":-0.5, "TG7":0.5, "TG8":0.5,
-                                "TU1":0.0, "TU2":-0.4, "TU3":-0.5, "TU4":-0.5, "TU5":0.4, "TU6":0.5, "TU7":0.5,}  
+        charges = {"TDU":0.5,   "TA1":0.4, "TA2":-0.4, "TA3":0.4, "TA4":-1.5, "TA5":1.5, "TA6":-0.4, 
+                                "TY1":0.0, "TY2":-0.5, "TY3":-1.5, "TY4":1.5, "TY5":0.5,
+                                "TG1":0.4, "TG2":-0.5, "TG3":0.6, "TG4":-0.5, "TG5":-1.5, "TG6":-0.5, "TG7":1.5, "TG8":0.5,
+                                "TU1":0.0, "TU2":-0.4, "TU3":-0.5, "TU4":-1.5, "TU5":0.4, "TU6":1.5, "TU7":0.5,}  
         self.charges = {key: value * 1.0 for key, value in charges.items()}
         self.bbcharges = {"BB1":-1}                                                                                                      
         
@@ -1329,7 +1329,7 @@ class elnedyn30nucleic():
             'angle' : [(10,  112.0, 35),       
                        (10,  119.0, 150)],    # TODO UPDATE ACCORDING TO THE DISTRIBUTION       
             'dih'   : [(3,   10,  -8, 22, 8, -26, -6),  # (3,   10,  -8, 22, 8, -26, -6) 
-                       (1,     25.0,   12, 1),],  # (1,     15.0,   5, 1)
+                       (1,     0.0,   10, 1),],  # (1,     15.0,   5, 1)
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
