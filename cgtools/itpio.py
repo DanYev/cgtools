@@ -85,15 +85,11 @@ def make_in_terms(input_file, output_file, dict_of_names):
             ('TG4', 'TU2'), ('TG4', 'TU4'), ('TG5', 'TU2'), ('TG5', 'TU3'),
         }
         
-        list_of_pairs_3 = { ('TA3', 'TU2'),
-        }
         
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
-            sigma = "2.8000000e-01"
+            sigma = "2.7500000e-01"
         # elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
         #      sigma = "3.000000e-01"
-        elif (b1, b2) in list_of_pairs_3 or (b2, b1) in list_of_pairs_3:
-             sigma = "3.100000e-01"
         else:
             sigma = "3.4000000e-01"
         return sigma
@@ -205,26 +201,26 @@ def make_marnatini_itp():
                         'TU2': 'TP1d',
                         'TU3': 'TP1a',
     }
-    dict_of_names = {   'TA1': 'TN1', 
+    dict_of_names = {   'TA1': 'TC5', 
                         'TA2': 'TN1a',
-                        'TA3': 'TC1', 
+                        'TA3': 'TC3', 
                         'TA4': 'TP2a',
                         'TA5': 'TN6d',
                         'TA6': 'TN1a', 
-                        'TY1': 'SN1',
-                        'TY2': 'TN6a',
-                        'TY3': 'TP2a',
+                        'TY1': 'SC3',
+                        'TY2': 'TN5a',
+                        'TY3': 'TP1a',
                         'TY4': 'TN6d',
                         'TY5':  None,
-                        'TG1': 'TN1', 
+                        'TG1': 'TC5', 
                         'TG2': 'TN1a',
-                        'TG3': 'TN6d', 
-                        'TG4': 'TP2d',
+                        'TG3': 'TN1d', 
+                        'TG4': 'TP1d',
                         'TG5': 'TN6a', 
                         'TG6': 'TN1a',
                         'TG7':  None,
                         'TG8':  None,
-                        'TU1': 'SN1',
+                        'TU1': 'SC3',
                         'TU2': 'TN6a',
                         'TU3': 'TP2d',
                         'TU4': 'TN6a',
@@ -239,7 +235,8 @@ def make_marnatini_itp():
         make_cross_terms('cgtools/itp/martini.itp', out_file, old_name, new_name)
     sh.copy(out_file, '/scratch/dyangali/cgtools/systems/dsRNA/topol/martini_v3.0.0_rna.itp')
     sh.copy(out_file, '/scratch/dyangali/cgtools/systems/ssRNA/topol/martini_v3.0.0_rna.itp')
-    sh.copy(out_file, '/scratch/dyangali/maRNAtini_sims/dimerization_pmf_us/topol/martini_RNA.itp')    
+    sh.copy(out_file, '/scratch/dyangali/maRNAtini_sims/dimerization_pmf_us/topol/martini_RNA.itp')
+    sh.copy(out_file, '/scratch/dyangali/maRNAtini_sims/angled_dimerization_pmf_us/topol/martini_RNA.itp') # angled_dimerization_pmf_us
         
 def make_ions_itp():
     import pandas as pd

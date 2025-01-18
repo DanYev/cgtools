@@ -612,7 +612,7 @@ class CoarseGrained:
                             "N6 C6 H61 H62",
                             "N7 C5", ),
             "C":  BB_mapping + nsplit(
-                            "N1 C5 C6",
+                            "C6",
                             "O2",
                             "N3",
                             "N4 C4 H41 H42",
@@ -627,7 +627,7 @@ class CoarseGrained:
                             "H1",
                             "C6"),
             "U":  BB_mapping + nsplit(
-                            "N1 C5 C6",
+                            "C6",
                             "O2",
                             "N3",
                             "O4",
@@ -1278,10 +1278,10 @@ class elnedyn30nucleic():
         self.name = 'elnedyn30nucleic'
         
         # Charged types:
-        charges = {"TDU":0.5,   "TA1":0.4, "TA2":-0.4, "TA3":0.4, "TA4":-1.5, "TA5":1.5, "TA6":-0.4, 
-                                "TY1":0.0, "TY2":-0.5, "TY3":-1.5, "TY4":1.5, "TY5":0.5,
-                                "TG1":0.4, "TG2":-0.5, "TG3":0.6, "TG4":-0.5, "TG5":-1.5, "TG6":-0.5, "TG7":1.5, "TG8":0.5,
-                                "TU1":0.0, "TU2":-0.4, "TU3":-0.5, "TU4":-1.5, "TU5":0.4, "TU6":1.5, "TU7":0.5,}  
+        charges = {"TDU":0.5,   "TA1":0.4, "TA2":-0.4, "TA3":0.4, "TA4":-1.2, "TA5":1.2, "TA6":-0.4, 
+                                "TY1":0.0, "TY2":-0.5, "TY3":-1.0, "TY4":1.0, "TY5":0.5,
+                                "TG1":0.4, "TG2":-0.5, "TG3":0.6, "TG4":-0.5, "TG5":-1.0, "TG6":-0.5, "TG7":1.0, "TG8":0.5,
+                                "TU1":0.0, "TU2":-0.4, "TU3":-0.5, "TU4":-1.2, "TU5":0.4, "TU6":1.2, "TU7":0.5,}  
         self.charges = {key: value * 1.0 for key, value in charges.items()}
         self.bbcharges = {"BB1":-1}                                                                                                      
         
@@ -1321,15 +1321,15 @@ class elnedyn30nucleic():
 
         # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
-            'atom'  : spl("Q1n P1 P2"),    
+            'atom'  : spl("Q1 P1 P2"),    
             'bond'  : [(1,  0.351, 20000),          
                        (1,  0.385, 12000),
                        (1,  0.240, 20000),
                        (1,  0.402, 12000)],          
             'angle' : [(10,  112.0, 30),       
                        (10,  119.0, 110)],    # TODO UPDATE ACCORDING TO THE DISTRIBUTION       
-            'dih'   : [(3,   10,  -8, 22, 8, -26, -6),  # (3,   10,  -8, 22, 8, -26, -6) 
-                       (1,   -10.0,   6, 1),],  # (1,     15.0,   5, 1)
+            'dih'   : [(1,    30.0,   4, 1),  # (3,   10,  -8, 22, 8, -26, -6) 
+                       (1,   -10.0,   4, 1),],  # (1,     15.0,   5, 1)
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
