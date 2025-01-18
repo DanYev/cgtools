@@ -11,7 +11,7 @@ from Bio.PDB import vectors, Superimposer, PDBIO, Atom
 
 # molecule = sys.argv[1]
 # mode = sys.argv[2]
-
+molecule = "dsRNA"
 
 sys.path.append('./cgtools')
 import itpio
@@ -178,7 +178,6 @@ def update_topology(topology, bonds, angles, dihedrals, std_bonds, std_angles, s
 def bonded_parameters():
     resnames = ('A', 'C', 'G', 'U') # ('A', 'C', 'G', 'U')  ('A', 'U') 
     version = 'new'
-    molecule = "dsRNA"
 
     
     # system = sys.argv[1]
