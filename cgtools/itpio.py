@@ -75,6 +75,7 @@ def make_in_terms(input_file, output_file, dict_of_names):
         }
         
         list_of_pairs_2 = {
+            ('TA3', 'TU2'),
             ('TA3', 'TA3'), ('TA4', 'TA4'), 
             ('TA3', 'TY2'), ('TA4', 'TY3'), 
             ('TG4', 'TG4'), ('TG5', 'TG5'),
