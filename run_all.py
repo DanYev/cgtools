@@ -80,7 +80,7 @@ def trjconv(sysdir, sysname, runname, **kwargs):
     system = CGSystem(sysdir, sysname)
     mdrun = system.initmd(runname)
     # shutil.copy('atommass.dat', os.path.join(mdrun.rundir, 'atommass.dat'))
-    mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=1000, e=1000000, **kwargs)
+    mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=900, e=1000000, **kwargs)
     mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='mdc.xtc', o='mdc.pdb', n=mdrun.sysndx, fit='rot+trans', **kwargs)
     exit()
     cli.run_gmx(mdrun.rundir, 'trjcat', clinput='c\nc\n', cltext=True, f='md_old.trr ext.trr', o='md.trr', settime='yes')
