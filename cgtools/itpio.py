@@ -88,7 +88,7 @@ def make_in_terms(input_file, output_file, dict_of_names):
         
         
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
-            sigma = "2.600000e-01"
+            sigma = "2.700000e-01"
         elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
              sigma = "3.200000e-01"
         else:
@@ -115,14 +115,14 @@ def make_in_terms(input_file, output_file, dict_of_names):
             'TG4': ('3.200000e-01', '8.368000e-02'),
             'TG5': ('3.200000e-01', '8.368000e-02'), 
             'TG6': ('3.200000e-01', '8.368000e-02'),
-            'TG7': ('0.600000e-01', '8.368000e-02'),
+            'TG7': ('0.200000e-01', '8.368000e-02'),
             'TG8': ('3.200000e-01', '8.368000e-02'),
             'TU1': ('3.200000e-01', '8.368000e-02'),
             'TU2': ('3.200000e-01', '8.368000e-02'),
             'TU3': ('3.200000e-01', '8.368000e-02'),
             'TU4': ('3.200000e-01', '8.368000e-02'),
             'TU5': ('3.200000e-01', '8.368000e-02'),
-            'TU6': ('0.600000e-01', '8.368000e-02'),
+            'TU6': ('0.200000e-01', '8.368000e-02'),
             'TU7': ('3.200000e-01', '8.368000e-02'),
         }
         for key in dict_of_names.keys():
@@ -204,26 +204,26 @@ def make_marnatini_itp():
     }
     dict_of_names = {   'TA1': 'TC5', 
                         'TA2': 'TN1a',
-                        'TA3': 'TN1d', 
-                        'TA4': 'TP2a',
-                        'TA5': 'TN6d',
+                        'TA3': 'TN1a', 
+                        'TA4': 'TN6ar',
+                        'TA5': 'TN6dr',
                         'TA6': 'TN1a', 
                         'TY1': 'SC3',
                         'TY2': 'TN5a',
-                        'TY3': 'TP1a',
+                        'TY3': 'TN6a',
                         'TY4': 'TN6d',
                         'TY5':  None,
                         'TG1': 'TC5', 
                         'TG2': 'TN1a',
-                        'TG3': 'TN1d', 
-                        'TG4': 'TP1d',
-                        'TG5': 'TN6a', 
+                        'TG3': 'TN1dr', 
+                        'TG4': 'TN6dr',
+                        'TG5': 'TN6ar', 
                         'TG6': 'TN1a',
                         'TG7':  None,
                         'TG8':  None,
                         'TU1': 'SC3',
                         'TU2': 'TN6a',
-                        'TU3': 'TP2d',
+                        'TU3': 'TN6d',
                         'TU4': 'TN6a',
                         'TU5':  None,
                         'TU6':  None,

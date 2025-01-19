@@ -1280,8 +1280,8 @@ class elnedyn30nucleic():
         # Charged types:
         charges = {"TDU":0.5,   "TA1":0.4, "TA2":0.0, "TA3":0.3, "TA4":-1.2, "TA5":0.9, "TA6":-0.4, 
                                 "TY1":0.0, "TY2":-0.5, "TY3":-0.8, "TY4":0.8, "TY5":0.5,
-                                "TG1":0.4, "TG2":-0.5, "TG3":0.6, "TG4":-0.5, "TG5":-0.8, "TG6":-0.5, "TG7":0.8, "TG8":0.5,
-                                "TU1":0.0, "TU2":-0.5, "TU3":-0.5, "TU4":-0.8, "TU5":0.4, "TU6":0.6, "TU7":0.8,}  
+                                "TG1":0.3, "TG2":0.0, "TG3":0.4, "TG4":-0.5, "TG5":-0.8, "TG6":-0.7, "TG7":0.5, "TG8":0.8,
+                                "TU1":0.0, "TU2":-0.5, "TU3":-1.0, "TU4":-0.8, "TU5":0.5, "TU6":1.0, "TU7":0.8,}  
         self.charges = {key: value * 1.0 for key, value in charges.items()}
         self.bbcharges = {"BB1":-1}                                                                                                      
         
