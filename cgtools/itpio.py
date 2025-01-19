@@ -90,9 +90,9 @@ def make_in_terms(input_file, output_file, dict_of_names):
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
             sigma = "2.700000e-01"
         elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
-             sigma = "3.100000e-01"
+             sigma = "3.000000e-01"
         else:
-            sigma = "3.4000000e-01"
+            sigma = "3.3000000e-01"
         return sigma
 
     with open(output_file, 'w') as file:
@@ -206,16 +206,16 @@ def make_marnatini_itp():
                         'TA2': 'TN1a',
                         'TA3': 'TC6', 
                         'TA4': 'TN6ar',
-                        'TA5': 'TN6dr',
+                        'TA5': 'TN3dr',
                         'TA6': 'TN1a', 
                         'TY1': 'SC3',
                         'TY2': 'TN5a',
                         'TY3': 'TN6a',
-                        'TY4': 'TN6d',
+                        'TY4': 'TN3d',
                         'TY5':  None,
                         'TG1': 'TC5', 
                         'TG2': 'TN1a',
-                        'TG3': 'TN1dr', 
+                        'TG3': 'TN3dr', 
                         'TG4': 'TN6dr',
                         'TG5': 'TN6ar', 
                         'TG6': 'TN1a',
@@ -223,7 +223,7 @@ def make_marnatini_itp():
                         'TG8':  None,
                         'TU1': 'SC3',
                         'TU2': 'TN6a',
-                        'TU3': 'TN6d',
+                        'TU3': 'TP1d',
                         'TU4': 'TN6a',
                         'TU5':  None,
                         'TU6':  None,
