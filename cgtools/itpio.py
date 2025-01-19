@@ -70,7 +70,7 @@ def make_in_terms(input_file, output_file, dict_of_names):
     
     def get_sigma(b1, b2):
         list_of_pairs_1 = { 
-            ('TA3', 'TU2'), ('TA4', 'TU3'), ('TA5', 'TU4'), 
+            ('TA4', 'TU3'), ('TA5', 'TU4'), 
             ('TG3', 'TY2'), ('TG4', 'TY3'), ('TG5', 'TY4'),
         }
         
@@ -91,7 +91,7 @@ def make_in_terms(input_file, output_file, dict_of_names):
         # elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
         #      sigma = "3.000000e-01"
         else:
-            sigma = "3.4000000e-01"
+            sigma = "3.3400000e-01"
         return sigma
 
     with open(output_file, 'w') as file:
