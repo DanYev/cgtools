@@ -84,7 +84,7 @@ def plot_geometry(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals, topo
     plt.close()
     
     # Plotting dihedrals
-    fig, axs = plt.subplots(2, 4, sharey=False, figsize=(12,6))
+    fig, axs = plt.subplots(3, 4, sharey=False, figsize=(12,8))
     arrout = []
     for n, key in enumerate(topology['dihedrals'].keys()):
         i = n // 4
