@@ -87,9 +87,9 @@ def make_in_terms(input_file, output_file, dict_of_names):
         
         
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
-            sigma = "2.7500000e-01"
-        # elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
-        #      sigma = "3.000000e-01"
+            sigma = "2.700000e-01"
+        elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
+             sigma = "3.200000e-01"
         else:
             sigma = "3.4000000e-01"
         return sigma
