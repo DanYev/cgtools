@@ -73,23 +73,14 @@ def make_in_terms(input_file, output_file, dict_of_names):
             ('TA4', 'TU3'), ('TA5', 'TU4'), 
             ('TG3', 'TY2'), ('TG4', 'TY3'), ('TG5', 'TY4'),
         }
-        
         list_of_pairs_2 = {
-            ('TA3', 'TA3'), ('TA4', 'TA4'), 
-            ('TA3', 'TY2'), ('TA4', 'TY3'), 
-            ('TG4', 'TG4'), ('TG5', 'TG5'),
-            ('TG4', 'TU3'), ('TG5', 'TU4'),
-            ('TA3', 'TG3'), ('TA4', 'TG4'), ('TA5', 'TG5'), 
             ('TA3', 'TU3'), ('TA3', 'TU4'), ('TA4', 'TU2'), ('TA4', 'TU4'), ('TA5', 'TU2'), ('TA5', 'TU3'), 
             ('TG3', 'TY3'), ('TG3', 'TY4'), ('TG4', 'TY2'), ('TG4', 'TY4'), ('TG5', 'TY2'), ('TG5', 'TY3'),
-            ('TG4', 'TU2'), ('TG4', 'TU4'), ('TG5', 'TU2'), ('TG5', 'TU3'),
         }
-        
-        
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
-            sigma = "2.400000e-01"
-        # elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
-            #  sigma = "2.800000e-01"
+            sigma = "2.500000e-01"
+        elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
+             sigma = "2.800000e-01"
         else:
             sigma = "3.4000000e-01"
         return sigma
