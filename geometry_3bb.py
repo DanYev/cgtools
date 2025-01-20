@@ -11,7 +11,7 @@ from Bio.PDB import vectors, Superimposer, PDBIO, Atom
 
 # molecule = sys.argv[1]
 # mode = sys.argv[2]
-molecule = "dsRNA"
+molecule = "ssRNA"
 
 sys.path.append('./cgtools')
 import itpio
