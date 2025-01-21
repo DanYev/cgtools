@@ -70,17 +70,18 @@ def make_in_terms(input_file, output_file, dict_of_names):
     
     def get_sigma(b1, b2):
         list_of_pairs_1 = { 
-            ('TA3', 'TU2'),('TA4', 'TU3'), ('TA5', 'TU4'), 
+            ('TA5', 'TU4'), ('TA3', 'TU2'),('TA4', 'TU3'), 
             ('TG3', 'TY2'), ('TG4', 'TY3'), ('TG5', 'TY4'),
         }
         list_of_pairs_2 = {
+            
             ('TA3', 'TU3'), ('TA4', 'TU2'), ('TA4', 'TU4'), ('TA5', 'TU3'), 
             ('TG3', 'TY3'), ('TG4', 'TY2'), ('TG4', 'TY4'), ('TG5', 'TY3'),
         }
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
-            sigma = "2.65000e-01"
+            sigma = "2.68000e-01"
         elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
-             sigma = "2.750000e-01"
+             sigma = "2.780000e-01"
         else:
             sigma = "3.3000000e-01"
         return sigma
@@ -194,7 +195,7 @@ def make_marnatini_itp():
     }
     dict_of_names = {   'TA1': 'SC5', 
                         'TA2': 'TN1a',
-                        'TA3': 'TN1d', 
+                        'TA3': 'TN1a', 
                         'TA4': 'TN6ar',
                         'TA5': 'TN6dr',
                         'TA6': 'TN1a', 
