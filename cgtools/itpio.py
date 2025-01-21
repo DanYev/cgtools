@@ -70,7 +70,7 @@ def make_in_terms(input_file, output_file, dict_of_names):
     
     def get_sigma(b1, b2):
         list_of_pairs_1 = { 
-            ('TA4', 'TU3'), ('TA5', 'TU4'), 
+            ('TA3', 'TU2'),('TA4', 'TU3'), ('TA5', 'TU4'), 
             ('TG3', 'TY2'), ('TG4', 'TY3'), ('TG5', 'TY4'),
         }
         list_of_pairs_2 = {
@@ -78,7 +78,7 @@ def make_in_terms(input_file, output_file, dict_of_names):
             ('TG3', 'TY3'), ('TG4', 'TY2'), ('TG4', 'TY4'), ('TG5', 'TY3'),
         }
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
-            sigma = "2.600000e-01"
+            sigma = "2.550000e-01"
         elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
              sigma = "2.800000e-01"
         else:
@@ -192,7 +192,7 @@ def make_marnatini_itp():
                         'TU2': 'TP1d',
                         'TU3': 'TP1a',
     }
-    dict_of_names = {   'TA1': 'TC5', 
+    dict_of_names = {   'TA1': 'SC5', 
                         'TA2': 'TN1a',
                         'TA3': 'TC6', 
                         'TA4': 'TN3ar',
@@ -203,7 +203,7 @@ def make_marnatini_itp():
                         'TY3': 'TN6a',
                         'TY4': 'TN3d',
                         'TY5':  None,
-                        'TG1': 'TC5', 
+                        'TG1': 'SC5', 
                         'TG2': 'TN1a',
                         'TG3': 'TN3dr', 
                         'TG4': 'TN6dr',
