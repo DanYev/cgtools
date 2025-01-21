@@ -78,7 +78,7 @@ def make_in_terms(input_file, output_file, dict_of_names):
             ('TG3', 'TY3'), ('TG4', 'TY2'), ('TG4', 'TY4'), ('TG5', 'TY3'),
         }
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
-            sigma = "2.580000e-01"
+            sigma = "2.550000e-01"
         elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
              sigma = "2.800000e-01"
         else:
