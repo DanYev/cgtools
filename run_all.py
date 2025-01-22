@@ -14,7 +14,7 @@ def setup(sysdir, sysname):
     system = CGSystem(sysdir, sysname)
     # system.prepare_files()
     # system.clean_inpdb(add_missing_atoms=True, add_hydrogens=True, variant=None)
-    # system.split_chains(from_clean=True)
+    # system.split_chains(from_clean=False)
     # system.clean_proteins(add_hydrogens=True)
     # system.get_go_maps()
     # system.martinize_proteins(go_eps=10.0, go_low=0.3, go_up=1.1, p='backbone', pf=500, resid='mol')
