@@ -163,7 +163,7 @@ runs += ['mdrun_11', 'mdrun_12']
 
 sysdir = 'systems' 
 sysnames = ['dsRNA']
-runs = ['mdrun_1', 'mdrun_2']
+runs = ['mdrun_1', ]
 
 # sysdir = 'ribosomes'
 # sysnames = ['ribosome_dL11', ] 
