@@ -1330,7 +1330,7 @@ class elnedyn30nucleic():
                        (10,  118.0,  30),
                        (10,  135.0,  40)],        
             'dih'   : [(3,     4,  -2, -14,  -4,  15, 0),  # (3,   10,  -8, 22, 8, -26, -6) # (3,   4,  -3, 9, 3, -10, -3)
-                       (1,     5,   6,  1),],  # (1,     15.0,   5, 1)
+                       (1,     0,   5,  1),],  # (1,     15.0,   5, 1)
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
@@ -2945,7 +2945,7 @@ class Topology:
                     # Generate position restraints for all atoms or Backbone beads only. @POSRES
                     if 'all' in self.options['PosRes']:  
                         if (aname == "BB1" or aname == "BB2" or aname == "BB3"
-                                or aname == 'SC1' or aname == 'SC3' or aname == 'SC5') and atid-1 > 1:
+                                or aname == 'SC1') and atid-1 > 1:
                             self.posres.append((atid-1))
                     if 'bb' in self.options['PosRes']: # @POSRES
                         if (aname == "BB2") and atid-1 > 1:
