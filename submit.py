@@ -171,11 +171,11 @@ runs = ['mdrun_1', ]
 # runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10'] 
 # runs += ['mdrun_11', 'mdrun_12']
 # 
-submit_setup(submit=False)
+# submit_setup(submit=False)
 # submit_make_ndx(submit=False)
-submit_md(submit=True, ntomp=8)
+# submit_md(submit=True, ntomp=8)
 # submit_extend(ntomp=8)
-# submit_trjconv(submit=False)
+submit_trjconv(submit=False)
 # submit_geometry()
 # submit_rdf_analysis(submit=True)
 # submit_cluster(submit=False)

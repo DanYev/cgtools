@@ -202,7 +202,7 @@ def make_marnatini_itp():
     }
     dict_of_names = {   'TA1': 'SC5', 
                         'TA2': 'TN1a',
-                        'TA3': 'TN1', 
+                        'TA3': 'TC6', 
                         'TA4': 'TN4r',
                         'TA5': 'TN4r',
                         'TA6': 'TN1a', 
