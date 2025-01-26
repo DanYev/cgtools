@@ -1282,7 +1282,7 @@ class elnedyn30nucleic():
                                 "TY1":0.0, "TY2":-0.5, "TY3":-0.6, "TY4":0.6, "TY5":0.5,
                                 "TG1":0.3, "TG2":0.0, "TG3":0.3, "TG4":-0.3, "TG5":-0.5, "TG6":-0.6, "TG7":0.3, "TG8":0.5,
                                 "TU1":0.0, "TU2":-0.5, "TU3":-0.5, "TU4":-0.5, "TU5":0.5, "TU6":0.5, "TU7":0.5,}  
-        self.charges = {key: value * 2.0 for key, value in charges.items()}
+        self.charges = {key: value * 1.8 for key, value in charges.items()}
         self.bbcharges = {"BB1":-1}                                                                                                      
         
         # Not all (eg Elnedyn) forcefields use backbone-backbone-sidechain angles and BBBB-dihedrals.
