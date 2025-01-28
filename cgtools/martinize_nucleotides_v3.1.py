@@ -286,7 +286,7 @@ def option_parser(args, options, lists, version=0):
     try:
         # Try to load the forcefield class from a different file
         _tmp  = __import__(options['-ff'].value.lower())
-        options['ForceField']  = getattr(_tmp,options['-ff'].value.lower())()
+        options['ForceField']  = getattr(_tmp, options['-ff'].value.lower())()
     except:
         # Try to load the forcefield class from the current file
         options['ForceField']  = globals()[options['-ff'].value.lower()]()
@@ -512,113 +512,84 @@ class CoarseGrained:
     # converted into a list of lists by 'nsplit' defined above.
     # @MAP
     # if options['-ff'].value == 'martini30nucleic':
-    if 1:
-        bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
-                            "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
-                            "C1' C2' O2' O4'")
-        mapping = {
-                "A":  bb_mapping + nsplit(
-                                "C8",
-                                "N3 C4",
-                                "C2",
-                                "N1",
-                                "N6 C6 H61 H62",
-                                "N7 C5", ),
-                "C":  bb_mapping + nsplit(
-                                "C6",
-                                "O2",
-                                "N3",
-                                "N4 C4 H41 H42",
-                                "C2"),
-                "G":  bb_mapping + nsplit(
-                                "C8",
-                                "C4 N3",
-                                "C2 N2 H22 H21",
-                                "N1", 
-                                "O6",
-                                "C5 N7",
-                                "H1",
-                                "C6"),
-                "U":  bb_mapping + nsplit(
-                                "C6",
-                                "O2",
-                                "N3",
-                                "O4",
-                                "C2",
-                                "H3",
-                                "C4",),
-        }
+    # if 1:
+    #     bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
+    #                         "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
+    #                         "C1' C2' O2' O4'")
+    #     mapping = {
+    #             "A":  bb_mapping + nsplit(
+    #                             "C8",
+    #                             "N3 C4",
+    #                             "C2",
+    #                             "N1",
+    #                             "N6 C6 H61 H62",
+    #                             "N7 C5", ),
+    #             "C":  bb_mapping + nsplit(
+    #                             "C6",
+    #                             "O2",
+    #                             "N3",
+    #                             "N4 C4 H41 H42",
+    #                             "C2"),
+    #             "G":  bb_mapping + nsplit(
+    #                             "C8",
+    #                             "C4 N3",
+    #                             "C2 N2 H22 H21",
+    #                             "N1", 
+    #                             "O6",
+    #                             "C5 N7",
+    #                             "H1",
+    #                             "C6"),
+    #             "U":  bb_mapping + nsplit(
+    #                             "C6",
+    #                             "O2",
+    #                             "N3",
+    #                             "O4",
+    #                             "C2",
+    #                             "H3",
+    #                             "C4",),
+    #     }
         
-    # if options['-ff'].value == 'martini31nucleic':
-    if 1:
-        bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
-                            "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
-                            "C1' C2' O2' O4'")
-        mapping = {
-                "A":  bb_mapping + nsplit(
-                                "C8",
-                                "N3 C4",
-                                "C2",
-                                "N1",
-                                "N6 C6 H61 H62",
-                                "N7 C5", ),
-                "C":  bb_mapping + nsplit(
-                                "C6",
-                                "O2",
-                                "N3",
-                                "N4 C4 H41 H42",
-                                "C2"),
-                "G":  bb_mapping + nsplit(
-                                "C8",
-                                "C4 N3",
-                                "C2 N2 H22 H21",
-                                "N1", 
-                                "O6",
-                                "C5 N7",
-                                "H1",
-                                "C6"),
-                "U":  bb_mapping + nsplit(
-                                "C6",
-                                "O2",
-                                "N3",
-                                "O4",
-                                "C2",
-                                "H3",
-                                "C4",),
-        }   
+    # # if options['-ff'].value == 'martini31nucleic':
+    # if 1:
+    #     bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
+    #                         "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
+    #                         "C1' C2' O2' O4'")
+    #     mapping = {
+    #             "A":  bb_mapping + nsplit(
+    #                             "C8",
+    #                             "N3 C4",
+    #                             "C2",
+    #                             "N1",
+    #                             "N6 C6 H61 H62",
+    #                             "N7 C5", ),
+    #             "C":  bb_mapping + nsplit(
+    #                             "C6",
+    #                             "O2",
+    #                             "N3",
+    #                             "N4 C4 H41 H42",
+    #                             "C2"),
+    #             "G":  bb_mapping + nsplit(
+    #                             "C8",
+    #                             "C4 N3",
+    #                             "C2 N2 H22 H21",
+    #                             "N1", 
+    #                             "O6",
+    #                             "C5 N7",
+    #                             "H1",
+    #                             "C6"),
+    #             "U":  bb_mapping + nsplit(
+    #                             "C6",
+    #                             "O2",
+    #                             "N3",
+    #                             "O4",
+    #                             "C2",
+    #                             "H3",
+    #                             "C4",),
+    #     }   
         
-    mapping.update({"RA3":mapping["A"],
-                    "RA5":mapping["A"],
-                    "2MA":mapping["A"],
-                    "6MA":mapping["A"],
-                    "RAP":mapping["A"],
-                    "DMA":mapping["A"],
-                    "DHA":mapping["A"],
-                    "SPA":mapping["A"],
-                    "RC3":mapping["C"],
-                    "RC5":mapping["C"],
-                    "5MC":mapping["C"],
-                    "3MP":mapping["C"],
-                    "MRC":mapping["C"],
-                    "NMC":mapping["C"],
-                    "RG3":mapping["G"],
-                    "RG5":mapping["G"],
-                    "1MG":mapping["G"],
-                    "2MG":mapping["G"],
-                    "7MG":mapping["G"],
-                    "MRG":mapping["G"],
-                    "RU3":mapping["U"],
-                    "RU5":mapping["U"],
-                    "4SU":mapping["U"], 
-                    "DHU":mapping["U"], 
-                    "PSU":mapping["U"],
-                    "5MU":mapping["U"],
-                    "3MU":mapping["U"],
-                    "3MP":mapping["U"],
-                    "MRU":mapping["U"],
-    })
 
-    residueTypes.update([(i,"Nucleic") for i in mapping.keys()])
+
+    # residueTypes.update([(i,"Nucleic") for i in mapping.keys()])
 
     # Generic names for DNA beads
     residue_bead_names_dna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6 SC7 SC8")
@@ -651,19 +622,21 @@ def aver(b):
 # Return the CG beads for an atomistic residue, using the mapping specified above
 # The residue 'r' is simply a list of atoms, and each atom is a list:
 # [ name, resname, resid, chain, x, y, z ]
-def map(r):
-    p = CoarseGrained.mapping[r[0][1]]                                          # Mapping for this residue 
+def map(r, ff):
+    """
+    ff - chosen force field for the mapping
+    """
+    p = ff.mapping[r[0][1]]                                          # Mapping for this residue 
     # Get the name, mass and coordinates for all atoms in the residue
     a = [(i[0],CoarseGrained.mass.get(i[0][0],0),i[4:]) for i in r]                    
     # Store weight, coordinate and index for atoms that match a bead
     q = [[(m,coord,a.index((atom,m,coord))) for atom,m,coord in a if atom in i] for i in p]
-
     # Bead positions      
     return zip(*[aver(i) for i in q])
 
 # Mapping for index file
-def mapIndex(r):
-    p = CoarseGrained.mapping[r[0][1]]                                             # Mapping for this residue 
+def mapIndex(r, ff):
+    p = ff.mapping[r[0][1]]                                             # Mapping for this residue 
     # Get the name, mass and coordinates for all atoms in the residue
     a = [(i[0],CoarseGrained.mass.get(i[0][0],0),i[4:]) for i in r]                    
     # Store weight, coordinate and index for atoms that match a bead
@@ -807,13 +780,26 @@ class ForceField:
         itp_data = itpio.read_itp(itp_file)
         return itp_data
         
+    @staticmethod    
+    def read_itps(mol, directory, version):
+        itpdir = os.path.abspath(f'/scratch/dyangali/cgtools/cgtools/itp/{directory}')
+        file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
+        a_itp_data = ForceField.read_itp(file)
+        file = os.path.join(itpdir, f'{mol}_C_{version}.itp')
+        c_itp_data = ForceField.read_itp(file)
+        file = os.path.join(itpdir, f'{mol}_G_{version}.itp')
+        g_itp_data = ForceField.read_itp(file)
+        file = os.path.join(itpdir, f'{mol}_U_{version}.itp')
+        u_itp_data = ForceField.read_itp(file)  
+        return a_itp_data, c_itp_data, g_itp_data, u_itp_data
         
     @staticmethod    
     def itp_to_indata(itp_data):
         keys = ['bonds', 'angles', 'dihedrals', 'impropers', 'virtual_sites3', 'exclusions', 'pairs']
         connectivity = [itp_data[key].keys() if key in itp_data else [] for key in keys]
         parameters = [itp_data[key].values() if key in itp_data else [] for key in keys]
-        return connectivity, parameters
+        return connectivity, parameters   
+        
         
     def __init__(self):  
         
@@ -914,10 +900,147 @@ class ForceField:
         '''Prints any force-field specific logging messages.'''
         import logging
         pass
+    
+    def update_adenine(self, mapping, connectivity, itp_params):
+        parameters = mapping + itp_params
+        self.bases.update({"A": parameters})
+        self.base_connectivity.update({"A": connectivity})
+        self.bases.update({"RA3": parameters})
+        self.base_connectivity.update({"RA3": connectivity})
+        self.bases.update({"RA5": parameters})
+        self.base_connectivity.update({"RA5": connectivity})
+        self.bases.update({"2MA": parameters})
+        self.base_connectivity.update({"2MA": connectivity})
+        self.bases.update({"DMA": parameters})
+        self.base_connectivity.update({"DMA": connectivity})
+        self.bases.update({"SPA": parameters})
+        self.base_connectivity.update({"SPA": connectivity})
+        self.bases.update({"RAP": parameters})
+        self.base_connectivity.update({"RAP": connectivity})
+        self.bases.update({"6MA": parameters})
+        self.base_connectivity.update({"6MA": connectivity})
+        
+    def update_cytosine(self, mapping, connectivity, itp_params):  
+        parameters = mapping + itp_params
+        self.bases.update({"C": parameters})
+        self.base_connectivity.update({"C": connectivity})
+        self.bases.update({"RC3": parameters})
+        self.base_connectivity.update({"RC3": connectivity})
+        self.bases.update({"RC5": parameters})
+        self.base_connectivity.update({"RC5": connectivity})
+        self.bases.update({"MRC": parameters})
+        self.base_connectivity.update({"MRC": connectivity})
+        self.bases.update({"5MC": parameters})
+        self.base_connectivity.update({"5MC": connectivity})
+        self.bases.update({"NMC": parameters})
+        self.base_connectivity.update({"NMC": connectivity})    
    
+    def update_guanine(self, mapping, connectivity, itp_params):
+        parameters = mapping + itp_params
+        self.bases.update({"G": parameters})
+        self.base_connectivity.update({"G": connectivity})
+        self.bases.update({"RG3": parameters})
+        self.base_connectivity.update({"RG3": connectivity})
+        self.bases.update({"RG5": parameters})
+        self.base_connectivity.update({"RG5": connectivity})
+        self.bases.update({"MRG": parameters})
+        self.base_connectivity.update({"MRG": connectivity})
+        self.bases.update({"1MG": parameters})
+        self.base_connectivity.update({"1MG": connectivity})
+        self.bases.update({"2MG": parameters})
+        self.base_connectivity.update({"2MG": connectivity})
+        self.bases.update({"7MG": parameters})
+        self.base_connectivity.update({"7MG": connectivity})
 
+    def update_uracil(self, mapping, connectivity, itp_params):
+        parameters = mapping + itp_params
+        self.bases.update({"U": parameters})
+        self.base_connectivity.update({"U": connectivity})
+        self.bases.update({"RU3": parameters})
+        self.base_connectivity.update({"RU3": connectivity})
+        self.bases.update({"RU5": parameters})
+        self.base_connectivity.update({"RU5": connectivity})
+        self.bases.update({"MRU": parameters})
+        self.base_connectivity.update({"MRU": connectivity})
+        self.bases.update({"DHU": parameters})
+        self.base_connectivity.update({"DHU": connectivity})        
+        self.bases.update({"PSU": parameters})
+        self.base_connectivity.update({"PSU": connectivity})
+        self.bases.update({"3MP": parameters})
+        self.base_connectivity.update({"3MP": connectivity})
+        self.bases.update({"3MU": parameters})
+        self.base_connectivity.update({"3MU": connectivity})
+        self.bases.update({"4SU": parameters})
+        self.base_connectivity.update({"4SU": connectivity})        
+        self.bases.update({"5MU": parameters})
+        self.base_connectivity.update({"5MU": connectivity})
+     
+    @staticmethod
+    def update_non_standard_mapping(mapping):
+        mapping.update({"RA3":mapping["A"],
+                        "RA5":mapping["A"],
+                        "2MA":mapping["A"],
+                        "6MA":mapping["A"],
+                        "RAP":mapping["A"],
+                        "DMA":mapping["A"],
+                        "DHA":mapping["A"],
+                        "SPA":mapping["A"],
+                        "RC3":mapping["C"],
+                        "RC5":mapping["C"],
+                        "5MC":mapping["C"],
+                        "3MP":mapping["C"],
+                        "MRC":mapping["C"],
+                        "NMC":mapping["C"],
+                        "RG3":mapping["G"],
+                        "RG5":mapping["G"],
+                        "1MG":mapping["G"],
+                        "2MG":mapping["G"],
+                        "7MG":mapping["G"],
+                        "MRG":mapping["G"],
+                        "RU3":mapping["U"],
+                        "RU5":mapping["U"],
+                        "4SU":mapping["U"], 
+                        "DHU":mapping["U"], 
+                        "PSU":mapping["U"],
+                        "5MU":mapping["U"],
+                        "3MU":mapping["U"],
+                        "3MP":mapping["U"],
+                        "MRU":mapping["U"],
+        })
 
 class martini30nucleic(ForceField):
+    
+    # FF mapping
+    bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
+                        "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
+                        "C1' C2' O2' O4'")     
+    mapping = {
+        "A":  bb_mapping + nsplit(
+                        "N9 C8 H8",
+                        "N3 C4",
+                        "N1 C2 H2",
+                        "N6 C6 H61 H62",
+                        "N7 C5"),
+        "C":  bb_mapping + nsplit(
+                        "N1 C5 C6",
+                        "C2 O2",
+                        "N3",
+                        "N4 C4 H41 H42"),
+        "G":  bb_mapping + nsplit(
+                        "C8 H8 N9",
+                        "C4 N3",
+                        "C2 N2 H21 H22",
+                        "N1", 
+                        "C6 O6",
+                        "C5 N7"),
+        "U":  bb_mapping + nsplit(
+                        "N1 C5 C6",
+                        "C2 O2",
+                        "N3",
+                        "C4 O4"),
+    }
+    
+    ForceField.update_non_standard_mapping(mapping)
     
     def __init__(self):
         
@@ -991,107 +1114,75 @@ class martini30nucleic(ForceField):
         # For bonds, angles, and dihedrals the first parameter should always 
         # be the type. It is pretty annoying to check the connectivity from 
         # elsewhere so we update these one base at a time.
-
-        # Reading itp files
-        mol = rna_system
-        version = 'new'
-        bonded_dir = 'nucbonded'
-        itpdir = os.path.abspath(f'/scratch/dyangali/cgtools/cgtools/itp/{bonded_dir}')
-        file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
-        a_itp_data = martini30nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_C_{version}.itp')
-        c_itp_data = martini30nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_G_{version}.itp')
-        g_itp_data = martini30nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_U_{version}.itp')
-        u_itp_data = martini30nucleic.read_itp(file)
+    
+        a_itp, c_itp, g_itp, u_itp = ForceField.read_itps(rna_system, 'regular', 'new')
 
         # ADENINE
         mapping = [spl("TA0 TA1 TA2 TA3 TA4")]
-        connectivity, itp_params = martini30nucleic.itp_to_indata(a_itp_data)
-        parameters = mapping + itp_params
-        self.bases.update({"A": parameters})
-        self.base_connectivity.update({"A": connectivity})
-        self.bases.update({"RA3": parameters})
-        self.base_connectivity.update({"RA3": connectivity})
-        self.bases.update({"RA5": parameters})
-        self.base_connectivity.update({"RA5": connectivity})
-        self.bases.update({"2MA": parameters})
-        self.base_connectivity.update({"2MA": connectivity})
-        self.bases.update({"DMA": parameters})
-        self.base_connectivity.update({"DMA": connectivity})
-        self.bases.update({"SPA": parameters})
-        self.base_connectivity.update({"SPA": connectivity})
-        self.bases.update({"RAP": parameters})
-        self.base_connectivity.update({"RAP": connectivity})
-        self.bases.update({"6MA": parameters})
-        self.base_connectivity.update({"6MA": connectivity})
-        
+        connectivity, itp_params = martini30nucleic.itp_to_indata(a_itp)
+        self.update_adenine(mapping, connectivity, itp_params)
+
         # CYTOSINE
         mapping = [spl("TY0 TY1 TY2 TY3")]
-        connectivity, itp_params = martini30nucleic.itp_to_indata(c_itp_data)
-        parameters = mapping + itp_params
-        self.bases.update({"C": parameters})
-        self.base_connectivity.update({"C": connectivity})
-        self.bases.update({"RC3": parameters})
-        self.base_connectivity.update({"RC3": connectivity})
-        self.bases.update({"RC5": parameters})
-        self.base_connectivity.update({"RC5": connectivity})
-        self.bases.update({"MRC": parameters})
-        self.base_connectivity.update({"MRC": connectivity})
-        self.bases.update({"5MC": parameters})
-        self.base_connectivity.update({"5MC": connectivity})
-        self.bases.update({"NMC": parameters})
-        self.base_connectivity.update({"NMC": connectivity})
+        connectivity, itp_params = martini30nucleic.itp_to_indata(c_itp)
+        self.update_cytosine(mapping, connectivity, itp_params)
         
         # GUANINE
         mapping = [spl("TG0 TG1 TG2 TG3 TG4 TG5")]
-        connectivity, itp_params = martini30nucleic.itp_to_indata(g_itp_data)
+        connectivity, itp_params = martini30nucleic.itp_to_indata(g_itp)
         parameters = mapping + itp_params
-        self.bases.update({"G": parameters})
-        self.base_connectivity.update({"G": connectivity})
-        self.bases.update({"RG3": parameters})
-        self.base_connectivity.update({"RG3": connectivity})
-        self.bases.update({"RG5": parameters})
-        self.base_connectivity.update({"RG5": connectivity})
-        self.bases.update({"MRG": parameters})
-        self.base_connectivity.update({"MRG": connectivity})
-        self.bases.update({"1MG": parameters})
-        self.base_connectivity.update({"1MG": connectivity})
-        self.bases.update({"2MG": parameters})
-        self.base_connectivity.update({"2MG": connectivity})
-        self.bases.update({"7MG": parameters})
-        self.base_connectivity.update({"7MG": connectivity})
+        self.update_guanine(mapping, connectivity, itp_params)
         
         # URACIL
         mapping = [spl("TU0 TU1 TU2 TU3")]
-        connectivity, itp_params = martini30nucleic.itp_to_indata(u_itp_data)
+        connectivity, itp_params = martini30nucleic.itp_to_indata(u_itp)
         parameters = mapping + itp_params
-        self.bases.update({"U": parameters})
-        self.base_connectivity.update({"U": connectivity})
-        self.bases.update({"RU3": parameters})
-        self.base_connectivity.update({"RU3": connectivity})
-        self.bases.update({"RU5": parameters})
-        self.base_connectivity.update({"RU5": connectivity})
-        self.bases.update({"MRU": parameters})
-        self.base_connectivity.update({"MRU": connectivity})
-        self.bases.update({"DHU": parameters})
-        self.base_connectivity.update({"DHU": connectivity})        
-        self.bases.update({"PSU": parameters})
-        self.base_connectivity.update({"PSU": connectivity})
-        self.bases.update({"3MP": parameters})
-        self.base_connectivity.update({"3MP": connectivity})
-        self.bases.update({"3MU": parameters})
-        self.base_connectivity.update({"3MU": connectivity})
-        self.bases.update({"4SU": parameters})
-        self.base_connectivity.update({"4SU": connectivity})        
-        self.bases.update({"5MU": parameters})
-        self.base_connectivity.update({"5MU": connectivity})
+        self.update_uracil(mapping, connectivity, itp_params)
         
         super().__init__()
 
     
 class martini31nucleic(ForceField):
+    
+    # FF mapping
+    bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
+                        "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
+                        "C1' C2' O2' O4'")     
+    mapping = {
+        "A":  bb_mapping + nsplit(
+                        "C8",
+                        "N3 C4",
+                        "C2",
+                        "N1",
+                        "N6 C6 H61 H62",
+                        "N7 C5", ),
+        "C":  bb_mapping + nsplit(
+                        "C6",
+                        "O2",
+                        "N3",
+                        "N4 C4 H41 H42",
+                        "C2"),
+        "G":  bb_mapping + nsplit(
+                        "C8",
+                        "C4 N3",
+                        "C2 N2 H22 H21",
+                        "N1", 
+                        "O6",
+                        "C5 N7",
+                        "H1",
+                        "C6"),
+        "U":  bb_mapping + nsplit(
+                        "C6",
+                        "O2",
+                        "N3",
+                        "O4",
+                        "C2",
+                        "H3",
+                        "C4",),
+    }    
+    
+    ForceField.update_non_standard_mapping(mapping)
+    
     
     def __init__(self):
         
@@ -1171,105 +1262,32 @@ class martini31nucleic(ForceField):
             'excl'  : [(2, 0), (0, 2),],
             'pair'  : [],
         }
-
-        # For bonds, angles, and dihedrals the first parameter should always 
-        # be the type. It is pretty annoying to check the connectivity from 
-        # elsewhere so we update these one base at a time.
-
-        # Reading itp files
-        mol = rna_system
-        version = 'new'
-        itpdir = os.path.abspath('/scratch/dyangali/cgtools/cgtools/itp/hydrogen_bonded')
-        file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
-        a_itp_data = martini31nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_C_{version}.itp')
-        c_itp_data = martini31nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_G_{version}.itp')
-        g_itp_data = martini31nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_U_{version}.itp')
-        u_itp_data = martini31nucleic.read_itp(file)
+        
+        a_itp, c_itp, g_itp, u_itp = ForceField.read_itps(rna_system, 'polar', 'new')
 
         # ADENINE
         mapping = [spl("TA1 TA2 TA3 TA4 TA5 TA6")]
-        connectivity, itp_params = martini31nucleic.itp_to_indata(a_itp_data)
+        connectivity, itp_params = martini31nucleic.itp_to_indata(a_itp)
         parameters = mapping + itp_params
-        self.bases.update({"A": parameters})
-        self.base_connectivity.update({"A": connectivity})
-        self.bases.update({"RA3": parameters})
-        self.base_connectivity.update({"RA3": connectivity})
-        self.bases.update({"RA5": parameters})
-        self.base_connectivity.update({"RA5": connectivity})
-        self.bases.update({"2MA": parameters})
-        self.base_connectivity.update({"2MA": connectivity})
-        self.bases.update({"DMA": parameters})
-        self.base_connectivity.update({"DMA": connectivity})
-        self.bases.update({"SPA": parameters})
-        self.base_connectivity.update({"SPA": connectivity})
-        self.bases.update({"RAP": parameters})
-        self.base_connectivity.update({"RAP": connectivity})
-        self.bases.update({"6MA": parameters})
-        self.base_connectivity.update({"6MA": connectivity})
+        self.update_adenine(mapping, connectivity, itp_params)
         
         # CYTOSINE
         mapping = [spl("TY1 TY2 TY3 TY4 TY5")]
-        connectivity, itp_params = martini31nucleic.itp_to_indata(c_itp_data)
+        connectivity, itp_params = martini31nucleic.itp_to_indata(c_itp)
         parameters = mapping + itp_params
-        self.bases.update({"C": parameters})
-        self.base_connectivity.update({"C": connectivity})
-        self.bases.update({"RC3": parameters})
-        self.base_connectivity.update({"RC3": connectivity})
-        self.bases.update({"RC5": parameters})
-        self.base_connectivity.update({"RC5": connectivity})
-        self.bases.update({"MRC": parameters})
-        self.base_connectivity.update({"MRC": connectivity})
-        self.bases.update({"5MC": parameters})
-        self.base_connectivity.update({"5MC": connectivity})
-        self.bases.update({"NMC": parameters})
-        self.base_connectivity.update({"NMC": connectivity})
+        self.update_cytosine(mapping, connectivity, itp_params)
         
         # GUANINE
         mapping = [spl("TG1 TG2 TG3 TG4 TG5 TG6 TG7 TG8")]
-        connectivity, itp_params = martini31nucleic.itp_to_indata(g_itp_data)
+        connectivity, itp_params = martini31nucleic.itp_to_indata(g_itp)
         parameters = mapping + itp_params
-        self.bases.update({"G": parameters})
-        self.base_connectivity.update({"G": connectivity})
-        self.bases.update({"RG3": parameters})
-        self.base_connectivity.update({"RG3": connectivity})
-        self.bases.update({"RG5": parameters})
-        self.base_connectivity.update({"RG5": connectivity})
-        self.bases.update({"MRG": parameters})
-        self.base_connectivity.update({"MRG": connectivity})
-        self.bases.update({"1MG": parameters})
-        self.base_connectivity.update({"1MG": connectivity})
-        self.bases.update({"2MG": parameters})
-        self.base_connectivity.update({"2MG": connectivity})
-        self.bases.update({"7MG": parameters})
-        self.base_connectivity.update({"7MG": connectivity})
+        self.update_guanine(mapping, connectivity, itp_params)
         
         # URACIL
         mapping = [spl("TU1 TU2 TU3 TU4 TU5 TU6 TU7")]
-        connectivity, itp_params = martini31nucleic.itp_to_indata(u_itp_data)
+        connectivity, itp_params = martini31nucleic.itp_to_indata(u_itp)
         parameters = mapping + itp_params
-        self.bases.update({"U": parameters})
-        self.base_connectivity.update({"U": connectivity})
-        self.bases.update({"RU3": parameters})
-        self.base_connectivity.update({"RU3": connectivity})
-        self.bases.update({"RU5": parameters})
-        self.base_connectivity.update({"RU5": connectivity})
-        self.bases.update({"MRU": parameters})
-        self.base_connectivity.update({"MRU": connectivity})
-        self.bases.update({"DHU": parameters})
-        self.base_connectivity.update({"DHU": connectivity})        
-        self.bases.update({"PSU": parameters})
-        self.base_connectivity.update({"PSU": connectivity})
-        self.bases.update({"3MP": parameters})
-        self.base_connectivity.update({"3MP": connectivity})
-        self.bases.update({"3MU": parameters})
-        self.base_connectivity.update({"3MU": connectivity})
-        self.bases.update({"4SU": parameters})
-        self.base_connectivity.update({"4SU": connectivity})        
-        self.bases.update({"5MU": parameters})
-        self.base_connectivity.update({"5MU": connectivity})
+        self.update_uracil(mapping, connectivity, itp_params)
         
         super().__init__()
         
@@ -1605,8 +1623,8 @@ def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
             #if (i,j) in pairs:
             #    continue
             # Check for cystine bridges based on distance
-            if not ss_cutoff:
-                continue
+            # if not ss_cutoff:
+            #     continue
             # Get SG atoms from cysteines from either chain
             # Check this pair of chains
             for cysA in chains[i]["CYS"]:
@@ -1839,7 +1857,6 @@ class Chain:
         # Infer the Martini backbone secondary structure types
         self.ssclass, self.sstypes = ssClassification(self.ss, source)
         
-
     def dss(self, method=None, executable=None):
         # The method should take a list of atoms and return a 
         # string of secondary structure classifications       
@@ -1864,7 +1881,7 @@ class Chain:
 
 
     # XXX The following (at least the greater part of it) should be made a separate function, put under "MAPPING"
-    def cg(self,force=False,com=False,dna=False):
+    def cg(self, force=False, com=False, dna=False):
         # Generate the coarse grained structure
         # Set the b-factor field to something that reflects the secondary structure
         
@@ -1877,7 +1894,7 @@ class Chain:
         bb       = [1]
         fail     = False
         previous = ''
-        for residue,rss,resname in zip(self.residues,self.sstypes,self.sequence):
+        for residue, rss, resname in zip(self.residues, self.sstypes, self.sequence):
             # For DNA we need to get the O3' to the following residue when calculating COM
             # The force and com options ensure that this part does not affect itp generation or anything else
             if com:
@@ -1896,10 +1913,14 @@ class Chain:
                     del residue[store]
 
             # Check if residues names has changed, for example because user has set residues interactively.
-            residue = [(atom[0],resname)+atom[2:] for atom in residue]
+            residue = [(atom[0], resname) + atom[2:] for atom in residue]
             if residue[0][1] in ("SOL","HOH","TIP"):
                 continue
-            if not residue[0][1] in CoarseGrained.mapping.keys():
+            
+            str2ff = {'martini30nucleic': martini30nucleic, 'martini31nucleic': martini31nucleic}
+            ffname = options['ForceField'].name
+            ff = str2ff[ffname]
+            if not residue[0][1] in ff.mapping.keys():
                 logging.warning("Skipped unknown residue %s\n"%residue[0][1])
                 continue
             # Get the mapping for this residue
@@ -1910,10 +1931,10 @@ class Chain:
             # an error
             try:
                 # The last residue, in the case of a polBB has only a CA-positioned bead.
-                beads, ids = map(residue)
-                beads      = zip(CoarseGrained.names[residue[0][1]],beads,ids)
+                beads, ids = map(residue, ff)
+                beads      = zip(CoarseGrained.names[residue[0][1]], beads, ids)
             except ValueError:
-                logging.error("Too many atoms missing from residue %s %d(ch:%s):",residue[0][1],residue[0][2]>>20,residue[0][3])
+                logging.error("Too many atoms missing from residue %s %d(ch:%s):", residue[0][1], residue[0][2]>>20, residue[0][3])
                 logging.error(repr([ i[0] for i in residue ]))
                 fail = True
 
@@ -2717,17 +2738,6 @@ def main(options):
             # TER statements are also interpreted as chain separators
             # A chain may have breaks in which case the breaking residues are flagged
             chains = [ Chain(options, [i for i in residues(chain)]) for chain in pdbChains(atoms) ] 
-        else:
-            # The GRO file does not define chains. Here breaks in the backbone are
-            # interpreted as chain separators. 
-            residuelist = [residue for residue in residues(atoms)]
-            # The breaks are indices to residues
-            broken = breaks(residuelist)
-            # Reorder, such that each chain is specified with (i,j,k)
-            # where i and j are the start and end of the chain, and 
-            # k is a chain identifier
-            chains = zip([0]+broken,broken+[len(residuelist)],range(len(broken)+1))
-            chains = [ Chain(options,residuelist[i:j],name=chr(65+k)) for i,j,k in chains ]
             
         # Check the chain identifiers
         if model == 1 and len(chains) != len(set([i._id for i in chains])):
@@ -2735,52 +2745,17 @@ def main(options):
             # PDB file have the same chain ID. The warning pertains to PDB files only, 
             # since chains from GRO files get a unique chain identifier assigned.
             logging.warning("Several chains have identical chain identifiers in the PDB file.")
-    
-        # Check if chains are of mixed type. If so, split them.
-        # Note that in some cases HETATM residues are part of a 
-        # chain. This will get problematic. But we cannot cover
-        # all, probably.
-        # if not options['MixedChains']:
-        #     demixedChains = []
-        #     for chain in chains:
-        #         demixedChains.extend(chain.split())
-        #     chains = demixedChains
 
         n = 1
         logging.info("Found %d chains:"%len(chains))
         for chain in chains:
             logging.info("  %2d:   %s (%s), %d atoms in %d residues."%(n, chain._id, chain._type, chain.natoms, len(chain)))
             n += 1
-        # Check all chains
-        keep = []
-        for chain in chains:
-            if chain.type() == "Water":
-                logging.info("Removing %d water molecules (chain %s)."%(len(chain), chain._id))
-            elif chain.type() in ("Protein","Nucleic"):
-                keep.append(chain)
-            # This is currently not active:
-            elif options['RetainHETATM']:
-                keep.append(chain)
-            else:
-                logging.info("Removing HETATM chain %s consisting of %d residues."%(chain._id, len(chain)))
-        chains = keep
-
-        # Here we interactively check the charge state of resides
-        # Can be easily expanded to residues other than HIS
-        for chain in chains:
-            for i,resname in enumerate(chain.sequence):
-                 if resname == 'HIS' and options['chHIS']:
-                     choices = {0:'HIH',1:'HIS'}
-                     choice = getChargeType(resname,i,choices)
-                     chain.sequence[i] = choice
-
-    
 
         # Check which chains need merging
         if model == 1:
             order, merge = check_merge(chains, options['mergeList'], options['linkList'], options['CystineCheckBonds'] and options['CystineMaxDist2'])
     
-
         # Get the total length of the sequence
         seqlength = sum([len(chain) for chain in chains])
         logging.info('Total size of the system: %s residues.'%seqlength)
@@ -2981,23 +2956,6 @@ def main(options):
                 destination = options["-o"] and open(moleculeTypes[mol]+".itp",'w') or sys.stdout
                 destination.write(str(top))        
 
-                # If index files for parameterization are needed, print them here
-                # This will write out separate index files for bonds, angles and dihedrals
-                if options["-bmap"].value:
-                    logging.info("Writing index file for bonded terms.")
-                    b_out, a_out, d_out = top.ndx(cumulative_atoms)
-                    # Make sure old files are overwritten
-                    if cumulative_atoms == 0:
-                        outB = open(options["-bmap"].value+'-bonds.ndx',"w")
-                        outA = open(options["-bmap"].value+'-angles.ndx',"w")
-                        outD = open(options["-bmap"].value+'-dihedrals.ndx',"w")
-                    else:
-                        outB = open(options["-bmap"].value+'-bonds.ndx',"a")
-                        outA = open(options["-bmap"].value+'-angles.ndx',"a")
-                        outD = open(options["-bmap"].value+'-dihedrals.ndx',"a")
-                    outB.write(b_out); outA.write(a_out); outD.write(d_out)
-                    outB.close(); outA.close(); outD.close()
-        
                 itp += 1
         
             # Check whether other chains are equal to this one 
