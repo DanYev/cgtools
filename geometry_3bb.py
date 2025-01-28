@@ -11,7 +11,8 @@ from Bio.PDB import vectors, Superimposer, PDBIO, Atom
 
 # molecule = sys.argv[1]
 # mode = sys.argv[2]
-molecule = "dsRNA"
+molecule = 'dsRNA'
+maptype = 'old'
 
 sys.path.append('./cgtools')
 import itpio
@@ -182,14 +183,14 @@ def bonded_parameters():
     
     # system = sys.argv[1]
     # mdrun = sys.argv[2] 
-    # topology = read_topology(   a_itp=f'cgtools/itp/nucbonded/plot_A_{version}.itp', 
-    #                             c_itp=f'cgtools/itp/nucbonded/plot_C_{version}.itp', 
-    #                             g_itp=f'cgtools/itp/nucbonded/plot_G_{version}.itp', 
-    #                             u_itp=f'cgtools/itp/nucbonded/plot_U_{version}.itp')
-    topology = read_topology(   a_itp=f'cgtools/itp/hydrogen_bonded/plot_A_{version}.itp', 
-                                c_itp=f'cgtools/itp/hydrogen_bonded/plot_C_{version}.itp', 
-                                g_itp=f'cgtools/itp/hydrogen_bonded/plot_G_{version}.itp', 
-                                u_itp=f'cgtools/itp/hydrogen_bonded/plot_U_{version}.itp')                         
+    topology = read_topology(   a_itp=f'cgtools/itp/regular/plot_A_{version}.itp', 
+                                c_itp=f'cgtools/itp/regular/plot_C_{version}.itp', 
+                                g_itp=f'cgtools/itp/regular/plot_G_{version}.itp', 
+                                u_itp=f'cgtools/itp/regular/plot_U_{version}.itp')
+    # topology = read_topology(   a_itp=f'cgtools/itp/hydrogen_bonded/plot_A_{version}.itp', 
+    #                             c_itp=f'cgtools/itp/hydrogen_bonded/plot_C_{version}.itp', 
+    #                             g_itp=f'cgtools/itp/hydrogen_bonded/plot_G_{version}.itp', 
+    #                             u_itp=f'cgtools/itp/hydrogen_bonded/plot_U_{version}.itp')                         
                                 
     # if mode == 'aa':
     #     mapping = cgmap.get_mapping_byname(version)
@@ -199,9 +200,9 @@ def bonded_parameters():
     # AA structure
     aa_structure = make_structure_pdb(f"systems/{molecule}_aa/mdruns/mdrun_2/mdc.pdb")
     # aa_structure = make_structure_pdb(f"ribosomes_old/test.pdb")
-    cg_structure = make_structure_pdb(f"systems/{molecule}/mdruns/mdrun_1/mdc.pdb")
+    cg_structure = make_structure_pdb(f"systems/{molecule}/mdruns/mdrun_1/traj.pdb")
     # cg_structure = make_structure_pdb(f"/home/dyangali/tmp/mdc.pdb")
-    mapping = cgmap.get_mapping_byname('new')
+    mapping = cgmap.get_mapping_byname(maptype)
     all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals = [], [], [], [], [], []
     for resname in resnames:
         name = f"{molecule}_{resname}_{version}"

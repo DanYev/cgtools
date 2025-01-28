@@ -18,7 +18,7 @@ def setup(sysdir, sysname):
     # system.clean_proteins(add_hydrogens=True)
     # system.get_go_maps()
     # system.martinize_proteins(go_eps=10.0, go_low=0.3, go_up=1.1, p='backbone', pf=500, resid='mol')
-    system.martinize_nucleotides(sys='test', p='all', pf=1000, type='ds', ef=0)
+    system.martinize_nucleotides(sys='test', p='all', pf=1000, type='ss', ef=200)
     # system.make_cgpdb_file(add_ions=True, bt='triclinic', box='31.0  31.0  31.0', angles='60.00  60.00  90.00')
     # system.make_cgpdb_file(bt='dodecahedron', d='1.00', )
     # system.make_topology_file() # ions=['K', 'MG', 'MGH']
@@ -81,9 +81,10 @@ def trjconv(sysdir, sysname, runname, **kwargs):
     mdrun = system.initmd(runname)
     shutil.copy('atommass.dat', os.path.join(mdrun.rundir, 'atommass.dat'))
     mdrun.trjconv(clinput='0\n0\n', s='em.tpr', f='em.gro', o='em.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact',  e=0)
-    mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='nojump', ur='compact', e=0)
-    mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='nojump', ur='compact', dt=1000, e=1000000)
-    mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.xtc', o='traj.xtc', fit='rot+trans')
+    mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)
+    mdrun.trjconv(clinput='0\n0\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='atom', ur='compact', dt=1000, e=1000000)
+    mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.xtc', o='mdc.xtc', pbc='nojump')
+    mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.xtc', o='traj.pdb', fit='rot+trans')
     # # FOR BACKBONE ANALYSIS
     # # cli.run_gmx(mdrun.rundir, 'trjcat', clinput='c\nc\n', cltext=True, f='md_old.trr ext.trr', o='md.trr', settime='yes')
     # mdrun.trjconv(clinput='1\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='atom', ur='compact', e=0)

@@ -162,7 +162,7 @@ However, these can be overwritten.
     ("-ed",       Option(bool,                     0,    False, "Use dihedrals for extended regions rather than elastic bonds)")),
     ("-sep",      Option(bool,                     0,    False, "Write separate topologies for identical chains.")),
     ("-ff",       Option(str,                      1,   'martini30nucleic', "Which forcefield to use: "+' ,'.join(n for n in forcefields[:-1]))),
-    ("-elastic",  Option(bool,                     0,    False, "Write elastic bonds")),
+    ("-elastic",  Option(bool,                     0,    True, "Write elastic bonds")),
     ("-ef",       Option(float,                    1,      500, "Elastic bond force constant Fc")),
     ("-el",       Option(float,                    1,     0.5, "Elastic bond lower cutoff: F = Fc if rij < lo")),
     ("-eu",       Option(float,                    1,     1.2, "Elastic bond upper cutoff: F = 0  if rij > up")),
@@ -276,9 +276,6 @@ def option_parser(args, options, lists, version=0):
     else: 
         logging.error('Undefined topology type. Giving up...')
         sys.exit()
-    options['-el'].setvalue(['0.5'])
-    options['-eu'].setvalue(['1.2'])
-    options['-ef'].setvalue(['200'])
     options['-eb'].setvalue(['BB2']) 
     
     # The make the program flexible, the forcefield parameters are defined
@@ -498,98 +495,6 @@ class CoarseGrained:
     # Standard mapping groups
     dna_bb = nsplit("P OP1 OP2 O5' O3'", "C5' O4' C4'", "C3' C2' C1'")
     rna_bb = nsplit("P OP1 OP2 O5' O3'", "C5' O4' C4'", "C3' C2' O2' C1'")
-
-    # This is the mapping dictionary
-    # For each residue it returns a list, each element of which
-    # lists the atom names to be mapped to the corresponding bead.
-    # The order should be the standard order of the coarse grained
-    # beads for the residue. Only atom names matching with those 
-    # present in the list of atoms for the residue will be used
-    # to determine the bead position. This adds flexibility to the
-    # approach, as a single definition can be used for different 
-    # states of a residue (e.g., GLU/GLUH).
-    # For convenience, the list can be specified as a set of strings,
-    # converted into a list of lists by 'nsplit' defined above.
-    # @MAP
-    # if options['-ff'].value == 'martini30nucleic':
-    # if 1:
-    #     bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
-    #                         "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
-    #                         "C1' C2' O2' O4'")
-    #     mapping = {
-    #             "A":  bb_mapping + nsplit(
-    #                             "C8",
-    #                             "N3 C4",
-    #                             "C2",
-    #                             "N1",
-    #                             "N6 C6 H61 H62",
-    #                             "N7 C5", ),
-    #             "C":  bb_mapping + nsplit(
-    #                             "C6",
-    #                             "O2",
-    #                             "N3",
-    #                             "N4 C4 H41 H42",
-    #                             "C2"),
-    #             "G":  bb_mapping + nsplit(
-    #                             "C8",
-    #                             "C4 N3",
-    #                             "C2 N2 H22 H21",
-    #                             "N1", 
-    #                             "O6",
-    #                             "C5 N7",
-    #                             "H1",
-    #                             "C6"),
-    #             "U":  bb_mapping + nsplit(
-    #                             "C6",
-    #                             "O2",
-    #                             "N3",
-    #                             "O4",
-    #                             "C2",
-    #                             "H3",
-    #                             "C4",),
-    #     }
-        
-    # # if options['-ff'].value == 'martini31nucleic':
-    # if 1:
-    #     bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
-    #                         "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
-    #                         "C1' C2' O2' O4'")
-    #     mapping = {
-    #             "A":  bb_mapping + nsplit(
-    #                             "C8",
-    #                             "N3 C4",
-    #                             "C2",
-    #                             "N1",
-    #                             "N6 C6 H61 H62",
-    #                             "N7 C5", ),
-    #             "C":  bb_mapping + nsplit(
-    #                             "C6",
-    #                             "O2",
-    #                             "N3",
-    #                             "N4 C4 H41 H42",
-    #                             "C2"),
-    #             "G":  bb_mapping + nsplit(
-    #                             "C8",
-    #                             "C4 N3",
-    #                             "C2 N2 H22 H21",
-    #                             "N1", 
-    #                             "O6",
-    #                             "C5 N7",
-    #                             "H1",
-    #                             "C6"),
-    #             "U":  bb_mapping + nsplit(
-    #                             "C6",
-    #                             "O2",
-    #                             "N3",
-    #                             "O4",
-    #                             "C2",
-    #                             "H3",
-    #                             "C4",),
-    #     }   
-        
-
-
-    # residueTypes.update([(i,"Nucleic") for i in mapping.keys()])
 
     # Generic names for DNA beads
     residue_bead_names_dna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6 SC7 SC8")
@@ -1087,13 +992,13 @@ class martini30nucleic(ForceField):
         self.rna_bb = {
             'atom'  : spl("Q1n C6 N2"),    
             'bond'  : [(1,  0.350, 25000),          
-                       (1,  0.384, 12000),
-                       (1,  0.242, 25000),
-                       (1,  0.400, 12000)],          
-            'angle' : [(10,  114.0, 40),       
-                       (10,  118.0, 50)],    # TODO UPDATE ACCORDING TO THE DISTRIBUTION       
-            'dih'   : [(3,   6,  -4, 11, 4, -13.0, -4),  # (3,   6.5,  -2.5, 18, 0, -22.0, 0.5)
-                       (1,   30.0,   6, 1),], 
+                       (1,  0.380, 12000),
+                       (1,  0.240, 25000),
+                       (1,  0.408, 12000)],          
+            'angle' : [(10,  110.0, 60),      #2, 117.0, 140       
+                       (10,  118.0, 190)],        
+            'dih'   : [(1,   34.0, 8, 1),
+                       (1,  -15.0, 10, 1),], 
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
