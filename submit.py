@@ -22,8 +22,8 @@ def submit_md(submit=True, ntomp=8, ):
             if submit:
                 sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, ntomp, 
                     e='slurm_output/error.%A.err', J=f'md_{sysname}',
-                    N=1, n=1, c=ntomp, gres='gpu:1', mem='3G', 
-                    qos='grp_sozkan', partition='general', t='02-04:00:00',)
+                    N=1, n=1, c=ntomp, gres='gpu:1', mem='1G', 
+                    qos='public', partition='htc', t='00-01:00:00',)
             else:
                 run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname, 1, )
 
@@ -165,11 +165,11 @@ sysdir = 'systems'
 sysnames = ['dsRNA']
 runs = ['mdrun_1', ]
 
-sysdir = 'cas9'
-sysnames = ['8ye6_short', '8ye6_long', ]  # 
-runs = ['mdrun_1', 'mdrun_2', ]   # 
+# sysdir = 'cas9'
+# sysnames = ['8ye6_short', '8ye6_long', ]  # 
+# runs = ['mdrun_1', 'mdrun_2', ]   # 
 
-# submit_setup(submit=True)
+submit_setup(submit=False)
 # submit_make_ndx(submit=False)
 # submit_md(submit=True, ntomp=8)
 # submit_extend(ntomp=8)

@@ -143,7 +143,7 @@ def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
     kwargs.setdefault('pf', 1000)
     bdir = os.getcwd()
     os.chdir(wdir)
-    script = os.path.join(bdir, 'cgtools/martinize_nucleotides_v3.0.py')
+    script = os.path.join(bdir, 'cgtools/martinize_nucleotides_v3.1.py')
     cli.run('python3', script, **kwargs)
     os.chdir(bdir)
     

@@ -2,11 +2,11 @@
 
 # EDITABLE SECTIONS ARE MARKED WITH #@# 
 
-version="3.0"
+version="3.1"
 authors=['me and others']
 
 # Parameters are defined for the following (protein) forcefields:
-forcefields = ['martini30nucleic','elnedyn30nucleic']
+forcefields = ['martini30nucleic','martini31nucleic']
 
 import sys
 import os
@@ -332,23 +332,10 @@ def option_parser(args, options, lists, version=0):
 
     # Write options based on selected topology type. @net
     options['type'] = options['-type'].value
-    if options['type'] == 'none':
-        options['-ff'].setvalue(['elnedyn30nucleic'])
-    elif options['type'] == 'ds': 
-        options['-ff'].setvalue(['elnedyn30nucleic'])
-        lists['merges'].append('A,B')
-        options['-eu'].setvalue(['1.2'])
-        options['-ef'].setvalue(['13'])
-        options['-eb'].setvalue(['BB1'])
-    elif options['type'] == 'ss':
-        options['-ff'].setvalue(['elnedyn30nucleic'])
-        options['-el'].setvalue(['0.5'])
-        options['-eu'].setvalue(['1.1'])
-        # options['-ef'].setvalue(['0'])
-        options['-eb'].setvalue(['BB2'])
-    elif options['type'] == 'ignore':
-        options['-ff'].setvalue(['elnedyn30nucleic'])
-        options['-ef'].setvalue(['0'])
+    if options['type'] == 'reg':
+        options['-ff'].setvalue(['martini30nucleic'])
+    elif options['type'] == 'polar': 
+        options['-ff'].setvalue(['martini31nucleic'])
     else: 
         logging.error('Undefined topology type. Giving up...')
         sys.exit()
@@ -358,16 +345,13 @@ def option_parser(args, options, lists, version=0):
     ###_tmp  = __import__(options['-ff'].value.lower())
     ###options['ForceField']  = getattr(_tmp,options['-ff'].value.lower())()
     try:
-        try:
-            # Try to load the forcefield class from a different file
-            _tmp  = __import__(options['-ff'].value.lower())
-            options['ForceField']  = getattr(_tmp,options['-ff'].value.lower())()
-        except:
-            # Try to load the forcefield class from the current file
-            options['ForceField']  = globals()[options['-ff'].value.lower()]()
+        # Try to load the forcefield class from a different file
+        _tmp  = __import__(options['-ff'].value.lower())
+        options['ForceField']  = getattr(_tmp,options['-ff'].value.lower())()
     except:
-        logging.error("Forcefield '%s' can not be found."%(options['-ff']))
-        sys.exit()
+        # Try to load the forcefield class from the current file
+        options['ForceField']  = globals()[options['-ff'].value.lower()]()
+
 
     # Process the raw options from the command line
     # Boolean options are set to more intuitive variables
@@ -679,18 +663,6 @@ class CoarseGrained:
     # Add the default bead names for all DNA/RNA nucleic acids
     names.update([(i, ("BB1", "BB2", "BB3", "SC1", "SC2", "SC3", "SC4", "SC5", "SC6", "SC7", "SC8")) for i in nucleic])
 
-    # This dictionary allows determining four letter residue names
-    # for ones specified with three letters, e.g., resulting from
-    # truncation to adhere to the PDB format.
-    # Each entry returns a prototypical test, given as a string,
-    # and the residue name to be applied if eval(test) is True.
-    # This is particularly handy to determine lipid types.
-    # The test assumes there is a local or global array 'atoms'
-    # containing the atom names of the residue in correct order.
-    restest = {
-        "POP": [('atoms[0] == "CA"', "POPG"),
-                ('atoms[0] == "N"',  "POPE")]
-        }
 
     # Crude mass for weighted average. No consideration of united atoms.
     # This will probably give only minor deviations, while also giving less headache
@@ -855,7 +827,7 @@ def typesub(seq,patterns,types):
 # The following function translates a string encoding the secondary structure
 # to a string of corresponding Martini types, taking the origin of the 
 # secondary structure into account, and replacing termini if requested.
-def ssClassification(ss,program="dssp"):                                                    
+def ssClassification(ss, program="dssp"):                                                    
     # Translate dssp/pymol/gmx ss to Martini ss                                             
     ss  = ss.translate(sstt[program])                                                       
     # Separate the different secondary structure types                                      
@@ -872,55 +844,35 @@ def ssClassification(ss,program="dssp"):
     # Return both the actual as well as the fully typed sequence                             
     return ss, typ                                                                          
 
-
-# The following functions are for determination of secondary structure, 
-# given a list of atoms. The atom format is generic and can be written out
-# as PDB or GRO. The coordinates are in Angstrom.
-# NOTE: There is the *OLD* DSSP and the *NEW* DSSP, which require 
-# different calls. The old version uses '--' to indicate reading from stdin
-# whereas the new version uses '-i /dev/stdin'
-def call_dssp(chain,atomlist,executable='dsspcmbi'):
-    '''Get the secondary structure, by calling to dssp'''
-    ssdfile = 'chain_%s.ssd'%chain._id 
-
-    try:
-        if os.system(executable+" -V >/dev/null"):
-            logging.debug("New version of DSSP; Executing '%s -i /dev/stdin -o %s'"%(executable,ssdfile))
-            p = subp.Popen([executable,"-i","/dev/stdin","-o",ssdfile],stderr=subp.PIPE,stdout=subp.PIPE,stdin=subp.PIPE)
-        else:
-            logging.debug("Old version of DSSP; Executing '%s -- %s'"%(executable,ssdfile))
-            p = subp.Popen([executable,"--",ssdfile],stderr=subp.PIPE,stdout=subp.PIPE,stdin=subp.PIPE)
-    except OSError:
-        logging.error("A problem occured calling %s."%executable)
-        sys.exit(1)
-
-    for atom in atomlist: 
-        if atom[0][:2] == 'O1': atom=('O',)+atom[1:]
-        if atom[0][0]!='H' and atom[0][:2]!='O2': p.stdin.write(pdbOut(atom))
-    p.stdin.write('TER\n')
-    data = p.communicate()
-    p.wait()
-    main,ss = 0,''
-    for line in open(ssdfile).readlines(): 
-      if main and not line[13] == "!": ss+=line[16]
-      if line[:15] == '  #  RESIDUE AA': main=1
-    return ss
-     
-ssDetermination = {
-    "dssp": call_dssp
-    }
-
 class martini30nucleic:
-    def __init__(self):
+    
+    @staticmethod
+    def read_itp(itp_file):
+        itp_data = itpio.read_itp(itp_file)
+        return itp_data
+        
+        
+    @staticmethod    
+    def itp_to_indata(itp_data):
+        keys = ['bonds', 'angles', 'dihedrals', 'impropers', 'virtual_sites3', 'exclusions', 'pairs']
+        connectivity = [itp_data[key].keys() if key in itp_data else [] for key in keys]
+        parameters = [itp_data[key].values() if key in itp_data else [] for key in keys]
+        return connectivity, parameters
 
-        # parameters are defined here for the following forcefield:
+
+    def __init__(self):
+        
+        # parameters are defined here for the following (protein) forcefields:
         self.name = 'martini30nucleic'
         
         # Charged types:
         self.charges = {"Qd":1, "Qa":-1, "SQd":1, "SQa":-1, "RQd":1, "AQa":-1}                                                           #@#
         self.bbcharges = {"BB1":-1}                                                                                                      #@#
-
-
+        
+        # Not all (eg Elnedyn) forcefields use backbone-backbone-sidechain angles and BBBB-dihedrals.
+        self.UseBBSAngles          = False 
+        self.UseBBBBDihedrals      = False
+        
         ##################
         # DNA PARAMETERS #
         ##################
@@ -928,73 +880,54 @@ class martini30nucleic:
         # DNA BACKBONE PARAMETERS
         self.dna_bb = {
             'atom'  : spl("Q0 SN0 SC2"),
-            'bond'  : [(1,  0.360, 20000),          
-                       (1,  0.198, 80000),          
-                       (1,  0.353, 10000)],         
-            'angle' : [(2,  110.0, 200),            
-                       (2,  102.0, 150),           
-                       (2,  106.0,  75)],           
-            'dih'   : [(2,   95.0,  25),
-                       (1,  180.0,   2, 3),
-                       (9,   85.0,   2, 2,  9,  160.0,  2, 3)],
-            'excl'  : [(), (), ()],
+            'bond'  : [],         
+            'angle' : [],           
+            'dih'   : [],
+            'excl'  : [],
             'pair'  : [],
         }
         # DNA BACKBONE CONNECTIVITY
         self.dna_con  = {
-            'bond'  : [(0, 1),
-                       (1, 2),
-                       (2, 0)],
-            'angle' : [(0, 1, 2),
-                       (1, 2, 0),
-                       (2, 0, 1)],
-            'dih'   : [(0, 1, 2, 0),
-                       (1, 2, 0, 1),
-                       (2, 0, 1, 2)],
-            'excl'  : [(0, 2), (1, 0),(2, 1)],
+            'bond'  : [],
+            'angle' : [],
+            'dih'   : [],
+            'excl'  : [],
             'pair'  : [],
         }
 
-        # For bonds, angles, and dihedrals the first parameter should always 
-        # be the type. It is pretty annoying to check the connectivity from 
-        # elsewhere so we update these one base at a time.
-
-        # ADENINE
         self.bases = {}
         self.base_connectivity = {}
-
        
+
         ##################
-        # RNA PARAMETERS #
+        # RNA PARAMETERS # @ff
         ##################
 
-        # RNA BACKBONE PARAMETERS
+        # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
-            'atom'  : spl("Q1 SN1 SN6"),     # Have a look at BB3 bead type
-            'bond'  : [(1,  0.363, 20000),          
-                       (1,  0.202, 40000),    #8  , 0.202 50000    
-                       (1,  0.354, 10000)],         
-            'angle' : [(2,  117.0, 175),      #2, 117.0, 140       
-                       (2,   95.0, 105),           
-                       (1,   93.0,  75)],           
-            'dih'   : [(2,    0.0, 3.5),
-                       (1,    0.0,   1, 4),
-                       (9,  -10.0, 1.5, 2,  9,  10.0, 1.5, 2)],
+            'atom'  : spl("Q1n C6 N2"),    
+            'bond'  : [(1,  0.350, 25000),          
+                       (1,  0.384, 12000),
+                       (1,  0.242, 25000),
+                       (1,  0.400, 12000)],          
+            'angle' : [(10,  114.0, 40),       
+                       (10,  118.0, 50)],    # TODO UPDATE ACCORDING TO THE DISTRIBUTION       
+            'dih'   : [(3,   6,  -4, 11, 4, -13.0, -4),  # (3,   6.5,  -2.5, 18, 0, -22.0, 0.5)
+                       (1,   30.0,   6, 1),], 
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
         # RNA BACKBONE CONNECTIVITY
         self.rna_con  = {
             'bond'  : [(0, 1),
+                       (1, 0),
                        (1, 2),
                        (2, 0)],
-            'angle' : [(0, 1, 2),
-                       (1, 2, 0),
-                       (2, 0, 1)],
-            'dih'   : [(0, 1, 2, 0),
-                       (1, 2, 0, 1),
-                       (2, 0, 1, 2)],
-            'excl'  : [(0, 2), (1, 0),(2, 1)],
+            'angle' : [(0, 1, 0),
+                       (1, 0, 1),],
+            'dih'   : [(0, 1, 0, 1),
+                       (1, 0, 1, 0),],
+            'excl'  : [(2, 0), (0, 2),],
             'pair'  : [],
         }
 
@@ -1002,156 +935,103 @@ class martini30nucleic:
         # be the type. It is pretty annoying to check the connectivity from 
         # elsewhere so we update these one base at a time.
 
+        # Reading itp files
+        mol = rna_system
+        version = 'new'
+        itpdir = os.path.abspath('/scratch/dyangali/cgtools/cgtools/itp/nucbonded')
+        file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
+        a_itp_data = martini30nucleic.read_itp(file)
+        file = os.path.join(itpdir, f'{mol}_C_{version}.itp')
+        c_itp_data = martini30nucleic.read_itp(file)
+        file = os.path.join(itpdir, f'{mol}_G_{version}.itp')
+        g_itp_data = martini30nucleic.read_itp(file)
+        file = os.path.join(itpdir, f'{mol}_U_{version}.itp')
+        u_itp_data = martini30nucleic.read_itp(file)
+
         # ADENINE
-        self.bases.update({
-            "A":  [spl("TN1 TN5a TP1d TN3a TN3a"),                                      
-            #     TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS
-                   [(1,  0.293, 28000), (1,  0.204,  None), (1,  0.263,  None),             # BONDS 
-                    (1,  0.335, 40000), (1,  0.279,  None), (1,  0.162,  None),],     
-                   [(2,  101.0,   260), (2,  153.0,    90), (2,  135.0,   185),             # ANGLES
-                    (1,   87.0,   200), (2,  160.0,    15), (1,  115.0,   200),
-                    (1,   74.0,   200), (1,   92.0,   200)],                           
-                   [(2,  180.0,   1.5), (1,  -40.0,  4, 2), (1,  -10.0,  5, 2),             # DIHEDRALS
-                    (2,  180.0,     0), (2,  180.0,     2), (2,   80.0,   0.5),
-                    (2,    0.0,    10)],                                                    # DIHEDRALS
-                   [],                                                                      # IMPROPERS 
-                   [(2, )],                                                                 # VSITES
-                   [(), (), (), (), (), (), (), (), (), (), (), (), (), ()],                # EXCLUSIONS
-                   []],                                                                     # PAIRS
-            })
-        self.base_connectivity.update({
-            "A":  [[(2, 3),             (3, 4),             (4, 5),                         # BONDS
-                    (4, 6),             (5, 6),             (6, 3),],   
-                   [(1, 2, 3),          (2, 3, 4),          (2, 3, 6),                      # ANGLES
-                    (3, 4, 5),          (3, 2, 8),          (4, 3, 6),
-                    (4, 5, 6),          (5, 6, 3)], 
-                   [(0, 1, 2, 3),       (1, 2, 3, 4),       (1, 2, 3, 6),                   # DIHEDRALS        
-                    (0, 1, 2, 3),       (1, 2, 3, 4),       (1, 2, 3, 6),
-                    (3, 4, 5, 6)],                                                          
-                   [],                                                                      # IMPROPERS
-                   [(7, 3, 4)],                                                             # VSITES
-                   [(0, 1, 2, 3, 4, 5, 6, 7),
-                   (1, 2, 3, 4, 5, 6, 7),
-                   (2, 3, 4, 5, 6, 7),
-                   (3, 4, 5, 6, 7),
-                   (4, 5, 6, 7),
-                   (5, 6, 7),
-                   (6, 7),],
-                   []],                                                                     # PAIRS                     
-            })
-
-        # CYTOSINE
-        self.bases.update({
-            "C":  [spl("TN1 TP1a TP1d"),                                                     
-            #     TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS
-                   [(1,  0.280, 11000), (1,  0.224,  None), (1,  0.281,  None),             # BONDS
-                    (1,  0.267,  None),],
-                   [(2,   94.0,   230), (2,  103.0,   170), (1,  155.0,   100),             # ANGLES
-                    (1,  130.0,   0.5), (1,   61.0,   200), (1,   71.0,   200), 
-                    (1,   47.0,   200)],
-                   [(1,   55.0,  3,  2), (2,  180.0,     3), (2, -130.0,      1),           # DIHEDRALS
-                    (1,    0.0,  2,  6)],                                                   
-                   [],                                                                      # IMPROPERS
-                   [],                                                                      # VSITES
-                   [(), (), (), (), (), (), (), (), ()],                                    # EXCLUSIONS
-                   []],                                                                     # PAIRS                     
-        })
-        self.base_connectivity.update({
-            "C":  [[(2, 3),           (3, 4),             (4, 5),                           # BONDS
-                    (5, 3)],
-                   [(1, 2, 3),        (2, 3, 4),          (2, 3, 5),                        # ANGLES
-                    (3, 2, 6),        (3, 4, 5),          (4, 3, 5),
-                    (4, 5, 3)],
-                   [(0, 1, 2, 3),     (1, 2, 3, 4),       (0, 1, 2, 3),                     # DIHEDRALS
-                    (1, 2, 3, 4)],                                                          
-                   [],                                                                      # IMPROPERS
-                   [],                                                                      # VSITES
-                   [(0, 3),             (0, 4),             (0, 5),                         # EXCLUSIONS
-                    (1, 3),             (1, 4),             (1, 5),             
-                    (2, 3),             (2, 4),             (2, 5)],                                           
-                   []],                                                                     # PAIRS                     
-        })
-
-        # GUANINE
-        self.bases.update({
-            "G":  [spl("TN1 TP1d TP1a TN3a"),
-            #     TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS
-                   [(1,  0.292, 20000), (1,  0.296,  None), (1,  0.291,  None),             # BONDS
-                    (1,  0.385, 40000), (1,  0.296,  None), (1,  0.162,  None),],     
-                   [(2,  103.0,   260), (2,  129.0,    80), (2,  137.0,   120),             # ANGLES
-                    (1,   72.0,   200), (2,  170.0,    20), (1,  117.0,   200),
-                    (1,   84.0,   200), (1,   96.5,   200)],                           
-                   [(1,  -20.0,  1, 2), (2,  180.0,   3.5), (1,    0.0,     5, 2),
-                    (2,    0.0,    10)],                                                    # DIHEDRALS  
-                   [],                                                                      # IMPROPERS 
-                   [],                                                                      # VSITES
-                   [(), (), (), (), (), (), (), (), (), (), (), (), (), ()],                # EXCLUSIONS
-                   []],                                                                     # PAIRS                     
-        })
-        self.base_connectivity.update({
-            "G":  [[(2, 3),             (3, 4),             (4, 5),                         # BONDS
-                    (4, 6),             (5, 6),             (6, 3),],
-                   [(1, 2, 3),          (2, 3, 4),          (2, 3, 6),                      # ANGLES
-                    (3, 4, 5),          (3, 2, 7),          (4, 3, 6), 
-                    (4, 5, 6),          (5, 6, 3)],
-                   [(0, 1, 2, 3),       (1, 2, 3, 4),       (1, 2, 3, 6),
-                    (3, 4, 5, 6)],                                                          # DIHEDRALS        
-                   [],                                                                      # IMPROPERS
-                   [],                                                                      # VSITES
-                   [(0, 3),             (0, 4),             (0, 5),                         # EXCLUSIONS
-                    (0, 6),             (1, 3),             (1, 4),
-                    (1, 5),             (1, 6),             (2, 3),
-                    (2, 4),             (2, 5),             (2, 6),
-                    (3, 5),             (4, 6)],                                           
-                   []],                                                                     # PAIRS                     
-        })
-
-        # URACIL
-        self.bases.update({
-            "U":  [spl("TN1 TN5d TP1a TN3d"),
-            #     TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS
-                   [(1,  0.286, 18000), (1,  0.204,  None), (1,  0.269,  None),             # BONDS
-                    (1,  0.256,  None),],
-                   [(2,   95.0,   225), (2,   99.0,   200), (1,  155.0,   100),             # ANGLES
-                    (1,  180.0,     5), (1,   55.0,   100), (1,   83.0,   100),
-                    (1,   42.0,   100)],
-                   [(1,    0.0,  2, 2), (2,  180.0,     4), (1,    0.0,  2, 6)],            # DIHEDRALS
-                   [],                                                                      # IMPROPERS
-                   [(2, )],                                                                      # VSITES
-                   [(), (), (), (), (), (), (), (), ()],                                    # EXCLUSIONS
-                   []],                                                                     # PAIRS                     
-        })
-        self.base_connectivity.update({
-            "U":  [[(2, 3),           (3, 4),             (4, 5),                           # BONDS
-                    (5, 3)],
-                   [(1, 2, 3),        (2, 3, 4),          (2, 3, 5),                        # ANGLES
-                    (3, 2, 6),        (3, 4, 5),          (4, 3, 5), 
-                    (4, 5, 3)],
-                   [(0, 1, 2, 3),     (1, 2, 3, 4),       (1, 2, 3, 4)],                    # DIHEDRALS
-                   [],                                                                      # IMPROPERS
-                   [(6, 3, 4)],                                                                      # VSITES
-                   [(0, 1, 2, 3, 4, 5, 6),
-                   (1, 2, 3, 4, 5, 6),
-                   (2, 3, 4, 5, 6),
-                   (3, 4, 5, 6),
-                   (4, 5, 6),
-                   (5, 6),],                                           
-                   []],                                                                     # PAIRS                     
-        })
-
-
-        #----+----------------+
-        ## D | SPECIAL BONDS  |
-        #----+----------------+
+        mapping = [spl("TA0 TA1 TA2 TA3 TA4")]
+        connectivity, itp_params = martini30nucleic.itp_to_indata(a_itp_data)
+        parameters = mapping + itp_params
+        self.bases.update({"A": parameters})
+        self.base_connectivity.update({"A": connectivity})
+        self.bases.update({"RA3": parameters})
+        self.base_connectivity.update({"RA3": connectivity})
+        self.bases.update({"RA5": parameters})
+        self.base_connectivity.update({"RA5": connectivity})
+        self.bases.update({"2MA": parameters})
+        self.base_connectivity.update({"2MA": connectivity})
+        self.bases.update({"DMA": parameters})
+        self.base_connectivity.update({"DMA": connectivity})
+        self.bases.update({"SPA": parameters})
+        self.base_connectivity.update({"SPA": connectivity})
+        self.bases.update({"RAP": parameters})
+        self.base_connectivity.update({"RAP": connectivity})
+        self.bases.update({"6MA": parameters})
+        self.base_connectivity.update({"6MA": connectivity})
         
-        self.special = {
-            # Used for sulfur bridges
-            # ATOM 1         ATOM 2          BOND LENGTH   FORCE CONSTANT
-            (("SC1","CYS"), ("SC1","CYS")):     (0.39,         5000),
-            }
+        # CYTOSINE
+        mapping = [spl("TY0 TY1 TY2 TY3")]
+        connectivity, itp_params = martini30nucleic.itp_to_indata(c_itp_data)
+        parameters = mapping + itp_params
+        self.bases.update({"C": parameters})
+        self.base_connectivity.update({"C": connectivity})
+        self.bases.update({"RC3": parameters})
+        self.base_connectivity.update({"RC3": connectivity})
+        self.bases.update({"RC5": parameters})
+        self.base_connectivity.update({"RC5": connectivity})
+        self.bases.update({"MRC": parameters})
+        self.base_connectivity.update({"MRC": connectivity})
+        self.bases.update({"5MC": parameters})
+        self.base_connectivity.update({"5MC": connectivity})
+        self.bases.update({"NMC": parameters})
+        self.base_connectivity.update({"NMC": connectivity})
+        
+        # GUANINE
+        mapping = [spl("TG0 TG1 TG2 TG3 TG4 TG5")]
+        connectivity, itp_params = martini30nucleic.itp_to_indata(g_itp_data)
+        parameters = mapping + itp_params
+        self.bases.update({"G": parameters})
+        self.base_connectivity.update({"G": connectivity})
+        self.bases.update({"RG3": parameters})
+        self.base_connectivity.update({"RG3": connectivity})
+        self.bases.update({"RG5": parameters})
+        self.base_connectivity.update({"RG5": connectivity})
+        self.bases.update({"MRG": parameters})
+        self.base_connectivity.update({"MRG": connectivity})
+        self.bases.update({"1MG": parameters})
+        self.base_connectivity.update({"1MG": connectivity})
+        self.bases.update({"2MG": parameters})
+        self.base_connectivity.update({"2MG": connectivity})
+        self.bases.update({"7MG": parameters})
+        self.base_connectivity.update({"7MG": connectivity})
+        
+        # URACIL
+        mapping = [spl("TU0 TU1 TU2 TU3")]
+        connectivity, itp_params = martini30nucleic.itp_to_indata(u_itp_data)
+        parameters = mapping + itp_params
+        self.bases.update({"U": parameters})
+        self.base_connectivity.update({"U": connectivity})
+        self.bases.update({"RU3": parameters})
+        self.base_connectivity.update({"RU3": connectivity})
+        self.bases.update({"RU5": parameters})
+        self.base_connectivity.update({"RU5": connectivity})
+        self.bases.update({"MRU": parameters})
+        self.base_connectivity.update({"MRU": connectivity})
+        self.bases.update({"DHU": parameters})
+        self.base_connectivity.update({"DHU": connectivity})        
+        self.bases.update({"PSU": parameters})
+        self.base_connectivity.update({"PSU": connectivity})
+        self.bases.update({"3MP": parameters})
+        self.base_connectivity.update({"3MP": connectivity})
+        self.bases.update({"3MU": parameters})
+        self.base_connectivity.update({"3MU": connectivity})
+        self.bases.update({"4SU": parameters})
+        self.base_connectivity.update({"4SU": connectivity})        
+        self.bases.update({"5MU": parameters})
+        self.base_connectivity.update({"5MU": connectivity})
         
         # By default use an elastic network
-        self.ElasticNetwork = False 
+        self.ElasticNetwork = False  
 
         # Elastic networks bond shouldn't lead to exclusions (type 6) 
         # But Elnedyn has been parametrized with type 1.
@@ -1250,13 +1130,10 @@ class martini30nucleic:
     def messages(self):
         '''Prints any force-field specific logging messages.'''
         import logging
-        logging.warning('################################################################################')
-        logging.warning('This is a beta of Martini-nucleotide and should NOT be used for production runs.')
-        logging.warning('################################################################################')
         pass
 
 
-class elnedyn30nucleic():
+class martini31nucleic():
     
     @staticmethod
     def read_itp(itp_file):
@@ -1275,7 +1152,7 @@ class elnedyn30nucleic():
     def __init__(self):
         
         # parameters are defined here for the following (protein) forcefields:
-        self.name = 'elnedyn30nucleic'
+        self.name = 'martini31nucleic'
         
         # Charged types:
         charges = {"TDU":0.5,   "TA1":0.4, "TA2":-0.3, "TA3":0.5, "TA4":-0.8, "TA5":0.6, "TA6":-0.4, 
@@ -1360,17 +1237,17 @@ class elnedyn30nucleic():
         version = 'new'
         itpdir = os.path.abspath('/scratch/dyangali/cgtools/cgtools/itp/hydrogen_bonded')
         file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
-        a_itp_data = elnedyn30nucleic.read_itp(file)
+        a_itp_data = martini31nucleic.read_itp(file)
         file = os.path.join(itpdir, f'{mol}_C_{version}.itp')
-        c_itp_data = elnedyn30nucleic.read_itp(file)
+        c_itp_data = martini31nucleic.read_itp(file)
         file = os.path.join(itpdir, f'{mol}_G_{version}.itp')
-        g_itp_data = elnedyn30nucleic.read_itp(file)
+        g_itp_data = martini31nucleic.read_itp(file)
         file = os.path.join(itpdir, f'{mol}_U_{version}.itp')
-        u_itp_data = elnedyn30nucleic.read_itp(file)
+        u_itp_data = martini31nucleic.read_itp(file)
 
         # ADENINE
         mapping = [spl("TA1 TA2 TA3 TA4 TA5 TA6")]
-        connectivity, itp_params = elnedyn30nucleic.itp_to_indata(a_itp_data)
+        connectivity, itp_params = martini31nucleic.itp_to_indata(a_itp_data)
         parameters = mapping + itp_params
         self.bases.update({"A": parameters})
         self.base_connectivity.update({"A": connectivity})
@@ -1391,7 +1268,7 @@ class elnedyn30nucleic():
         
         # CYTOSINE
         mapping = [spl("TY1 TY2 TY3 TY4 TY5")]
-        connectivity, itp_params = elnedyn30nucleic.itp_to_indata(c_itp_data)
+        connectivity, itp_params = martini31nucleic.itp_to_indata(c_itp_data)
         parameters = mapping + itp_params
         self.bases.update({"C": parameters})
         self.base_connectivity.update({"C": connectivity})
@@ -1408,7 +1285,7 @@ class elnedyn30nucleic():
         
         # GUANINE
         mapping = [spl("TG1 TG2 TG3 TG4 TG5 TG6 TG7 TG8")]
-        connectivity, itp_params = elnedyn30nucleic.itp_to_indata(g_itp_data)
+        connectivity, itp_params = martini31nucleic.itp_to_indata(g_itp_data)
         parameters = mapping + itp_params
         self.bases.update({"G": parameters})
         self.base_connectivity.update({"G": connectivity})
@@ -1427,7 +1304,7 @@ class elnedyn30nucleic():
         
         # URACIL
         mapping = [spl("TU1 TU2 TU3 TU4 TU5 TU6 TU7")]
-        connectivity, itp_params = elnedyn30nucleic.itp_to_indata(u_itp_data)
+        connectivity, itp_params = martini31nucleic.itp_to_indata(u_itp_data)
         parameters = mapping + itp_params
         self.bases.update({"U": parameters})
         self.base_connectivity.update({"U": connectivity})
@@ -1451,7 +1328,7 @@ class elnedyn30nucleic():
         self.base_connectivity.update({"5MU": connectivity})
         
         # By default use an elastic network
-        self.ElasticNetwork = True  
+        self.ElasticNetwork = False  
 
         # Elastic networks bond shouldn't lead to exclusions (type 6) 
         # But Elnedyn has been parametrized with type 1.
@@ -1694,44 +1571,6 @@ def pdbFrameIterator(streamIterator):
             atoms.append(pdbAtom(i))
     if atoms:
         yield "".join(title), atoms, box
-
-
-#----+---------+
-## B | GRO I/O |
-#----+---------+
-
-groline = "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n"                                    
-
-def groBoxRead(a):    
-    b = [float(i) for i in a.split()] + 6*[0]             # Padding for rectangular boxes
-    return b[0], b[3], b[4], b[5], b[1], b[6], b[7], b[8], b[2]   # Return full definition xx,xy,xz,yx,yy,yz,zx,zy,zz
-
-def groAtom(a):
-    # In PDB files, there might by an insertion code. To handle this, we internally add
-    # constant to all resids. To be consistent, we have to do the same for gro files.
-    # 32 equal ord(' '), eg an empty insertion code
-    constant = 32<<20
-    #012345678901234567890123456789012345678901234567890
-    #    1PRN      N    1   4.168  11.132   5.291
-    ## ===> atom name,        res name,          res id,    chain,
-    return (a[10:15].strip(), a[5:10].strip(),   int(a[:5])+constant, " ", 
-    ##               x,                 y,                 z       
-            10*float(a[20:28]),10*float(a[28:36]),10*float(a[36:44]))
-
-# Simple GRO iterator
-def groFrameIterator(streamIterator):
-    while True:
-        try:
-            title = streamIterator.next()
-        except StopIteration:
-            break
-        natoms = streamIterator.next().strip()
-        if not natoms:
-            break
-        natoms = int(natoms)
-        atoms  = [groAtom(streamIterator.next())  for i in range(natoms)] 
-        box    = groBoxRead(streamIterator.next())
-        yield title, atoms, box
 
 
 #----+-------------+
@@ -3145,52 +2984,12 @@ def main(options):
             for chain in chains:
                 chain.set_ss("F")
                 ss += chain.ss
-        elif options["-ss"]:
-            # XXX We need error-catching here, 
-            # in case the file doesn't excist, or the string contains bogus.
-            # If the string given for the sequence consists strictly of upper case letters
-            # and does not appear to be a file, assume it is the secondary structure
-            ss = options["-ss"].value.replace('~','L').replace(' ','L')
-            if ss.isalnum() and ss.isupper() and not os.path.exists(options["-ss"].value):
-                ss = options["-ss"].value
-                logging.info('Secondary structure read from command-line:\n'+ss)
-            else:
-                # There ought to be a file with the name specified
-                ssfile = [ i.strip() for i in open(options["-ss"].value) ]
-        
-                # Try to read the file as a Gromacs Secondary Structure Dump
-                # Those have an integer as first line
-                if ssfile[0].isdigit():
-                    logging.info('Will read secondary structure from file (assuming Gromacs ssdump).')
-                    ss = "".join([ i for i in ssfile[1:] ])
-                else:
-                    # Get the secondary structure type from DSSP output
-                    logging.info('Will read secondary structure from file (assuming DSSP output).')
-                    pss = re.compile(r"^([ 0-9]{4}[0-9]){2}")
-                    ss  = "".join([i[16] for i in open(options["-ss"].value) if re.match(pss,i)])        
-            
             # Now set the secondary structure for each of the chains
             sstmp = ss
             for chain in chains:
                 ln = min(len(sstmp),len(chain)) 
                 chain.set_ss(sstmp[:ln])
                 sstmp = ss[:ln]                         
-        else:
-            if options["-dssp"]:
-                method, executable = "dssp", options["-dssp"].value
-            #elif options["-pymol"]:
-            #    method, executable = "pymol", options["-pymol"].value
-            else:
-                logging.warning("No secondary structure or determination method speficied. Protein chains will be set to 'COIL'.")
-                method, executable = None, None
-        
-            for chain in chains:
-                ss += chain.dss(method, executable)
-        
-            # Used to be: if method in ("dssp","pymol"): but pymol is not supported
-            if method in ["dssp"]:
-                logging.debug('%s determined secondary structure:\n'%method.upper()+ss)
-        
         # Collect the secondary structure classifications for different frames
         ssTotal.append(ss)    
     
