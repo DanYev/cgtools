@@ -85,9 +85,8 @@ de Jong et al., J. Chem. Theory Comput., 2013, DOI:10.1021/ct300646g
 
 Primary input/output
 --------------------
-The input file (-f) should be a coordinate file in PDB or GROMOS
-format. The format is inferred from the structure of the file. The 
-input can also be provided through stdin, allowing piping of 
+The input file (-f) should be a coordinate file in PDB format. 
+The input can also be provided through stdin, allowing piping of 
 structures. The input structure can have multiple frames/models. If an output
 structure file (-x) is given, each frame will be coarse grained,
 resulting in a multimodel output structure. Having multiple frames may
@@ -102,60 +101,11 @@ moleculetype definitions, which are written to separate files. If no
 output filename is given, the topology and the moleculetype
 definitions are written to stdout.
 
-Secondary structure
--------------------
-The secondary structure plays a central role in the assignment of atom
-types and bonded interactions in MARTINI. Martinize allows
-specification of the secondary structure as a string (-ss), or as a
-file containing a specification in GROMACS' ssdump format
-(-ss). Alternatively, DSSP can be used for an on-the-fly assignment of
-the secondary structure. For this, the option -dssp has to be used
-giving the location of the executable as the argument. 
-The option -collagen will set the whole structure to collagen. If this
-is not what you want (eg only part of the structure is collagen, you
-can give a secondary structure file/string (-ss) and specifiy collagen
-as "F". Parameters for collagen are taken from: Gautieri et al., 
-J. Chem. Theory Comput., 2010, 6, 1210-1218. 
-With multimodel input files, the secondary structure as determined with
-DSSP will be averaged over the frames. In this case, a cutoff
-can be specified (-ssc) indicating the fraction of frames to match a
-certain secondary structure type for designation.
-
 Topology
 --------
 Several options are available to tune the resulting topology. By
 default, termini are charged, and chain breaks are kept neutral. This
 behaviour can be changed using -nt and -cb, respectively.
-
-Disulphide bridges can be specified using -cys. This option can be
-given multiple times on the command line. The argument is a pair of
-cysteine residues, using the format
-chain/resn/resi,chain/resn/resi. For disulphide bridges, the residue
-name is not required, and the chain identifier is optional. If no
-chain identifier is given, all matching residue pairs will be checked,
-and pairs within the cutoff distance (0.22 nm) will be linked. It is
-also possible to let martinize detect cysteine pairs based on this
-cut-off distance, by giving the keyword 'auto' as argument to -cys.
-Alternatively, a different cut-off distance can be specified, which
-will also trigger a search of pairs satisfying the distance
-criterion.
-
-In addition to cystine bridges, links between other atoms can be
-specified using -link. This requires specification of the atoms, using
-the format
-chain/resi/resn/atom,chain/resi/resn/atom,bondlength,forceconstant.
-If only two atoms are given, a constraint will be added with length
-equal to the (average) distance in the coordinate file. If a bond
-length is added, but no force constant, then the bondlength will be
-used to set a constraint.
-
-Linking atoms requires that the atoms are part of the same
-moleculetype. Therefore any link between chains will cause the chains
-to be merged. Merges can also be specified explicitly, using the
-option -merge with a comma-separated list of chain identifiers to be
-joined into one moleculetype. The option -merge can be used several
-times. Note that specifying a chain in several merge groups will cause
-all chains involved to be merged into a single moleculetype.
 
 The moleculetype definitions are written to topology include (.itp)
 files, using a name consisting of the molecule class (e.g. Protein)
@@ -187,24 +137,11 @@ network is specified (eg. Elnedyn) with -ff, -elastic in implied and
 the default values for the force constant and upper cutoff are used.
 However, these can be overwritten.
 
-Multiscaling
-------------
-Martinize can process a structure to yield a multiscale system,
-consisting of a coordinate file with atomistic parts and
-corresponding, overlaid coarsegrained parts. For chains that are
-multiscaled, rather than writing a full moleculetype definition, 
-additional [atoms] and [virtual_sitesn] sections are written, to 
-be appended to the atomistic moleculetype definitions. 
-The option -multi can be specified multiple times, and takes a chain
-identifier as argument. Alternatively, the keyword 'all' can be given
-as argument, causing all chains to be multiscaled.
 ========================================================================\n
 """,
     ("-f",        Option(str,                      1,     None, "Input file (PDB|GRO)")),
     ("-o",        Option(str,                      1,     None, "Output topology (TOP)")),
     ("-x",        Option(str,                      1,     None, "Output coarse grained structure (PDB)")),
-    ("-n",        Option(str,                      1,     None, "Output index file with CG (and multiscale) beads.")),
-    ("-nmap",     Option(str,                      1,     None, "Output index file containing per bead mapping.")),
     ("-seq",      Option(str,                      1,     None, "Output list of bead numbers.")),
     ("-bmap",     Option(str,                      1,     None, "Output index file containing bonded terms.")),
     ("-v",        Option(bool,                     0,    False, "Verbose. Be load and noisy.")), 
@@ -224,7 +161,7 @@ as argument, causing all chains to be multiscaled.
     ("-pf",       Option(float,                    1,     1000, "Position restraints force constant (default: 1000 kJ/mol/nm^2)")),
     ("-ed",       Option(bool,                     0,    False, "Use dihedrals for extended regions rather than elastic bonds)")),
     ("-sep",      Option(bool,                     0,    False, "Write separate topologies for identical chains.")),
-    ("-ff",       Option(str,                      1,'martini21', "Which forcefield to use: "+' ,'.join(n for n in forcefields[:-1]))),
+    ("-ff",       Option(str,                      1,   'martini30nucleic', "Which forcefield to use: "+' ,'.join(n for n in forcefields[:-1]))),
     ("-elastic",  Option(bool,                     0,    False, "Write elastic bonds")),
     ("-ef",       Option(float,                    1,      500, "Elastic bond force constant Fc")),
     ("-el",       Option(float,                    1,     0.5, "Elastic bond lower cutoff: F = Fc if rij < lo")),
@@ -330,16 +267,20 @@ def option_parser(args, options, lists, version=0):
     options['type'] = options['-type'].value
     if options['type'] == 'ss':
         options['-ff'].setvalue(['martini30nucleic'])
-    elif options['type'] == 'pol': 
-        options['-ff'].setvalue(['martini31nucleic'])
     elif options['type'] == 'ds': 
         options['-ff'].setvalue(['martini30nucleic'])
         lists['merges'].append('A, B')
         options['-eb'].setvalue(['BB2'])
+    elif options['type'] == 'pol': 
+        options['-ff'].setvalue(['martini31nucleic'])  
     else: 
         logging.error('Undefined topology type. Giving up...')
         sys.exit()
-     
+    options['-el'].setvalue(['0.5'])
+    options['-eu'].setvalue(['1.2'])
+    options['-ef'].setvalue(['200'])
+    options['-eb'].setvalue(['BB2']) 
+    
     # The make the program flexible, the forcefield parameters are defined
     # for multiple forcefield. Check if a existing one is defined:
     try:
@@ -356,8 +297,8 @@ def option_parser(args, options, lists, version=0):
     options['chHIS']               = options['-his']
     options['ChargesAtBreaks']     = options['-cb']
     options['NeutralTermini']      = options['-nt']
-    options['ExtendedDihedrals']   = options['-ed']
-    options['RetainHETATM']        = False # options['-hetatm']
+    # options['ExtendedDihedrals']   = options['-ed']
+    # options['RetainHETATM']        = False # options['-hetatm']
     options['SeparateTop']         = options['-sep']
     options['MixedChains']         = False # options['-mixed']
     options['ElasticNetwork']      = options['-elastic']
@@ -441,24 +382,13 @@ def option_parser(args, options, lists, version=0):
         logging.error("Forcefield '%s' has not been implemented."%(options['-ff']))
         sys.exit()
     
-    if options['ExtendedDihedrals']:  
-        logging.info('Dihedrals will be used for extended regions. (Elastic bonds may be more stable)')
-    else:                  
-        logging.info('Local elastic bonds will be used for extended regions.')
-    
-    
     if options['PosRes']:
         logging.info("Position restraints will be generated.")
         logging.warning("Position restraints are only enabled if -DPOSRES is set in the MDP file")
     
-    
     if options['MixedChains']:
         logging.warning("So far no parameters for mixed chains are available. This might crash the program!")
     
-    
-    if options['RetainHETATM']:
-        logging.warning("I don't know how to handle HETATMs. This will probably crash the program.")
-
     return options 
     
     
@@ -583,24 +513,24 @@ class CoarseGrained:
     # @MAP
     # if options['-ff'].value == 'martini30nucleic':
     if 1:
-        BB_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
+        bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
                             "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
                             "C1' C2' O2' O4'")
         mapping = {
-                "A":  BB_mapping + nsplit(
+                "A":  bb_mapping + nsplit(
                                 "C8",
                                 "N3 C4",
                                 "C2",
                                 "N1",
                                 "N6 C6 H61 H62",
                                 "N7 C5", ),
-                "C":  BB_mapping + nsplit(
+                "C":  bb_mapping + nsplit(
                                 "C6",
                                 "O2",
                                 "N3",
                                 "N4 C4 H41 H42",
                                 "C2"),
-                "G":  BB_mapping + nsplit(
+                "G":  bb_mapping + nsplit(
                                 "C8",
                                 "C4 N3",
                                 "C2 N2 H22 H21",
@@ -609,7 +539,7 @@ class CoarseGrained:
                                 "C5 N7",
                                 "H1",
                                 "C6"),
-                "U":  BB_mapping + nsplit(
+                "U":  bb_mapping + nsplit(
                                 "C6",
                                 "O2",
                                 "N3",
@@ -621,24 +551,24 @@ class CoarseGrained:
         
     # if options['-ff'].value == 'martini31nucleic':
     if 1:
-        BB_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
+        bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
                             "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
                             "C1' C2' O2' O4'")
         mapping = {
-                "A":  BB_mapping + nsplit(
+                "A":  bb_mapping + nsplit(
                                 "C8",
                                 "N3 C4",
                                 "C2",
                                 "N1",
                                 "N6 C6 H61 H62",
                                 "N7 C5", ),
-                "C":  BB_mapping + nsplit(
+                "C":  bb_mapping + nsplit(
                                 "C6",
                                 "O2",
                                 "N3",
                                 "N4 C4 H41 H42",
                                 "C2"),
-                "G":  BB_mapping + nsplit(
+                "G":  bb_mapping + nsplit(
                                 "C8",
                                 "C4 N3",
                                 "C2 N2 H22 H21",
@@ -647,7 +577,7 @@ class CoarseGrained:
                                 "C5 N7",
                                 "H1",
                                 "C6"),
-                "U":  BB_mapping + nsplit(
+                "U":  bb_mapping + nsplit(
                                 "C6",
                                 "O2",
                                 "N3",
@@ -750,23 +680,6 @@ import subprocess as subp
 ## A | SECONDARY STRUCTURE TYPE DEFINITIONS |
 #----+--------------------------------------+
 
-# This table lists all coarse grained secondary structure types
-# The following are matched lists. Make sure they stay matched.
-# The lists do not need to be of the same length. The longer list
-# will be truncated when combined with a shorter list, e.g. with
-# dihedral definitions, which are not present for coil and termini
-#
-ss_names = {
- "F": "Collagenous Fiber",                                                                  #@#
- "E": "Extended structure (beta sheet)",                                                    #@#
- "H": "Helix structure",                                                                    #@#
- "1": "Helix start (H-bond donor)",                                                         #@#
- "2": "Helix end (H-bond acceptor)",                                                        #@#
- "3": "Ambivalent helix type (short helices)",                                              #@#
- "T": "Turn",                                                                               #@#
- "S": "Bend",                                                                               #@#
- "C": "Coil",                                                                               #@#
-}
 
 bbss     =    spl("  F     E     H     1     2     3     T     S     C")  # SS one letter 
 
@@ -865,9 +778,9 @@ def typesub(seq,patterns,types):
 # The following function translates a string encoding the secondary structure
 # to a string of corresponding Martini types, taking the origin of the 
 # secondary structure into account, and replacing termini if requested.
-def ssClassification(ss, program="dssp"):                                                    
+def ssClassification(ss, program="self"):                                                    
     # Translate dssp/pymol/gmx ss to Martini ss                                             
-    ss  = ss.translate(sstt[program])                                                       
+    ss  = ss.translate(sstt[program])      
     # Separate the different secondary structure types                                      
     sep = dict([(i,ss.translate(sstd[i])) for i in sstd.keys()])                            
     # Do type substitutions based on patterns                                               
@@ -880,9 +793,14 @@ def ssClassification(ss, program="dssp"):
     # Sum characters back to get a full typed sequence                                      
     typ = "".join([chr(sum(i)) for i in zip(*typ)])                                         
     # Return both the actual as well as the fully typed sequence                             
-    return ss, typ                                                                          
+    return ss, typ           
+    
+    
+###################################
+## 5 # FORCE FIELDS ##  -> @FF <-
+###################################
 
-class martini30nucleic:
+class ForceField:
     
     @staticmethod
     def read_itp(itp_file):
@@ -896,17 +814,118 @@ class martini30nucleic:
         connectivity = [itp_data[key].keys() if key in itp_data else [] for key in keys]
         parameters = [itp_data[key].values() if key in itp_data else [] for key in keys]
         return connectivity, parameters
+        
+    def __init__(self):  
+        
+        # By default use an elastic network
+        self.ElasticNetwork = False  
+    
+        # Elastic networks bond shouldn't lead to exclusions (type 6) 
+        # But Elnedyn has been parametrized with type 1.
+        self.EBondType = 6 
+        
+        ## DNA DICTIONARIES ##
+        # Dictionary for the connectivities and parameters of bonds between DNA backbone beads
+        self.dnaBbBondDictC = dict(zip(self.dna_con['bond'],self.dna_bb['bond']))
+        # Dictionary for the connectivities and parameters of angles between DNA backbone beads
+        self.dnaBbAngleDictC = dict(zip(self.dna_con['angle'],self.dna_bb['angle']))
+        # Dictionary for the connectivities and parameters of dihedrals between DNA backbone beads
+        self.dnaBbDihDictC = dict(zip(self.dna_con['dih'],self.dna_bb['dih']))
+        # Dictionary for exclusions for DNA backbone beads
+        self.dnaBbExclDictC = dict(zip(self.dna_con['excl'],self.dna_bb['excl']))
+        # Dictionary for pairs for DNA backbone beads
+        self.dnaBbPairDictC = dict(zip(self.dna_con['pair'],self.dna_bb['pair']))
+
+        ## RNA DICTIONARIES ##
+        # Dictionary for the connectivities and parameters of bonds between rna backbone beads
+        self.rnaBbBondDictC = dict(zip(self.rna_con['bond'], self.rna_bb['bond']))
+        # Dictionary for the connectivities and parameters of angles between rna backbone beads
+        self.rnaBbAngleDictC = dict(zip(self.rna_con['angle'], self.rna_bb['angle']))
+        # Dictionary for the connectivities and parameters of dihedrals between rna backbone beads
+        self.rnaBbDihDictC = dict(zip(self.rna_con['dih'], self.rna_bb['dih']))
+        # Dictionary for exclusions for rna backbone beads
+        self.rnaBbExclDictC = dict(zip(self.rna_con['excl'], self.rna_bb['excl']))
+        # Dictionary for pairs for rna backbone beads
+        self.rnaBbPairDictC = dict(zip(self.rna_con['pair'], self.rna_bb['pair']))   
+
+    # The following function returns the backbone bead for a given residue and                   
+    # secondary structure type.                                                                 
+    # 1. Check if the residue is DNA/RNA and return the whole backbone for those
+    # 2. Look up the proper dictionary for the residue                                          
+    # 3. Get the proper type from it for the secondary structure                                
+    # If the residue is not in the dictionary of specials, use the default                      
+    # If the secondary structure is not listed (in the residue specific                         
+    # dictionary) revert to the default.                 
+
+    def bbGetBead(self, r1, ss="F"):                                                               
+        if r1 in dnares3:
+            return self.dna_bb['atom']
+        elif r1 in rnares3:
+            return self.rna_bb['atom']
+        else:
+            sys.exit("This script supports only DNA or RNA.")
+    
+    def bbGetBond(self, r, ca, ss):
+        # Retrieve parameters for each residue from tables defined above
+        if r[0] in dnares3:
+            return ca in self.dnaBbBondDictC.keys() and self.dnaBbBondDictC[ca] or None
+        elif r[0] in rnares3:
+            return ca in self.rnaBbBondDictC.keys() and self.rnaBbBondDictC[ca] or None
+        else:
+            sys.exit("This script supports only DNA or RNA.")
+    
+    def bbGetAngle(self, r, ca, ss):
+        if r[0] in dnares3:
+            return ca in self.dnaBbAngleDictC.keys() and self.dnaBbAngleDictC[ca] or None
+        elif r[0] in rnares3:
+            return ca in self.rnaBbAngleDictC.keys() and self.rnaBbAngleDictC[ca] or None
+        else:
+            sys.exit("This script supports only DNA or RNA.")
+
+    def bbGetExclusion(self, r, ca, ss):
+        if r[0] in dnares3:
+            return ca in self.dnaBbExclDictC.keys() and ' ' or None
+        elif r[0] in rnares3:
+            return ca in self.rnaBbExclDictC.keys() and ' ' or None
+        else:
+            sys.exit("This script supports only DNA or RNA.")
+
+    def bbGetPair(self, r, ca, ss):
+        if r[0] in dnares3:
+            return ca in self.dnaBbPairDictC.keys() and ' ' or None
+        elif r[0] in rnares3:
+            return ca in self.rnaBbPairDictC.keys() and ' ' or None
+        else:
+            sys.exit("This script supports only DNA or RNA.")
+
+    def bbGetDihedral(self, r, ca, ss):
+        # Retrieve parameters for each residue from table defined above
+        if r[0] in dnares3:
+            return ca in self.dnaBbDihDictC.keys() and self.dnaBbDihDictC[ca] or None
+        elif r[0] in rnares3:
+            return ca in self.rnaBbDihDictC.keys() and self.rnaBbDihDictC[ca] or None
+        else:
+            sys.exit("This script supports only DNA or RNA.")
+
+    def getCharge(self, atype, aname):
+        return self.charges.get(atype,self.bbcharges.get(aname,0))
+        
+    def messages(self):
+        '''Prints any force-field specific logging messages.'''
+        import logging
+        pass
+   
 
 
+class martini30nucleic(ForceField):
+    
     def __init__(self):
         
         # parameters are defined here for the following (protein) forcefields:
         self.name = 'martini30nucleic'
-        
         # Charged types:
         self.charges = {"Qd":1, "Qa":-1, "SQd":1, "SQa":-1, "RQd":1, "AQa":-1}                                                           #@#
         self.bbcharges = {"BB1":-1}                                                                                                      #@#
-        
         # Not all (eg Elnedyn) forcefields use backbone-backbone-sidechain angles and BBBB-dihedrals.
         self.UseBBSAngles          = False 
         self.UseBBBBDihedrals      = False
@@ -976,7 +995,8 @@ class martini30nucleic:
         # Reading itp files
         mol = rna_system
         version = 'new'
-        itpdir = os.path.abspath('/scratch/dyangali/cgtools/cgtools/itp/nucbonded')
+        bonded_dir = 'nucbonded'
+        itpdir = os.path.abspath(f'/scratch/dyangali/cgtools/cgtools/itp/{bonded_dir}')
         file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
         a_itp_data = martini30nucleic.read_itp(file)
         file = os.path.join(itpdir, f'{mol}_C_{version}.itp')
@@ -1068,125 +1088,11 @@ class martini30nucleic:
         self.bases.update({"5MU": parameters})
         self.base_connectivity.update({"5MU": connectivity})
         
-        # By default use an elastic network
-        self.ElasticNetwork = False  
+        super().__init__()
 
-        # Elastic networks bond shouldn't lead to exclusions (type 6) 
-        # But Elnedyn has been parametrized with type 1.
-        self.EBondType = 6
-        
-        #----+----------------+
-        ## D | INTERNAL STUFF |
-        #----+----------------+
-
-        ## DNA DICTIONARIES ##
-        # Dictionary for the connectivities and parameters of bonds between DNA backbone beads
-        self.dnaBbBondDictC = dict(zip(self.dna_con['bond'],self.dna_bb['bond']))
-        # Dictionary for the connectivities and parameters of angles between DNA backbone beads
-        self.dnaBbAngleDictC = dict(zip(self.dna_con['angle'],self.dna_bb['angle']))
-        # Dictionary for the connectivities and parameters of dihedrals between DNA backbone beads
-        self.dnaBbDihDictC = dict(zip(self.dna_con['dih'],self.dna_bb['dih']))
-        # Dictionary for exclusions for DNA backbone beads
-        self.dnaBbExclDictC = dict(zip(self.dna_con['excl'],self.dna_bb['excl']))
-        # Dictionary for pairs for DNA backbone beads
-        self.dnaBbPairDictC = dict(zip(self.dna_con['pair'],self.dna_bb['pair']))
-
-        ## RNA DICTIONARIES ##
-        # Dictionary for the connectivities and parameters of bonds between rna backbone beads
-        self.rnaBbBondDictC = dict(zip(self.rna_con['bond'], self.rna_bb['bond']))
-        # Dictionary for the connectivities and parameters of angles between rna backbone beads
-        self.rnaBbAngleDictC = dict(zip(self.rna_con['angle'], self.rna_bb['angle']))
-        # Dictionary for the connectivities and parameters of dihedrals between rna backbone beads
-        self.rnaBbDihDictC = dict(zip(self.rna_con['dih'], self.rna_bb['dih']))
-        # Dictionary for exclusions for rna backbone beads
-        self.rnaBbExclDictC = dict(zip(self.rna_con['excl'], self.rna_bb['excl']))
-        # Dictionary for pairs for rna backbone beads
-        self.rnaBbPairDictC = dict(zip(self.rna_con['pair'], self.rna_bb['pair']))
-        
-        
-    # The following function returns the backbone bead for a given residue and                   
-    # secondary structure type.                                                                 
-    # 1. Check if the residue is DNA/RNA and return the whole backbone for those
-    # 2. Look up the proper dictionary for the residue                                          
-    # 3. Get the proper type from it for the secondary structure                                
-    # If the residue is not in the dictionary of specials, use the default                      
-    # If the secondary structure is not listed (in the residue specific                         
-    # dictionary) revert to the default.                                                        
-    def bbGetBead(self,r1,ss="C"):                                                               
-        if r1 in dnares3:
-            return self.dna_bb['atom']
-        elif r1 in rnares3:
-            return self.rna_bb['atom']
-        else:
-            sys.exit("This script supports only DNA or RNA.")
     
-    def bbGetBond(self,r,ca,ss):
-        # Retrieve parameters for each residue from tables defined above
-        if r[0] in dnares3:
-            return ca in self.dnaBbBondDictC.keys() and self.dnaBbBondDictC[ca] or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbBondDictC.keys() and self.rnaBbBondDictC[ca] or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
+class martini31nucleic(ForceField):
     
-    def bbGetAngle(self,r,ca,ss):
-        if r[0] in dnares3:
-            return ca in self.dnaBbAngleDictC.keys() and self.dnaBbAngleDictC[ca] or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbAngleDictC.keys() and self.rnaBbAngleDictC[ca] or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def bbGetExclusion(self,r,ca,ss):
-        if r[0] in dnares3:
-            return ca in self.dnaBbExclDictC.keys() and ' ' or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbExclDictC.keys() and ' ' or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def bbGetPair(self,r,ca,ss):
-        if r[0] in dnares3:
-            return ca in self.dnaBbPairDictC.keys() and ' ' or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbPairDictC.keys() and ' ' or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def bbGetDihedral(self,r,ca,ss):
-        # Retrieve parameters for each residue from table defined above
-        if r[0] in dnares3:
-            return ca in self.dnaBbDihDictC.keys() and self.dnaBbDihDictC[ca] or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbDihDictC.keys() and self.rnaBbDihDictC[ca] or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def getCharge(self,atype,aname):
-        return self.charges.get(atype,self.bbcharges.get(aname,0))
-        
-    def messages(self):
-        '''Prints any force-field specific logging messages.'''
-        import logging
-        pass
-
-
-class martini31nucleic():
-    
-    @staticmethod
-    def read_itp(itp_file):
-        itp_data = itpio.read_itp(itp_file)
-        return itp_data
-        
-        
-    @staticmethod    
-    def itp_to_indata(itp_data):
-        keys = ['bonds', 'angles', 'dihedrals', 'impropers', 'virtual_sites3', 'exclusions', 'pairs']
-        connectivity = [itp_data[key].keys() if key in itp_data else [] for key in keys]
-        parameters = [itp_data[key].values() if key in itp_data else [] for key in keys]
-        return connectivity, parameters
-
-
     def __init__(self):
         
         # parameters are defined here for the following (protein) forcefields:
@@ -1365,113 +1271,9 @@ class martini31nucleic():
         self.bases.update({"5MU": parameters})
         self.base_connectivity.update({"5MU": connectivity})
         
-        # By default use an elastic network
-        self.ElasticNetwork = False  
-
-        # Elastic networks bond shouldn't lead to exclusions (type 6) 
-        # But Elnedyn has been parametrized with type 1.
-        self.EBondType = 6
+        super().__init__()
         
-        #----+----------------+
-        ## D | INTERNAL STUFF |
-        #----+----------------+
-
-        ## DNA DICTIONARIES ##
-        # Dictionary for the connectivities and parameters of bonds between DNA backbone beads
-        self.dnaBbBondDictC = dict(zip(self.dna_con['bond'],self.dna_bb['bond']))
-        # Dictionary for the connectivities and parameters of angles between DNA backbone beads
-        self.dnaBbAngleDictC = dict(zip(self.dna_con['angle'],self.dna_bb['angle']))
-        # Dictionary for the connectivities and parameters of dihedrals between DNA backbone beads
-        self.dnaBbDihDictC = dict(zip(self.dna_con['dih'],self.dna_bb['dih']))
-        # Dictionary for exclusions for DNA backbone beads
-        self.dnaBbExclDictC = dict(zip(self.dna_con['excl'],self.dna_bb['excl']))
-        # Dictionary for pairs for DNA backbone beads
-        self.dnaBbPairDictC = dict(zip(self.dna_con['pair'],self.dna_bb['pair']))
-
-        ## RNA DICTIONARIES ##
-        # Dictionary for the connectivities and parameters of bonds between rna backbone beads
-        self.rnaBbBondDictC = dict(zip(self.rna_con['bond'],self.rna_bb['bond']))
-        # Dictionary for the connectivities and parameters of angles between rna backbone beads
-        self.rnaBbAngleDictC = dict(zip(self.rna_con['angle'],self.rna_bb['angle']))
-        # Dictionary for the connectivities and parameters of dihedrals between rna backbone beads
-        self.rnaBbDihDictC = dict(zip(self.rna_con['dih'],self.rna_bb['dih']))
-        # Dictionary for exclusions for rna backbone beads
-        self.rnaBbExclDictC = dict(zip(self.rna_con['excl'],self.rna_bb['excl']))
-        # Dictionary for pairs for rna backbone beads
-        self.rnaBbPairDictC = dict(zip(self.rna_con['pair'],self.rna_bb['pair']))
-        
-        
-    # The following function returns the backbone bead for a given residue and                   
-    # secondary structure type.                                                                 
-    # 1. Check if the residue is DNA/RNA and return the whole backbone for those
-    # 2. Look up the proper dictionary for the residue                                          
-    # 3. Get the proper type from it for the secondary structure                                
-    # If the residue is not in the dictionary of specials, use the default                      
-    # If the secondary structure is not listed (in the residue specific                         
-    # dictionary) revert to the default.                                                        
-    def bbGetBead(self,r1,ss="C"):                                                               
-        if r1 in dnares3:
-            return self.dna_bb['atom']
-        elif r1 in rnares3:
-            return self.rna_bb['atom']
-        else:
-            sys.exit("This script supports only DNA or RNA.")
     
-    def bbGetBond(self,r,ca,ss):
-        # Retrieve parameters for each residue from tables defined above
-        if r[0] in dnares3:
-            return ca in self.dnaBbBondDictC.keys() and self.dnaBbBondDictC[ca] or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbBondDictC.keys() and self.rnaBbBondDictC[ca] or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-    
-    def bbGetAngle(self,r,ca,ss):
-        if r[0] in dnares3:
-            return ca in self.dnaBbAngleDictC.keys() and self.dnaBbAngleDictC[ca] or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbAngleDictC.keys() and self.rnaBbAngleDictC[ca] or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def bbGetExclusion(self,r,ca,ss):
-        if r[0] in dnares3:
-            return ca in self.dnaBbExclDictC.keys() and ' ' or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbExclDictC.keys() and ' ' or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def bbGetPair(self,r,ca,ss):
-        if r[0] in dnares3:
-            return ca in self.dnaBbPairDictC.keys() and ' ' or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbPairDictC.keys() and ' ' or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def bbGetDihedral(self,r,ca,ss):
-        # Retrieve parameters for each residue from table defined above
-        if r[0] in dnares3:
-            return ca in self.dnaBbDihDictC.keys() and self.dnaBbDihDictC[ca] or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbDihDictC.keys() and self.rnaBbDihDictC[ca] or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def getCharge(self,atype,aname):
-        return self.charges.get(atype,self.bbcharges.get(aname,0))
-        
-    def messages(self):
-        '''Prints any force-field specific logging messages.'''
-        import logging
-        logging.warning('################################################################################')
-        logging.warning('This is a beta of Martini-nucleotide and should NOT be used for production runs.')
-        logging.warning('################################################################################')
-        pass
-
-
-
 #########################
 ## 7 # ELASTIC NETWORK ##  -> @ELN <-
 #########################
@@ -1499,7 +1301,6 @@ def rubberBands(atomList,lowerBound,upperBound,decayFactor,decayPower,forceConst
         for bj,xj in atomList:
             # Mind the nm/A conversion -- This has to be standardized! Global use of nm?
             d2 = distance2(xi, xj) / 100
-            
             if d2 < u2:
                 dij  = math.sqrt(d2)
                 fscl = decayFunction(dij, lowerBound, decayFactor, decayPower)
@@ -1528,15 +1329,12 @@ pdbBoxLine  = "CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f P 1           1\n"
 def pdbBoxString(box):
     # Box vectors
     u, v, w  = box[0:3], box[3:6], box[6:9]
-
     # Box vector lengths
     nu,nv,nw = [math.sqrt(norm2(i)) for i in (u,v,w)]
-
     # Box vector angles
     alpha = nv*nw == 0 and 90 or math.acos(cos_angle(v,w))/d2r
     beta  = nu*nw == 0 and 90 or math.acos(cos_angle(u,w))/d2r
     gamma = nu*nv == 0 and 90 or math.acos(cos_angle(u,v))/d2r
-
     return pdbBoxLine % (10*norm(u),10*norm(v),10*norm(w),alpha,beta,gamma)
 
 
@@ -2033,15 +1831,16 @@ class Chain:
             name.append(str(self._id))
         return "_".join(name)
 
-    def set_ss(self,ss,source="self"):
+    def set_ss(self, ss, source="self"):
         if len(ss) == 1:
             self.ss = len(self)*ss
         else:
             self.ss = ss
         # Infer the Martini backbone secondary structure types
-        self.ssclass, self.sstypes = ssClassification(self.ss,source)
+        self.ssclass, self.sstypes = ssClassification(self.ss, source)
+        
 
-    def dss(self,method=None,executable=None):
+    def dss(self, method=None, executable=None):
         # The method should take a list of atoms and return a 
         # string of secondary structure classifications       
         if self.type() == "Protein":
@@ -2599,19 +2398,11 @@ class Topology:
             # used to construct the coarse grained system from the atomistic one.
             # The function argument "mapping" could be used to use a default 
             # mapping scheme in stead, like the mapping for the GROMOS96 force field.
-            mapping = mapping           or chain.mapping
+            mapping = mapping or chain.mapping
             multi   = False
-            self.secstruc = chain.sstypes or len(chain)*"C"
+            self.secstruc = chain.sstypes or len(chain)*"F"
             self.sequence = chain.sequence
             self.multiscale = False
-        elif not secstruc:
-            # If no secondary structure is provided, set all to coil
-            chain         = None
-            self.secstruc = len(self.sequence)*"C"
-        else:
-            # If a secondary structure is provided, use that. chain is none.
-            chain         = None
-            self.secstruc = secstruc
 
         logging.debug(self.secstruc)
         logging.debug(self.sequence)
