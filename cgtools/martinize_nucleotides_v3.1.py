@@ -212,7 +212,6 @@ as argument, causing all chains to be multiscaled.
     ("-ss",       Option(str,                      1,     None, "Secondary structure (File or string)")),
     ("-ssc",      Option(float,                    1,      0.5, "Cutoff fraction for ss in case of ambiguity (default: 0.5).")),
     ("-dssp",     Option(str,                      1,     None, "DSSP executable for determining structure")),
-#    ("-pymol",    Option(str,                      1,     None, "PyMOL executable for determining structure")),
     ("-collagen", Option(bool,                     0,    False, "Use collagen parameters")),
     ("-his",      Option(bool,                     0,    False, "Interactively set the charge of each His-residue.")),
     ("-nt",       Option(bool,                     0,    False, "Set neutral termini (charged is default)")), 
@@ -220,24 +219,21 @@ as argument, causing all chains to be multiscaled.
     ("-cys",      Option(lists['cystines'].append, 1,     None, "Disulphide bond (+)")),
     ("-link",     Option(lists['links'].append,    1,     None, "Link (+)")),
     ("-merge",    Option(lists['merges'].append,   1,     None, "Merge chains: e.g. -merge A,B,C (+)")),
-#    ("-mixed",    Option(bool,                     0,    False, "Allow chains of mixed type (default: False)")),
     ("-name",     Option(str,                      1,     None, "Moleculetype name")),
     ("-p",        Option(str,                      1,   'None', "Output position restraints (None/All/Backbone) (default: None)")),
     ("-pf",       Option(float,                    1,     1000, "Position restraints force constant (default: 1000 kJ/mol/nm^2)")),
     ("-ed",       Option(bool,                     0,    False, "Use dihedrals for extended regions rather than elastic bonds)")),
     ("-sep",      Option(bool,                     0,    False, "Write separate topologies for identical chains.")),
     ("-ff",       Option(str,                      1,'martini21', "Which forcefield to use: "+' ,'.join(n for n in forcefields[:-1]))),
-# Fij = Fc exp( -a (rij - lo)**p )
     ("-elastic",  Option(bool,                     0,    False, "Write elastic bonds")),
     ("-ef",       Option(float,                    1,      500, "Elastic bond force constant Fc")),
-    ("-el",       Option(float,                    1,        0, "Elastic bond lower cutoff: F = Fc if rij < lo")),
-    ("-eu",       Option(float,                    1,     0.90, "Elastic bond upper cutoff: F = 0  if rij > up")),
+    ("-el",       Option(float,                    1,     0.5, "Elastic bond lower cutoff: F = Fc if rij < lo")),
+    ("-eu",       Option(float,                    1,     1.2, "Elastic bond upper cutoff: F = 0  if rij > up")),
     ("-ea",       Option(float,                    1,        0, "Elastic bond decay factor a")),
     ("-ep",       Option(float,                    1,        1, "Elastic bond decay power p")),
     ("-em",       Option(float,                    1,        0, "Remove elastic bonds with force constant lower than this")),
     ("-eb",       Option(str,                      1,     'BB', "Comma separated list of bead names for elastic bonds")),
     ("-type",     Option(str,                      1,     'ss', "Type of DNA/RNA topology (ss/ds-stiff/ds-soft) to create. (default: ss)")),
-#    ("-hetatm",   Option(bool,                     0,    False, "Include HETATM records from PDB file (Use with care!)")),
     ("-multi",    Option(lists['multi'].append,    1,     None, "Chain to be set up for multiscaling (+)")),
     ("-sys",       Option(str,                      1,     '1RNA', "AA SYS")),
     ]
@@ -332,18 +328,20 @@ def option_parser(args, options, lists, version=0):
 
     # Write options based on selected topology type. @net
     options['type'] = options['-type'].value
-    if options['type'] == 'reg':
+    if options['type'] == 'ss':
         options['-ff'].setvalue(['martini30nucleic'])
-    elif options['type'] == 'polar': 
+    elif options['type'] == 'pol': 
         options['-ff'].setvalue(['martini31nucleic'])
+    elif options['type'] == 'ds': 
+        options['-ff'].setvalue(['martini30nucleic'])
+        lists['merges'].append('A, B')
+        options['-eb'].setvalue(['BB2'])
     else: 
         logging.error('Undefined topology type. Giving up...')
         sys.exit()
      
     # The make the program flexible, the forcefield parameters are defined
     # for multiple forcefield. Check if a existing one is defined:
-    ###_tmp  = __import__(options['-ff'].value.lower())
-    ###options['ForceField']  = getattr(_tmp,options['-ff'].value.lower())()
     try:
         # Try to load the forcefield class from a different file
         _tmp  = __import__(options['-ff'].value.lower())
@@ -351,7 +349,6 @@ def option_parser(args, options, lists, version=0):
     except:
         # Try to load the forcefield class from the current file
         options['ForceField']  = globals()[options['-ff'].value.lower()]()
-
 
     # Process the raw options from the command line
     # Boolean options are set to more intuitive variables
@@ -584,41 +581,82 @@ class CoarseGrained:
     # For convenience, the list can be specified as a set of strings,
     # converted into a list of lists by 'nsplit' defined above.
     # @MAP
-    BB_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
+    # if options['-ff'].value == 'martini30nucleic':
+    if 1:
+        BB_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
                             "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
                             "C1' C2' O2' O4'")
-    mapping = {
-            "A":  BB_mapping + nsplit(
-                            "C8",
-                            "N3 C4",
-                            "C2",
-                            "N1",
-                            "N6 C6 H61 H62",
-                            "N7 C5", ),
-            "C":  BB_mapping + nsplit(
-                            "C6",
-                            "O2",
-                            "N3",
-                            "N4 C4 H41 H42",
-                            "C2"),
-            "G":  BB_mapping + nsplit(
-                            "C8",
-                            "C4 N3",
-                            "C2 N2 H22 H21",
-                            "N1", 
-                            "O6",
-                            "C5 N7",
-                            "H1",
-                            "C6"),
-            "U":  BB_mapping + nsplit(
-                            "C6",
-                            "O2",
-                            "N3",
-                            "O4",
-                            "C2",
-                            "H3",
-                            "C4",),
-    }
+        mapping = {
+                "A":  BB_mapping + nsplit(
+                                "C8",
+                                "N3 C4",
+                                "C2",
+                                "N1",
+                                "N6 C6 H61 H62",
+                                "N7 C5", ),
+                "C":  BB_mapping + nsplit(
+                                "C6",
+                                "O2",
+                                "N3",
+                                "N4 C4 H41 H42",
+                                "C2"),
+                "G":  BB_mapping + nsplit(
+                                "C8",
+                                "C4 N3",
+                                "C2 N2 H22 H21",
+                                "N1", 
+                                "O6",
+                                "C5 N7",
+                                "H1",
+                                "C6"),
+                "U":  BB_mapping + nsplit(
+                                "C6",
+                                "O2",
+                                "N3",
+                                "O4",
+                                "C2",
+                                "H3",
+                                "C4",),
+        }
+        
+    # if options['-ff'].value == 'martini31nucleic':
+    if 1:
+        BB_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
+                            "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
+                            "C1' C2' O2' O4'")
+        mapping = {
+                "A":  BB_mapping + nsplit(
+                                "C8",
+                                "N3 C4",
+                                "C2",
+                                "N1",
+                                "N6 C6 H61 H62",
+                                "N7 C5", ),
+                "C":  BB_mapping + nsplit(
+                                "C6",
+                                "O2",
+                                "N3",
+                                "N4 C4 H41 H42",
+                                "C2"),
+                "G":  BB_mapping + nsplit(
+                                "C8",
+                                "C4 N3",
+                                "C2 N2 H22 H21",
+                                "N1", 
+                                "O6",
+                                "C5 N7",
+                                "H1",
+                                "C6"),
+                "U":  BB_mapping + nsplit(
+                                "C6",
+                                "O2",
+                                "N3",
+                                "O4",
+                                "C2",
+                                "H3",
+                                "C4",),
+        }   
+        
     mapping.update({"RA3":mapping["A"],
                     "RA5":mapping["A"],
                     "2MA":mapping["A"],
@@ -1694,7 +1732,7 @@ def contacts(atoms,cutoff=5):
     return [(i,j) for i in rla[:-1] for j in rla[i+1:] 
             if distance2(crd[i],crd[j]) < cutoff]
 
-def add_dummy(beads,dist=0.11,n=2):
+def add_dummy(beads, dist=0.11, n=2):
     # Generate a random vector in a sphere of -1 to +1, to add to the bead position
     v    = [random.random()*2.-1,random.random()*2.-1,random.random()*2.-1]
     # Calculated the length of the vector and divide by the final distance of the dummy bead
@@ -1725,10 +1763,10 @@ def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
         # Build a dictionary of chain IDs versus index
         # To give higher priority to top chains the lists are reversed 
         # before building the dictionary
-        chainIndex.reverse()
-        chainID.reverse()
-        dct = dict(zip(chainID,chainIndex))
-        chainIndex.reverse()
+        chainIndex = list(reversed(chainIndex))
+        chainID = list(reversed(chainID))
+        dct = dict(zip(chainID, chainIndex))
+        chainIndex = list(reversed(chainIndex))
         # Convert chains in the merge_list to numeric, if necessary
         # NOTE The internal numbering is zero-based, while the 
         # command line chain indexing is one-based. We have to add
@@ -1736,7 +1774,8 @@ def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
         # the numbering from the command line, but then from the 
         # result we need to subtract one again to make indexing 
         # zero-based
-        merges = [[(i.isdigit() and int(i) or dct[i]+1)-1 for i in j] for j in m_list]
+        # merges = [[(i.isdigit() and int(i) or dct[i]+1)-1 for i in j] for j in m_list]
+        merges = [[0, 1]]
         for i in merges:
             i.sort()
 
@@ -1822,7 +1861,7 @@ class Chain:
     # be handled accordingly.
     _attributes = ("residues","sequence","seq","ss","ssclass","sstypes")
 
-    def __init__(self,options,residuelist=[],name=None,multiscale=False):
+    def __init__(self,options, residuelist=[], name=None, multiscale=False):
         self.residues   = residuelist
         self._atoms     = [atom[:3] for residue in residuelist for atom in residue]
         self.sequence   = [residue[0][1] for residue in residuelist]
@@ -1833,7 +1872,7 @@ class Chain:
         self.ssclass    = ""
         self.sstypes    = ""
         self.mapping    = []
-        self.multiscale = multiscale
+        self.multiscale = False
         self.options    = options
 
         # Unknown residues
@@ -1881,7 +1920,7 @@ class Chain:
         newchain.breaks     = self.breaks + [shift] + [i+shift for i in other.breaks]
         newchain.links      = self.links + [((i[0]+shift,i[1]),(j[0]+shift,j[1])) for i,j in other.links]
         newchain.natoms     = len(newchain.atoms())
-        newchain.multiscale = self.multiscale or other.multiscale
+        newchain.multiscale = False
         # Return the merged chain
         return newchain
 
@@ -1890,7 +1929,7 @@ class Chain:
                 self.ss         == other.ss     and
                 self.breaks     == other.breaks and
                 self.links      == other.links  and
-                self.multiscale == other.multiscale)
+                self.multiscale == False)
 
     # Extract a residue by number or the list of residues of a given type
     # This facilitates selecting residues for links, like chain["CYS"]
@@ -1926,7 +1965,7 @@ class Chain:
         ch_sta,ch_end = newchain.residues[0][0][2],newchain.residues[-1][0][2]
         newchain.breaks     = [crack for crack in self.breaks if ch_sta < (crack<<20) < ch_end]
         newchain.links     = [link for link in self.links if ch_sta < (link<<20) < ch_end]
-        newchain.multiscale = self.multiscale
+        newchain.multiscale = False
         newchain.natoms     = len(newchain.atoms())
         newchain.type()
         # Return the chain slice
@@ -2355,7 +2394,7 @@ class Topology:
         # For multiscaling we have to keep track of the number of 
         # real atoms that correspond to the beads in the topology
         self.natoms      = 0        
-        self.multiscale  = options['multi']
+        self.multiscale  = False
 
         if options:
             self.options = options
@@ -2366,7 +2405,7 @@ class Topology:
             # Returning an empty instance
             return
         elif isinstance(other,Topology):
-            for attrib in ["atoms","vsites","bonds","angles","dihedrals","impropers","constraints","posres"]:
+            for attrib in ["atoms", "vsites", "bonds", "angles", "dihedrals", "impropers", "constraints", "posres"]:
                 setattr(self,attrib,getattr(other,attrib,[]))
         elif isinstance(other,Chain):
             if other.type() == "Protein" and other.options['ForceField'].name in ['polbb']:
@@ -2387,11 +2426,11 @@ class Topology:
             other = Topology(other)
         shift     = len(self.atoms)
         last      = self.atoms[-1]
-        atoms     = zip(*other.atoms)
+        atoms     = list(zip(*other.atoms))
         atoms[0]  = [i+shift for i in atoms[0]]   # Update atom numbers
         atoms[2]  = [i+last[2] for i in atoms[2]] # Update residue numbers
         atoms[5]  = [i+last[5] for i in atoms[5]] # Update charge group numbers
-        atoms     = zip(*atoms)
+        atoms     = list(zip(*atoms))
         # The zippings above kills all atoms with specified mass (9 long lists) 
         # Let's add some band aid to fix it...
         # This of course doesn't work if there was a secondary structure to keep
@@ -2412,16 +2451,13 @@ class Topology:
         return out
 
     def __str__(self):
-        if self.multiscale:
-             out  = [ '; MARTINI (%s) Multiscale virtual sites topology section for "%s"' %(self.options['ForceField'].name,self.name) ]
-        else:
-             string  = '; MARTINI (%s) Coarse Grained topology file for "%s"' %(self.options['ForceField'].name, self.name)
-             string += '\n; Created by py version %s \n; Using the following options:  ' %(self.options['Version'])
-             string += ' '.join(self.options['Arguments'])
-             string += '\n; #####################################################################################################'
-             string += '\n; This topology is based on development beta of Martini DNA and should NOT be used for production runs.'
-             string += '\n; #####################################################################################################'
-             out  = [ string ]
+        string  = '; MARTINI (%s) Coarse Grained topology file for "%s"' %(self.options['ForceField'].name, self.name)
+        string += '\n; Created by py version %s \n; Using the following options:  ' %(self.options['Version'])
+        string += ' '.join(self.options['Arguments'])
+        string += '\n; #####################################################################################################'
+        string += '\n; This topology is based on development beta of Martini DNA and should NOT be used for production runs.'
+        string += '\n; #####################################################################################################'
+        out  = [ string ]
         if self.sequence:
             out += [
                 '; Sequence:',
@@ -2518,16 +2554,6 @@ class Topology:
             out.append('\n[ exclusions ]')
             out.extend(exclusions)
 
-        if self.multiscale:
-            out += ['\n;\n; Coarse grained to atomistic mapping\n;',
-                    '#define mapping virtual_sitesn',
-                    '[ mapping ]']
-            for i,j in self.mapping:
-                out.append( ("%5d     2 "%i)+" ".join(["%5d"%k for k in j]) )
-            
-            logging.info('Created virtual sites section for multiscaled topology')
-            return "\n".join(out)
-
         # Angles
         out.append("\n[ angles ]")
         out.append("; Backbone angles")
@@ -2574,14 +2600,10 @@ class Topology:
             # The function argument "mapping" could be used to use a default 
             # mapping scheme in stead, like the mapping for the GROMOS96 force field.
             mapping = mapping           or chain.mapping
-            multi   = self.options['multi']  or chain.multiscale
+            multi   = False
             self.secstruc = chain.sstypes or len(chain)*"C"
             self.sequence = chain.sequence
-            # If anything hints towards multiscaling, do multiscaling
-            self.multiscale = self.multiscale or chain.multiscale or multi
-            if self.multiscale:
-                shift        = self.natoms
-                self.natoms += len(chain.atoms())
+            self.multiscale = False
         elif not secstruc:
             # If no secondary structure is provided, set all to coil
             chain         = None
@@ -2766,8 +2788,6 @@ class Topology:
                 # Need to tweak this to get all the backbone beads to the list with the side chain
                 bbbset = [bbMulti[count], bbMulti[count+1], bbMulti[count+2]]
                 for atype,aname in zip(bbbset+list(scatoms),CoarseGrained.residue_bead_names_dna):
-                    if self.multiscale:
-                        atype,aname = "v"+atype,"v"+aname
                     #self.atoms.append((atid,atype,resi,resname,aname,atid,self.options['ForceField'].getCharge(atype,aname),ss))
                     if atid in [vSite.atoms[0] for vSite in self.vsites]:
                         charge = self.options['ForceField'].getCharge(atype,aname)
@@ -2917,9 +2937,6 @@ def main(options):
             # k is a chain identifier
             chains = zip([0]+broken,broken+[len(residuelist)],range(len(broken)+1))
             chains = [ Chain(options,residuelist[i:j],name=chr(65+k)) for i,j,k in chains ]
-    
-        for chain in chains:
-            chain.multiscale = "all" in options['multi'] or chain._id in options['multi']
             
         # Check the chain identifiers
         if model == 1 and len(chains) != len(set([i._id for i in chains])):
@@ -3034,142 +3051,9 @@ def main(options):
         # Gather cysteine sulphur coordinates
         cyslist = [cys["SG"] for chain in chains for cys in chain["CYS"]]
         cysteines.append([cys for cys in cyslist if cys])
-    
         model += 1
     
-    
-    # Write the index file if requested.
-    # Mainly of interest for multiscaling.
-    # Could be improved by adding separte groups for BB, SC, etc.
-    if options["-n"].value:
-        logging.info("Writing index file.")
-        # Lists for All-atom, Virtual sites and Coarse Grain.
-        NAA, NVZ, NCG = [], [], []
-        atid = 1
-        for i in order:
-            ci = chains[i]
-            coarseGrained = ci.cg(force=True)
-            if ci.multiscale:
-                NAA.extend([" %5d"%(a+atid) for a in range(ci.natoms)]) 
-                atid += ci.natoms
-            if coarseGrained:
-                # For DNA there is not first bead on 5' end and thus one bead less.
-                if ci.type() == 'Nucleic':
-                    if ci.multiscale:
-                        NVZ.extend([" %5d"%(a+atid) for a in range(len(coarseGrained)-1)])
-                    else:
-                        NCG.extend([" %5d"%(a+atid) for a in range(len(coarseGrained)-1)])
-                    atid += len(coarseGrained)-1               
-                else:
-                    if ci.multiscale:
-                        NVZ.extend([" %5d"%(a+atid) for a in range(len(coarseGrained))])
-                    else:
-                        NCG.extend([" %5d"%(a+atid) for a in range(len(coarseGrained))])
-                    atid += len(coarseGrained)               
-        outNDX   = open(options["-n"].value,"w")
-        outNDX.write("\n[ AA ]\n"+"\n".join([" ".join(NAA[i:i+15]) for i in range(0,len(NAA),15)]))
-        outNDX.write("\n[ VZ ]\n"+"\n".join([" ".join(NVZ[i:i+15]) for i in range(0,len(NVZ),15)]))
-        outNDX.write("\n[ CG ]\n"+"\n".join([" ".join(NCG[i:i+15]) for i in range(0,len(NCG),15)]))
-        outNDX.close()
 
-    
-    # Write the index file for mapping AA trajectory if requested
-    if options["-nmap"].value:
-        logging.info("Writing trajectory index file.")
-        atid = 1
-        outNDX = open(options["-nmap"].value,"w")
-        # Write the list of bead numbers for mapping AA trajectories
-        if options["-seq"].value:
-            logging.info("Writing bead number list.")
-            outSEQ = open(options["-seq"].value,"w")
-            counter = 0
-        # Get all AA atoms as lists of atoms in residues
-        # First we skip hetatoms and unknowns then iterate over beads
-        # DNA requires some modifications for 5' end and O3' atoms, variables for that.
-        current_chain = 0
-        ci = chains[current_chain]
-        atom_limit = ci.natoms
-        chain_residue = 0
-        o3_shift = ''
-        for i_count, i in enumerate(residues(atoms)):
-            if i[0][1] in ("SOL","HOH","TIP"):
-                continue
-            if not i[0][1] in CoarseGrained.mapping.keys():
-                continue
-            nra = 0
-            names = [j[0] for j in i]
-            shift = 0
-            # This gives out a list of atoms in residue, each tuple has other 
-            # stuff in it that's needed elsewhere so we just take the last 
-            # element which is the atom index (in that residue)
-            for j_count, j in enumerate(mapIndex(i)):
-                if atid == atom_limit + 1:
-                    current_chain += 1
-                    ci = chains[current_chain]
-                    atom_limit += ci.natoms
-                    chain_residue = 0
-                # In DNA the first bead of 5' end is omitted, this checks for that.
-                # Also, the O3' atom is mapped together with atoms from the next residue.
-                # This stores it until we get to the next residue.
-                if ci.type() == 'Nucleic' and chain_residue == 0:
-                    if j_count == 0:
-                        for k in j:
-                            if names[k[2]] == "O3'":
-                                o3_shift = k[2]+atid
-                            if k[2] > shift:
-                                shift = k[2]
-                    # On the first residue of chain the bead numbers are shifted down by one.
-                    else:
-                        outNDX.write('[ Bead %i of residue %i ]\n'%(j_count, i_count+1))
-                        line = ''
-                        for k in j:
-                            if names[k[2]] == "O3'":
-                                line += '%s '%(str(o3_shift)) 
-                                o3_shift = k[2]+atid
-                            else:
-                                line += '%i '%(k[2]+atid) 
-                            if k[2] > shift:
-                                shift = k[2]
-                        line += '\n'
-                        outNDX.write(line)
-                        if options["-seq"].value:
-                            outSEQ.write(str(counter) + '\n')
-                            counter += 1
-                # For all DNA residues the O3' atoms need to be put on the next residue.
-                elif ci.type() == 'Nucleic':
-                    outNDX.write('[ Bead %i of residue %i ]\n'%(j_count+1, i_count+1))
-                    line = ''
-                    for k in j:
-                        if names[k[2]] == "O3'":
-                            line += '%s '%(str(o3_shift)) 
-                            o3_shift = k[2]+atid
-                        else:
-                            line += '%i '%(k[2]+atid) 
-                        if k[2] > shift:
-                            shift = k[2]
-                    line += '\n'
-                    outNDX.write(line)
-                    if options["-seq"].value:
-                        outSEQ.write(str(counter) + '\n')
-                        counter += 1
-                # Other types behave normally.
-                else:
-                    outNDX.write('[ Bead %i of residue %i ]\n'%(j_count+1,i_count+1))
-                    line = ''
-                    for k in j:
-                        line += '%i '%(k[2]+atid) 
-                    line += '\n'
-                    outNDX.write(line)
-                    if options["-seq"].value:
-                        outSEQ.write(str(counter) + '\n')
-                        counter += 1
-            atid += shift+1
-            chain_residue += 1
-        outNDX.close()
-        if options["-seq"].value:
-            outSEQ.close()
-
-    
     # Evertything below here we only need, if we need to write a Topology
     if options['-o']:
         # Collect the secondary structure stuff and decide what to do with it
@@ -3389,10 +3273,7 @@ Martini system from %s
 if __name__ == '__main__':
     import sys, logging
     args = sys.argv[1:]
-    if '-cat' in args:
-        cat('martinize-'+version+'.py')
-        sys.exit()
     options, lists = options, lists
     options = option_parser(args, options, lists, version)
-
     main(options)
+    
