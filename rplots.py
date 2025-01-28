@@ -8,8 +8,8 @@ from set_bfactors import update_bfactors
 from system import CGSystem
 from cli import sbatch, run
                 
-sysdir = 'ribosomes' 
-sysnames = [ 'ribosome', 'ribosome_k',] 
+sysdir = 'cas9' 
+sysnames = [ '8ye6_short', '8ye6_long',] 
 # sysnames = ['ribosome_aa']
 
 
@@ -28,33 +28,29 @@ def plot_csvs(fnames, figdir):
     
     
 def png(): 
-    fnames = [f for f in os.listdir(os.path.join(sysdir, 'ribosome', 'data')) if f.startswith('rmsf_')]
+    fnames = [f for f in os.listdir(os.path.join(sysdir, sysnames[0], 'data')) if f.startswith('rmsf_A.')]
     figdir = os.path.join(sysdir, 'png')    
     plot_csvs(fnames, figdir)
     
     
 def pdb():
-    ribosome = 'ribosome_k'
-    metric = 'dci_A'
-    sysnames = [ribosome, 'ribosome']
+    metric = 'rmsf_A'
+    sysnames = ['8ye6_long', '8ye6_short',]
     x = []
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
         fdir =  os.path.join(sysdir, sysname, 'data')
         fnames = [f for f in os.listdir(fdir) if f.startswith(f'{metric}.')]
         datas = [pd.read_csv(os.path.join(fdir, fname), header=None) for fname in fnames]
-        if metric == 'rmsf':
-            factor = 10
-        if metric == 'dfi':
-            factor = 1e4
-        factor = 1e4
+        factor = 10
         data = datas[0] * factor
         x.append((data[1], data[2]))
-    b_factors = (x[0][0] - x[1][0]) * 10
-    # b_factors = (x[0][0]) * 10
-    errs = np.sqrt(x[0][1]**2 + x[1][1]**2) * 10
-    sysname = ribosome
-    inpdb = os.path.join(system.inpdb)
+    b_factors = (x[0][0] - x[1][0]) 
+    # b_factors = (x[0][0]) 
+    errs = np.sqrt(x[0][1]**2 + x[1][1]**2)
+    sysname = '8ye6'
+    # inpdb = os.path.join(system.inpdb)
+    inpdb = os.path.join(system.wdir, 'proteins', 'chain_A.pdb')
     # CGSystem.mask_pdb(system.syspdb, inpdb, mask=['BB', 'BB2'])
     outpdb = os.path.join(sysdir, 'pdb', f'{sysname}_d{metric}.pdb')
     update_bfactors(inpdb, b_factors, outpdb)
@@ -63,7 +59,7 @@ def pdb():
     
     
 def dci_pdb():
-    sysname = 'ribosome_k'
+    sysname = '8ye6_long'
     system = CGSystem(sysdir, sysname)
     fdir =  os.path.join(sysdir, sysname, 'data')
     fnames = [f for f in os.listdir(fdir) if f.startswith('dci_k')]
@@ -81,6 +77,40 @@ def dci_pdb():
         update_bfactors(inpdb, b_factors, outpdb)
         errpdb = os.path.join(sysdir, 'pdb', f'{sysname}_{pfix}_err.pdb')
         update_bfactors(inpdb, errs, errpdb)
+
+
+def dci():
+    print('STARTING')
+    for sysname in sysnames:
+        system = CGSystem(sysdir, sysname)
+        fdir =  os.path.join(sysdir, sysname, 'data')
+        fnames = [f for f in os.listdir(fdir) if f.startswith('dci')]
+        fnames = sorted(fnames)
+        files = [os.path.join(fdir, f) for f in fnames]
+        figname = 'dci.png'
+        figpath = os.path.join(system.pngdir, figname) 
+        plot_heatmaps(files, figpath, vmin=0, vmax=2, cmap='bwr', shape=(2, 1))  
+        
+        
+def dci_diff():
+    datas = []
+    errs = []
+    for sysname in sysnames:
+        system = CGSystem(sysdir, sysname)
+        dfile = os.path.join(system.datdir, 'dci.csv')
+        efile = os.path.join(system.datdir, 'dci_err.csv')
+        data = pd.read_csv(dfile, sep=',', header=None) 
+        err = pd.read_csv(efile, sep=',', header=None)
+        datas.append(data)
+        errs.append(err)
+    data = datas[1] - datas[0]
+    errs= np.sqrt(errs[1]**2 + errs[0]**2) / 2
+    figname = 'ddci.png'
+    figpath = os.path.join(sysdir, 'png', figname) 
+    datas = [[data], [errs]]
+    labels = [['dDCI'], ['Error']]
+    plot = HeatMap(datas, labels, vmin=-0.5, vmax=0.5, cmap='bwr', shape=(2, 1))
+    plot.save_figure(figpath) 
         
         
 def ch_dci():
@@ -93,7 +123,7 @@ def ch_dci():
     files = [os.path.join(fdir, f) for f in fnames]
     figname = 'ch_dci.png'
     figpath = os.path.join(system.pngdir, figname) 
-    plot_heatmaps(files, figpath, vmin=0, vmax=5, cmap='Reds', shape=(2, 1))
+    plot_heatmaps(files, figpath, vmin=0, vmax=2, cmap='Reds', shape=(2, 1))
     
 
 def ch_dci_diff():
@@ -121,7 +151,9 @@ def ch_dci_diff():
 if __name__ == '__main__':
     # pdb()
     # png()
-    dci_pdb()
+    # dci()
+    dci_diff()
+    # dci_pdb()
     # ch_dci()
     # ch_dci_diff()
 

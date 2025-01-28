@@ -77,18 +77,18 @@ def make_in_terms(input_file, output_file, dict_of_names):
             ('TA4', 'TU2'), ('TA4', 'TU4'), ('TA5', 'TU3'), 
             ('TG3', 'TY3'), ('TG4', 'TY2'), ('TG4', 'TY4'), ('TG5', 'TY3'),
         }
-        # list_of_pairs_3 = {
-        #     ('TA3', 'TY2'), ('TA4', 'TY3'), ('TA5', 'TY4'), 
-        #     ('TA3', 'TY3'), ('TA4', 'TY2'), ('TA4', 'TY4'), ('TA5', 'TY3'), 
-        #     ('TG3', 'TU2'), ('TG4', 'TU3'), ('TG5', 'TU4'),
-        #     ('TG3', 'TU3'), ('TG4', 'TU2'), ('TG4', 'TU4'), ('TG5', 'TU3'),
-        # }
+        list_of_pairs_3 = {
+            ('TA4', 'TY3'), ('TA5', 'TY4'), 
+            ('TA4', 'TY2'), ('TA4', 'TY4'), ('TA5', 'TY3'), 
+            ('TG3', 'TU2'), ('TG4', 'TU3'), ('TG5', 'TU4'),
+            ('TG3', 'TU3'), ('TG4', 'TU2'), ('TG4', 'TU4'), ('TG5', 'TU3'),
+        }
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
             sigma = "2.75000e-01"
         elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
              sigma = "2.750000e-01"
-        # elif (b1, b2) in list_of_pairs_3 or (b2, b1) in list_of_pairs_3:
-        #      sigma = "2.750000e-01"
+        elif (b1, b2) in list_of_pairs_3 or (b2, b1) in list_of_pairs_3:
+             sigma = "2.750000e-01"
         else:
             sigma = "3.300000e-01"
         return sigma

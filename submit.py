@@ -9,7 +9,7 @@ def submit_setup(submit=True):
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
         if submit:
-            sbatch(script, 'run_all.py', 'setup', sysdir, sysname, e='slurm_output/error.%A.err', mem='12G', N=1, n=1, c=1, t='03:45:00')
+            sbatch(script, 'run_all.py', 'setup', sysdir, sysname, e='slurm_output/error.%A.err', mem='3G', N=1, n=1, c=1, t='03:45:00')
         else:
             run('bash', script, 'run_all.py', 'setup', sysdir, sysname)
 
@@ -22,8 +22,8 @@ def submit_md(submit=True, ntomp=8, ):
             if submit:
                 sbatch(script, 'run_all.py', 'md', sysdir, sysname, runname, ntomp, 
                     e='slurm_output/error.%A.err', J=f'md_{sysname}',
-                    N=1, n=1, c=ntomp, gres='gpu:1', mem='2G', 
-                    qos='public', partition='htc', t='00-01:00:00',)
+                    N=1, n=1, c=ntomp, gres='gpu:1', mem='3G', 
+                    qos='grp_sozkan', partition='general', t='02-04:00:00',)
             else:
                 run('bash', script, 'run_all.py', 'md', sysdir, sysname, runname, 1, )
 
@@ -140,7 +140,7 @@ def submit_dci_dfi(submit=True):
 def submit_get_averages(submit=False):
     for sysname in sysnames:
         if submit:
-            sbatch(script, 'run_all.py', 'get_averages', sysdir, sysname, N=1, n=1, c=1, t='00:15:00')
+            sbatch(script, 'run_all.py', 'get_averages', sysdir, sysname, N=1, n=1, c=1, mem='2G', t='00:15:00')
         else:
             run('bash', script, 'run_all.py', 'get_averages', sysdir, sysname) 
  
@@ -165,25 +165,23 @@ sysdir = 'systems'
 sysnames = ['dsRNA']
 runs = ['mdrun_1', ]
 
-# sysdir = 'ribosomes'
-# sysnames = ['ribosome_dL11', ] 
-# runs = ['mdrun_1',  'mdrun_2', 'mdrun_3', 'mdrun_4', 'mdrun_5']  
-# runs += ['mdrun_6', 'mdrun_7', 'mdrun_8', 'mdrun_9', 'mdrun_10'] 
-# runs += ['mdrun_11', 'mdrun_12']
-# 
-# submit_setup(submit=False)
+sysdir = 'cas9'
+sysnames = ['8ye6_short', '8ye6_long', ]  # 
+runs = ['mdrun_1', 'mdrun_2', ]   # 
+
+# submit_setup(submit=True)
 # submit_make_ndx(submit=False)
 # submit_md(submit=True, ntomp=8)
 # submit_extend(ntomp=8)
-submit_trjconv(submit=False)
+# submit_trjconv(submit=False)
 # submit_geometry()
 # submit_rdf_analysis(submit=True)
 # submit_cluster(submit=False)
-# submit_rms_analysis(submit=True)
-# submit_cov_analysis(submit=False)
+# submit_rms_analysis(submit=False)
 # submit_dci_dfi(submit=True)
+# submit_get_averages(submit=True)
+# submit_cov_analysis(submit=True)
 # submit_overlap(submit=True)
-# submit_get_averages(submit=False)
 # submit_plot(submit=False)
 # submit_test(True)
 

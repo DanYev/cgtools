@@ -126,12 +126,14 @@ def calc_dfi(perturbation_matrix):
     return dfi
     
 
-def calc_full_dci(perturbation_matrix):
+def calc_full_dci(perturbation_matrix, asym=False):
     """
     Calculates DCI matrix from the pertubation matrix
     Normalized such that the total sum of the matrix elements is equal to the number of residues
     """
-    dci = perturbation_matrix / np.sum(perturbation_matrix, axis=-1, keepdims=True)
+    dci = perturbation_matrix * perturbation_matrix.shape[0] / np.sum(perturbation_matrix, axis=-1, keepdims=True)
+    if asym:
+        dci = dci - dci.T
     return dci    
     
 

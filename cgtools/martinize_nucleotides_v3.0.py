@@ -344,7 +344,7 @@ def option_parser(args, options, lists, version=0):
         options['-ff'].setvalue(['elnedyn30nucleic'])
         options['-el'].setvalue(['0.3'])
         options['-eu'].setvalue(['0.9'])
-        options['-ef'].setvalue(['0'])
+        options['-ef'].setvalue(['50'])
         options['-eb'].setvalue(['BB2'])
     elif options['type'] == 'ignore':
         options['-ff'].setvalue(['elnedyn30nucleic'])
@@ -605,35 +605,28 @@ class CoarseGrained:
                             "C1' C2' O2' O4'")
     mapping = {
             "A":  BB_mapping + nsplit(
-                            "C8",
+                            "N9 C8 H8",
                             "N3 C4",
-                            "C2",
-                            "N1",
+                            "N1 C2 H2",
                             "N6 C6 H61 H62",
-                            "N7 C5", ),
+                            "N7 C5"),
             "C":  BB_mapping + nsplit(
-                            "C6",
-                            "O2",
+                            "N1 C5 C6",
+                            "C2 O2",
                             "N3",
-                            "N4 C4 H41 H42",
-                            "C2"),
+                            "N4 C4 H41 H42"),
             "G":  BB_mapping + nsplit(
-                            "C8",
+                            "C8 H8 N9",
                             "C4 N3",
-                            "C2 N2 H22 H21",
+                            "C2 N2 H21 H22",
                             "N1", 
-                            "O6",
-                            "C5 N7",
-                            "H1",
-                            "C6"),
+                            "C6 O6",
+                            "C5 N7"),
             "U":  BB_mapping + nsplit(
-                            "C6",
-                            "O2",
+                            "N1 C5 C6",
+                            "C2 O2",
                             "N3",
-                            "O4",
-                            "C2",
-                            "H3",
-                            "C4",),
+                            "C4 O4"),
     }
     mapping.update({"RA3":mapping["A"],
                     "RA5":mapping["A"],
@@ -669,15 +662,15 @@ class CoarseGrained:
     residueTypes.update([(i,"Nucleic") for i in mapping.keys()])
 
     # Generic names for DNA beads
-    residue_bead_names_dna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6 SC7 SC8")
+    residue_bead_names_dna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6")
     # Generic names for RNA beads
-    residue_bead_names_rna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6 SC7 SC8")
+    residue_bead_names_rna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6")
 
     # This dictionary contains the bead names for all residues,
     # following the order in 'mapping'
     names  = {}
     # Add the default bead names for all DNA/RNA nucleic acids
-    names.update([(i, ("BB1", "BB2", "BB3", "SC1", "SC2", "SC3", "SC4", "SC5", "SC6", "SC7", "SC8")) for i in nucleic])
+    names.update([(i, ("BB1", "BB2", "BB3", "SC1", "SC2", "SC3", "SC4", "SC5", "SC6")) for i in nucleic])
 
     # This dictionary allows determining four letter residue names
     # for ones specified with three letters, e.g., resulting from
@@ -1278,12 +1271,8 @@ class elnedyn30nucleic():
         self.name = 'elnedyn30nucleic'
         
         # Charged types:
-        charges = {"TDU":0.5,   "TA1":0.4, "TA2":-0.3, "TA3":0.5, "TA4":-0.8, "TA5":0.6, "TA6":-0.4, 
-                                "TY1":0.0, "TY2":-0.5, "TY3":-0.6, "TY4":0.6, "TY5":0.5,
-                                "TG1":0.3, "TG2":0.0, "TG3":0.3, "TG4":-0.3, "TG5":-0.5, "TG6":-0.6, "TG7":0.3, "TG8":0.5,
-                                "TU1":0.0, "TU2":-0.5, "TU3":-0.5, "TU4":-0.5, "TU5":0.5, "TU6":0.5, "TU7":0.5,}  
-        self.charges = {key: value * 1.8 for key, value in charges.items()}
-        self.bbcharges = {"BB1":-1}                                                                                                      
+        self.charges = {"Qd":1, "Qa":-1, "SQd":1, "SQa":-1, "RQd":1, "AQa":-1}                                                           #@#
+        self.bbcharges = {"BB1":-1}                                                                                                      #@#
         
         # Not all (eg Elnedyn) forcefields use backbone-backbone-sidechain angles and BBBB-dihedrals.
         self.UseBBSAngles          = False 
@@ -1321,17 +1310,15 @@ class elnedyn30nucleic():
 
         # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
-            'atom'  : spl("Q1 N6 P1"),    
-            'bond'  : [(1,  0.349, 18000),          
-                       (1,  0.377, 12000),
-                       (1,  0.240, 18000),
-                       (1,  0.412, 12000)],          
-            'angle' : [(10,  119.0,  27),       
-                       (10,  118.0, 140),
-                       (10,  138.0, 180)],        
-            'dih'   : [(3,    13,  -7, -25,  -6,  25, -2),  # (3,   10,  -8, 22, 8, -26, -6) # (3,   4,  -3, 9, 3, -10, -3)
-                       (1,     0,   6,  1),
-                       (1,   -112.0,   15,  1),],  # (1,     15.0,   5, 1)
+            'atom'  : spl("Q1n C6 N2"),    
+            'bond'  : [(1,  0.350, 25000),          
+                       (1,  0.384, 12000),
+                       (1,  0.242, 25000),
+                       (1,  0.400, 12000)],          
+            'angle' : [(10,  114.0, 40),       
+                       (10,  118.0, 50)],    # TODO UPDATE ACCORDING TO THE DISTRIBUTION       
+            'dih'   : [(3,   6,  -4, 11, 4, -13.0, -4),  # (3,   6.5,  -2.5, 18, 0, -22.0, 0.5)
+                       (1,   30.0,   6, 1),], 
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
@@ -1342,11 +1329,9 @@ class elnedyn30nucleic():
                        (1, 2),
                        (2, 0)],
             'angle' : [(0, 1, 0),
-                       (1, 0, 1),
-                       (0, 1, 2),],
+                       (1, 0, 1),],
             'dih'   : [(0, 1, 0, 1),
-                       (1, 0, 1, 0),
-                       (1, 0, 1, 2),],
+                       (1, 0, 1, 0),],
             'excl'  : [(2, 0), (0, 2),],
             'pair'  : [],
         }
@@ -1358,7 +1343,7 @@ class elnedyn30nucleic():
         # Reading itp files
         mol = rna_system
         version = 'new'
-        itpdir = os.path.abspath('/scratch/dyangali/cgtools/cgtools/itp/hydrogen_bonded')
+        itpdir = os.path.abspath('/scratch/dyangali/cgtools/cgtools/itp/nucbonded')
         file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
         a_itp_data = elnedyn30nucleic.read_itp(file)
         file = os.path.join(itpdir, f'{mol}_C_{version}.itp')
@@ -1369,7 +1354,7 @@ class elnedyn30nucleic():
         u_itp_data = elnedyn30nucleic.read_itp(file)
 
         # ADENINE
-        mapping = [spl("TA1 TA2 TA3 TA4 TA5 TA6")]
+        mapping = [spl("TA0 TA1 TA2 TA3 TA4")]
         connectivity, itp_params = elnedyn30nucleic.itp_to_indata(a_itp_data)
         parameters = mapping + itp_params
         self.bases.update({"A": parameters})
@@ -1390,7 +1375,7 @@ class elnedyn30nucleic():
         self.base_connectivity.update({"6MA": connectivity})
         
         # CYTOSINE
-        mapping = [spl("TY1 TY2 TY3 TY4 TY5")]
+        mapping = [spl("TY0 TY1 TY2 TY3")]
         connectivity, itp_params = elnedyn30nucleic.itp_to_indata(c_itp_data)
         parameters = mapping + itp_params
         self.bases.update({"C": parameters})
@@ -1407,7 +1392,7 @@ class elnedyn30nucleic():
         self.base_connectivity.update({"NMC": connectivity})
         
         # GUANINE
-        mapping = [spl("TG1 TG2 TG3 TG4 TG5 TG6 TG7 TG8")]
+        mapping = [spl("TG0 TG1 TG2 TG3 TG4 TG5")]
         connectivity, itp_params = elnedyn30nucleic.itp_to_indata(g_itp_data)
         parameters = mapping + itp_params
         self.bases.update({"G": parameters})
@@ -1426,7 +1411,7 @@ class elnedyn30nucleic():
         self.base_connectivity.update({"7MG": connectivity})
         
         # URACIL
-        mapping = [spl("TU1 TU2 TU3 TU4 TU5 TU6 TU7")]
+        mapping = [spl("TU0 TU1 TU2 TU3")]
         connectivity, itp_params = elnedyn30nucleic.itp_to_indata(u_itp_data)
         parameters = mapping + itp_params
         self.bases.update({"U": parameters})

@@ -818,34 +818,48 @@ class MDRun(CGSystem):
             print(f'  Saving DFI at {dfi_file}',  file=sys.stderr)
             dd.save_1d_data(dfi, fpath=dfi_file)
         print('Finished calculating DFIs!', file=sys.stderr)
-        os.chdir(bdir)       
-
-    def get_dci(self, **kwargs):
+        os.chdir(bdir)  
+        
+    def get_full_dci(self, asym=False):
         """
-        Calculates DCI from perturbation matrices
+        Calculates full DCI matrix from perturbation matrices
         """
         bdir = os.getcwd()
         os.chdir(self.covdir)
         print(f'Working dir: {self.covdir}', file=sys.stderr)
         pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
-        u = mda.Universe(self.trjpdb)
-        groups = u.segments.ids
-        segids = [s.segid for s in u.segments]
-        # groups = [list(range(10392, 10410)) + [8700, 8701]]
-        # segids = ['TERY']
         for pert_file in pert_files:
             print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
             pertmat = np.load(pert_file)
             print('  Calculating DCI', file=sys.stderr)
-            dcis = dd.calc_group_molecule_dci(pertmat, groups=groups, asym=False)
-            for dci, group, segid in zip(dcis, groups, segids):
-                dci_file = pert_file.replace('pertmat', f'dci_{segid}').replace('.npy', '.xvg')
+            dci_file = pert_file.replace('pertmat', f'dci').replace('.npy', '.xvg')
+            ch_dci_file = os.path.join('..', 'dci_dfi', dci_file)
+            dci = dd.calc_full_dci(pertmat, asym=asym)
+            dd.save_2d_data(dci, fpath=dci_file)
+        print('Finished calculating DCIs!', file=sys.stderr)
+        os.chdir(bdir)
+
+    def get_group_dci(self, groups=[], group_ids=[], asym=False):
+        """
+        Calculates DCI between given groups from perturbation matrices
+        """
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
+        for pert_file in pert_files:
+            print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
+            pertmat = np.load(pert_file)
+            print('  Calculating DCI', file=sys.stderr)
+            dcis = dd.calc_group_molecule_dci(pertmat, groups=groups, asym=asym)
+            for dci, group, group_id in zip(dcis, groups, group_ids):
+                dci_file = pert_file.replace('pertmat', f'dci_{group_id}').replace('.npy', '.xvg')
                 dci_file = os.path.join('..', 'dci_dfi', dci_file)
                 print(f'  Saving DCI at {dci_file}',  file=sys.stderr)
                 dd.save_1d_data(dci, fpath=dci_file)
             ch_dci_file = pert_file.replace('pertmat', f'ch_dci').replace('.npy', '.xvg')
             ch_dci_file = os.path.join('..', 'dci_dfi', ch_dci_file)
-            ch_dci = dd.calc_group_group_dci(pertmat, groups=groups, asym=False)
+            ch_dci = dd.calc_group_group_dci(pertmat, groups=groups, asym=asym)
             dd.save_2d_data(ch_dci, fpath=ch_dci_file)
         print('Finished calculating DCIs!', file=sys.stderr)
         os.chdir(bdir) 
