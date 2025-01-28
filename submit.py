@@ -169,11 +169,11 @@ runs = ['mdrun_1', ]
 # sysnames = ['8ye6_short', '8ye6_long', ]  # 
 # runs = ['mdrun_1', 'mdrun_2', ]   # 
 
-submit_setup(submit=False)
+# submit_setup(submit=False)
 # submit_make_ndx(submit=False)
-submit_md(submit=True, ntomp=8)
+# submit_md(submit=True, ntomp=8)
 # submit_extend(ntomp=8)
-# submit_trjconv(submit=False)
+submit_trjconv(submit=False)
 # submit_geometry()
 # submit_rdf_analysis(submit=True)
 # submit_cluster(submit=False)
