@@ -12,7 +12,7 @@ from Bio.PDB import vectors, Superimposer, PDBIO, Atom
 # molecule = sys.argv[1]
 # mode = sys.argv[2]
 molecule = 'dsRNA'
-maptype = 'old'
+maptype = 'new'
 
 sys.path.append('./cgtools')
 import itpio
@@ -179,14 +179,15 @@ def update_topology(topology, bonds, angles, dihedrals, std_bonds, std_angles, s
 def bonded_parameters():
     resnames = ('A', 'C', 'G', 'U') # ('A', 'C', 'G', 'U')  ('A', 'U') 
     version = 'new'
+    fftype = 'polar'
 
     
     # system = sys.argv[1]
     # mdrun = sys.argv[2] 
-    topology = read_topology(   a_itp=f'cgtools/itp/regular/plot_A_{version}.itp', 
-                                c_itp=f'cgtools/itp/regular/plot_C_{version}.itp', 
-                                g_itp=f'cgtools/itp/regular/plot_G_{version}.itp', 
-                                u_itp=f'cgtools/itp/regular/plot_U_{version}.itp')
+    topology = read_topology(   a_itp=f'cgtools/itp/{fftype}/plot_A_{version}.itp', 
+                                c_itp=f'cgtools/itp/{fftype}/plot_C_{version}.itp', 
+                                g_itp=f'cgtools/itp/{fftype}/plot_G_{version}.itp', 
+                                u_itp=f'cgtools/itp/{fftype}/plot_U_{version}.itp')
     # topology = read_topology(   a_itp=f'cgtools/itp/hydrogen_bonded/plot_A_{version}.itp', 
     #                             c_itp=f'cgtools/itp/hydrogen_bonded/plot_C_{version}.itp', 
     #                             g_itp=f'cgtools/itp/hydrogen_bonded/plot_G_{version}.itp', 
@@ -200,7 +201,7 @@ def bonded_parameters():
     # AA structure
     aa_structure = make_structure_pdb(f"systems/{molecule}_aa/mdruns/mdrun_2/mdc.pdb")
     # aa_structure = make_structure_pdb(f"ribosomes_old/test.pdb")
-    cg_structure = make_structure_pdb(f"systems/{molecule}/mdruns/mdrun_1/traj.pdb")
+    cg_structure = make_structure_pdb(f"systems/{molecule}/mdruns/mdrun_1/mdc_abd_data.pdb")
     # cg_structure = make_structure_pdb(f"/home/dyangali/tmp/mdc.pdb")
     mapping = cgmap.get_mapping_byname(maptype)
     all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals = [], [], [], [], [], []
@@ -220,14 +221,13 @@ def bonded_parameters():
         # std_bonds, std_angles, std_dihedrals = get_std(bonds), get_std(angles), get_std(dihedrals)
         # update_topology(topology[resname], av_bonds, av_angles, av_dihedrals, std_bonds, std_angles, std_dihedrals)
         # itpio.write_itp(f"cgtools/itp/nucbonded/{name}.itp", topology[resname])   
-    # save_data(all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals)
+    save_data(all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals)
     # make_fig_one(all_aa_bonds, all_aa_angles, all_aa_dihedrals, all_cg_bonds, all_cg_angles, all_cg_dihedrals)
     
 
 def make_figs():
     make_fig_bonded()
     
-
 
 def get_residues(model):
     result = []
@@ -255,13 +255,9 @@ def get_atoms_by_name(residues, atom_name='BB3'):
                 resids.append(resid)
     return atoms, resids
     
-
+    
 def get_coords(atoms):
     return [atom.get_coord() for atom in atoms]
-
-
-def persistence_length(structure):
-    pass
 
     
 def main():
@@ -273,8 +269,8 @@ def main():
             
 
 if __name__ == "__main__":
-    bonded_parameters()
-    # make_figs()
+    # bonded_parameters()
+    make_figs()
 
     
     

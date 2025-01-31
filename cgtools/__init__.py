@@ -1,23 +1,15 @@
-"""CGMD for pyRosetta"""
-import importlib.resources
+# my_package/__init__.py
 
-PRT_DATA = importlib.resources.files('pyrotini.data')
-PRT_DICT = {}
-for file in PRT_DATA.iterdir():
-    # name = f"{file.name}".replace('.', '_')
-    name = f"{file.name}"
-    path = f"{file.absolute()}"
-    PRT_DICT[name] = path
+import os
+import importlib
 
-# Add imports here
-from .pyrotini import *
+__all__ = []
+do_not_import = ["__init__.py", "insane.py", "martinize_nucleotides_old.py"]
 
-
-from ._version import __version__
-
-
-
-
-
-
-
+package_dir = os.path.dirname(__file__)
+for module in os.listdir(package_dir):
+    if module.endswith(".py") and module not in do_not_import:
+        module_name = module[:-3]
+        imported_module = importlib.import_module(f".{module_name}", package=__name__)
+        globals()[module_name] = imported_module
+        __all__.append(module_name)

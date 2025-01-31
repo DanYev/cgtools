@@ -111,25 +111,27 @@ def make_fig_bonded():
     angles = angles[angles < 160]
     cgangles = np.stack((cgangles[0, :], cgangles[1, :], )).flat
     dihedrals = np.stack((dihedrals[0, :], dihedrals[1, :], )).flat
+    dihedrals = dihedrals[dihedrals > -100]
+    dihedrals = dihedrals[dihedrals < 150]
     cgdihedrals = np.stack((cgdihedrals[0, :], cgdihedrals[1, :], )).flat
     
     out = os.path.join('png', 'figs')
     if not os.path.isdir(out):
         os.mkdir(out)
         
-    n_bins = 1000   
-    aakwargs = {'label':'All-atom', 'bins': n_bins, 'density': True, 'histtype':'step', 'lw':2}
-    cgkwargs = {'label':'Coarse-grained', 'bins': n_bins, 'density': True, 'histtype':'step', 'lw':2}
+    n_bins = 500 
+    aakwargs = {'label':'All-atom', 'bins': n_bins, 'density': True, 'histtype':'step', 'lw':3}
+    cgkwargs = {'label':'Coarse-grained', 'bins': n_bins, 'density': True, 'histtype':'step', 'lw':3}
 
     # Plotting bonds    
-    fig = plt.figure(figsize=(8.0, 5.0))
+    fig = plt.figure(figsize=(6.0, 4.0))
     plt.hist(bonds, **aakwargs)
     plt.hist(cgbonds, **cgkwargs)
     plt.autoscale(tight=True)
     plt.title('Backbone Bonds', fontsize=20)
     plt.yticks([])
     plt.xticks(fontsize=18)
-    plt.xlabel('Distance, nm', fontsize=20)
+    plt.xlabel('Distance (nm)', fontsize=20)
     plt.xlim([0.25, 0.50])
     plt.figtext(0.58, 0.68 , 'BB1-BB2 and BB2-BB1', fontsize=18, )
     plt.legend(frameon=False, fontsize=18, loc='upper right')
@@ -144,7 +146,7 @@ def make_fig_bonded():
     plt.title('Backbone Angles', fontsize=20)
     plt.yticks([])
     plt.xticks(fontsize=18)
-    plt.xlabel('Angle, degrees', fontsize=20)
+    plt.xlabel('Angle (degrees)', fontsize=20)
     # plt.legend(frameon=False, fontsize=18, loc='lower right')
     plt.figtext(0.67, 0.77 , 'BB1-BB2-BB1\nBB2-BB1-BB2', fontsize=18, )
     fig.tight_layout()
@@ -158,7 +160,7 @@ def make_fig_bonded():
     plt.title('Backbone Dihedrals', fontsize=20)
     plt.yticks([])
     plt.xticks(fontsize=18)
-    plt.xlabel('Angle, degrees', fontsize=20)
+    plt.xlabel('Angle (degrees)', fontsize=20)
     # plt.legend(frameon=False, fontsize=18, loc='lower right')
     plt.figtext(0.62, 0.77 , 'BB1-BB2-BB1-BB2\nBB2-BB1-BB2-BB1', fontsize=18, )
     fig.tight_layout()

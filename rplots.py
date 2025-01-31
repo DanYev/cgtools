@@ -10,7 +10,7 @@ from cli import sbatch, run
                 
 sysdir = 'cas9' 
 sysnames = [ '8ye6_short', '8ye6_long',] 
-# sysnames = ['ribosome_aa']
+# sysnames = ['enm_short', 'enm_long',]
 
 
 def pull_files(sysnames, fdir, fname):
@@ -27,15 +27,13 @@ def plot_csvs(fnames, figdir):
         plot_mean_sem(files, figpath, )
     
     
-def png(): 
-    fnames = [f for f in os.listdir(os.path.join(sysdir, sysnames[0], 'data')) if f.startswith('rmsf_A.')]
+def png(metric='rmsf'): 
+    fnames = [f for f in os.listdir(os.path.join(sysdir, sysnames[0], 'data')) if f.startswith(metric)]
     figdir = os.path.join(sysdir, 'png')    
     plot_csvs(fnames, figdir)
     
-    
-def pdb():
-    metric = 'rmsf_A'
-    sysnames = ['8ye6_long', '8ye6_short',]
+
+def pdb_diff(metric='rmsf'):
     x = []
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
@@ -45,7 +43,7 @@ def pdb():
         factor = 10
         data = datas[0] * factor
         x.append((data[1], data[2]))
-    b_factors = (x[0][0] - x[1][0]) 
+    b_factors = (x[1][0] - x[0][0]) 
     # b_factors = (x[0][0]) 
     errs = np.sqrt(x[0][1]**2 + x[1][1]**2)
     sysname = '8ye6'
@@ -58,14 +56,12 @@ def pdb():
     update_bfactors(inpdb, errs, errpdb)
     
     
-def dci_pdb():
-    sysname = '8ye6_long'
+def metric_pdb(sysname, metric='dci',  inpdb_rel_path='inpdb.pdb'):
     system = CGSystem(sysdir, sysname)
     fdir =  os.path.join(sysdir, sysname, 'data')
-    fnames = [f for f in os.listdir(fdir) if f.startswith('dci_k')]
+    fnames = [f for f in os.listdir(fdir) if f.startswith(metric)]
     datas = [pd.read_csv(os.path.join(fdir, fname), header=None) for fname in fnames]
-    inpdb = system.inpdb
-    inpdb = os.path.join(system.wdir, 'ref.pdb')
+    inpdb = os.path.join(system.wdir, inpdb_rel_path)
     for data, fname in zip(datas, fnames):
         print(f'Processing {fname}')
         data = data 
@@ -84,12 +80,15 @@ def dci():
     for sysname in sysnames:
         system = CGSystem(sysdir, sysname)
         fdir =  os.path.join(sysdir, sysname, 'data')
-        fnames = [f for f in os.listdir(fdir) if f.startswith('dci')]
+        fnames = [f for f in os.listdir(fdir) if f.startswith('dci.')]
         fnames = sorted(fnames)
         files = [os.path.join(fdir, f) for f in fnames]
         figname = 'dci.png'
         figpath = os.path.join(system.pngdir, figname) 
-        plot_heatmaps(files, figpath, vmin=0, vmax=2, cmap='bwr', shape=(2, 1))  
+        plot_heatmaps(files, figpath, vmin=0.2, vmax=1.8, cmap='bwr', 
+                    shape=(1, 1), size=(6.2, 5), fontsize=13, 
+                    makecbar=True, cbarlabel=None, 
+                    xlabel='Perturbed Residue', ylabel='Coupled Residue')  
         
         
 def dci_diff():
@@ -149,10 +148,11 @@ def ch_dci_diff():
    
     
 if __name__ == '__main__':
-    # pdb()
-    # png()
-    # dci()
-    dci_diff()
+    sysname = '8ye6_short'
+    # png(metric='rmsf_A')
+    # metric_pdb(sysname, metric='rmsf_A', inpdb_rel_path='proteins/chain_A.pdb')
+    dci()
+    # dci_diff()
     # dci_pdb()
     # ch_dci()
     # ch_dci_diff()

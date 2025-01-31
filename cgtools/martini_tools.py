@@ -6,8 +6,8 @@ import pandas as pd
 import shutil
 import subprocess as sp
 from pathlib import Path
-from get_go import get_go
-import cli
+from .get_go import get_go
+from . import cli
 
 
 def append_to(in_file, out_file):
@@ -101,7 +101,7 @@ def prepare_files(pdb, wdir='test', mutations=None, protein='protein'):
 @cli.from_wdir    
 def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein', 
     go_eps=9.414, go_low=0.3, go_up=1.1, go_res_dist=3, **kwargs):
-    r"""
+    """
     Virtual site based GoMartini:
     -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
     -go_moltype     Set the name of the molecule when using Virtual Sites GoMartini. (default: protein)
@@ -132,6 +132,43 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein',
     append_to('go_nbparams.itp', os.path.join(topdir, 'go_nbparams.itp'))
     shutil.move(f'{go_moltype}.itp',  os.path.join(topdir, f'{go_moltype}.itp'))
 
+
+@cli.from_wdir    
+def martinize_en(wdir, aapdb, cgpdb, elastic=' ', 
+    ef=1000, el=0.0, eu=0.9,  **kwargs):
+    """
+    Protein elastic network:
+      -elastic              Write elastic bonds (default: False)
+      -ef RB_FORCE_CONSTANT
+                            Elastic bond force constant Fc in kJ/mol/nm^2 (default: 500)
+      -el RB_LOWER_BOUND    Elastic bond lower cutoff: F = Fc if rij < lo (default: 0)
+      -eu RB_UPPER_BOUND    Elastic bond upper cutoff: F = 0 if rij > up (default: 0.9)
+      -ermd RES_MIN_DIST    The minimum separation between two residues to have an RB the default value is set by the force-field. (default: None)
+      -ea RB_DECAY_FACTOR   Elastic bond decay factor a (default: 0)
+      -ep RB_DECAY_POWER    Elastic bond decay power p (default: 1)
+      -em RB_MINIMUM_FORCE  Remove elastic bonds with force constant lower than this (default: 0)
+      -eb RB_SELECTION      Comma separated list of bead names for elastic bonds (default: None)
+      -eunit RB_UNIT        Establish what is the structural unit for the elastic network. Bonds are only created within a unit. Options are molecule, chain, all, or aspecified region defined by resids,
+                            with followingformat: <start_resid_1>:<end_resid_1>, <start_resid_2>:<end_resid_2>... (default: molecule)
+    """
+    kwargs.setdefault('f', aapdb)
+    kwargs.setdefault('x', cgpdb)
+    kwargs.setdefault('o', 'protein.top')
+    kwargs.setdefault('cys', 0.3)  
+    kwargs.setdefault('p', 'all')
+    kwargs.setdefault('pf', 1000)    
+    kwargs.setdefault('dssp', ' ')
+    kwargs.setdefault('sep', ' ')
+    kwargs.setdefault('scfix', ' ')
+    kwargs.setdefault('resid', 'input')
+    kwargs.setdefault('ff', 'martini3001')
+    kwargs.setdefault('maxwarn', '1000')
+    line = f'-elastic {elastic} -ef {ef} -eu {eu}'
+    try:
+        cli.run('martinize2', line, **kwargs)
+    except:
+        print('Error')
+    
     
 def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
     kwargs.setdefault('f', aapdb)

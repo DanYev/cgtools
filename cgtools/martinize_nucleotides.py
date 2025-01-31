@@ -10,10 +10,9 @@ forcefields = ['martini30nucleic','martini31nucleic']
 
 import sys
 import os
-# sys.path.append('pyscripts')
-import itpio
+from . import itpio
 
-rna_system = sys.argv[2]
+rna_system = 'test'
 
 # 
 # This program has grown to be pretty complete and complex. 
@@ -369,10 +368,6 @@ def option_parser(args, options, lists, version=0):
     options['CystineMaxDist2']   = CystineMaxDist2
     options['multi']             = lists['multi']
 
-    logging.info("Chain termini will%s be charged"%(options['NeutralTermini'] and " not" or ""))
-    
-    logging.info("Residues at chain brakes will%s be charged"%((not options['ChargesAtBreaks']) and " not" or ""))
-
     if 'ForceField' in options.keys():
         logging.info("The %s forcefield will be used."%(options['ForceField'].name))
     else:
@@ -382,9 +377,6 @@ def option_parser(args, options, lists, version=0):
     if options['PosRes']:
         logging.info("Position restraints will be generated.")
         logging.warning("Position restraints are only enabled if -DPOSRES is set in the MDP file")
-    
-    if options['MixedChains']:
-        logging.warning("So far no parameters for mixed chains are available. This might crash the program!")
     
     return options 
     
@@ -496,9 +488,8 @@ class CoarseGrained:
     dna_bb = nsplit("P OP1 OP2 O5' O3'", "C5' O4' C4'", "C3' C2' C1'")
     rna_bb = nsplit("P OP1 OP2 O5' O3'", "C5' O4' C4'", "C3' C2' O2' C1'")
 
-    # Generic names for DNA beads
+    # Generic names for DNA and RNA beads
     residue_bead_names_dna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6 SC7 SC8")
-    # Generic names for RNA beads
     residue_bead_names_rna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6 SC7 SC8")
 
     # This dictionary contains the bead names for all residues,
@@ -997,9 +988,9 @@ class martini30nucleic(ForceField):
                        (1,  0.412, 12000)],          
             'angle' : [(10,  110.0, 50),      #2, 117.0, 140       
                        (10,  121.0, 180),
-                       (10,  143.0, 200)],        
+                       (10,  143.0, 300)],        
             'dih'   : [(1,    0.0, 25.0, 1),
-                       (1,    0.0, 20.0, 1),
+                       (1,    0.0, 25.0, 1),
                        (1, -112.0, 15.0, 1),], 
             'excl'  : [(), (), ()],
             'pair'  : [],
@@ -1142,7 +1133,7 @@ class martini31nucleic(ForceField):
 
         # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
-            'atom'  : spl("Q1 N6 P1"),    
+            'atom'  : spl("Q1 N4 N6"),    
             'bond'  : [(1,  0.349, 18000),          
                        (1,  0.377, 12000),
                        (1,  0.240, 18000),

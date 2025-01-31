@@ -1,5 +1,6 @@
 import os
 import sys
+import MDAnalysis as mda
 import numpy as np
 import pandas as pd
 import shutil
@@ -7,10 +8,8 @@ import subprocess as sp
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB import PDBIO, Atom
-import cli
-import dci_dfi as dd
-import MDAnalysis as mda
-from cli import from_wdir
+from . import cli
+from . import dci_dfi as dd
 
 
 def sort_uld(alist):
@@ -270,7 +269,7 @@ class CGSystem:
         else:
             print('Maps already there', file=sys.stderr)
         
-    def martinize_proteins(self, **kwargs):
+    def martinize_proteins_go(self, **kwargs):
         """
         Virtual site based GoMartini:
         -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
@@ -304,6 +303,39 @@ class CGSystem:
             go_moltype = file.split('.')[0]
             go_map = os.path.join(self.mapdir, f'{go_moltype}.map')
             martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_moltype=go_moltype, go=go_map, **kwargs)
+ 
+    def martinize_proteins_en(self, **kwargs):
+        """
+        Protein elastic network:
+          -elastic              Write elastic bonds (default: False)
+          -ef RB_FORCE_CONSTANT
+                                Elastic bond force constant Fc in kJ/mol/nm^2 (default: 500)
+          -el RB_LOWER_BOUND    Elastic bond lower cutoff: F = Fc if rij < lo (default: 0)
+          -eu RB_UPPER_BOUND    Elastic bond upper cutoff: F = 0 if rij > up (default: 0.9)
+          -ermd RES_MIN_DIST    The minimum separation between two residues to have an RB the default value is set by the force-field. (default: None)
+          -ea RB_DECAY_FACTOR   Elastic bond decay factor a (default: 0)
+          -ep RB_DECAY_POWER    Elastic bond decay power p (default: 1)
+          -em RB_MINIMUM_FORCE  Remove elastic bonds with force constant lower than this (default: 0)
+          -eb RB_SELECTION      Comma separated list of bead names for elastic bonds (default: None)
+          -eunit RB_UNIT        Establish what is the structural unit for the elastic network. 
+                                Bonds are only created within a unit. Options are molecule, chain, all, or aspecified region defined by resids,
+                                with followingformat: <start_resid_1>:<end_resid_1>, <start_resid_2>:<end_resid_2>... (default: molecule)
+        """
+        print("Working on proteins", file=sys.stderr)
+        # Actually martinizing
+        from martini_tools import martinize_en
+        pdbs = sorted(os.listdir(self.prodir))
+        itps = [f.replace('pdb', 'itp') for f in pdbs]
+        # Filter out existing topologies
+        pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
+        for file in pdbs:
+            in_pdb = os.path.join(self.prodir, file)
+            cg_pdb = os.path.join(self.cgdir, file)
+            new_itp = os.path.join(self.wdir, 'molecule_0.itp')
+            new_top = os.path.join(self.wdir, 'protein.top')
+            martinize_en(self.wdir, in_pdb, cg_pdb,  **kwargs) 
+            shutil.move(new_itp, os.path.join(self.topdir, file.replace('pdb', 'itp')))
+            os.remove(new_top)
     
     def martinize_nucleotides(self, **kwargs):
         print("Working on nucleotides", file=sys.stderr)
@@ -512,7 +544,7 @@ class CGSystem:
         CGSystem.make_index_by_chain(self.wdir, inpdb=self.trjpdb,  chains=self.chains, outndx=self.trjndx)
         
     @staticmethod
-    @from_wdir
+    @cli.from_wdir
     def make_index_by_chain(wdir, inpdb='mdc.pdb', outndx='mdc.ndx', chains=[]):
         """
         Makes a GROMACS index file containing required chains
@@ -871,9 +903,11 @@ class MDRun(CGSystem):
         kwargs.setdefault('f', 'traj.xtc')
         kwargs.setdefault('s', 'traj.pdb')
         kwargs.setdefault('n', self.trjndx)
+        kwargs.setdefault('res', 'no')
+        kwargs.setdefault('fit', 'yes')
         for idx, chain in enumerate(self.chains):
             idx = idx + 1
-            cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n', 
+            cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n{idx}\n', 
                 o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
                 
     def get_rmsd_by_chain(self, **kwargs):

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 from scipy.stats import pearsonr
-from dci_dfi import percentile
+from .dci_dfi import percentile
 
 
 class Figure:
@@ -91,8 +91,8 @@ class Plot2D(Figure):
         #     ax.legend(frameon=False, fontsize=12, loc=loc)
         ax.autoscale(tight=True)
         ax.grid()
-        ax.set_xlabel("Residue Number", fontsize=14)
-        ax.set_ylabel(self.ylabel, fontsize=14)
+        ax.set_xlabel("Residue Number", fontsize=18)
+        ax.set_ylabel(self.ylabel, fontsize=18)
         ax.set_xlim(self.xlim)
         ax.set_ylim(self.ylim)
         # ax.set_title(data, fontsize=14)
@@ -121,7 +121,7 @@ class HeatMap(Figure):
         self.xlabel     = kwargs.pop('xlabel', None)
         self.ylabel     = kwargs.pop('ylabel', None)
         self.makecbar   = kwargs.pop('makecbar', False)
-        self.cbarlabel  = kwargs.pop('cbarlabel', 'DCI')
+        self.cbarlabel  = kwargs.pop('cbarlabel', None)
         self.ylim       = kwargs.pop('ylim', None)
         self.loc        = kwargs.pop('loc', None)
         self.xscale     = kwargs.pop('xscale', 1.0)
@@ -133,33 +133,43 @@ class HeatMap(Figure):
         self.resy       = kwargs.pop('resy', None)
         self.offset     = kwargs.pop('offset', 1)
         self.cmap       = kwargs.pop('cmap', 'coolwarm')
+        self.fontsize   = kwargs.pop('fontsize', 18)
         
     def make_ax(self, ax, subdatas, sublabels):
         for data, label in zip(subdatas, sublabels):
             heatmap = ax.imshow(data, cmap=self.cmap, interpolation='nearest', vmin=self.vmin, vmax=self.vmax)
+        self.set_ax_parameters(ax, data)
         
     def set_ticks(self, ax):
         resx = self.resx
         resy = self.resy
         if resx:
-            ax.set_xticks(range(0, len(resx)), labels=resx, rotation=90)
-            # ax.set_xticklabels(resx)
+            ax.set_xticks(range(0, len(resx)), labels=resx, rotation=90, fontsize=self.fontsize)
+            ax.set_xticklabels(resx)
         if resy:
-            ax.set_yticks(range(0, len(resy)))
-            ax.set_yticklabels(resy)   
+            ax.set_yticks(range(0, len(resy)), fontsize=self.fontsize)
+            ax.set_yticklabels(resy)  
+        ax.xaxis.set_ticks_position("top")
+        ax.tick_params(axis='both', labelsize=self.fontsize-2) 
         
-    def set_ax_parameters(self, ax, data, sem_av):
+    def set_ax_parameters(self, ax, data):
         self.set_ticks(ax)
-        ax.set_title(f'{data} {sem_av:.2f}', fontsize=12)
+        if self.xlabel:
+            ax.set_xlabel(self.xlabel, fontsize=self.fontsize)
+        if self.ylabel:
+            ax.set_ylabel(self.ylabel, fontsize=self.fontsize)
+        # ax.set_title(f'{data}', fontsize=self.fontsize+2)
         
     def set_fig_parameters(self, fig, axs): 
         norm = Normalize(vmin=self.vmin, vmax=self.vmax)
         if self.makecbar:
             cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=self.cmap), ax=axs[-1], orientation='vertical', shrink=self.shrink, pad=0.04)
             cbar.set_ticks([self.vmin, 0.5*(self.vmin+self.vmax), self.vmax])
-            cbar.set_label(self.cbarlabel, fontsize=12)
-        fig.suptitle(self.title, fontsize=14)
+            cbar.set_ticklabels([0, 1, 2])
+            cbar.set_label(self.cbarlabel, fontsize=self.fontsize, labelpad=5)
+        fig.suptitle(self.title, fontsize=self.fontsize)
         plt.tight_layout()
+        # fig.set_constrained_layout(True)
   
         
 ################################################################################
