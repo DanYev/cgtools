@@ -7,7 +7,7 @@ import shutil
 import subprocess as sp
 from pathlib import Path
 from .get_go import get_go
-from . import cli
+from .. import cli
 
 
 def append_to(in_file, out_file):
@@ -180,8 +180,8 @@ def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
     kwargs.setdefault('pf', 1000)
     bdir = os.getcwd()
     os.chdir(wdir)
-    script = os.path.join(bdir, 'cgtools/martinize_nucleotides_v3.1.py')
-    cli.run('python3', script, **kwargs)
+    script = 'cgtools.martini.martinize_nucleotides'
+    cli.run('python3 -m', script, **kwargs)
     os.chdir(bdir)
     
 

@@ -2920,9 +2920,4 @@ Martini system from %s
     print("\n", Q[1], "\n%80s"%("--"+Q[0]), "\n")
     
 if __name__ == '__main__':
-    import sys, logging
-    args = sys.argv[1:]
-    options, lists = options, lists
-    options = option_parser(args, options, lists, version)
-    main(options)
     

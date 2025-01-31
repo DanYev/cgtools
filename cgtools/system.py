@@ -282,6 +282,7 @@ class CGSystem:
                         resids are the same as in the input pdb (default: mol)
         """
         print("Working on proteins", file=sys.stderr)
+        from .martini.martini_tools import martinize_go
         # Make itp files to dump all the virtual CA's parameters into
         file = os.path.join(self.topdir, 'go_atomtypes.itp')
         if not os.path.isfile(file):
@@ -292,7 +293,6 @@ class CGSystem:
             with open(file, 'w') as f:        
                 f.write(f'[ nonbond_params ]\n')
         # Actually martinizing
-        from martini_tools import martinize_go
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace('pdb', 'itp') for f in pdbs]
         # Filter out existing topologies
@@ -322,8 +322,7 @@ class CGSystem:
                                 with followingformat: <start_resid_1>:<end_resid_1>, <start_resid_2>:<end_resid_2>... (default: molecule)
         """
         print("Working on proteins", file=sys.stderr)
-        # Actually martinizing
-        from martini_tools import martinize_en
+        from .martini.martini_tools import martinize_en
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace('pdb', 'itp') for f in pdbs]
         # Filter out existing topologies
@@ -339,7 +338,7 @@ class CGSystem:
     
     def martinize_nucleotides(self, **kwargs):
         print("Working on nucleotides", file=sys.stderr)
-        from martini_tools import martinize_nucleotide
+        from .martini.martini_tools import martinize_nucleotide
         for file in os.listdir(self.nucdir):
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
