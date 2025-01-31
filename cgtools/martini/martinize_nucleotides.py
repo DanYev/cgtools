@@ -1,23 +1,17 @@
 #!/usr/bin/env python
 
-# EDITABLE SECTIONS ARE MARKED WITH #@# 
-
 version="3.1"
 authors=['me and others']
 
-# Parameters are defined for the following (protein) forcefields:
 forcefields = ['martini30nucleic','martini31nucleic']
 
-import sys
+import importlib.resources
 import os
-from . import itpio
+import sys
+from cgtools import itpio
 
 rna_system = 'test'
 
-# 
-# This program has grown to be pretty complete and complex. 
-# The routines have been organized in sections, which are 
-# tagged to make jumping to a particular section easy.
 # For working versions, the sections are in different modules
 #
 # Index of this file:
@@ -32,7 +26,6 @@ rna_system = 'test'
 #   8. Structure I/O                                         @IO
 #   9. Topology generation                                   @TOP
 #  10. Main                                                  @MAIN
-
 
 ###################################
 ## 1 # OPTIONS AND DOCUMENTATION ##  -> @DOC <-
@@ -678,14 +671,15 @@ class ForceField:
         
     @staticmethod    
     def read_itps(mol, directory, version):
-        itpdir = os.path.abspath(f'/scratch/dyangali/cgtools/cgtools/itp/{directory}')
-        file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
+        # itpdir = os.path.abspath(f'/scratch/dyangali/cgtools/cgtools/itp/{directory}')
+        itpdir = importlib.resources.files('cgtools') / 'martini' / 'itp' / 
+        file = os.path.join(itpdir, f'{directory}', f'{mol}_A_{version}.itp')
         a_itp_data = ForceField.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_C_{version}.itp')
+        file = os.path.join(itpdir, f'{directory}', f'{mol}_C_{version}.itp')
         c_itp_data = ForceField.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_G_{version}.itp')
+        file = os.path.join(itpdir, f'{directory}', f'{mol}_G_{version}.itp')
         g_itp_data = ForceField.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_U_{version}.itp')
+        file = os.path.join(itpdir, f'{directory}', f'{mol}_U_{version}.itp')
         u_itp_data = ForceField.read_itp(file)  
         return a_itp_data, c_itp_data, g_itp_data, u_itp_data
         
@@ -2920,4 +2914,9 @@ Martini system from %s
     print("\n", Q[1], "\n%80s"%("--"+Q[0]), "\n")
     
 if __name__ == '__main__':
+    import sys, logging
+    args = sys.argv[1:]
+    options, lists = options, lists
+    options = option_parser(args, options, lists, version)
+    main(options)
     

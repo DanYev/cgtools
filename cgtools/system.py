@@ -1,5 +1,6 @@
 import os
 import sys
+import importlib.resources
 import MDAnalysis as mda
 import numpy as np
 import pandas as pd
@@ -31,8 +32,8 @@ class CGSystem:
     Class to set up and analyze protein-nucliotide-lipid systems for MD with GROMACS
     All the attributes are the paths to files and directories needed to set up and run CG MD
     """    
-    DATADIR = 'cgtools/data'
-    ITPDIR = 'cgtools/itp'
+    MDATDIR = importlib.resources.files("cgtools") / "martini" / "data" 
+    MITPDIR = importlib.resources.files("cgtools") / "martini" / "itp" 
     NUC_RESNAMES = ['A', 'C', 'G', 'U', 'RA3', 'RA5', 'RC3', 'RC5', 'RG3', 'RG5', 'RU3', 'RU5']
     
     def __init__(self, sysdir, sysname, **kwargs):
@@ -136,15 +137,15 @@ class CGSystem:
         os.makedirs(self.grodir, exist_ok=True)
         os.makedirs(self.datdir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
-        for file in os.listdir(self.DATADIR):
+        for file in os.listdir(self.MDATDIR):
             if file.endswith('.mdp'):
-                fpath = os.path.join(self.DATADIR, file)
+                fpath = os.path.join(self.MDATDIR, file)
                 outpath = os.path.join(self.mdpdir, file)
                 shutil.copy(fpath, outpath)
-        shutil.copy(os.path.join(self.DATADIR, 'water.gro'), self.wdir)
-        for file in os.listdir(self.ITPDIR):
+        shutil.copy(os.path.join(self.MDATDIR, 'water.gro'), self.wdir)
+        for file in os.listdir(self.MITPDIR):
             if file.endswith('.itp'):
-                fpath = os.path.join(self.ITPDIR, file)
+                fpath = os.path.join(self.MITPDIR, file)
                 outpath = os.path.join(self.topdir, file)
                 shutil.copy(fpath, outpath)
                 
@@ -331,9 +332,15 @@ class CGSystem:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
             new_itp = os.path.join(self.wdir, 'molecule_0.itp')
+            updated_itp = os.path.join(self.topdir, file.replace('pdb', 'itp'))
             new_top = os.path.join(self.wdir, 'protein.top')
             martinize_en(self.wdir, in_pdb, cg_pdb,  **kwargs) 
-            shutil.move(new_itp, os.path.join(self.topdir, file.replace('pdb', 'itp')))
+            # Replace 'molecule_0' in the itp with the file name
+            with open(new_itp, "r", encoding="utf-8") as f:
+                content = f.read()
+            updated_content = content.replace('molecule_0', f'{file[:-4]}', 1)
+            with open(updated_itp, "w", encoding="utf-8") as f:
+                f.write(updated_content)
             os.remove(new_top)
     
     def martinize_nucleotides(self, **kwargs):
@@ -367,8 +374,8 @@ class CGSystem:
                             outfile.write(line)
         cli.gmx_editconf(self.wdir, **kwargs)
         
-    def make_topology_file(self, ions=['K','MG',]):
-        itp_files = sorted([f for f in os.listdir(self.topdir) if f.startswith('chain')]) #
+    def make_topology_file(self, ions=['K','MG',], prefix='chain'):
+        itp_files = sorted([f for f in os.listdir(self.topdir) if f.startswith(prefix)]) #
         ions = self.count_resolved_ions(ions=ions) 
         with open(self.systop, 'w') as f:
             # Include section
