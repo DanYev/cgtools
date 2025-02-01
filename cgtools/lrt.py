@@ -61,9 +61,9 @@ def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float
         print(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'", file=sys.stderr)
         
         
-def calc_pos_vel_corr(t, resp_ids, pert_ids,  f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
+def calc_power_spectrum_xv(t, resp_ids, pert_ids,  f='../traj.xtc', s='../traj.pdb', b=000000, dtype=np.float32):
     """
-    Calculate the position-velocity covariance matrix from a GROMACS trajectory file.
+    Calculate the position-velocity power spectrum from a GROMACS trajectory file.
     
     Parameters:
         f (str): Path to the GROMACS trajectory file.

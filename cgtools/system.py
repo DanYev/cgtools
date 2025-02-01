@@ -901,6 +901,9 @@ class MDRun(CGSystem):
             lrt.save_2d_data(ch_dci, fpath=ch_dci_file)
         print('Finished calculating DCIs!', file=sys.stderr)
         os.chdir(bdir) 
+
+    def get_power_spectrum_xv(b=100000, n=5):
+        pass   
         
     def get_rmsf_by_chain(self, **kwargs):
         """
