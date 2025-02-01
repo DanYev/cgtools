@@ -33,7 +33,7 @@ def timeit(func):
 
 def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
     """
-    Calculate the covariance matrix from a GROMACS trajectory file.
+    Calculate the position-position covariance matrix from a GROMACS trajectory file.
     
     Parameters:
         f (str): Path to the GROMACS trajectory file.
@@ -49,6 +49,41 @@ def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float
             positions.append(selection.positions.flatten()) #
     positions = np.array(positions, dtype=dtype)  #  Shape: (n_frames, n_coords)
     mean_positions = positions.mean(axis=0)
+    trajs = np.array_split(positions, n)
+    for idx, traj in enumerate(trajs): # 
+        idx = idx + 1
+        print(f"Processing matrix {idx}", file=sys.stderr)
+        positions = traj
+        mean_positions = positions.mean(axis=0)
+        centered_positions = positions - mean_positions
+        covariance_matrix = np.cov(centered_positions, rowvar=False, dtype=dtype)  # Shape: (n_coords, n_coords)
+        np.save(f'covmat_{idx}.npy', covariance_matrix)
+        print(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'", file=sys.stderr)
+        
+        
+def calc_pos_vel_corr(t, resp_ids, pert_ids,  f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
+    """
+    Calculate the position-velocity covariance matrix from a GROMACS trajectory file.
+    
+    Parameters:
+        f (str): Path to the GROMACS trajectory file.
+        s (str): Path to the corresponding topology file.
+        b (float): Time of first frame to read from trajectory (default unit ps)
+    """
+    u = mda.Universe(s, f)
+    resp_selection = u.atoms[resp_ids]
+    pert_selection = u.atoms[pert_ids]
+    positions = []
+    velocities = []
+    for ts in u.trajectory:
+        # Flatten the positions for the selected atoms
+        if ts.time > b:
+            positions.append(resp_selection.positions.flatten())
+            velocities.append(pert_selection.velocities.flatten()) #
+    positions = np.array(positions, dtype=dtype)  #  Shape: (n_frames, n_coords)
+    positions -= positions.mean(axis=0) # centered positions
+    velocities = np.array(velocities, dtype=dtype)
+    velocities -= velocities.mean(axis=0) # translated velocities
     trajs = np.array_split(positions, n)
     for idx, traj in enumerate(trajs): # 
         idx = idx + 1
