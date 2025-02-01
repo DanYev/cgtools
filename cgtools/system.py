@@ -10,7 +10,7 @@ from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB import PDBIO, Atom
 from . import cli
-from . import dci_dfi as dd
+from . import lrt
 
 
 def sort_uld(alist):
@@ -815,7 +815,7 @@ class MDRun(CGSystem):
         bdir = os.getcwd()
         os.chdir(self.covdir)
         print(f'Working dir: {self.covdir}', file=sys.stderr)
-        dd.calc_covmats(**kwargs)
+        lrt.calc_covmats(**kwargs)
         print('Finished calculating covariance matrices!', file=sys.stderr)
         os.chdir(bdir)
 
@@ -831,7 +831,7 @@ class MDRun(CGSystem):
             print(f'  Processing covariance matrix {cov_file}', file=sys.stderr)
             covmat = np.load(cov_file)
             print('  Calculating pertubation matrix', file=sys.stderr)
-            pertmat = dd.calc_perturbation_matrix(covmat)
+            pertmat = lrt.calc_perturbation_matrix(covmat)
             pert_file = cov_file.replace('covmat', 'pertmat')
             print(f'  Saving pertubation matrix at {pert_file}', file=sys.stderr)
             np.save(pert_file, pertmat)
@@ -850,11 +850,11 @@ class MDRun(CGSystem):
             print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
             pertmat = np.load(pert_file)
             print('  Calculating DFI', file=sys.stderr)
-            dfi = dd.calc_dfi(pertmat)
+            dfi = lrt.calc_dfi(pertmat)
             dfi_file = pert_file.replace('pertmat', 'dfi').replace('.npy', '.xvg')
             dfi_file = os.path.join('..', 'dci_dfi', dfi_file)
             print(f'  Saving DFI at {dfi_file}',  file=sys.stderr)
-            dd.save_1d_data(dfi, fpath=dfi_file)
+            lrt.save_1d_data(dfi, fpath=dfi_file)
         print('Finished calculating DFIs!', file=sys.stderr)
         os.chdir(bdir)  
         
@@ -872,8 +872,8 @@ class MDRun(CGSystem):
             print('  Calculating DCI', file=sys.stderr)
             dci_file = pert_file.replace('pertmat', f'dci').replace('.npy', '.xvg')
             ch_dci_file = os.path.join('..', 'dci_dfi', dci_file)
-            dci = dd.calc_full_dci(pertmat, asym=asym)
-            dd.save_2d_data(dci, fpath=dci_file)
+            dci = lrt.calc_full_dci(pertmat, asym=asym)
+            lrt.save_2d_data(dci, fpath=dci_file)
         print('Finished calculating DCIs!', file=sys.stderr)
         os.chdir(bdir)
 
@@ -889,16 +889,16 @@ class MDRun(CGSystem):
             print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
             pertmat = np.load(pert_file)
             print('  Calculating DCI', file=sys.stderr)
-            dcis = dd.calc_group_molecule_dci(pertmat, groups=groups, asym=asym)
+            dcis = lrt.calc_group_molecule_dci(pertmat, groups=groups, asym=asym)
             for dci, group, group_id in zip(dcis, groups, group_ids):
                 dci_file = pert_file.replace('pertmat', f'dci_{group_id}').replace('.npy', '.xvg')
                 dci_file = os.path.join('..', 'dci_dfi', dci_file)
                 print(f'  Saving DCI at {dci_file}',  file=sys.stderr)
-                dd.save_1d_data(dci, fpath=dci_file)
+                lrt.save_1d_data(dci, fpath=dci_file)
             ch_dci_file = pert_file.replace('pertmat', f'ch_dci').replace('.npy', '.xvg')
             ch_dci_file = os.path.join('..', 'dci_dfi', ch_dci_file)
-            ch_dci = dd.calc_group_group_dci(pertmat, groups=groups, asym=asym)
-            dd.save_2d_data(ch_dci, fpath=ch_dci_file)
+            ch_dci = lrt.calc_group_group_dci(pertmat, groups=groups, asym=asym)
+            lrt.save_2d_data(ch_dci, fpath=ch_dci_file)
         print('Finished calculating DCIs!', file=sys.stderr)
         os.chdir(bdir) 
         
