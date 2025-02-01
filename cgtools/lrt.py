@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from numba import njit
 from scipy import linalg as LA
+from scipy.fft import rfft, irfft, fftfreq, fftshift
 from scipy.stats import pearsonr
 import time
 from functools import wraps
@@ -31,7 +32,7 @@ def timeit(func):
     return wrapper
 
 
-def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
+def calc_covmats(f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
     """
     Calculate the position-position covariance matrix from a GROMACS trajectory file.
     
@@ -40,28 +41,33 @@ def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float
         s (str): Path to the corresponding topology file.
         b (float): Time of first frame to read from trajectory (default unit ps)
     """
+    # Load trajectory
     u = mda.Universe(s, f)
     selection = u.atoms
-    positions = []
-    for ts in u.trajectory:
-        # Flatten the positions for the selected atoms
-        if ts.time > b:
-            positions.append(selection.positions.flatten()) #
-    positions = np.array(positions, dtype=dtype)  #  Shape: (n_frames, n_coords)
-    mean_positions = positions.mean(axis=0)
-    trajs = np.array_split(positions, n)
-    for idx, traj in enumerate(trajs): # 
-        idx = idx + 1
+    # Extract positions efficiently
+    positions = np.array(
+        [selection.positions.flatten() for ts in u.trajectory if ts.time > b], dtype=dtype
+    )
+    # Transpose for better memory access (n_coords, n_frames)
+    positions = np.ascontiguousarray(positions.T)  # Ensures efficient memory layout
+    # Compute the mean across frames
+    mean_positions = positions.mean(axis=1, keepdims=True)  # Shape: (n_coords, 1)
+    # # Split into `n` segments along frames (axis=1)
+    # trajs = np.array_split(positions, n, axis=1)
+    # Process each segment
+    for idx, traj in enumerate(trajs, start=1):
         print(f"Processing matrix {idx}", file=sys.stderr)
-        positions = traj
-        mean_positions = positions.mean(axis=0)
-        centered_positions = positions - mean_positions
-        covariance_matrix = np.cov(centered_positions, rowvar=False, dtype=dtype)  # Shape: (n_coords, n_coords)
+        # Center the data by removing mean
+        mean_traj = traj.mean(axis=1, keepdims=True)  # Shape: (n_coords, 1)
+        centered_positions = traj - mean_traj  # Broadcasting subtraction
+        # Compute covariance matrix (n_coords x n_coords)
+        covariance_matrix = np.cov(centered_positions, rowvar=True, dtype=dtype)
+        # Save covariance matrix
         np.save(f'covmat_{idx}.npy', covariance_matrix)
         print(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'", file=sys.stderr)
         
         
-def calc_power_spectrum_xv(t, resp_ids, pert_ids,  f='../traj.xtc', s='../traj.pdb', b=000000, dtype=np.float32):
+def calc_power_spectrum_xv(t, resp_ids, pert_ids,  f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
     """
     Calculate the position-velocity power spectrum from a GROMACS trajectory file.
     
@@ -70,30 +76,44 @@ def calc_power_spectrum_xv(t, resp_ids, pert_ids,  f='../traj.xtc', s='../traj.p
         s (str): Path to the corresponding topology file.
         b (float): Time of first frame to read from trajectory (default unit ps)
     """
+    # Load trajectory
     u = mda.Universe(s, f)
     resp_selection = u.atoms[resp_ids]
     pert_selection = u.atoms[pert_ids]
-    positions = []
-    velocities = []
-    for ts in u.trajectory:
-        # Flatten the positions for the selected atoms
-        if ts.time > b:
-            positions.append(resp_selection.positions.flatten())
-            velocities.append(pert_selection.velocities.flatten()) #
-    positions = np.array(positions, dtype=dtype)  #  Shape: (n_frames, n_coords)
-    positions -= positions.mean(axis=0) # centered positions
-    velocities = np.array(velocities, dtype=dtype)
-    velocities -= velocities.mean(axis=0) # translated velocities
-    trajs = np.array_split(positions, n)
-    for idx, traj in enumerate(trajs): # 
-        idx = idx + 1
-        print(f"Processing matrix {idx}", file=sys.stderr)
-        positions = traj
-        mean_positions = positions.mean(axis=0)
-        centered_positions = positions - mean_positions
-        covariance_matrix = np.cov(centered_positions, rowvar=False, dtype=dtype)  # Shape: (n_coords, n_coords)
-        np.save(f'covmat_{idx}.npy', covariance_matrix)
-        print(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'", file=sys.stderr)
+    # Extract positions and velocities efficiently
+    positions = np.array(
+        [resp_selection.positions.flatten() for ts in u.trajectory if ts.time > b], dtype=dtype
+    )
+    velocities = np.array(
+        [pert_selection.velocities.flatten() for ts in u.trajectory if ts.time > b], dtype=dtype
+    )
+    # Transpose for memory efficiency (shape: (n_coords, n_frames))
+    positions = np.ascontiguousarray(positions.T)
+    velocities = np.ascontiguousarray(velocities.T)
+    # Center data (mean subtraction)
+    positions -= positions.mean(axis=-1, keepdims=True)  # Shape: (n_coords, n_frames)
+    velocities -= velocities.mean(axis=-1, keepdims=True)
+    # Split trajectories into `n` segments along frames (axis=1)
+    trajs_pos = np.array_split(positions, n, axis=-1)
+    trajs_vel = np.array_split(velocities, n, axis=-1)
+    # Compute power spectra for each segment
+    cpsd_list = []
+    for pos, vel in zip(trajs_pos, trajs_vel):
+        # Compute FFT (over time)
+        pos_fft = rfft(pos, axis=1)  # FFT over frames (time)
+        vel_fft = rfft(vel, axis=1)  # FFT over frames (time)
+        # Compute Cross-Power Spectral Density (CPSD)
+        cpsd = np.einsum('it,jt->ijt', pos_fft, np.conj(vel_fft))
+        cpsd_list.append(cpsd)
+    # Average CPSD across segments
+    cpsd_avg = np.mean(np.abs(cpsd_list), axis=0)  # Take magnitude for power spectrum
+    # Compute frequency axis
+    n_frames = positions.shape[1]  # Time axis after transpose
+    dt = u.trajectory.dt  # Time step from trajectory
+    frequencies = fftfreq(n_frames, d=dt)[:n_frames // 2]  # Only positive frequencies
+    corr_xv = np.average(cpsd_avg, axis=-1)
+    np.save(f'corr_xv.npy', dciw)
+    return dciw
 
 
 def parse_covar_dat(file, dtype=np.float32):
