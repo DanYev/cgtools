@@ -810,7 +810,7 @@ class MDRun(CGSystem):
         Calculates several covariance matrices by splitting the trajectory into 
         equal chunks defined by the given timestamps
         """
-        kwargs.setdefault('f', '../traj.xtc')
+        kwargs.setdefault('f', '../traj.trr')
         kwargs.setdefault('s', '../traj.pdb')
         bdir = os.getcwd()
         os.chdir(self.covdir)
@@ -819,58 +819,58 @@ class MDRun(CGSystem):
         print('Finished calculating covariance matrices!', file=sys.stderr)
         os.chdir(bdir)
 
-    def get_pertmats(self, **kwargs):
+    def get_pertmats(self, intag='covmat', outtag='pertmat', **kwargs):
         """
         Calculates perturbation matrices from the covariance matrices
         """
         bdir = os.getcwd()
         os.chdir(self.covdir)
         print(f'Working dir: {self.covdir}', file=sys.stderr)
-        cov_files = [f for f in sorted(os.listdir()) if f.startswith('covmat')]
+        cov_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
         for cov_file in cov_files:
             print(f'  Processing covariance matrix {cov_file}', file=sys.stderr)
             covmat = np.load(cov_file)
             print('  Calculating pertubation matrix', file=sys.stderr)
             pertmat = lrt.calc_perturbation_matrix(covmat)
-            pert_file = cov_file.replace('covmat', 'pertmat')
+            pert_file = cov_file.replace(intag, outtag)
             print(f'  Saving pertubation matrix at {pert_file}', file=sys.stderr)
             np.save(pert_file, pertmat)
         print('Finished calculating perturbation matrices!', file=sys.stderr)
         os.chdir(bdir)
         
-    def get_dfi(self, **kwargs):
+    def get_dfi(self, intag='pertmat', outtag='dfi', **kwargs):
         """
         Calculates DFI from perturbation matrices
         """
         bdir = os.getcwd()
         os.chdir(self.covdir)
         print(f'Working dir: {self.covdir}', file=sys.stderr)
-        pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
+        pert_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
         for pert_file in pert_files:
             print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
             pertmat = np.load(pert_file)
             print('  Calculating DFI', file=sys.stderr)
             dfi = lrt.calc_dfi(pertmat)
-            dfi_file = pert_file.replace('pertmat', 'dfi').replace('.npy', '.xvg')
+            dfi_file = pert_file.replace(intag, outtag).replace('.npy', '.xvg')
             dfi_file = os.path.join('..', 'dci_dfi', dfi_file)
             print(f'  Saving DFI at {dfi_file}',  file=sys.stderr)
             lrt.save_1d_data(dfi, fpath=dfi_file)
         print('Finished calculating DFIs!', file=sys.stderr)
         os.chdir(bdir)  
         
-    def get_full_dci(self, asym=False):
+    def get_full_dci(self, intag='pertmat', outtag='dci', asym=False):
         """
         Calculates full DCI matrix from perturbation matrices
         """
         bdir = os.getcwd()
         os.chdir(self.covdir)
         print(f'Working dir: {self.covdir}', file=sys.stderr)
-        pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
+        pert_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
         for pert_file in pert_files:
             print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
             pertmat = np.load(pert_file)
             print('  Calculating DCI', file=sys.stderr)
-            dci_file = pert_file.replace('pertmat', f'dci').replace('.npy', '.xvg')
+            dci_file = pert_file.replace(intag, outtag).replace('.npy', '.xvg')
             ch_dci_file = os.path.join('..', 'dci_dfi', dci_file)
             dci = lrt.calc_full_dci(pertmat, asym=asym)
             lrt.save_2d_data(dci, fpath=dci_file)
@@ -902,8 +902,18 @@ class MDRun(CGSystem):
         print('Finished calculating DCIs!', file=sys.stderr)
         os.chdir(bdir) 
 
-    def get_power_spectrum_xv(b=100000, n=5):
-        pass   
+    def get_power_spectrum_xv(self, resp_ids=[], pert_ids=[], **kwargs):
+        """
+        Position-velocity correlation
+        """
+        kwargs.setdefault('f', '../traj.trr')
+        kwargs.setdefault('s', '../traj.pdb')
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        lrt.calc_power_spectrum_xv(resp_ids, pert_ids, **kwargs)
+        print('Finished calculating', file=sys.stderr)
+        os.chdir(bdir) 
         
     def get_rmsf_by_chain(self, **kwargs):
         """

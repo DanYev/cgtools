@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from numba import njit
 from scipy import linalg as LA
-from scipy.fft import rfft, irfft, fftfreq, fftshift
+from scipy.fft import fft, rfft, ifft, irfft, fftfreq, fftshift
 from scipy.stats import pearsonr
 import time
 from functools import wraps
@@ -32,6 +32,37 @@ def timeit(func):
     return wrapper
 
 
+def fftcorr(x, y, shift=False):
+    """
+    Compute the correlation function using FFT.
+    Parameters:
+    - x: np.ndarray, first input signal (n_coords * n_samples - D array).
+    - y: np.ndarray, second input signal 
+    - shift: bool, whether to center the correlation function at lag=0.
+    Returns:
+    - corr: np.ndarray, computed correlation function.
+    - lags: np.ndarray, lag values.
+
+    """
+    N = x.shape[-1]
+    # Mean-center the signals
+    x = x - np.mean(x, axis=-1, keepdims=True)
+    y = y - np.mean(y, axis=-1, keepdims=True)
+    # Compute FFT of both signals
+    x_f = fft(x, axis=-1)
+    y_f = fft(y, axis=-1)
+    # Compute Cross-Power Spectral Density (CPSD)
+    cpsd = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
+    # Compute the FFT-based correlation
+    corr = ifft(cpsd, axis=-1).real / N
+    if shift:
+        corr = fftshift(corr)  # Center the correlation at lag=0
+    # Compute lag values
+    # lags = np.arange(-N//2, N//2) if shift else np.arange(N)
+    return corr
+
+
+
 def calc_covmats(f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
     """
     Calculate the position-position covariance matrix from a GROMACS trajectory file.
@@ -51,14 +82,14 @@ def calc_covmats(f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float
     # Transpose for better memory access (n_coords, n_frames)
     positions = np.ascontiguousarray(positions.T)  # Ensures efficient memory layout
     # Compute the mean across frames
-    mean_positions = positions.mean(axis=1, keepdims=True)  # Shape: (n_coords, 1)
-    # # Split into `n` segments along frames (axis=1)
-    # trajs = np.array_split(positions, n, axis=1)
+    # mean_positions = positions.mean(axis=1, keepdims=True)  # Shape: (n_coords, 1)
+    # Split into `n` segments along frames (axis=1)
+    trajs = np.array_split(positions, n, axis=-1)
     # Process each segment
     for idx, traj in enumerate(trajs, start=1):
         print(f"Processing matrix {idx}", file=sys.stderr)
         # Center the data by removing mean
-        mean_traj = traj.mean(axis=1, keepdims=True)  # Shape: (n_coords, 1)
+        mean_traj = traj.mean(axis=-1, keepdims=True)  # Shape: (n_coords, 1)
         centered_positions = traj - mean_traj  # Broadcasting subtraction
         # Compute covariance matrix (n_coords x n_coords)
         covariance_matrix = np.cov(centered_positions, rowvar=True, dtype=dtype)
@@ -67,7 +98,7 @@ def calc_covmats(f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float
         print(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'", file=sys.stderr)
         
         
-def calc_power_spectrum_xv(t, resp_ids, pert_ids,  f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
+def calc_power_spectrum_xv(resp_ids, pert_ids,  f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
     """
     Calculate the position-velocity power spectrum from a GROMACS trajectory file.
     
@@ -78,17 +109,26 @@ def calc_power_spectrum_xv(t, resp_ids, pert_ids,  f='../traj.trr', s='../traj.p
     """
     # Load trajectory
     u = mda.Universe(s, f)
-    resp_selection = u.atoms[resp_ids]
-    pert_selection = u.atoms[pert_ids]
+    # If IDs are not given the use all atoms
+    if resp_ids:
+        resp_selection = u.atoms[resp_ids]
+    else:
+        resp_selection = u.atoms
+    if pert_ids:
+        pert_selection = u.atoms[pert_ids]
+    else:
+        pert_selection = u.atoms
     # Extract positions and velocities efficiently
+    skip_step = 1
     positions = np.array(
-        [resp_selection.positions.flatten() for ts in u.trajectory if ts.time > b], dtype=dtype
+        [resp_selection.positions.flatten() for ts in u.trajectory[::skip_step] if ts.time > b], dtype=dtype
     )
     velocities = np.array(
-        [pert_selection.velocities.flatten() for ts in u.trajectory if ts.time > b], dtype=dtype
+        [pert_selection.velocities.flatten() for ts in u.trajectory[::skip_step] if ts.time > b], dtype=dtype
     )
     # Transpose for memory efficiency (shape: (n_coords, n_frames))
     positions = np.ascontiguousarray(positions.T)
+    print(positions.shape)
     velocities = np.ascontiguousarray(velocities.T)
     # Center data (mean subtraction)
     positions -= positions.mean(axis=-1, keepdims=True)  # Shape: (n_coords, n_frames)
@@ -99,21 +139,15 @@ def calc_power_spectrum_xv(t, resp_ids, pert_ids,  f='../traj.trr', s='../traj.p
     # Compute power spectra for each segment
     cpsd_list = []
     for pos, vel in zip(trajs_pos, trajs_vel):
-        # Compute FFT (over time)
-        pos_fft = rfft(pos, axis=1)  # FFT over frames (time)
-        vel_fft = rfft(vel, axis=1)  # FFT over frames (time)
-        # Compute Cross-Power Spectral Density (CPSD)
-        cpsd = np.einsum('it,jt->ijt', pos_fft, np.conj(vel_fft))
+        cpsd = fftcorr(pos, pos)
         cpsd_list.append(cpsd)
     # Average CPSD across segments
-    cpsd_avg = np.mean(np.abs(cpsd_list), axis=0)  # Take magnitude for power spectrum
-    # Compute frequency axis
-    n_frames = positions.shape[1]  # Time axis after transpose
-    dt = u.trajectory.dt  # Time step from trajectory
-    frequencies = fftfreq(n_frames, d=dt)[:n_frames // 2]  # Only positive frequencies
-    corr_xv = np.average(cpsd_avg, axis=-1)
-    np.save(f'corr_xv.npy', dciw)
-    return dciw
+    cpsd_avg = np.mean(cpsd_list, axis=0)  # Take magnitude for power spectrum
+    # corr_xv = np.average(cpsd_avg, axis=-1)
+    # corr_xv = N * np.abs(ifft(cpsd, n=2*N, axis=-1))
+    corr_xv = cpsd_avg[:,:,0]
+    np.save(f'corr_xv.npy', corr_xv)
+    return corr_xv
 
 
 def parse_covar_dat(file, dtype=np.float32):
@@ -165,12 +199,29 @@ def calc_perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
         perturbation_matrix += abs_delta
     perturbation_matrix /= np.sum(perturbation_matrix)
     return perturbation_matrix
+    
+@timeit
+def calc_td_perturbation_matrix_cpu(corr_xv, dtype=np.float32):
+    """
+    Calculates perturbation matrix from a covariance matrix or a hessian on CPU
+    The result is normalized such that the total sum of the matrix elements is equal to 1
+    """
+    n = corr_xv.shape[0] // 3
+    blocks = corr_xv.reshape(n, 3, n, 3).swapaxes(1, 2)
+    perturbation_matrix = np.sum(blocks**2, axis=(-2, -1))
+    perturbation_matrix = np.sqrt(perturbation_matrix)
+    perturbation_matrix /= np.sum(perturbation_matrix)
+    return perturbation_matrix    
 
 
 def calc_perturbation_matrix(covariance_matrix, dtype=np.float32):
     pertmat = calc_perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
     return pertmat
-    
+
+
+def calc_td_perturbation_matrix(covariance_matrix, dtype=np.float32):
+    pertmat = calc_td_perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
+    return pertmat    
 
 def calc_dfi(perturbation_matrix):
     """
