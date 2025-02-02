@@ -1,16 +1,16 @@
 #!/bin/python
 import os
 import sys
+import time
+import tracemalloc
 import MDAnalysis as mda
 import numpy as np
 import pandas as pd
-from numba import njit
+from joblib import Parallel, delayed
+from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
 from scipy import linalg as LA
-from scipy.fft import fft, rfft, ifft, irfft, fftfreq, fftshift
 from scipy.stats import pearsonr
-import time
 from functools import wraps
-# from memory_profiler import profile
 
 
 def timeit(func):
@@ -32,34 +32,119 @@ def timeit(func):
     return wrapper
 
 
-def fftcorr(x, y, shift=False):
+def memprofit(func):
+    """
+    A decorator to memory profile a function.
+    Parameters:
+        func (callable): The function to be timed.
+    Returns:
+        callable: A wrapped function that prints its execution time.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        tracemalloc.start()             # Start the profiles
+        result = func(*args, **kwargs)  # Call the original function
+        current, peak = tracemalloc.get_traced_memory()  # Get the current and peak memory usage
+        print(f"Current memory usage after executing '{func.__name__}': {current/1024**2:.2f} MB", file=sys.stderr)
+        print(f"Peak memory usage: {peak/1024**2:.2f} MB", file=sys.stderr)
+        tracemalloc.stop()
+        return result
+    return wrapper 
+
+
+def sfft_corr(x, y, ntmax=1000, center=False, loop=True, dtype=np.float64):
     """
     Compute the correlation function using FFT.
     Parameters:
-    - x: np.ndarray, first input signal (n_coords * n_samples - D array).
-    - y: np.ndarray, second input signal 
-    - shift: bool, whether to center the correlation function at lag=0.
+    - x: np.ndarray, first input signal. Shape - (n_coords, n_samples).
+    - y: np.ndarray, second input signal. Shape - (n_coords, n_samples).
+    - ntmax: positive int, number of time samples to save
+    - center: bool,  whether to mean-center the signals
+    - loop: bool, whether to calculate Cross-Power Spectral Density (CPSD) in a for loop.
+        It's way more memory efficient for large arrays but may be slower
     Returns:
     - corr: np.ndarray, computed correlation function.
-    - lags: np.ndarray, lag values.
-
     """
-    N = x.shape[-1]
-    # Mean-center the signals
-    x = x - np.mean(x, axis=-1, keepdims=True)
-    y = y - np.mean(y, axis=-1, keepdims=True)
-    # Compute FFT of both signals
+    # Helper functions
+    def compute_correlation(*args):
+        i, j, x_f, y_f, ntmax, nt = args
+        return ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real / nt    
+
+    tracemalloc.start()
+    nt = x.shape[-1]
+    nx = x.shape[0]
+    ny = y.shape[0]
+    if center:  # Mean-center the signals
+        x = x - np.mean(x, axis=-1, keepdims=True)
+        y = y - np.mean(y, axis=-1, keepdims=True)
+    # Compute FFT along the last axis as an (nx, nt) array
     x_f = fft(x, axis=-1)
     y_f = fft(y, axis=-1)
-    # Compute Cross-Power Spectral Density (CPSD)
-    cpsd = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
-    # Compute the FFT-based correlation
-    corr = ifft(cpsd, axis=-1).real / N
-    if shift:
-        corr = fftshift(corr)  # Center the correlation at lag=0
-    # Compute lag values
-    # lags = np.arange(-N//2, N//2) if shift else np.arange(N)
-    return corr
+    # Compute the FFT-based correlation via CPSD
+    if loop:
+        corr = np.zeros((nx, ny, ntmax), dtype=dtype)
+        for i in range(nx):
+            for j in range(ny):
+                corr[i, j] = compute_correlation(i, j, x_f, y_f, ntmax, nt)
+    else:
+        corr = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
+        corr = ifft(corr, axis=-1).real / nt
+    current, peak = tracemalloc.get_traced_memory()
+    return corr.real
+
+
+def pfft_corr(x, y, ntmax=1000, center=False, dtype=np.float64):
+    """
+    Compute the correlation function using FFT with parallelizing the cross-correlation loop.
+    Looks like it starts getting faster for Nt >~ 10000
+    Needs more memory than the serial version
+    Takes 7-8 minutes and ~28Gb for 8 cores to process two (nx, nt)=(1000, 100000) arrays outputting 
+    ~11Gb (nx, ny, nt=ntmax)=(1000, 1000, 1000) correlation array
+    Parameters:
+    - x: np.ndarray, first input signal. Shape - (n_coords, n_samples).
+    - y: np.ndarray, second input signal. Shape - (n_coords, n_samples).
+    - ntmax: positive int, number of time samples to save
+    - center: bool,  whether to mean-center the signals.
+    Returns:
+    - corr: np.ndarray, computed correlation function.
+    """
+    # Helper functions for parrallelizing
+    def compute_correlation(i, j, x_f, y_f, ntmax, nt):
+        return ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real / nt
+
+    def parallel_fft_correlation(x_f, y_f, ntmax, nt, n_jobs=-1):
+        nx, ny = x_f.shape[0], y_f.shape[0]
+        corr = np.zeros((nx, ny, ntmax), dtype=np.float64)
+        results = Parallel(n_jobs=n_jobs)(
+            delayed(compute_correlation)(i, j, x_f, y_f, ntmax, nt) 
+            for i in range(nx) for j in range(ny)
+        )
+        # Reshape results back to (nx, ny, ntmax)
+        corr = np.array(results).reshape(nx, ny, ntmax)
+        return corr        
+
+    nt = x.shape[-1]
+    nx = x.shape[0]
+    ny = y.shape[0]
+    if center:  # Mean-center the signals
+        x = x - np.mean(x, axis=-1, keepdims=True)
+        y = y - np.mean(y, axis=-1, keepdims=True)
+    # Compute FFT along the last axis as an (nx, nt) array
+    x_f = fft(x, axis=-1)
+    y_f = fft(y, axis=-1)
+    # Compute the FFT-based correlation via CPSD
+    corr = parallel_fft_correlation(x_f, y_f, ntmax, nt)
+    return corr.real
+
+
+@memprofit
+@timeit
+def fft_corr(*args, mode='parallel', **kwargs):
+    if mode == 'serial':
+        return sfft_corr(*args, **kwargs)
+    if mode == 'parallel':
+        return pfft_corr(*args, **kwargs)
+    raise ValueError("Currently 'mode' should be 'serial' or 'parallel'.")
 
 
 
