@@ -872,7 +872,7 @@ class MDRun(CGSystem):
             print('  Calculating DCI', file=sys.stderr)
             dci_file = pert_file.replace(intag, outtag).replace('.npy', '.xvg')
             ch_dci_file = os.path.join('..', 'dci_dfi', dci_file)
-            dci = lrt.calc_full_dci(pertmat, asym=asym)
+            dci = lrt.calc_dci(pertmat, asym=asym)
             lrt.save_2d_data(dci, fpath=dci_file)
         print('Finished calculating DCIs!', file=sys.stderr)
         os.chdir(bdir)

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 from scipy.stats import pearsonr
-from .lrt import percentile
+from cgtools.lrt import percentile
 
 
 class Figure:

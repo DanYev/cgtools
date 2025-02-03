@@ -247,7 +247,6 @@ def parse_covar_dat(file, dtype=np.float32):
     
     
 @timeit    
-@njit(parallel=False)
 def get_perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32):
     directions = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]), dtype=dtype)
     directions = directions.T / np.sqrt(np.sum(directions, axis=1)).T # normalizing directions
@@ -285,17 +284,18 @@ def calc_perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
     perturbation_matrix /= np.sum(perturbation_matrix)
     return perturbation_matrix
     
-@timeit
-def calc_td_perturbation_matrix_cpu(corr_xv, dtype=np.float32):
+
+def calc_td_perturbation_matrix_cpu(ccf, dtype=np.float32):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU
     The result is normalized such that the total sum of the matrix elements is equal to 1
     """
-    n = corr_xv.shape[0] // 3
-    blocks = corr_xv.reshape(n, 3, n, 3).swapaxes(1, 2)
+    m = ccf.shape[0] // 3
+    n = ccf.shape[1] // 3
+    blocks = ccf.reshape(m, 3, n, 3).swapaxes(1, 2)
     perturbation_matrix = np.sum(blocks**2, axis=(-2, -1))
     perturbation_matrix = np.sqrt(perturbation_matrix)
-    perturbation_matrix /= np.sum(perturbation_matrix)
+    # perturbation_matrix /= np.sum(perturbation_matrix)
     return perturbation_matrix    
 
 
@@ -305,8 +305,11 @@ def calc_perturbation_matrix(covariance_matrix, dtype=np.float32):
 
 
 def calc_td_perturbation_matrix(covariance_matrix, dtype=np.float32):
+    print(f"Calculating perturbation_matrix.", file=sys.stderr)
     pertmat = calc_td_perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
+    print(f"Finished calculating perturbation_matrix.", file=sys.stderr)
     return pertmat    
+
 
 def calc_dfi(perturbation_matrix):
     """
@@ -317,7 +320,7 @@ def calc_dfi(perturbation_matrix):
     return dfi
     
 
-def calc_full_dci(perturbation_matrix, asym=False):
+def calc_dci(perturbation_matrix, asym=False):
     """
     Calculates DCI matrix from the pertubation matrix
     Normalized such that the total sum of the matrix elements is equal to the number of residues
@@ -380,7 +383,7 @@ def percentile(x):
     return px
     
     
-def save_1d_data(data, ids=[], fpath='dfi.xvg'): 
+def save_1d_data(data, ids=[], fpath='dfi.xvg', sep=' '): 
     """ 
     Saves 1d data like DFI in the GROMACS's .xvg format
     Input: 
@@ -396,10 +399,10 @@ def save_1d_data(data, ids=[], fpath='dfi.xvg'):
     if not ids:
         ids = np.arange(1, len(data)+1).astype(int)
     df = pd.DataFrame({'ids': ids, 'data': data})
-    df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=' ')
+    df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=sep)
     
     
-def save_2d_data(data, ids=[], fpath='dfi.xvg'): 
+def save_2d_data(data, ids=[], fpath='dfi.xvg', sep=' '): 
     """ 
     Saves 2d data like group-group DCI in the GROMACS's .xvg format
     Input: 
@@ -409,7 +412,7 @@ def save_2d_data(data, ids=[], fpath='dfi.xvg'):
     ------
     """
     df = pd.DataFrame(data)
-    df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=' ')
+    df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=sep)
     
 
 if __name__ == '__main__':
