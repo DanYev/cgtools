@@ -65,11 +65,11 @@ def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     Returns:
     - corr: np.ndarray, computed correlation function.
     """
+    print("Doing FFTs serially.", file=sys.stderr)
     # Helper functions
     def compute_correlation(*args):
         i, j, x_f, y_f, ntmax, nt = args
         return ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real / nt    
-
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
@@ -89,7 +89,7 @@ def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     else:
         corr = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
         corr = ifft(corr, axis=-1).real / nt
-    return corr.real
+    return corr
 
 
 def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
@@ -107,6 +107,7 @@ def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     Returns:
     - corr: np.ndarray, computed correlation function.
     """
+    print("Doing FFTs in parallel.", file=sys.stderr)
     # Helper functions for parrallelizing
     def compute_correlation(i, j, x_f, y_f, ntmax, nt):
         return ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real / nt
@@ -121,7 +122,6 @@ def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
         # Reshape results back to (nx, ny, ntmax)
         corr = np.array(results).reshape(nx, ny, ntmax)
         return corr        
-
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
@@ -134,7 +134,36 @@ def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     y_f = fft(y, axis=-1)
     # Compute the FFT-based correlation via CPSD
     corr = parallel_fft_correlation(x_f, y_f, ntmax, nt)
-    return corr.real
+    return corr
+
+
+def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float64):
+    """
+    Another version for GPU
+    """
+    print("Doing FFTs on GPU.", file=sys.stderr)
+    def compute_correlation_gpu(*args):
+        i, j, x_f, y_f, ntmax, nt = args
+        return cp.fft.ifft(x_f[i] * cp.conj(y_f[j]), axis=-1)[:ntmax].real / nt  
+    nt = x.shape[-1]
+    nx = x.shape[0]
+    ny = y.shape[0]
+    ntmax = nt if ntmax is None else ntmax
+    corr = np.zeros((nx, ny, ntmax), dtype=np.float32)
+    if center:  # Mean-center the signals
+        x = x - np.mean(x, axis=-1, keepdims=True)
+        y = y - np.mean(y, axis=-1, keepdims=True)
+    # Convert NumPy arrays to CuPy arrays
+    x = cp.asarray(x, dtype=dtype)
+    y = cp.asarray(y, dtype=dtype)
+    # Compute FFT along the last axis
+    x_f = cp.fft.fft(x, axis=-1)
+    y_f = cp.fft.fft(y, axis=-1)
+    # Compute the FFT-based correlation via CPSD 
+    for i in range(nx):
+        corr_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax] / nt 
+        corr[i, :, :] = corr_row.get()
+    return corr
 
 
 @memprofit
@@ -144,7 +173,9 @@ def fft_corr(*args, mode='parallel', **kwargs):
         return sfft_corr(*args, **kwargs)
     if mode == 'par':
         return pfft_corr(*args, **kwargs)
-    raise ValueError("Currently 'mode' should be 'ser' or 'par'.")
+    if mode == 'gpu':
+        return gfft_corr(*args, **kwargs)
+    raise ValueError("Currently 'mode' should be 'ser', 'par' or 'gpu'.")
 
 
 def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
@@ -168,7 +199,6 @@ def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
         # cpsd_ij[cpsd_ij<1] = 0
         cpsd_ij = np.average(cpsd_ij)
         return cpsd_ij
-
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
@@ -292,8 +322,7 @@ def parse_covar_dat(file, dtype=np.float32):
     covariance_matrix = np.reshape(covariance_matrix, (3*resnum, 3*resnum))
     return covariance_matrix
     
-    
-@timeit    
+      
 def get_perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32):
     directions = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]), dtype=dtype)
     directions = directions.T / np.sqrt(np.sum(directions, axis=1)).T # normalizing directions
@@ -311,7 +340,6 @@ def get_perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32):
     return perturbation_matrix
   
     
-@timeit
 def calc_perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU
