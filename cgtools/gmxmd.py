@@ -9,9 +9,12 @@ import subprocess as sp
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB import PDBIO, Atom
-from . import cli
-from . import lrt
+from cgtools import cli
+from cgtools import lrt
 
+################################################################################
+# Helper functions
+################################################################################   
 
 def sort_uld(alist):
     """
@@ -21,13 +24,12 @@ def sort_uld(alist):
     """
     slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
     return slist
-    
 
 ################################################################################
 # CG system class
 ################################################################################   
 
-class CGSystem:
+class gmxSystem:
     """
     Class to set up and analyze protein-nucliotide-lipid systems for MD with GROMACS
     All the attributes are the paths to files and directories needed to set up and run CG MD
@@ -161,11 +163,9 @@ class CGSystem:
             """
             with open(input_pdb, 'r') as file:
                 pdb_lines = file.readlines()
-        
             # Group lines by chain ID
             chain_dict = {}
             other_lines = []
-        
             for line in pdb_lines:
                 if line.startswith(("ATOM", )):
                     chain_id = line[21]  # Extract chain ID (column 22, index 21)
@@ -174,18 +174,15 @@ class CGSystem:
                     chain_dict[chain_id].append(line)
                 else:
                     # Keep non-ATOM, HETATM, and TER lines (e.g., HEADER, REMARK, END)
-                    other_lines.append(line)
-        
+                    other_lines.append(line)      
             # Sort chains alphabetically
             sorted_chain_ids = sort_uld(chain_dict.keys())
-        
             # Renumber atom IDs and write to the output file
             atom_id = 1  # Start atom ID renumbering
             with open(output_pdb, 'w') as file:
                 # Write other (non-ATOM) lines first
                 for line in other_lines:
-                    file.write(line)
-        
+                    file.write(line)  
                 # Write the sorted chains with updated atom IDs
                 for chain_id in sorted_chain_ids:
                     for line in chain_dict[chain_id]:
@@ -198,15 +195,11 @@ class CGSystem:
                                 atom_id = 1
                         else:
                             # Write TER lines as-is
-                            file.write(line)
-
-        
-        # Example usage
-        input_pdb = "rearranged.pdb"  # Replace with your input file path
-        output_pdb = "ref.pdb"  # Replace with your desired output file path
+                            file.write(line)      
+        input_pdb = "rearranged.pdb"  
+        output_pdb = "ref.pdb"  
         rearrange_chains_and_renumber_atoms(input_pdb, output_pdb)
-                
-        
+                       
     def clean_inpdb(self, **kwargs):
         """
         Cleans starting PDB file using PDBfixer by OpenMM
@@ -538,16 +531,16 @@ class CGSystem:
         Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
         Default is to select backbone atoms for proteins and RNA
         """
-        CGSystem.mask_pdb(inpdb=self.syspdb, outpdb=self.mdcpdb, mask=mask)
-        CGSystem.make_index_by_chain(self.wdir, inpdb=self.mdcpdb, chains=self.chains, outndx=self.mdcndx)
+        gmxSystem.mask_pdb(inpdb=self.syspdb, outpdb=self.mdcpdb, mask=mask)
+        gmxSystem.make_index_by_chain(self.wdir, inpdb=self.mdcpdb, chains=self.chains, outndx=self.mdcndx)
         
     def make_trj_pdb_ndx(self, mask=['BB', 'BB2', ], **kwargs):
         """
         Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
         Default is to select backbone atoms for proteins and RNA
         """
-        CGSystem.mask_pdb(inpdb=self.syspdb, outpdb=self.trjpdb, mask=mask)
-        CGSystem.make_index_by_chain(self.wdir, inpdb=self.trjpdb,  chains=self.chains, outndx=self.trjndx)
+        gmxSystem.mask_pdb(inpdb=self.syspdb, outpdb=self.trjpdb, mask=mask)
+        gmxSystem.make_index_by_chain(self.wdir, inpdb=self.trjpdb,  chains=self.chains, outndx=self.trjndx)
         
     @staticmethod
     @cli.from_wdir
@@ -631,7 +624,7 @@ class CGSystem:
 # MDRun class
 ################################################################################   
 
-class MDRun(CGSystem):
+class MDRun(gmxSystem):
     """
     Run molecular dynamics (MD) simulation using the specified input files.
     This method runs the MD simulation by calling an external simulation software, 
@@ -726,7 +719,7 @@ class MDRun(CGSystem):
         """
         kwargs.setdefault('deffnm', 'md')
         kwargs.setdefault('nsteps', '-2')
-        kwargs.setdefault('ntomp', '6')
+        kwargs.setdefault('ntomp', '8')
         cli.gmx_mdrun(self.rundir, **kwargs) 
         
     def trjconv(self, clinput=None, **kwargs):

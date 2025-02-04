@@ -3,6 +3,39 @@ import numpy as np
 import pandas as pd
 
 
+def fname_filter(f, sw='', cont='', ew=''):  
+    """
+    Filters a file name based on its start, substring, and end patterns.
+    """
+    return f.startswith(sw) and cont in f and f.endswith(ew)
+    
+
+def filter_files(fpaths, sw='', cont='', ew=''):  
+    """
+    Filters files in a list using the above filter
+    """
+    files = [f for f in fpaths if fname_filter(f.name, sw=sw, cont=cont, ew=ew)]
+    return files
+    
+
+def pull_all_files(directory, ):
+    """
+    Recursively lists all files in the given directory and its subdirectories.
+
+    Parameters:
+        directory (str or Path): The root directory to start searching for files.
+
+    Returns:
+        list[Path]: A list of Path objects, each representing the absolute path
+                    to a file within the directory and its subdirectories.
+    """
+    all_files = []
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            all_files.append(Path(os.path.join(root, file)))
+    return all_files  
+
+
 def read_data(fpath):
     """ 
     Reads a .csv or .npy file 
