@@ -52,7 +52,7 @@ def memprofit(func):
     return wrapper 
 
 
-def sfft_corr(x, y, ntmax=1000, center=False, loop=True, dtype=np.float64):
+def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     """
     Compute the correlation function using FFT.
     Parameters:
@@ -70,10 +70,10 @@ def sfft_corr(x, y, ntmax=1000, center=False, loop=True, dtype=np.float64):
         i, j, x_f, y_f, ntmax, nt = args
         return ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real / nt    
 
-    tracemalloc.start()
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
+    ntmax = nt if not ntmax else ntmax
     if center:  # Mean-center the signals
         x = x - np.mean(x, axis=-1, keepdims=True)
         y = y - np.mean(y, axis=-1, keepdims=True)
@@ -89,11 +89,10 @@ def sfft_corr(x, y, ntmax=1000, center=False, loop=True, dtype=np.float64):
     else:
         corr = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
         corr = ifft(corr, axis=-1).real / nt
-    current, peak = tracemalloc.get_traced_memory()
     return corr.real
 
 
-def pfft_corr(x, y, ntmax=1000, center=False, dtype=np.float64):
+def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     """
     Compute the correlation function using FFT with parallelizing the cross-correlation loop.
     Looks like it starts getting faster for Nt >~ 10000
@@ -126,6 +125,7 @@ def pfft_corr(x, y, ntmax=1000, center=False, dtype=np.float64):
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
+    ntmax = nt if not ntmax else ntmax
     if center:  # Mean-center the signals
         x = x - np.mean(x, axis=-1, keepdims=True)
         y = y - np.mean(y, axis=-1, keepdims=True)
@@ -140,12 +140,85 @@ def pfft_corr(x, y, ntmax=1000, center=False, dtype=np.float64):
 @memprofit
 @timeit
 def fft_corr(*args, mode='parallel', **kwargs):
-    if mode == 'serial':
+    if mode == 'ser':
         return sfft_corr(*args, **kwargs)
-    if mode == 'parallel':
+    if mode == 'par':
         return pfft_corr(*args, **kwargs)
-    raise ValueError("Currently 'mode' should be 'serial' or 'parallel'.")
+    raise ValueError("Currently 'mode' should be 'ser' or 'par'.")
 
+
+def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
+    """
+    Compute the Cross-Power Spectral Density (CPSD) using FFT.
+    Parameters:
+    - x: np.ndarray, first input signal. Shape - (n_coords, n_samples).
+    - y: np.ndarray, second input signal. Shape - (n_coords, n_samples).
+    - ntmax: positive int, number of time samples to save
+    - center: bool,  whether to mean-center the signals
+    - loop: bool, whether to calculate Cross-Power Spectral Density (CPSD) in a for loop.
+        It's way more memory efficient for large arrays but may be slower
+    Returns:
+    - corr: np.ndarray, computed correlation function.
+    """
+    # Helper functions
+    def compute_cpsd(*args):
+        i, j, x_f, y_f, ntmax, nt = args
+        cpsd_ij = x_f[i] * np.conj(y_f[j])
+        cpsd_ij = np.abs(cpsd_ij) / nt
+        # cpsd_ij[cpsd_ij<1] = 0
+        cpsd_ij = np.average(cpsd_ij)
+        return cpsd_ij
+
+    nt = x.shape[-1]
+    nx = x.shape[0]
+    ny = y.shape[0]
+    ntmax = nt if not ntmax else ntmax
+    if center:  # Mean-center the signals
+        x = x - np.mean(x, axis=-1, keepdims=True)
+        y = y - np.mean(y, axis=-1, keepdims=True)
+    # Compute FFT along the last axis as an (nx, nt) array
+    x_f = fft(x, axis=-1)
+    y_f = fft(y, axis=-1)
+    # Compute the CPSD
+    if loop:
+        cpsd = np.zeros((nx, ny), dtype=dtype)
+        for i in range(nx):
+            for j in range(ny):
+                cpsd[i, j] = compute_cpsd(i, j, x_f, y_f, ntmax, nt)
+    else:
+        cpsd = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
+        cpsd = cpsd[:, :, :ntmax]    
+    cpsd = np.abs(cpsd) 
+    return cpsd
+
+
+def read_trajectory(resp_ids, pert_ids, f='../traj.trr', s='../traj.pdb',  b=0, e=10000000, skip_rate=1, dtype=np.float32):
+    print(f"Reading trajectory.", file=sys.stderr)
+    def in_range(ts, b, e): # Check if ts.time is within the range (b, e)
+        return b < ts.time < e
+    # Load trajectory
+    u = mda.Universe(s, f)
+    # If IDs are not given the use all atoms
+    if resp_ids:
+        resp_selection = u.atoms[resp_ids]
+    else:
+        resp_selection = u.atoms
+    if pert_ids:
+        pert_selection = u.atoms[pert_ids]       
+    else:
+        pert_selection = u.atoms
+    # Extract positions and velocities efficiently
+    positions = np.array(
+        [resp_selection.positions.flatten() for ts in u.trajectory[::skip_rate] if in_range(ts, b, e)], dtype=dtype
+    )
+    velocities = np.array(
+        [pert_selection.velocities.flatten() for ts in u.trajectory[::skip_rate] if in_range(ts, b, e)], dtype=dtype
+    )  
+    # Transpose for memory efficiency (shape: (n_coords, n_frames))
+    positions = np.ascontiguousarray(positions.T)
+    velocities = np.ascontiguousarray(velocities.T)
+    print(f"Finished reading trajectory.", file=sys.stderr)
+    return positions, velocities
 
 
 def calc_covmats(f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
@@ -183,56 +256,30 @@ def calc_covmats(f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float
         print(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'", file=sys.stderr)
         
         
-def calc_power_spectrum_xv(resp_ids, pert_ids,  f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
+def calc_ccf(x, y, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
     """
-    Calculate the position-velocity power spectrum from a GROMACS trajectory file.
+    Calculate the average cross-correlation function of x and y by splitting them into n segments
     
     Parameters:
         f (str): Path to the GROMACS trajectory file.
         s (str): Path to the corresponding topology file.
         b (float): Time of first frame to read from trajectory (default unit ps)
     """
-    # Load trajectory
-    u = mda.Universe(s, f)
-    # If IDs are not given the use all atoms
-    if resp_ids:
-        resp_selection = u.atoms[resp_ids]
-    else:
-        resp_selection = u.atoms
-    if pert_ids:
-        pert_selection = u.atoms[pert_ids]
-    else:
-        pert_selection = u.atoms
-    # Extract positions and velocities efficiently
-    skip_step = 1
-    positions = np.array(
-        [resp_selection.positions.flatten() for ts in u.trajectory[::skip_step] if ts.time > b], dtype=dtype
-    )
-    velocities = np.array(
-        [pert_selection.velocities.flatten() for ts in u.trajectory[::skip_step] if ts.time > b], dtype=dtype
-    )
-    # Transpose for memory efficiency (shape: (n_coords, n_frames))
-    positions = np.ascontiguousarray(positions.T)
-    print(positions.shape)
-    velocities = np.ascontiguousarray(velocities.T)
-    # Center data (mean subtraction)
-    positions -= positions.mean(axis=-1, keepdims=True)  # Shape: (n_coords, n_frames)
-    velocities -= velocities.mean(axis=-1, keepdims=True)
+    print(f"Calculating cross-correlation.", file=sys.stderr)
     # Split trajectories into `n` segments along frames (axis=1)
-    trajs_pos = np.array_split(positions, n, axis=-1)
-    trajs_vel = np.array_split(velocities, n, axis=-1)
-    # Compute power spectra for each segment
-    cpsd_list = []
+    trajs_pos = np.array_split(x, n, axis=-1)
+    trajs_vel = np.array_split(y, n, axis=-1)
+    # Compute correlation for each segment
+    corr_list = []
     for pos, vel in zip(trajs_pos, trajs_vel):
-        cpsd = fftcorr(pos, pos)
-        cpsd_list.append(cpsd)
-    # Average CPSD across segments
-    cpsd_avg = np.mean(cpsd_list, axis=0)  # Take magnitude for power spectrum
-    # corr_xv = np.average(cpsd_avg, axis=-1)
-    # corr_xv = N * np.abs(ifft(cpsd, n=2*N, axis=-1))
-    corr_xv = cpsd_avg[:,:,0]
-    np.save(f'corr_xv.npy', corr_xv)
-    return corr_xv
+        corr = fft_corr(pos, vel, ntmax=ntmax, mode=mode, center=center, dtype=dtype)
+        corr_list.append(corr)
+    # Average corr across segments
+    corr_avg = np.mean(corr_list, axis=0)  # Take magnitude for power spectrum
+    corr = corr_avg
+    np.save(f'corr.npy', corr)
+    print(f"Finished calculating cross-correlation.", file=sys.stderr)
+    return corr
 
 
 def parse_covar_dat(file, dtype=np.float32):
