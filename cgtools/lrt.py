@@ -5,6 +5,7 @@ import time
 import tracemalloc
 import MDAnalysis as mda
 import numpy as np
+import cupy as cp
 import pandas as pd
 from joblib import Parallel, delayed
 from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
@@ -222,6 +223,8 @@ def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     return cpsd
 
 
+@memprofit
+@timeit
 def read_trajectory(resp_ids, pert_ids, f='../traj.trr', s='../traj.pdb',  b=0, e=10000000, skip_rate=1, dtype=np.float32):
     print(f"Reading trajectory.", file=sys.stderr)
     def in_range(ts, b, e): # Check if ts.time is within the range (b, e)

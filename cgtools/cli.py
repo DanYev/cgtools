@@ -131,7 +131,7 @@ def run_gmx(wdir, command, **kwargs):
         - 'cltext' (bool, optional): Whether to treat the input as text.
     """
     clinput = kwargs.pop('clinput', None)
-    cltext = kwargs.pop('cltext', None)
+    cltext = kwargs.pop('cltext', True)
     command = GMX + ' ' + command + ' ' + kwargs_to_str(**kwargs)
     sp.run(command.split(), input=clinput, text=cltext)
     
