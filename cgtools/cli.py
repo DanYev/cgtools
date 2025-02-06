@@ -155,15 +155,15 @@ def sbatch(script, *args, **kwargs):
     Example usage:
     sbatch('script.sh', var1, var2, t='01:00:00', mem='4G', N=1, c=4)
     """
-    defaults = {
-        'partition': 'htc',
-        'qos': 'public',
-        'N': 1,
-        'n': 1,
-        'c': 1,
-        'mem': '1G',
-        't': '01:00:00'
-    }
+    kwargs.setdefault('t', '01:00:00')
+    kwargs.setdefault('q', 'public')
+    kwargs.setdefault('p', 'htc')
+    kwargs.setdefault('N', '1')
+    kwargs.setdefault('n', '1')
+    kwargs.setdefault('c', '1')
+    kwargs.setdefault('mem', '2G')
+    kwargs.setdefault('e', 'slurm_jobs/error.%A.err')
+    kwargs.setdefault('o', 'slurm_jobs/output.%A.out')
     # Separate long and short options
     long_options = {key: value for key, value in kwargs.items() if len(key) > 1}
     short_options = {key: value for key, value in kwargs.items() if len(key) == 1}

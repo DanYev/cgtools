@@ -55,7 +55,7 @@ def memprofit(func):
 
 def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     """
-    Compute the correlation function using FFT.
+    Compute the correlation function <x(t)y(0)> using FFT.
     Parameters:
     - x: np.ndarray, first input signal. Shape - (n_coords, n_samples).
     - y: np.ndarray, second input signal. Shape - (n_coords, n_samples).
@@ -68,25 +68,27 @@ def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     """
     print("Doing FFTs serially.", file=sys.stderr)
     # Helper functions
-    def compute_correlation(*args):
-        i, j, x_f, y_f, ntmax, nt = args
-        return ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real / nt    
+    def compute_correlation(*args,):
+        i, j, x_f, y_f, ntmax, counts = args
+        corr = ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real
+        return corr * counts
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
-    ntmax = nt if not ntmax else ntmax
+    ntmax = (nt+1)//2 if not ntmax else ntmax # Extract only the valid part
     if center:  # Mean-center the signals
         x = x - np.mean(x, axis=-1, keepdims=True)
         y = y - np.mean(y, axis=-1, keepdims=True)
     # Compute FFT along the last axis as an (nx, nt) array
-    x_f = fft(x, axis=-1)
-    y_f = fft(y, axis=-1)
+    x_f = fft(x, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
+    y_f = fft(y, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
+    counts = np.arange(nt,  nt-ntmax , -1)**-1 # Normalize correctly over valid indices
     # Compute the FFT-based correlation via CPSD
     if loop:
         corr = np.zeros((nx, ny, ntmax), dtype=dtype)
         for i in range(nx):
             for j in range(ny):
-                corr[i, j] = compute_correlation(i, j, x_f, y_f, ntmax, nt)
+                corr[i, j] = compute_correlation(i, j, x_f, y_f, ntmax, counts)
     else:
         corr = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
         corr = ifft(corr, axis=-1).real / nt
@@ -110,8 +112,10 @@ def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     """
     print("Doing FFTs in parallel.", file=sys.stderr)
     # Helper functions for parrallelizing
-    def compute_correlation(i, j, x_f, y_f, ntmax, nt):
-        return ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real / nt
+    def compute_correlation(*args,):
+        i, j, x_f, y_f, ntmax, counts = args
+        corr = ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real
+        return corr * counts
 
     def parallel_fft_correlation(x_f, y_f, ntmax, nt, n_jobs=-1):
         nx, ny = x_f.shape[0], y_f.shape[0]
@@ -126,30 +130,29 @@ def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
-    ntmax = nt if not ntmax else ntmax
+    ntmax = (nt+1)//2 if not ntmax else ntmax # Extract only the valid part
     if center:  # Mean-center the signals
         x = x - np.mean(x, axis=-1, keepdims=True)
         y = y - np.mean(y, axis=-1, keepdims=True)
     # Compute FFT along the last axis as an (nx, nt) array
-    x_f = fft(x, axis=-1)
-    y_f = fft(y, axis=-1)
+    x_f = fft(x, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
+    y_f = fft(y, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
+    counts = np.arange(nt,  nt-ntmax , -1)**-1 # Normalize correctly over valid indices
     # Compute the FFT-based correlation via CPSD
-    corr = parallel_fft_correlation(x_f, y_f, ntmax, nt)
+    corr = parallel_fft_correlation(x_f, y_f, ntmax, counts)
     return corr
 
 
 def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float64):
     """
     Another version for GPU
+    WORKS LIKE WHOOOOOOOOOOOOOOOOOOOSHHHHHHHHHHH!
     """
     print("Doing FFTs on GPU.", file=sys.stderr)
-    def compute_correlation_gpu(*args):
-        i, j, x_f, y_f, ntmax, nt = args
-        return cp.fft.ifft(x_f[i] * cp.conj(y_f[j]), axis=-1)[:ntmax].real / nt  
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
-    ntmax = nt if ntmax is None else ntmax
+     ntmax = (nt+1)//2 if not ntmax else ntmax # Extract only the valid part
     corr = np.zeros((nx, ny, ntmax), dtype=np.float32)
     if center:  # Mean-center the signals
         x = x - np.mean(x, axis=-1, keepdims=True)
@@ -158,11 +161,12 @@ def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float64):
     x = cp.asarray(x, dtype=dtype)
     y = cp.asarray(y, dtype=dtype)
     # Compute FFT along the last axis
-    x_f = cp.fft.fft(x, axis=-1)
-    y_f = cp.fft.fft(y, axis=-1)
+    x_f = cp.fft.fft(x, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
+    y_f = cp.fft.fft(y, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
+    counts = cp.arange(nt,  nt-ntmax , -1)**-1 # Normalize correctly over valid indices
     # Compute the FFT-based correlation via CPSD 
     for i in range(nx):
-        corr_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax] / nt 
+        corr_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax] * counts
         corr[i, :, :] = corr_row.get()
     return corr
 
@@ -383,9 +387,7 @@ def calc_perturbation_matrix(covariance_matrix, dtype=np.float32):
 
 
 def calc_td_perturbation_matrix(covariance_matrix, dtype=np.float32):
-    print(f"Calculating perturbation_matrix.", file=sys.stderr)
     pertmat = calc_td_perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
-    print(f"Finished calculating perturbation_matrix.", file=sys.stderr)
     return pertmat    
 
 
