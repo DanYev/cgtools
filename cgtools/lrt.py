@@ -75,7 +75,8 @@ def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
-    ntmax = (nt+1)//2 if not ntmax else ntmax # Extract only the valid part
+    if not ntmax or ntmax > (nt+1)//2: # Extract only the valid part
+        ntmax = (nt+1)//2   
     if center:  # Mean-center the signals
         x = x - np.mean(x, axis=-1, keepdims=True)
         y = y - np.mean(y, axis=-1, keepdims=True)
@@ -130,7 +131,8 @@ def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
-    ntmax = (nt+1)//2 if not ntmax else ntmax # Extract only the valid part
+    if not ntmax or ntmax > (nt+1)//2: # Extract only the valid part
+        ntmax = (nt+1)//2   
     if center:  # Mean-center the signals
         x = x - np.mean(x, axis=-1, keepdims=True)
         y = y - np.mean(y, axis=-1, keepdims=True)
@@ -152,7 +154,8 @@ def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float64):
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
-     ntmax = (nt+1)//2 if not ntmax else ntmax # Extract only the valid part
+    if not ntmax or ntmax > (nt+1)//2: # Extract only the valid part
+        ntmax = (nt+1)//2   
     corr = np.zeros((nx, ny, ntmax), dtype=np.float32)
     if center:  # Mean-center the signals
         x = x - np.mean(x, axis=-1, keepdims=True)
@@ -163,8 +166,9 @@ def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float64):
     # Compute FFT along the last axis
     x_f = cp.fft.fft(x, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
     y_f = cp.fft.fft(y, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
-    counts = cp.arange(nt,  nt-ntmax , -1)**-1 # Normalize correctly over valid indices
-    # Compute the FFT-based correlation via CPSD 
+    counts = cp.arange(nt,  nt-ntmax , -1, dtype=dtype)**-1 # Normalize correctly over valid indices
+    counts = counts[None, :]  # Reshape for broadcasting
+    # Row-wise FFT-based correlation
     for i in range(nx):
         corr_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax] * counts
         corr[i, :, :] = corr_row.get()
@@ -311,10 +315,8 @@ def calc_ccf(x, y, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float
     for pos, vel in zip(trajs_pos, trajs_vel):
         corr = fft_corr(pos, vel, ntmax=ntmax, mode=mode, center=center, dtype=dtype)
         corr_list.append(corr)
-    # Average corr across segments
-    corr_avg = np.mean(corr_list, axis=0)  # Take magnitude for power spectrum
+    corr_avg = np.mean(corr_list, axis=0) # Average corr across segments
     corr = corr_avg
-    np.save(f'corr.npy', corr)
     print(f"Finished calculating cross-correlation.", file=sys.stderr)
     return corr
 
