@@ -828,6 +828,7 @@ class MDRun(gmxSystem):
             pert_file = cov_file.replace(intag, outtag)
             print(f'  Saving pertubation matrix at {pert_file}', file=sys.stderr)
             np.save(pert_file, pertmat)
+            os.remove(cov_file)
         print('Finished calculating perturbation matrices!', file=sys.stderr)
         os.chdir(bdir)
         

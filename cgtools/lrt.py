@@ -145,7 +145,7 @@ def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     return corr
 
 
-def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float64):
+def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
     """
     Another version for GPU
     WORKS LIKE WHOOOOOOOOOOOOOOOOOOOSHHHHHHHHHHH!
@@ -171,7 +171,7 @@ def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float64):
     # Row-wise FFT-based correlation
     for i in range(nx):
         corr_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax] * counts
-        corr[i, :, :] = corr_row.get()
+        corr[i, :, :] = corr_row.get()   
     return corr
 
 
@@ -253,7 +253,7 @@ def read_trajectory(resp_ids, pert_ids, f='../traj.trr', s='../traj.pdb',  b=0, 
         [resp_selection.positions.flatten() for ts in u.trajectory[::skip_rate] if in_range(ts, b, e)], dtype=dtype
     )
     velocities = np.array(
-        [pert_selection.velocities.flatten() for ts in u.trajectory[::skip_rate] if in_range(ts, b, e)], dtype=dtype
+        [pert_selection.positions.flatten() for ts in u.trajectory[::skip_rate] if in_range(ts, b, e)], dtype=dtype
     )  
     # Transpose for memory efficiency (shape: (n_coords, n_frames))
     positions = np.ascontiguousarray(positions.T)
@@ -262,7 +262,7 @@ def read_trajectory(resp_ids, pert_ids, f='../traj.trr', s='../traj.pdb',  b=0, 
     return positions, velocities
 
 
-def calc_covmats(f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
+def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
     """
     Calculate the position-position covariance matrix from a GROMACS trajectory file.
     
@@ -297,7 +297,7 @@ def calc_covmats(f='../traj.trr', s='../traj.pdb', n=1, b=000000, dtype=np.float
         print(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'", file=sys.stderr)
         
         
-def calc_ccf(x, y, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
+def calc_ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
     """
     Calculate the average cross-correlation function of x and y by splitting them into n segments
     
@@ -308,15 +308,23 @@ def calc_ccf(x, y, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float
     """
     print(f"Calculating cross-correlation.", file=sys.stderr)
     # Split trajectories into `n` segments along frames (axis=1)
-    trajs_pos = np.array_split(x, n, axis=-1)
-    trajs_vel = np.array_split(y, n, axis=-1)
+    xs = np.array_split(xs, n, axis=-1)
+    ys = np.array_split(ys, n, axis=-1)
+    nx = xs[0].shape[0]
+    ny = ys[0].shape[0]
+    nt = xs[-1].shape[1]
+    print(f'Splitting trajectory into {n} parts', file=sys.stderr)
+    if not ntmax or ntmax > (nt+1)//2: # Extract only the valid part
+        ntmax = (nt+1)//2   
+    corr = np.zeros((nx, ny, ntmax), dtype=np.float32)
     # Compute correlation for each segment
-    corr_list = []
-    for pos, vel in zip(trajs_pos, trajs_vel):
-        corr = fft_corr(pos, vel, ntmax=ntmax, mode=mode, center=center, dtype=dtype)
-        corr_list.append(corr)
-    corr_avg = np.mean(corr_list, axis=0) # Average corr across segments
-    corr = corr_avg
+    for x, y in zip(xs, ys):
+        corr_n = fft_corr(x, y, ntmax=ntmax, mode=mode, center=center, dtype=dtype)
+        print(corr_n.shape, file=sys.stderr)
+        corr += corr_n
+    corr = corr / n
+    print(np.sqrt(np.average(corr**2)), file=sys.stderr)
+    # np.save('corr_pp.npy', corr)
     print(f"Finished calculating cross-correlation.", file=sys.stderr)
     return corr
 
