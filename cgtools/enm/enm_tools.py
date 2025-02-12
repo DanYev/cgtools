@@ -9,6 +9,7 @@ import cupyx.scipy.sparse.linalg
 from cupyx.profiler import benchmark
 from Bio.PDB.MMCIF2Dict import MMCIF2Dict
 from numba import njit
+from cgtools.lrt import timeit, memprofit
 
 
 ###########################################################################################
@@ -68,7 +69,7 @@ inverse_kernel = cp.RawKernel(dfi_kernel_code, "inverse_kernel")
 ###########################################################################################
 
 def read_cif(_pdb_id):
-    pdb_info = MMCIF2Dict(f"cif/{_pdb_id}.cif")
+    pdb_info = MMCIF2Dict(_pdb_id)
     atom_types = pdb_info["_atom_site.label_atom_id"]
     atom_ids = np.asarray(pdb_info["_atom_site.id"], np.intc)
     atom_comps = pdb_info["_atom_site.label_alt_id"]
@@ -91,7 +92,7 @@ def read_cif(_pdb_id):
     zn_mask = np.asarray([atom_type == "ZN" for atom_type in atom_types])
     comp_mask = np.asarray([comp == "." or comp == "A" for comp in atom_comps])
     chain_mask  = np.asarray([chain == "DT" or chain == "DT1" or chain == "DT2" for chain in atom_chain_ids]) # DJ - L11 for 5it8
-    mask = p_mask + ca_mask + c1p_mask
+    mask = ca_mask + c1p_mask # p_mask + 
     mask *= comp_mask
     # mask *= np.invert(chain_mask)
 
@@ -106,7 +107,43 @@ def read_cif(_pdb_id):
     return x_coordinates, y_coordinates, z_coordinates, occupancies, chain_ids, sequence_ids
 
 
-@njit(parallel=True)
+def read_pdb(pdb):
+    f=open(pdb,'r')
+    pdb=f.readlines()
+    f.close()
+    x=[]
+    y=[]
+    z=[]
+    chain_ids=[]
+    res_names=[]
+    res_number=[]
+    for line in pdb:
+        if line[:4] == "ATOM" or line[:6] == "HETATM":
+            atomnumber=int(line[6:12].strip())
+            atomname = line[12:16].strip()
+            residuename = line[17:20].strip()
+            chain_id = line[21:22].strip()
+            resnumber = int(line[22:26].strip())
+            orthogonalcoordinatesforx = float(line[30:38])
+            orthogonalcoordinatesfory = float(line[38:46])
+            orthogonalcoordinatesforz = float(line[46:54])
+            occupancy = float(line[56:60].strip())
+            if atomname == "CA" or atomname == "C1'": # or atomname == "ZN" or atomname == "MG":
+                if occupancy != 1.00:
+                    print("SHOUT")
+                    print(atomnumber,atomname,residuename,chain_id,resnumber,occupancy)
+                    return
+                x.append(orthogonalcoordinatesforx)
+                y.append(orthogonalcoordinatesfory)
+                z.append(orthogonalcoordinatesforz)
+                chain_ids.append(chain_id)
+                res_names.append(residuename)
+                res_number.append(resnumber)
+
+    return x,y,z,chain_ids,res_names,res_number    
+
+
+@njit(parallel=False)
 def calculate_hessian(resnum, x, y, z, cutoff, spring_constant, dtype=np.float64):
     hessian = np.zeros((3 * resnum, 3 * resnum), dtype)
     for i in range(resnum):
@@ -117,40 +154,60 @@ def calculate_hessian(resnum, x, y, z, cutoff, spring_constant, dtype=np.float64
             y_ij = y[i] - y[j]
             z_ij = z[i] - z[j]
             r = np.sqrt(x_ij**2 + y_ij**2 + z_ij**2)
-            invr = r**-1
-            
+            invr = r**-1            
             if r < cutoff: 
-                gamma = spring_constant * invr**6
+                gamma = spring_constant * invr**2
             else:
                 continue
-
             # creating Hii
             hessian[3 * i, 3 * i] += gamma * x_ij * x_ij
             hessian[3 * i + 1, 3 * i + 1] += gamma * y_ij * y_ij
             hessian[3 * i + 2, 3 * i + 2] += gamma * z_ij * z_ij
-
             hessian[3 * i, 3 * i + 1] += gamma * x_ij * y_ij
             hessian[3 * i, 3 * i + 2] += gamma * x_ij * z_ij
             hessian[3 * i + 1, 3 * i] += gamma * y_ij * x_ij
-
             hessian[3 * i + 1, 3 * i + 2] += gamma * y_ij * z_ij
             hessian[3 * i + 2, 3 * i] += gamma * x_ij * z_ij
             hessian[3 * i + 2, 3 * i + 1] += gamma * y_ij * z_ij
-
-            # creating Hij
             hessian[3 * i, 3 * j] -= gamma * x_ij * x_ij
             hessian[3 * i + 1, 3 * j + 1] -= gamma * y_ij * y_ij
-            hessian[3 * i + 2, 3 * j + 2] -= gamma * z_ij * z_ij
-            
+            hessian[3 * i + 2, 3 * j + 2] -= gamma * z_ij * z_ij           
             hessian[3 * i, 3 * j + 1] -= gamma * x_ij * y_ij
             hessian[3 * i, 3 * j + 2] -= gamma * x_ij * z_ij
-            hessian[3 * i + 1, 3 * j] -= gamma * y_ij * x_ij
-            
+            hessian[3 * i + 1, 3 * j] -= gamma * y_ij * x_ij           
             hessian[3 * i + 1, 3 * j + 2] -= gamma * y_ij * z_ij 
             hessian[3 * i + 2, 3 * j] -= gamma * x_ij * z_ij
             hessian[3 * i + 2, 3 * j + 1] -= gamma * y_ij * z_ij
-
     # hessian = hessian + hessian.T
+    return hessian
+
+
+@timeit
+@memprofit
+def compute_hessian(resnum, x, y, z,  cutoff, spring_constant,dtype=float):
+    # Convert coordinates into a single matrix for vectorized operations
+    coords = np.vstack((x, y, z)).T  # Shape: (resnum, 3)    
+    # Compute pairwise distance vectors
+    diff = coords[:, np.newaxis, :] - coords[np.newaxis, :, :]  # Shape: (resnum, resnum, 3)    
+    # Compute pairwise distances
+    r = np.linalg.norm(diff, axis=2)  # Shape: (resnum, resnum)    
+    # Avoid division by zero
+    np.fill_diagonal(r, np.inf)    
+    # Compute inverse distance where r < cutoff
+    mask = r < cutoff
+    invr6 = np.where(mask, (1 / r**6) * spring_constant, 0)  # Shape: (resnum, resnum)   
+    # Compute outer products for Hessian entries
+    gamma = invr6[:, :, np.newaxis]  # Shape: (resnum, resnum, 1)
+    outer_prod = gamma * (diff[:, :, :, np.newaxis] * diff[:, :, np.newaxis, :])  # Shape: (resnum, resnum, 3, 3)  
+    # Initialize Hessian
+    hessian = np.zeros((3 * resnum, 3 * resnum), dtype=dtype)
+    # Create index arrays
+    idx = np.arange(resnum)
+    idx_i = np.repeat(3 * idx, 3).reshape(resnum, 3)
+    idx_j = idx_i.T  # Shape for broadcasting
+    # Vectorized Hessian updates
+    hessian[np.ix_(idx_i.ravel(), idx_i.ravel())] += outer_prod.reshape(resnum * 3, resnum * 3)  # Hii
+    hessian[np.ix_(idx_i.ravel(), idx_j.ravel())] -= outer_prod.reshape(resnum * 3, resnum * 3)  # Hij
     return hessian
 
 
@@ -170,9 +227,10 @@ def split_matrix(M):
     D = M[n:, n:]
     return A, B, C, D
 
-
+@timeit
+@memprofit
 def invert_hessian(hessian, tol_conv, n_modes=20, v0=None):
-    ei, evec = scipy.sparse.linalg.eigsh(hessian, k=n_modes, which='LM', tol=0, sigma=0)
+    ei, evec = scipy.sparse.linalg.eigsh(hessian, k=n_modes, which='SM', tol=0, sigma=0)
     print("Inverting the Hessian using LAPACK")
     print(ei)
     tol = 1e-3
@@ -182,43 +240,37 @@ def invert_hessian(hessian, tol_conv, n_modes=20, v0=None):
     print(invw)
     invHrs = np.matmul(evec, np.matmul(np.diag(invw), evec.T))
     return invHrs
-    
-    
+
+
+@timeit
+@memprofit   
 def invert_matrix_gpu(M, n_modes=20, k_singular=6, DENSE_NOT_SPARSE=True):
-    M_gpu = cp.asarray(M, cp.float64)
-    
+    M_gpu = cp.asarray(M, cp.float32)   
     # Diagonilizing M
-    start_time = time.perf_counter()
-    
+    start_time = time.perf_counter() 
     if DENSE_NOT_SPARSE:
         evals_gpu, evecs_gpu = cupy.linalg.eigh(M_gpu)
     else:
-        evals_gpu, evecs_gpu = cupyx.scipy.sparse.linalg.eigsh(M_gpu, k=n_modes, maxiter=None, which='SA', tol=0)
-        
+        evals_gpu, evecs_gpu = cupyx.scipy.sparse.linalg.eigsh(M_gpu, k=n_modes, maxiter=None, which='SA', tol=0)      
     if n_modes != -1:
         evals_gpu = evals_gpu[:n_modes]
-        evecs_gpu = evecs_gpu[:,:n_modes]
-        
+        evecs_gpu = evecs_gpu[:,:n_modes]       
     inv_evals_gpu = evals_gpu**-1
-    inv_evals_gpu[:k_singular] = 0.0
-    
+    inv_evals_gpu[:k_singular] = 0.0   
     print(evals_gpu[:100])
-        
-
     end_time = time.perf_counter()
-    print("GPU ALL modes inverse time: ", end_time - start_time)
-    
+    print("GPU ALL modes inverse time: ", end_time - start_time) 
     # Finding Inverse
     invM_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
     return invM_gpu
     
-
+@timeit
+@memprofit
 def invert_symm_block_matrix_gpu(A, B, D):
     m = A.shape[0]
     n = D.shape[0]
     # print(m, n)
-    start_time = time.perf_counter()
-    
+    start_time = time.perf_counter()  
     # Schur complement
     A_gpu = cp.asarray(A, cp.float32)
     B_gpu = cp.asarray(B, cp.float32)
@@ -233,14 +285,13 @@ def invert_symm_block_matrix_gpu(A, B, D):
     invM_gpu[:m, :m] = M_11
     invM_gpu[:m, m:] = -Q_gpu
     invM_gpu[m:, :m] = -Q_gpu.T
-    invM_gpu[m:, m:] = invCompA_gpu
-    
+    invM_gpu[m:, m:] = invCompA_gpu   
     end_time = time.perf_counter()
-    print("Inverting block matrix on GPU: ", end_time - start_time)
-    
+    print("Inverting block matrix on GPU: ", end_time - start_time)   
     return invM_gpu
     
-
+@timeit
+@memprofit
 def calc_perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU

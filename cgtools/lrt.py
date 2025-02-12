@@ -377,7 +377,7 @@ def calc_perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
     return perturbation_matrix
     
 
-def calc_td_perturbation_matrix_cpu(ccf, dtype=np.float32):
+def calc_td_perturbation_matrix_cpu(ccf, normalize=False, dtype=np.float32):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU
     The result is normalized such that the total sum of the matrix elements is equal to 1
@@ -387,7 +387,8 @@ def calc_td_perturbation_matrix_cpu(ccf, dtype=np.float32):
     blocks = ccf.reshape(m, 3, n, 3).swapaxes(1, 2)
     perturbation_matrix = np.sum(blocks**2, axis=(-2, -1))
     perturbation_matrix = np.sqrt(perturbation_matrix)
-    # perturbation_matrix /= np.sum(perturbation_matrix)
+    if normalize:
+        perturbation_matrix /= np.sum(perturbation_matrix)
     return perturbation_matrix    
 
 

@@ -151,7 +151,7 @@ class gmxSystem:
                 outpath = os.path.join(self.topdir, file)
                 shutil.copy(fpath, outpath)
                 
-    def make_ref_pdb(self):
+    def make_ref_pdb(self, input_pdb="inpdb.pdb", output_pdb="ref.pdb"):
         os.chdir(self.wdir)
         def rearrange_chains_and_renumber_atoms(input_pdb, output_pdb):
             """
@@ -196,8 +196,6 @@ class gmxSystem:
                         else:
                             # Write TER lines as-is
                             file.write(line)      
-        input_pdb = "rearranged.pdb"  
-        output_pdb = "ref.pdb"  
         rearrange_chains_and_renumber_atoms(input_pdb, output_pdb)
                        
     def clean_inpdb(self, **kwargs):
