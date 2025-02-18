@@ -262,7 +262,9 @@ def option_parser(args, options, lists, version=0):
     elif options['type'] == 'ds': 
         options['-ff'].setvalue(['martini30nucleic'])
         lists['merges'].append('A, B')
-        options['-eb'].setvalue(['BB2'])
+        options['-eu'].setvalue(['1.8'])
+        options['-ef'].setvalue(['200'])
+        options['-eb'].setvalue(['BB1', 'BB3'])
     elif options['type'] == 'pol': 
         options['-ff'].setvalue(['martini31nucleic'])  
     else: 
