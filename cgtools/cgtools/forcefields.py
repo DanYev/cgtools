@@ -32,7 +32,7 @@ class NucleicForceField:
         sc_angles = [[key, val] for key, val in itp_data['angles'].items()]
         sc_dihs = [[key, val] for key, val in itp_data['dihedrals'].items()]
         sc_excls = [[key, val] for key, val in itp_data['exclusions'].items()]
-        sc_pairs = [[key, val] for key, val in itp_data['pairs'].items()] 
+        sc_pairs = [] # [[key, val] for key, val in itp_data['pairs'].items()] 
         sc_vs3s = [[key, val] for key, val in itp_data['virtual_sites3'].items()]
         return sc_bonds, sc_angles, sc_dihs, sc_excls, sc_pairs, sc_vs3s
 
@@ -55,22 +55,22 @@ class NucleicForceField:
         self.el_bond_type = 6 # Elastic networks bond shouldn't lead to exclusions (type 6) 
 
     def sc_bonds(self, resname):
-        return self.resdict(resname)[0]
+        return self.resdict[resname][0]
 
     def sc_angles(self, resname):
-        return self.resdict(resname)[1]
+        return self.resdict[resname][1]
 
     def sc_dihs(self, resname):
-        return self.resdict(resname)[2]
+        return self.resdict[resname][2]
 
     def sc_excls(self, resname):
-        return self.resdict(resname)[3]
+        return self.resdict[resname][3]
 
     def sc_pairs(self, resname):
-        return self.resdict(resname)[4]
+        return self.resdict[resname][4]
 
     def sc_vs3s(self, resname):
-        return self.resdict(resname)[5]
+        return self.resdict[resname][5]
        
     def update_adenine(self, mapping, connectivity, itp_params):
         parameters = mapping + itp_params
@@ -201,8 +201,7 @@ class martini30rna(NucleicForceField):
         self.name = 'martini30rna'
         self.charges = {"Qd":1, "Qa":-1, "SQd":1, "SQa":-1, "RQd":1, "AQa":-1}                                                           #@#
         self.bbcharges = {"BB1":-1}   
-        super().__init__()                                                                                                   #@#
-        
+     
 
         ##################
         # RNA PARAMETERS # @ff
@@ -232,17 +231,15 @@ class martini30rna(NucleicForceField):
                     ]
         self.bb_pairs = []
        
-    
-        all_itps = NucleicForceField.read_itps(rna_system, 'regular', 'new')
         a_atoms = ["TA0", "TA1", "TA2", "TA3", "TA4"]
         c_atoms = ["TY0", "TY1", "TY2", "TY3"]
         g_atoms = ["TG0", "TG1", "TG2", "TG3", "TG4", "TG5"]
         u_atoms = ["TU0", "TU1", "TU2", "TU3"]
         all_atoms = a_atoms, c_atoms, g_atoms, u_atoms
-        mapdict = dict(zip(resnames, all_atoms))
+        self.mapdict = dict(zip(self.resnames, all_atoms))
 
-        def sc_atoms(self, resname):
-            return mapdict(resname)     
+    def sc_atoms(self, resname):
+        return self.mapdict[resname]     
 
 
 
