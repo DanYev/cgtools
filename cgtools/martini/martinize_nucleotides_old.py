@@ -1,24 +1,17 @@
 #!/usr/bin/env python
 
-# EDITABLE SECTIONS ARE MARKED WITH #@# 
-
-version="3.0"
+version="3.1"
 authors=['me and others']
 
-# Parameters are defined for the following (protein) forcefields:
-forcefields = ['martini30nucleic','elnedyn30nucleic']
+forcefields = ['martini30nucleic','martini31nucleic']
 
-import sys
+import importlib.resources
 import os
-# sys.path.append('pyscripts')
-import itpio
+import sys
+from cgtools import itpio
 
-rna_system = sys.argv[2]
+rna_system = 'test'
 
-# 
-# This program has grown to be pretty complete and complex. 
-# The routines have been organized in sections, which are 
-# tagged to make jumping to a particular section easy.
 # For working versions, the sections are in different modules
 #
 # Index of this file:
@@ -33,7 +26,6 @@ rna_system = sys.argv[2]
 #   8. Structure I/O                                         @IO
 #   9. Topology generation                                   @TOP
 #  10. Main                                                  @MAIN
-
 
 ###################################
 ## 1 # OPTIONS AND DOCUMENTATION ##  -> @DOC <-
@@ -75,136 +67,11 @@ options = [
 #   NOTE: Options marked with (+) can be given multiple times on the command line
 #   option              type number default description
     """
-MARTINIZE.py is a script to create Coarse Grain Martini input files of
-proteins, ready for use in the molecular dynamics simulations package 
-Gromacs. For more information on the Martini forcefield, see:
-www.cgmartini.nl
-and read our papers:
-Monticelli et al., J. Chem. Theory Comput., 2008, 4(5), 819-834
-de Jong et al., J. Chem. Theory Comput., 2013, DOI:10.1021/ct300646g
-
-Primary input/output
---------------------
-The input file (-f) should be a coordinate file in PDB or GROMOS
-format. The format is inferred from the structure of the file. The 
-input can also be provided through stdin, allowing piping of 
-structures. The input structure can have multiple frames/models. If an output
-structure file (-x) is given, each frame will be coarse grained,
-resulting in a multimodel output structure. Having multiple frames may
-also affect the topology. If secondary structure is determined
-internally, the structure will be averaged over the frames. Likewise,
-interatomic distances, as used for backbone bond lengths in Elnedyn
-and in elastic networks, are also averaged over the frames available.
-
-If an output file (-o) is indicated for the topology, that file will
-be used for the master topology, using #include statements to link the
-moleculetype definitions, which are written to separate files. If no
-output filename is given, the topology and the moleculetype
-definitions are written to stdout.
-
-Secondary structure
--------------------
-The secondary structure plays a central role in the assignment of atom
-types and bonded interactions in MARTINI. Martinize allows
-specification of the secondary structure as a string (-ss), or as a
-file containing a specification in GROMACS' ssdump format
-(-ss). Alternatively, DSSP can be used for an on-the-fly assignment of
-the secondary structure. For this, the option -dssp has to be used
-giving the location of the executable as the argument. 
-The option -collagen will set the whole structure to collagen. If this
-is not what you want (eg only part of the structure is collagen, you
-can give a secondary structure file/string (-ss) and specifiy collagen
-as "F". Parameters for collagen are taken from: Gautieri et al., 
-J. Chem. Theory Comput., 2010, 6, 1210-1218. 
-With multimodel input files, the secondary structure as determined with
-DSSP will be averaged over the frames. In this case, a cutoff
-can be specified (-ssc) indicating the fraction of frames to match a
-certain secondary structure type for designation.
-
-Topology
---------
-Several options are available to tune the resulting topology. By
-default, termini are charged, and chain breaks are kept neutral. This
-behaviour can be changed using -nt and -cb, respectively.
-
-Disulphide bridges can be specified using -cys. This option can be
-given multiple times on the command line. The argument is a pair of
-cysteine residues, using the format
-chain/resn/resi,chain/resn/resi. For disulphide bridges, the residue
-name is not required, and the chain identifier is optional. If no
-chain identifier is given, all matching residue pairs will be checked,
-and pairs within the cutoff distance (0.22 nm) will be linked. It is
-also possible to let martinize detect cysteine pairs based on this
-cut-off distance, by giving the keyword 'auto' as argument to -cys.
-Alternatively, a different cut-off distance can be specified, which
-will also trigger a search of pairs satisfying the distance
-criterion.
-
-In addition to cystine bridges, links between other atoms can be
-specified using -link. This requires specification of the atoms, using
-the format
-chain/resi/resn/atom,chain/resi/resn/atom,bondlength,forceconstant.
-If only two atoms are given, a constraint will be added with length
-equal to the (average) distance in the coordinate file. If a bond
-length is added, but no force constant, then the bondlength will be
-used to set a constraint.
-
-Linking atoms requires that the atoms are part of the same
-moleculetype. Therefore any link between chains will cause the chains
-to be merged. Merges can also be specified explicitly, using the
-option -merge with a comma-separated list of chain identifiers to be
-joined into one moleculetype. The option -merge can be used several
-times. Note that specifying a chain in several merge groups will cause
-all chains involved to be merged into a single moleculetype.
-
-The moleculetype definitions are written to topology include (.itp)
-files, using a name consisting of the molecule class (e.g. Protein)
-and the chain identifier. With -name a name can be specified instead.
-By default, martinize only writes a moleculetype for each unique
-molecule, inferred from the sequence and the secondary structure
-definition. It is possible to force writing a moleculetype definition
-for every single molecule, using -sep.
-
-The option -p can be used to write position restraints, using the 
-force constant specified with -pf, which is set to 1000 kJ/mol 
-by default.
-
-For stability, elastic bonds are used to retain the structure of 
-extended strands. The option -ed causes dihedrals to be used 
-instead.
-
-Different forcefields can be specified with -ff. All the parameters and
-options belonging to that forcefield  will be set (eg. bonded interactions,
-BB-bead positions, Elastic Network, etc.). By default martini 2.1 is
-used.
-
-Elastic network
----------------
-Martinize can write an elastic network for atom pairs within a cutoff
-distance. The force constant (-ef) and the upper distance bound (-eu) 
-can be speficied. If a force field with an intrinsic Elastic
-network is specified (eg. Elnedyn) with -ff, -elastic in implied and
-the default values for the force constant and upper cutoff are used.
-However, these can be overwritten.
-
-Multiscaling
-------------
-Martinize can process a structure to yield a multiscale system,
-consisting of a coordinate file with atomistic parts and
-corresponding, overlaid coarsegrained parts. For chains that are
-multiscaled, rather than writing a full moleculetype definition, 
-additional [atoms] and [virtual_sitesn] sections are written, to 
-be appended to the atomistic moleculetype definitions. 
-The option -multi can be specified multiple times, and takes a chain
-identifier as argument. Alternatively, the keyword 'all' can be given
-as argument, causing all chains to be multiscaled.
 ========================================================================\n
 """,
     ("-f",        Option(str,                      1,     None, "Input file (PDB|GRO)")),
     ("-o",        Option(str,                      1,     None, "Output topology (TOP)")),
     ("-x",        Option(str,                      1,     None, "Output coarse grained structure (PDB)")),
-    ("-n",        Option(str,                      1,     None, "Output index file with CG (and multiscale) beads.")),
-    ("-nmap",     Option(str,                      1,     None, "Output index file containing per bead mapping.")),
     ("-seq",      Option(str,                      1,     None, "Output list of bead numbers.")),
     ("-bmap",     Option(str,                      1,     None, "Output index file containing bonded terms.")),
     ("-v",        Option(bool,                     0,    False, "Verbose. Be load and noisy.")), 
@@ -212,7 +79,6 @@ as argument, causing all chains to be multiscaled.
     ("-ss",       Option(str,                      1,     None, "Secondary structure (File or string)")),
     ("-ssc",      Option(float,                    1,      0.5, "Cutoff fraction for ss in case of ambiguity (default: 0.5).")),
     ("-dssp",     Option(str,                      1,     None, "DSSP executable for determining structure")),
-#    ("-pymol",    Option(str,                      1,     None, "PyMOL executable for determining structure")),
     ("-collagen", Option(bool,                     0,    False, "Use collagen parameters")),
     ("-his",      Option(bool,                     0,    False, "Interactively set the charge of each His-residue.")),
     ("-nt",       Option(bool,                     0,    False, "Set neutral termini (charged is default)")), 
@@ -220,24 +86,21 @@ as argument, causing all chains to be multiscaled.
     ("-cys",      Option(lists['cystines'].append, 1,     None, "Disulphide bond (+)")),
     ("-link",     Option(lists['links'].append,    1,     None, "Link (+)")),
     ("-merge",    Option(lists['merges'].append,   1,     None, "Merge chains: e.g. -merge A,B,C (+)")),
-#    ("-mixed",    Option(bool,                     0,    False, "Allow chains of mixed type (default: False)")),
     ("-name",     Option(str,                      1,     None, "Moleculetype name")),
     ("-p",        Option(str,                      1,   'None', "Output position restraints (None/All/Backbone) (default: None)")),
     ("-pf",       Option(float,                    1,     1000, "Position restraints force constant (default: 1000 kJ/mol/nm^2)")),
     ("-ed",       Option(bool,                     0,    False, "Use dihedrals for extended regions rather than elastic bonds)")),
     ("-sep",      Option(bool,                     0,    False, "Write separate topologies for identical chains.")),
-    ("-ff",       Option(str,                      1,'martini21', "Which forcefield to use: "+' ,'.join(n for n in forcefields[:-1]))),
-# Fij = Fc exp( -a (rij - lo)**p )
-    ("-elastic",  Option(bool,                     0,    False, "Write elastic bonds")),
+    ("-ff",       Option(str,                      1,   'martini30nucleic', "Which forcefield to use: "+' ,'.join(n for n in forcefields[:-1]))),
+    ("-elastic",  Option(bool,                     0,    True, "Write elastic bonds")),
     ("-ef",       Option(float,                    1,      500, "Elastic bond force constant Fc")),
-    ("-el",       Option(float,                    1,        0, "Elastic bond lower cutoff: F = Fc if rij < lo")),
-    ("-eu",       Option(float,                    1,     0.90, "Elastic bond upper cutoff: F = 0  if rij > up")),
+    ("-el",       Option(float,                    1,     0.5, "Elastic bond lower cutoff: F = Fc if rij < lo")),
+    ("-eu",       Option(float,                    1,     1.2, "Elastic bond upper cutoff: F = 0  if rij > up")),
     ("-ea",       Option(float,                    1,        0, "Elastic bond decay factor a")),
     ("-ep",       Option(float,                    1,        1, "Elastic bond decay power p")),
     ("-em",       Option(float,                    1,        0, "Remove elastic bonds with force constant lower than this")),
     ("-eb",       Option(str,                      1,     'BB', "Comma separated list of bead names for elastic bonds")),
     ("-type",     Option(str,                      1,     'ss', "Type of DNA/RNA topology (ss/ds-stiff/ds-soft) to create. (default: ss)")),
-#    ("-hetatm",   Option(bool,                     0,    False, "Include HETATM records from PDB file (Use with care!)")),
     ("-multi",    Option(lists['multi'].append,    1,     None, "Chain to be set up for multiscaling (+)")),
     ("-sys",       Option(str,                      1,     '1RNA', "AA SYS")),
     ]
@@ -332,42 +195,30 @@ def option_parser(args, options, lists, version=0):
 
     # Write options based on selected topology type. @net
     options['type'] = options['-type'].value
-    if options['type'] == 'none':
-        options['-ff'].setvalue(['elnedyn30nucleic'])
+    if options['type'] == 'ss':
+        options['-ff'].setvalue(['martini30nucleic'])
     elif options['type'] == 'ds': 
-        options['-ff'].setvalue(['elnedyn30nucleic'])
-        lists['merges'].append('A,B')
-        options['-eu'].setvalue(['1.2'])
-        options['-ef'].setvalue(['13'])
-        options['-eb'].setvalue(['BB1'])
-    elif options['type'] == 'ss':
-        options['-ff'].setvalue(['elnedyn30nucleic'])
-        options['-el'].setvalue(['0.3'])
-        options['-eu'].setvalue(['0.9'])
-        options['-ef'].setvalue(['50'])
-        options['-eb'].setvalue(['BB2'])
-    elif options['type'] == 'ignore':
-        options['-ff'].setvalue(['elnedyn30nucleic'])
-        options['-ef'].setvalue(['0'])
+        options['-ff'].setvalue(['martini30nucleic'])
+        lists['merges'].append('A, B')
+        options['-eu'].setvalue(['1.8'])
+        options['-ef'].setvalue(['200'])
+        options['-eb'].setvalue(['BB1', 'BB3'])
+    elif options['type'] == 'pol': 
+        options['-ff'].setvalue(['martini31nucleic'])  
     else: 
         logging.error('Undefined topology type. Giving up...')
         sys.exit()
-     
+    options['-eb'].setvalue(['BB2']) 
+    
     # The make the program flexible, the forcefield parameters are defined
     # for multiple forcefield. Check if a existing one is defined:
-    ###_tmp  = __import__(options['-ff'].value.lower())
-    ###options['ForceField']  = getattr(_tmp,options['-ff'].value.lower())()
     try:
-        try:
-            # Try to load the forcefield class from a different file
-            _tmp  = __import__(options['-ff'].value.lower())
-            options['ForceField']  = getattr(_tmp,options['-ff'].value.lower())()
-        except:
-            # Try to load the forcefield class from the current file
-            options['ForceField']  = globals()[options['-ff'].value.lower()]()
+        # Try to load the forcefield class from a different file
+        _tmp  = __import__(options['-ff'].value.lower())
+        options['ForceField']  = getattr(_tmp, options['-ff'].value.lower())()
     except:
-        logging.error("Forcefield '%s' can not be found."%(options['-ff']))
-        sys.exit()
+        # Try to load the forcefield class from the current file
+        options['ForceField']  = globals()[options['-ff'].value.lower()]()
 
     # Process the raw options from the command line
     # Boolean options are set to more intuitive variables
@@ -375,8 +226,8 @@ def option_parser(args, options, lists, version=0):
     options['chHIS']               = options['-his']
     options['ChargesAtBreaks']     = options['-cb']
     options['NeutralTermini']      = options['-nt']
-    options['ExtendedDihedrals']   = options['-ed']
-    options['RetainHETATM']        = False # options['-hetatm']
+    # options['ExtendedDihedrals']   = options['-ed']
+    # options['RetainHETATM']        = False # options['-hetatm']
     options['SeparateTop']         = options['-sep']
     options['MixedChains']         = False # options['-mixed']
     options['ElasticNetwork']      = options['-elastic']
@@ -450,34 +301,16 @@ def option_parser(args, options, lists, version=0):
     options['CystineMaxDist2']   = CystineMaxDist2
     options['multi']             = lists['multi']
 
-    logging.info("Chain termini will%s be charged"%(options['NeutralTermini'] and " not" or ""))
-    
-    logging.info("Residues at chain brakes will%s be charged"%((not options['ChargesAtBreaks']) and " not" or ""))
-
     if 'ForceField' in options.keys():
         logging.info("The %s forcefield will be used."%(options['ForceField'].name))
     else:
         logging.error("Forcefield '%s' has not been implemented."%(options['-ff']))
         sys.exit()
     
-    if options['ExtendedDihedrals']:  
-        logging.info('Dihedrals will be used for extended regions. (Elastic bonds may be more stable)')
-    else:                  
-        logging.info('Local elastic bonds will be used for extended regions.')
-    
-    
     if options['PosRes']:
         logging.info("Position restraints will be generated.")
         logging.warning("Position restraints are only enabled if -DPOSRES is set in the MDP file")
     
-    
-    if options['MixedChains']:
-        logging.warning("So far no parameters for mixed chains are available. This might crash the program!")
-    
-    
-    if options['RetainHETATM']:
-        logging.warning("I don't know how to handle HETATMs. This will probably crash the program.")
-
     return options 
     
     
@@ -588,102 +421,16 @@ class CoarseGrained:
     dna_bb = nsplit("P OP1 OP2 O5' O3'", "C5' O4' C4'", "C3' C2' C1'")
     rna_bb = nsplit("P OP1 OP2 O5' O3'", "C5' O4' C4'", "C3' C2' O2' C1'")
 
-    # This is the mapping dictionary
-    # For each residue it returns a list, each element of which
-    # lists the atom names to be mapped to the corresponding bead.
-    # The order should be the standard order of the coarse grained
-    # beads for the residue. Only atom names matching with those 
-    # present in the list of atoms for the residue will be used
-    # to determine the bead position. This adds flexibility to the
-    # approach, as a single definition can be used for different 
-    # states of a residue (e.g., GLU/GLUH).
-    # For convenience, the list can be specified as a set of strings,
-    # converted into a list of lists by 'nsplit' defined above.
-    # @MAP
-    BB_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
-                            "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
-                            "C1' C2' O2' O4'")
-    mapping = {
-            "A":  BB_mapping + nsplit(
-                            "N9 C8 H8",
-                            "N3 C4",
-                            "N1 C2 H2",
-                            "N6 C6 H61 H62",
-                            "N7 C5"),
-            "C":  BB_mapping + nsplit(
-                            "N1 C5 C6",
-                            "C2 O2",
-                            "N3",
-                            "N4 C4 H41 H42"),
-            "G":  BB_mapping + nsplit(
-                            "C8 H8 N9",
-                            "C4 N3",
-                            "C2 N2 H21 H22",
-                            "N1", 
-                            "C6 O6",
-                            "C5 N7"),
-            "U":  BB_mapping + nsplit(
-                            "N1 C5 C6",
-                            "C2 O2",
-                            "N3",
-                            "C4 O4"),
-    }
-    mapping.update({"RA3":mapping["A"],
-                    "RA5":mapping["A"],
-                    "2MA":mapping["A"],
-                    "6MA":mapping["A"],
-                    "RAP":mapping["A"],
-                    "DMA":mapping["A"],
-                    "DHA":mapping["A"],
-                    "SPA":mapping["A"],
-                    "RC3":mapping["C"],
-                    "RC5":mapping["C"],
-                    "5MC":mapping["C"],
-                    "3MP":mapping["C"],
-                    "MRC":mapping["C"],
-                    "NMC":mapping["C"],
-                    "RG3":mapping["G"],
-                    "RG5":mapping["G"],
-                    "1MG":mapping["G"],
-                    "2MG":mapping["G"],
-                    "7MG":mapping["G"],
-                    "MRG":mapping["G"],
-                    "RU3":mapping["U"],
-                    "RU5":mapping["U"],
-                    "4SU":mapping["U"], 
-                    "DHU":mapping["U"], 
-                    "PSU":mapping["U"],
-                    "5MU":mapping["U"],
-                    "3MU":mapping["U"],
-                    "3MP":mapping["U"],
-                    "MRU":mapping["U"],
-    })
-
-    residueTypes.update([(i,"Nucleic") for i in mapping.keys()])
-
-    # Generic names for DNA beads
-    residue_bead_names_dna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6")
-    # Generic names for RNA beads
-    residue_bead_names_rna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6")
+    # Generic names for DNA and RNA beads
+    residue_bead_names_dna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6 SC7 SC8")
+    residue_bead_names_rna = spl("BB1 BB2 BB3 SC1 SC2 SC3 SC4 SC5 SC6 SC7 SC8")
 
     # This dictionary contains the bead names for all residues,
     # following the order in 'mapping'
     names  = {}
     # Add the default bead names for all DNA/RNA nucleic acids
-    names.update([(i, ("BB1", "BB2", "BB3", "SC1", "SC2", "SC3", "SC4", "SC5", "SC6")) for i in nucleic])
+    names.update([(i, ("BB1", "BB2", "BB3", "SC1", "SC2", "SC3", "SC4", "SC5", "SC6", "SC7", "SC8")) for i in nucleic])
 
-    # This dictionary allows determining four letter residue names
-    # for ones specified with three letters, e.g., resulting from
-    # truncation to adhere to the PDB format.
-    # Each entry returns a prototypical test, given as a string,
-    # and the residue name to be applied if eval(test) is True.
-    # This is particularly handy to determine lipid types.
-    # The test assumes there is a local or global array 'atoms'
-    # containing the atom names of the residue in correct order.
-    restest = {
-        "POP": [('atoms[0] == "CA"', "POPG"),
-                ('atoms[0] == "N"',  "POPE")]
-        }
 
     # Crude mass for weighted average. No consideration of united atoms.
     # This will probably give only minor deviations, while also giving less headache
@@ -704,19 +451,21 @@ def aver(b):
 # Return the CG beads for an atomistic residue, using the mapping specified above
 # The residue 'r' is simply a list of atoms, and each atom is a list:
 # [ name, resname, resid, chain, x, y, z ]
-def map(r):
-    p = CoarseGrained.mapping[r[0][1]]                                          # Mapping for this residue 
+def map(r, ff):
+    """
+    ff - chosen force field for the mapping
+    """
+    p = ff.mapping[r[0][1]]                                          # Mapping for this residue 
     # Get the name, mass and coordinates for all atoms in the residue
     a = [(i[0],CoarseGrained.mass.get(i[0][0],0),i[4:]) for i in r]                    
     # Store weight, coordinate and index for atoms that match a bead
     q = [[(m,coord,a.index((atom,m,coord))) for atom,m,coord in a if atom in i] for i in p]
-
     # Bead positions      
     return zip(*[aver(i) for i in q])
 
 # Mapping for index file
-def mapIndex(r):
-    p = CoarseGrained.mapping[r[0][1]]                                             # Mapping for this residue 
+def mapIndex(r, ff):
+    p = ff.mapping[r[0][1]]                                             # Mapping for this residue 
     # Get the name, mass and coordinates for all atoms in the residue
     a = [(i[0],CoarseGrained.mass.get(i[0][0],0),i[4:]) for i in r]                    
     # Store weight, coordinate and index for atoms that match a bead
@@ -733,23 +482,6 @@ import subprocess as subp
 ## A | SECONDARY STRUCTURE TYPE DEFINITIONS |
 #----+--------------------------------------+
 
-# This table lists all coarse grained secondary structure types
-# The following are matched lists. Make sure they stay matched.
-# The lists do not need to be of the same length. The longer list
-# will be truncated when combined with a shorter list, e.g. with
-# dihedral definitions, which are not present for coil and termini
-#
-ss_names = {
- "F": "Collagenous Fiber",                                                                  #@#
- "E": "Extended structure (beta sheet)",                                                    #@#
- "H": "Helix structure",                                                                    #@#
- "1": "Helix start (H-bond donor)",                                                         #@#
- "2": "Helix end (H-bond acceptor)",                                                        #@#
- "3": "Ambivalent helix type (short helices)",                                              #@#
- "T": "Turn",                                                                               #@#
- "S": "Bend",                                                                               #@#
- "C": "Coil",                                                                               #@#
-}
 
 bbss     =    spl("  F     E     H     1     2     3     T     S     C")  # SS one letter 
 
@@ -848,9 +580,9 @@ def typesub(seq,patterns,types):
 # The following function translates a string encoding the secondary structure
 # to a string of corresponding Martini types, taking the origin of the 
 # secondary structure into account, and replacing termini if requested.
-def ssClassification(ss,program="dssp"):                                                    
+def ssClassification(ss, program="self"):                                                    
     # Translate dssp/pymol/gmx ss to Martini ss                                             
-    ss  = ss.translate(sstt[program])                                                       
+    ss  = ss.translate(sstt[program])      
     # Separate the different secondary structure types                                      
     sep = dict([(i,ss.translate(sstd[i])) for i in sstd.keys()])                            
     # Do type substitutions based on patterns                                               
@@ -863,297 +595,51 @@ def ssClassification(ss,program="dssp"):
     # Sum characters back to get a full typed sequence                                      
     typ = "".join([chr(sum(i)) for i in zip(*typ)])                                         
     # Return both the actual as well as the fully typed sequence                             
-    return ss, typ                                                                          
+    return ss, typ           
+    
+    
+###################################
+## 5 # FORCE FIELDS ##  -> @FF <-
+###################################
 
-
-# The following functions are for determination of secondary structure, 
-# given a list of atoms. The atom format is generic and can be written out
-# as PDB or GRO. The coordinates are in Angstrom.
-# NOTE: There is the *OLD* DSSP and the *NEW* DSSP, which require 
-# different calls. The old version uses '--' to indicate reading from stdin
-# whereas the new version uses '-i /dev/stdin'
-def call_dssp(chain,atomlist,executable='dsspcmbi'):
-    '''Get the secondary structure, by calling to dssp'''
-    ssdfile = 'chain_%s.ssd'%chain._id 
-
-    try:
-        if os.system(executable+" -V >/dev/null"):
-            logging.debug("New version of DSSP; Executing '%s -i /dev/stdin -o %s'"%(executable,ssdfile))
-            p = subp.Popen([executable,"-i","/dev/stdin","-o",ssdfile],stderr=subp.PIPE,stdout=subp.PIPE,stdin=subp.PIPE)
-        else:
-            logging.debug("Old version of DSSP; Executing '%s -- %s'"%(executable,ssdfile))
-            p = subp.Popen([executable,"--",ssdfile],stderr=subp.PIPE,stdout=subp.PIPE,stdin=subp.PIPE)
-    except OSError:
-        logging.error("A problem occured calling %s."%executable)
-        sys.exit(1)
-
-    for atom in atomlist: 
-        if atom[0][:2] == 'O1': atom=('O',)+atom[1:]
-        if atom[0][0]!='H' and atom[0][:2]!='O2': p.stdin.write(pdbOut(atom))
-    p.stdin.write('TER\n')
-    data = p.communicate()
-    p.wait()
-    main,ss = 0,''
-    for line in open(ssdfile).readlines(): 
-      if main and not line[13] == "!": ss+=line[16]
-      if line[:15] == '  #  RESIDUE AA': main=1
-    return ss
-     
-ssDetermination = {
-    "dssp": call_dssp
-    }
-
-class martini30nucleic:
-    def __init__(self):
-
-        # parameters are defined here for the following forcefield:
-        self.name = 'martini30nucleic'
+class ForceField:
+    
+    @staticmethod
+    def read_itp(itp_file):
+        itp_data = itpio.read_itp(itp_file)
+        return itp_data
         
-        # Charged types:
-        self.charges = {"Qd":1, "Qa":-1, "SQd":1, "SQa":-1, "RQd":1, "AQa":-1}                                                           #@#
-        self.bbcharges = {"BB1":-1}                                                                                                      #@#
-
-
-        ##################
-        # DNA PARAMETERS #
-        ##################
-
-        # DNA BACKBONE PARAMETERS
-        self.dna_bb = {
-            'atom'  : spl("Q0 SN0 SC2"),
-            'bond'  : [(1,  0.360, 20000),          
-                       (1,  0.198, 80000),          
-                       (1,  0.353, 10000)],         
-            'angle' : [(2,  110.0, 200),            
-                       (2,  102.0, 150),           
-                       (2,  106.0,  75)],           
-            'dih'   : [(2,   95.0,  25),
-                       (1,  180.0,   2, 3),
-                       (9,   85.0,   2, 2,  9,  160.0,  2, 3)],
-            'excl'  : [(), (), ()],
-            'pair'  : [],
-        }
-        # DNA BACKBONE CONNECTIVITY
-        self.dna_con  = {
-            'bond'  : [(0, 1),
-                       (1, 2),
-                       (2, 0)],
-            'angle' : [(0, 1, 2),
-                       (1, 2, 0),
-                       (2, 0, 1)],
-            'dih'   : [(0, 1, 2, 0),
-                       (1, 2, 0, 1),
-                       (2, 0, 1, 2)],
-            'excl'  : [(0, 2), (1, 0),(2, 1)],
-            'pair'  : [],
-        }
-
-        # For bonds, angles, and dihedrals the first parameter should always 
-        # be the type. It is pretty annoying to check the connectivity from 
-        # elsewhere so we update these one base at a time.
-
-        # ADENINE
-        self.bases = {}
-        self.base_connectivity = {}
-
-       
-        ##################
-        # RNA PARAMETERS #
-        ##################
-
-        # RNA BACKBONE PARAMETERS
-        self.rna_bb = {
-            'atom'  : spl("Q1 SN1 SN6"),     # Have a look at BB3 bead type
-            'bond'  : [(1,  0.363, 20000),          
-                       (1,  0.202, 40000),    #8  , 0.202 50000    
-                       (1,  0.354, 10000)],         
-            'angle' : [(2,  117.0, 175),      #2, 117.0, 140       
-                       (2,   95.0, 105),           
-                       (1,   93.0,  75)],           
-            'dih'   : [(2,    0.0, 3.5),
-                       (1,    0.0,   1, 4),
-                       (9,  -10.0, 1.5, 2,  9,  10.0, 1.5, 2)],
-            'excl'  : [(), (), ()],
-            'pair'  : [],
-        }
-        # RNA BACKBONE CONNECTIVITY
-        self.rna_con  = {
-            'bond'  : [(0, 1),
-                       (1, 2),
-                       (2, 0)],
-            'angle' : [(0, 1, 2),
-                       (1, 2, 0),
-                       (2, 0, 1)],
-            'dih'   : [(0, 1, 2, 0),
-                       (1, 2, 0, 1),
-                       (2, 0, 1, 2)],
-            'excl'  : [(0, 2), (1, 0),(2, 1)],
-            'pair'  : [],
-        }
-
-        # For bonds, angles, and dihedrals the first parameter should always 
-        # be the type. It is pretty annoying to check the connectivity from 
-        # elsewhere so we update these one base at a time.
-
-        # ADENINE
-        self.bases.update({
-            "A":  [spl("TN1 TN5a TP1d TN3a TN3a"),                                      
-            #     TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS
-                   [(1,  0.293, 28000), (1,  0.204,  None), (1,  0.263,  None),             # BONDS 
-                    (1,  0.335, 40000), (1,  0.279,  None), (1,  0.162,  None),],     
-                   [(2,  101.0,   260), (2,  153.0,    90), (2,  135.0,   185),             # ANGLES
-                    (1,   87.0,   200), (2,  160.0,    15), (1,  115.0,   200),
-                    (1,   74.0,   200), (1,   92.0,   200)],                           
-                   [(2,  180.0,   1.5), (1,  -40.0,  4, 2), (1,  -10.0,  5, 2),             # DIHEDRALS
-                    (2,  180.0,     0), (2,  180.0,     2), (2,   80.0,   0.5),
-                    (2,    0.0,    10)],                                                    # DIHEDRALS
-                   [],                                                                      # IMPROPERS 
-                   [(2, )],                                                                 # VSITES
-                   [(), (), (), (), (), (), (), (), (), (), (), (), (), ()],                # EXCLUSIONS
-                   []],                                                                     # PAIRS
-            })
-        self.base_connectivity.update({
-            "A":  [[(2, 3),             (3, 4),             (4, 5),                         # BONDS
-                    (4, 6),             (5, 6),             (6, 3),],   
-                   [(1, 2, 3),          (2, 3, 4),          (2, 3, 6),                      # ANGLES
-                    (3, 4, 5),          (3, 2, 8),          (4, 3, 6),
-                    (4, 5, 6),          (5, 6, 3)], 
-                   [(0, 1, 2, 3),       (1, 2, 3, 4),       (1, 2, 3, 6),                   # DIHEDRALS        
-                    (0, 1, 2, 3),       (1, 2, 3, 4),       (1, 2, 3, 6),
-                    (3, 4, 5, 6)],                                                          
-                   [],                                                                      # IMPROPERS
-                   [(7, 3, 4)],                                                             # VSITES
-                   [(0, 1, 2, 3, 4, 5, 6, 7),
-                   (1, 2, 3, 4, 5, 6, 7),
-                   (2, 3, 4, 5, 6, 7),
-                   (3, 4, 5, 6, 7),
-                   (4, 5, 6, 7),
-                   (5, 6, 7),
-                   (6, 7),],
-                   []],                                                                     # PAIRS                     
-            })
-
-        # CYTOSINE
-        self.bases.update({
-            "C":  [spl("TN1 TP1a TP1d"),                                                     
-            #     TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS
-                   [(1,  0.280, 11000), (1,  0.224,  None), (1,  0.281,  None),             # BONDS
-                    (1,  0.267,  None),],
-                   [(2,   94.0,   230), (2,  103.0,   170), (1,  155.0,   100),             # ANGLES
-                    (1,  130.0,   0.5), (1,   61.0,   200), (1,   71.0,   200), 
-                    (1,   47.0,   200)],
-                   [(1,   55.0,  3,  2), (2,  180.0,     3), (2, -130.0,      1),           # DIHEDRALS
-                    (1,    0.0,  2,  6)],                                                   
-                   [],                                                                      # IMPROPERS
-                   [],                                                                      # VSITES
-                   [(), (), (), (), (), (), (), (), ()],                                    # EXCLUSIONS
-                   []],                                                                     # PAIRS                     
-        })
-        self.base_connectivity.update({
-            "C":  [[(2, 3),           (3, 4),             (4, 5),                           # BONDS
-                    (5, 3)],
-                   [(1, 2, 3),        (2, 3, 4),          (2, 3, 5),                        # ANGLES
-                    (3, 2, 6),        (3, 4, 5),          (4, 3, 5),
-                    (4, 5, 3)],
-                   [(0, 1, 2, 3),     (1, 2, 3, 4),       (0, 1, 2, 3),                     # DIHEDRALS
-                    (1, 2, 3, 4)],                                                          
-                   [],                                                                      # IMPROPERS
-                   [],                                                                      # VSITES
-                   [(0, 3),             (0, 4),             (0, 5),                         # EXCLUSIONS
-                    (1, 3),             (1, 4),             (1, 5),             
-                    (2, 3),             (2, 4),             (2, 5)],                                           
-                   []],                                                                     # PAIRS                     
-        })
-
-        # GUANINE
-        self.bases.update({
-            "G":  [spl("TN1 TP1d TP1a TN3a"),
-            #     TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS
-                   [(1,  0.292, 20000), (1,  0.296,  None), (1,  0.291,  None),             # BONDS
-                    (1,  0.385, 40000), (1,  0.296,  None), (1,  0.162,  None),],     
-                   [(2,  103.0,   260), (2,  129.0,    80), (2,  137.0,   120),             # ANGLES
-                    (1,   72.0,   200), (2,  170.0,    20), (1,  117.0,   200),
-                    (1,   84.0,   200), (1,   96.5,   200)],                           
-                   [(1,  -20.0,  1, 2), (2,  180.0,   3.5), (1,    0.0,     5, 2),
-                    (2,    0.0,    10)],                                                    # DIHEDRALS  
-                   [],                                                                      # IMPROPERS 
-                   [],                                                                      # VSITES
-                   [(), (), (), (), (), (), (), (), (), (), (), (), (), ()],                # EXCLUSIONS
-                   []],                                                                     # PAIRS                     
-        })
-        self.base_connectivity.update({
-            "G":  [[(2, 3),             (3, 4),             (4, 5),                         # BONDS
-                    (4, 6),             (5, 6),             (6, 3),],
-                   [(1, 2, 3),          (2, 3, 4),          (2, 3, 6),                      # ANGLES
-                    (3, 4, 5),          (3, 2, 7),          (4, 3, 6), 
-                    (4, 5, 6),          (5, 6, 3)],
-                   [(0, 1, 2, 3),       (1, 2, 3, 4),       (1, 2, 3, 6),
-                    (3, 4, 5, 6)],                                                          # DIHEDRALS        
-                   [],                                                                      # IMPROPERS
-                   [],                                                                      # VSITES
-                   [(0, 3),             (0, 4),             (0, 5),                         # EXCLUSIONS
-                    (0, 6),             (1, 3),             (1, 4),
-                    (1, 5),             (1, 6),             (2, 3),
-                    (2, 4),             (2, 5),             (2, 6),
-                    (3, 5),             (4, 6)],                                           
-                   []],                                                                     # PAIRS                     
-        })
-
-        # URACIL
-        self.bases.update({
-            "U":  [spl("TN1 TN5d TP1a TN3d"),
-            #     TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS TYPE   EQUIL   OPTS
-                   [(1,  0.286, 18000), (1,  0.204,  None), (1,  0.269,  None),             # BONDS
-                    (1,  0.256,  None),],
-                   [(2,   95.0,   225), (2,   99.0,   200), (1,  155.0,   100),             # ANGLES
-                    (1,  180.0,     5), (1,   55.0,   100), (1,   83.0,   100),
-                    (1,   42.0,   100)],
-                   [(1,    0.0,  2, 2), (2,  180.0,     4), (1,    0.0,  2, 6)],            # DIHEDRALS
-                   [],                                                                      # IMPROPERS
-                   [(2, )],                                                                      # VSITES
-                   [(), (), (), (), (), (), (), (), ()],                                    # EXCLUSIONS
-                   []],                                                                     # PAIRS                     
-        })
-        self.base_connectivity.update({
-            "U":  [[(2, 3),           (3, 4),             (4, 5),                           # BONDS
-                    (5, 3)],
-                   [(1, 2, 3),        (2, 3, 4),          (2, 3, 5),                        # ANGLES
-                    (3, 2, 6),        (3, 4, 5),          (4, 3, 5), 
-                    (4, 5, 3)],
-                   [(0, 1, 2, 3),     (1, 2, 3, 4),       (1, 2, 3, 4)],                    # DIHEDRALS
-                   [],                                                                      # IMPROPERS
-                   [(6, 3, 4)],                                                                      # VSITES
-                   [(0, 1, 2, 3, 4, 5, 6),
-                   (1, 2, 3, 4, 5, 6),
-                   (2, 3, 4, 5, 6),
-                   (3, 4, 5, 6),
-                   (4, 5, 6),
-                   (5, 6),],                                           
-                   []],                                                                     # PAIRS                     
-        })
-
-
-        #----+----------------+
-        ## D | SPECIAL BONDS  |
-        #----+----------------+
+    @staticmethod    
+    def read_itps(mol, directory, version):
+        # itpdir = os.path.abspath(f'/scratch/dyangali/cgtools/cgtools/itp/{directory}')
+        itpdir = importlib.resources.files('cgtools') / 'martini' / 'itp' 
+        file = os.path.join(itpdir, f'{directory}', f'{mol}_A_{version}.itp')
+        a_itp_data = ForceField.read_itp(file)
+        file = os.path.join(itpdir, f'{directory}', f'{mol}_C_{version}.itp')
+        c_itp_data = ForceField.read_itp(file)
+        file = os.path.join(itpdir, f'{directory}', f'{mol}_G_{version}.itp')
+        g_itp_data = ForceField.read_itp(file)
+        file = os.path.join(itpdir, f'{directory}', f'{mol}_U_{version}.itp')
+        u_itp_data = ForceField.read_itp(file)  
+        return a_itp_data, c_itp_data, g_itp_data, u_itp_data
         
-        self.special = {
-            # Used for sulfur bridges
-            # ATOM 1         ATOM 2          BOND LENGTH   FORCE CONSTANT
-            (("SC1","CYS"), ("SC1","CYS")):     (0.39,         5000),
-            }
+    @staticmethod    
+    def itp_to_indata(itp_data):
+        keys = ['bonds', 'angles', 'dihedrals', 'impropers', 'virtual_sites3', 'exclusions', 'pairs']
+        connectivity = [itp_data[key].keys() if key in itp_data else [] for key in keys]
+        parameters = [itp_data[key].values() if key in itp_data else [] for key in keys]
+        return connectivity, parameters   
+        
+        
+    def __init__(self):  
         
         # By default use an elastic network
-        self.ElasticNetwork = False 
-
+        self.ElasticNetwork = False  
+    
         # Elastic networks bond shouldn't lead to exclusions (type 6) 
         # But Elnedyn has been parametrized with type 1.
-        self.EBondType = 6
+        self.EBondType = 6 
         
-        #----+----------------+
-        ## D | INTERNAL STUFF |
-        #----+----------------+
-
         ## DNA DICTIONARIES ##
         # Dictionary for the connectivities and parameters of bonds between DNA backbone beads
         self.dnaBbBondDictC = dict(zip(self.dna_con['bond'],self.dna_bb['bond']))
@@ -1176,9 +662,8 @@ class martini30nucleic:
         # Dictionary for exclusions for rna backbone beads
         self.rnaBbExclDictC = dict(zip(self.rna_con['excl'], self.rna_bb['excl']))
         # Dictionary for pairs for rna backbone beads
-        self.rnaBbPairDictC = dict(zip(self.rna_con['pair'], self.rna_bb['pair']))
-        
-        
+        self.rnaBbPairDictC = dict(zip(self.rna_con['pair'], self.rna_bb['pair']))   
+
     # The following function returns the backbone bead for a given residue and                   
     # secondary structure type.                                                                 
     # 1. Check if the residue is DNA/RNA and return the whole backbone for those
@@ -1186,8 +671,9 @@ class martini30nucleic:
     # 3. Get the proper type from it for the secondary structure                                
     # If the residue is not in the dictionary of specials, use the default                      
     # If the secondary structure is not listed (in the residue specific                         
-    # dictionary) revert to the default.                                                        
-    def bbGetBead(self,r1,ss="C"):                                                               
+    # dictionary) revert to the default.                 
+
+    def bbGetBead(self, r1, ss="F"):                                                               
         if r1 in dnares3:
             return self.dna_bb['atom']
         elif r1 in rnares3:
@@ -1195,7 +681,7 @@ class martini30nucleic:
         else:
             sys.exit("This script supports only DNA or RNA.")
     
-    def bbGetBond(self,r,ca,ss):
+    def bbGetBond(self, r, ca, ss):
         # Retrieve parameters for each residue from tables defined above
         if r[0] in dnares3:
             return ca in self.dnaBbBondDictC.keys() and self.dnaBbBondDictC[ca] or None
@@ -1204,7 +690,7 @@ class martini30nucleic:
         else:
             sys.exit("This script supports only DNA or RNA.")
     
-    def bbGetAngle(self,r,ca,ss):
+    def bbGetAngle(self, r, ca, ss):
         if r[0] in dnares3:
             return ca in self.dnaBbAngleDictC.keys() and self.dnaBbAngleDictC[ca] or None
         elif r[0] in rnares3:
@@ -1212,7 +698,7 @@ class martini30nucleic:
         else:
             sys.exit("This script supports only DNA or RNA.")
 
-    def bbGetExclusion(self,r,ca,ss):
+    def bbGetExclusion(self, r, ca, ss):
         if r[0] in dnares3:
             return ca in self.dnaBbExclDictC.keys() and ' ' or None
         elif r[0] in rnares3:
@@ -1220,7 +706,7 @@ class martini30nucleic:
         else:
             sys.exit("This script supports only DNA or RNA.")
 
-    def bbGetPair(self,r,ca,ss):
+    def bbGetPair(self, r, ca, ss):
         if r[0] in dnares3:
             return ca in self.dnaBbPairDictC.keys() and ' ' or None
         elif r[0] in rnares3:
@@ -1228,7 +714,7 @@ class martini30nucleic:
         else:
             sys.exit("This script supports only DNA or RNA.")
 
-    def bbGetDihedral(self,r,ca,ss):
+    def bbGetDihedral(self, r, ca, ss):
         # Retrieve parameters for each residue from table defined above
         if r[0] in dnares3:
             return ca in self.dnaBbDihDictC.keys() and self.dnaBbDihDictC[ca] or None
@@ -1237,43 +723,162 @@ class martini30nucleic:
         else:
             sys.exit("This script supports only DNA or RNA.")
 
-    def getCharge(self,atype,aname):
+    def getCharge(self, atype, aname):
         return self.charges.get(atype,self.bbcharges.get(aname,0))
         
     def messages(self):
         '''Prints any force-field specific logging messages.'''
         import logging
-        logging.warning('################################################################################')
-        logging.warning('This is a beta of Martini-nucleotide and should NOT be used for production runs.')
-        logging.warning('################################################################################')
         pass
-
-
-class elnedyn30nucleic():
     
+    def update_adenine(self, mapping, connectivity, itp_params):
+        parameters = mapping + itp_params
+        self.bases.update({"A": parameters})
+        self.base_connectivity.update({"A": connectivity})
+        self.bases.update({"RA3": parameters})
+        self.base_connectivity.update({"RA3": connectivity})
+        self.bases.update({"RA5": parameters})
+        self.base_connectivity.update({"RA5": connectivity})
+        self.bases.update({"2MA": parameters})
+        self.base_connectivity.update({"2MA": connectivity})
+        self.bases.update({"DMA": parameters})
+        self.base_connectivity.update({"DMA": connectivity})
+        self.bases.update({"SPA": parameters})
+        self.base_connectivity.update({"SPA": connectivity})
+        self.bases.update({"RAP": parameters})
+        self.base_connectivity.update({"RAP": connectivity})
+        self.bases.update({"6MA": parameters})
+        self.base_connectivity.update({"6MA": connectivity})
+        
+    def update_cytosine(self, mapping, connectivity, itp_params):  
+        parameters = mapping + itp_params
+        self.bases.update({"C": parameters})
+        self.base_connectivity.update({"C": connectivity})
+        self.bases.update({"RC3": parameters})
+        self.base_connectivity.update({"RC3": connectivity})
+        self.bases.update({"RC5": parameters})
+        self.base_connectivity.update({"RC5": connectivity})
+        self.bases.update({"MRC": parameters})
+        self.base_connectivity.update({"MRC": connectivity})
+        self.bases.update({"5MC": parameters})
+        self.base_connectivity.update({"5MC": connectivity})
+        self.bases.update({"NMC": parameters})
+        self.base_connectivity.update({"NMC": connectivity})    
+   
+    def update_guanine(self, mapping, connectivity, itp_params):
+        parameters = mapping + itp_params
+        self.bases.update({"G": parameters})
+        self.base_connectivity.update({"G": connectivity})
+        self.bases.update({"RG3": parameters})
+        self.base_connectivity.update({"RG3": connectivity})
+        self.bases.update({"RG5": parameters})
+        self.base_connectivity.update({"RG5": connectivity})
+        self.bases.update({"MRG": parameters})
+        self.base_connectivity.update({"MRG": connectivity})
+        self.bases.update({"1MG": parameters})
+        self.base_connectivity.update({"1MG": connectivity})
+        self.bases.update({"2MG": parameters})
+        self.base_connectivity.update({"2MG": connectivity})
+        self.bases.update({"7MG": parameters})
+        self.base_connectivity.update({"7MG": connectivity})
+
+    def update_uracil(self, mapping, connectivity, itp_params):
+        parameters = mapping + itp_params
+        self.bases.update({"U": parameters})
+        self.base_connectivity.update({"U": connectivity})
+        self.bases.update({"RU3": parameters})
+        self.base_connectivity.update({"RU3": connectivity})
+        self.bases.update({"RU5": parameters})
+        self.base_connectivity.update({"RU5": connectivity})
+        self.bases.update({"MRU": parameters})
+        self.base_connectivity.update({"MRU": connectivity})
+        self.bases.update({"DHU": parameters})
+        self.base_connectivity.update({"DHU": connectivity})        
+        self.bases.update({"PSU": parameters})
+        self.base_connectivity.update({"PSU": connectivity})
+        self.bases.update({"3MP": parameters})
+        self.base_connectivity.update({"3MP": connectivity})
+        self.bases.update({"3MU": parameters})
+        self.base_connectivity.update({"3MU": connectivity})
+        self.bases.update({"4SU": parameters})
+        self.base_connectivity.update({"4SU": connectivity})        
+        self.bases.update({"5MU": parameters})
+        self.base_connectivity.update({"5MU": connectivity})
+     
     @staticmethod
-    def read_itp(itp_file):
-        itp_data = itpio.read_itp(itp_file)
-        return itp_data
-        
-        
-    @staticmethod    
-    def itp_to_indata(itp_data):
-        keys = ['bonds', 'angles', 'dihedrals', 'impropers', 'virtual_sites3', 'exclusions', 'pairs']
-        connectivity = [itp_data[key].keys() if key in itp_data else [] for key in keys]
-        parameters = [itp_data[key].values() if key in itp_data else [] for key in keys]
-        return connectivity, parameters
+    def update_non_standard_mapping(mapping):
+        mapping.update({"RA3":mapping["A"],
+                        "RA5":mapping["A"],
+                        "2MA":mapping["A"],
+                        "6MA":mapping["A"],
+                        "RAP":mapping["A"],
+                        "DMA":mapping["A"],
+                        "DHA":mapping["A"],
+                        "SPA":mapping["A"],
+                        "RC3":mapping["C"],
+                        "RC5":mapping["C"],
+                        "5MC":mapping["C"],
+                        "3MP":mapping["C"],
+                        "MRC":mapping["C"],
+                        "NMC":mapping["C"],
+                        "RG3":mapping["G"],
+                        "RG5":mapping["G"],
+                        "1MG":mapping["G"],
+                        "2MG":mapping["G"],
+                        "7MG":mapping["G"],
+                        "MRG":mapping["G"],
+                        "RU3":mapping["U"],
+                        "RU5":mapping["U"],
+                        "4SU":mapping["U"], 
+                        "DHU":mapping["U"], 
+                        "PSU":mapping["U"],
+                        "5MU":mapping["U"],
+                        "3MU":mapping["U"],
+                        "3MP":mapping["U"],
+                        "MRU":mapping["U"],
+        })
 
-
+class martini30nucleic(ForceField):
+    
+    # FF mapping
+    bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
+                        "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
+                        "C1' C2' O2' O4'")     
+    mapping = {
+        "A":  bb_mapping + nsplit(
+                        "N9 C8 H8",
+                        "N3 C4",
+                        "N1 C2 H2",
+                        "N6 C6 H61 H62",
+                        "N7 C5"),
+        "C":  bb_mapping + nsplit(
+                        "N1 C5 C6",
+                        "C2 O2",
+                        "N3",
+                        "N4 C4 H41 H42"),
+        "G":  bb_mapping + nsplit(
+                        "C8 H8 N9",
+                        "C4 N3",
+                        "C2 N2 H21 H22",
+                        "N1", 
+                        "C6 O6",
+                        "C5 N7"),
+        "U":  bb_mapping + nsplit(
+                        "N1 C5 C6",
+                        "C2 O2",
+                        "N3",
+                        "C4 O4"),
+    }
+    
+    ForceField.update_non_standard_mapping(mapping)
+    
     def __init__(self):
         
         # parameters are defined here for the following (protein) forcefields:
-        self.name = 'elnedyn30nucleic'
-        
+        self.name = 'martini30nucleic'
         # Charged types:
         self.charges = {"Qd":1, "Qa":-1, "SQd":1, "SQa":-1, "RQd":1, "AQa":-1}                                                           #@#
         self.bbcharges = {"BB1":-1}                                                                                                      #@#
-        
         # Not all (eg Elnedyn) forcefields use backbone-backbone-sidechain angles and BBBB-dihedrals.
         self.UseBBSAngles          = False 
         self.UseBBBBDihedrals      = False
@@ -1312,13 +917,15 @@ class elnedyn30nucleic():
         self.rna_bb = {
             'atom'  : spl("Q1n C6 N2"),    
             'bond'  : [(1,  0.350, 25000),          
-                       (1,  0.384, 12000),
-                       (1,  0.242, 25000),
-                       (1,  0.400, 12000)],          
-            'angle' : [(10,  114.0, 40),       
-                       (10,  118.0, 50)],    # TODO UPDATE ACCORDING TO THE DISTRIBUTION       
-            'dih'   : [(3,   6,  -4, 11, 4, -13.0, -4),  # (3,   6.5,  -2.5, 18, 0, -22.0, 0.5)
-                       (1,   30.0,   6, 1),], 
+                       (1,  0.378, 12000),
+                       (1,  0.239, 25000),
+                       (1,  0.412, 12000)],          
+            'angle' : [(10,  110.0, 50),      #2, 117.0, 140       
+                       (10,  121.0, 180),
+                       (10,  143.0, 300)],        
+            'dih'   : [(1,    0.0, 25.0, 1),
+                       (1,    0.0, 25.0, 1),
+                       (1, -112.0, 15.0, 1),], 
             'excl'  : [(), (), ()],
             'pair'  : [],
         }
@@ -1329,9 +936,11 @@ class elnedyn30nucleic():
                        (1, 2),
                        (2, 0)],
             'angle' : [(0, 1, 0),
-                       (1, 0, 1),],
+                       (1, 0, 1),
+                       (0, 1, 2),],
             'dih'   : [(0, 1, 0, 1),
-                       (1, 0, 1, 0),],
+                       (1, 0, 1, 0),
+                       (1, 0, 1, 2),],
             'excl'  : [(2, 0), (0, 2),],
             'pair'  : [],
         }
@@ -1339,209 +948,184 @@ class elnedyn30nucleic():
         # For bonds, angles, and dihedrals the first parameter should always 
         # be the type. It is pretty annoying to check the connectivity from 
         # elsewhere so we update these one base at a time.
-
-        # Reading itp files
-        mol = rna_system
-        version = 'new'
-        itpdir = os.path.abspath('/scratch/dyangali/cgtools/cgtools/itp/nucbonded')
-        file = os.path.join(itpdir, f'{mol}_A_{version}.itp')
-        a_itp_data = elnedyn30nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_C_{version}.itp')
-        c_itp_data = elnedyn30nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_G_{version}.itp')
-        g_itp_data = elnedyn30nucleic.read_itp(file)
-        file = os.path.join(itpdir, f'{mol}_U_{version}.itp')
-        u_itp_data = elnedyn30nucleic.read_itp(file)
+    
+        a_itp, c_itp, g_itp, u_itp = ForceField.read_itps(rna_system, 'regular', 'new')
 
         # ADENINE
         mapping = [spl("TA0 TA1 TA2 TA3 TA4")]
-        connectivity, itp_params = elnedyn30nucleic.itp_to_indata(a_itp_data)
-        parameters = mapping + itp_params
-        self.bases.update({"A": parameters})
-        self.base_connectivity.update({"A": connectivity})
-        self.bases.update({"RA3": parameters})
-        self.base_connectivity.update({"RA3": connectivity})
-        self.bases.update({"RA5": parameters})
-        self.base_connectivity.update({"RA5": connectivity})
-        self.bases.update({"2MA": parameters})
-        self.base_connectivity.update({"2MA": connectivity})
-        self.bases.update({"DMA": parameters})
-        self.base_connectivity.update({"DMA": connectivity})
-        self.bases.update({"SPA": parameters})
-        self.base_connectivity.update({"SPA": connectivity})
-        self.bases.update({"RAP": parameters})
-        self.base_connectivity.update({"RAP": connectivity})
-        self.bases.update({"6MA": parameters})
-        self.base_connectivity.update({"6MA": connectivity})
-        
+        connectivity, itp_params = martini30nucleic.itp_to_indata(a_itp)
+        self.update_adenine(mapping, connectivity, itp_params)
+
         # CYTOSINE
         mapping = [spl("TY0 TY1 TY2 TY3")]
-        connectivity, itp_params = elnedyn30nucleic.itp_to_indata(c_itp_data)
-        parameters = mapping + itp_params
-        self.bases.update({"C": parameters})
-        self.base_connectivity.update({"C": connectivity})
-        self.bases.update({"RC3": parameters})
-        self.base_connectivity.update({"RC3": connectivity})
-        self.bases.update({"RC5": parameters})
-        self.base_connectivity.update({"RC5": connectivity})
-        self.bases.update({"MRC": parameters})
-        self.base_connectivity.update({"MRC": connectivity})
-        self.bases.update({"5MC": parameters})
-        self.base_connectivity.update({"5MC": connectivity})
-        self.bases.update({"NMC": parameters})
-        self.base_connectivity.update({"NMC": connectivity})
+        connectivity, itp_params = martini30nucleic.itp_to_indata(c_itp)
+        self.update_cytosine(mapping, connectivity, itp_params)
         
         # GUANINE
         mapping = [spl("TG0 TG1 TG2 TG3 TG4 TG5")]
-        connectivity, itp_params = elnedyn30nucleic.itp_to_indata(g_itp_data)
+        connectivity, itp_params = martini30nucleic.itp_to_indata(g_itp)
         parameters = mapping + itp_params
-        self.bases.update({"G": parameters})
-        self.base_connectivity.update({"G": connectivity})
-        self.bases.update({"RG3": parameters})
-        self.base_connectivity.update({"RG3": connectivity})
-        self.bases.update({"RG5": parameters})
-        self.base_connectivity.update({"RG5": connectivity})
-        self.bases.update({"MRG": parameters})
-        self.base_connectivity.update({"MRG": connectivity})
-        self.bases.update({"1MG": parameters})
-        self.base_connectivity.update({"1MG": connectivity})
-        self.bases.update({"2MG": parameters})
-        self.base_connectivity.update({"2MG": connectivity})
-        self.bases.update({"7MG": parameters})
-        self.base_connectivity.update({"7MG": connectivity})
+        self.update_guanine(mapping, connectivity, itp_params)
         
         # URACIL
         mapping = [spl("TU0 TU1 TU2 TU3")]
-        connectivity, itp_params = elnedyn30nucleic.itp_to_indata(u_itp_data)
+        connectivity, itp_params = martini30nucleic.itp_to_indata(u_itp)
         parameters = mapping + itp_params
-        self.bases.update({"U": parameters})
-        self.base_connectivity.update({"U": connectivity})
-        self.bases.update({"RU3": parameters})
-        self.base_connectivity.update({"RU3": connectivity})
-        self.bases.update({"RU5": parameters})
-        self.base_connectivity.update({"RU5": connectivity})
-        self.bases.update({"MRU": parameters})
-        self.base_connectivity.update({"MRU": connectivity})
-        self.bases.update({"DHU": parameters})
-        self.base_connectivity.update({"DHU": connectivity})        
-        self.bases.update({"PSU": parameters})
-        self.base_connectivity.update({"PSU": connectivity})
-        self.bases.update({"3MP": parameters})
-        self.base_connectivity.update({"3MP": connectivity})
-        self.bases.update({"3MU": parameters})
-        self.base_connectivity.update({"3MU": connectivity})
-        self.bases.update({"4SU": parameters})
-        self.base_connectivity.update({"4SU": connectivity})        
-        self.bases.update({"5MU": parameters})
-        self.base_connectivity.update({"5MU": connectivity})
+        self.update_uracil(mapping, connectivity, itp_params)
         
-        # By default use an elastic network
-        self.ElasticNetwork = True  
+        super().__init__()
 
-        # Elastic networks bond shouldn't lead to exclusions (type 6) 
-        # But Elnedyn has been parametrized with type 1.
-        self.EBondType = 6
-        
-        #----+----------------+
-        ## D | INTERNAL STUFF |
-        #----+----------------+
-
-        ## DNA DICTIONARIES ##
-        # Dictionary for the connectivities and parameters of bonds between DNA backbone beads
-        self.dnaBbBondDictC = dict(zip(self.dna_con['bond'],self.dna_bb['bond']))
-        # Dictionary for the connectivities and parameters of angles between DNA backbone beads
-        self.dnaBbAngleDictC = dict(zip(self.dna_con['angle'],self.dna_bb['angle']))
-        # Dictionary for the connectivities and parameters of dihedrals between DNA backbone beads
-        self.dnaBbDihDictC = dict(zip(self.dna_con['dih'],self.dna_bb['dih']))
-        # Dictionary for exclusions for DNA backbone beads
-        self.dnaBbExclDictC = dict(zip(self.dna_con['excl'],self.dna_bb['excl']))
-        # Dictionary for pairs for DNA backbone beads
-        self.dnaBbPairDictC = dict(zip(self.dna_con['pair'],self.dna_bb['pair']))
-
-        ## RNA DICTIONARIES ##
-        # Dictionary for the connectivities and parameters of bonds between rna backbone beads
-        self.rnaBbBondDictC = dict(zip(self.rna_con['bond'],self.rna_bb['bond']))
-        # Dictionary for the connectivities and parameters of angles between rna backbone beads
-        self.rnaBbAngleDictC = dict(zip(self.rna_con['angle'],self.rna_bb['angle']))
-        # Dictionary for the connectivities and parameters of dihedrals between rna backbone beads
-        self.rnaBbDihDictC = dict(zip(self.rna_con['dih'],self.rna_bb['dih']))
-        # Dictionary for exclusions for rna backbone beads
-        self.rnaBbExclDictC = dict(zip(self.rna_con['excl'],self.rna_bb['excl']))
-        # Dictionary for pairs for rna backbone beads
-        self.rnaBbPairDictC = dict(zip(self.rna_con['pair'],self.rna_bb['pair']))
-        
-        
-    # The following function returns the backbone bead for a given residue and                   
-    # secondary structure type.                                                                 
-    # 1. Check if the residue is DNA/RNA and return the whole backbone for those
-    # 2. Look up the proper dictionary for the residue                                          
-    # 3. Get the proper type from it for the secondary structure                                
-    # If the residue is not in the dictionary of specials, use the default                      
-    # If the secondary structure is not listed (in the residue specific                         
-    # dictionary) revert to the default.                                                        
-    def bbGetBead(self,r1,ss="C"):                                                               
-        if r1 in dnares3:
-            return self.dna_bb['atom']
-        elif r1 in rnares3:
-            return self.rna_bb['atom']
-        else:
-            sys.exit("This script supports only DNA or RNA.")
     
-    def bbGetBond(self,r,ca,ss):
-        # Retrieve parameters for each residue from tables defined above
-        if r[0] in dnares3:
-            return ca in self.dnaBbBondDictC.keys() and self.dnaBbBondDictC[ca] or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbBondDictC.keys() and self.rnaBbBondDictC[ca] or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
+class martini31nucleic(ForceField):
     
-    def bbGetAngle(self,r,ca,ss):
-        if r[0] in dnares3:
-            return ca in self.dnaBbAngleDictC.keys() and self.dnaBbAngleDictC[ca] or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbAngleDictC.keys() and self.rnaBbAngleDictC[ca] or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def bbGetExclusion(self,r,ca,ss):
-        if r[0] in dnares3:
-            return ca in self.dnaBbExclDictC.keys() and ' ' or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbExclDictC.keys() and ' ' or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def bbGetPair(self,r,ca,ss):
-        if r[0] in dnares3:
-            return ca in self.dnaBbPairDictC.keys() and ' ' or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbPairDictC.keys() and ' ' or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def bbGetDihedral(self,r,ca,ss):
-        # Retrieve parameters for each residue from table defined above
-        if r[0] in dnares3:
-            return ca in self.dnaBbDihDictC.keys() and self.dnaBbDihDictC[ca] or None
-        elif r[0] in rnares3:
-            return ca in self.rnaBbDihDictC.keys() and self.rnaBbDihDictC[ca] or None
-        else:
-            sys.exit("This script supports only DNA or RNA.")
-
-    def getCharge(self,atype,aname):
-        return self.charges.get(atype,self.bbcharges.get(aname,0))
+    # FF mapping
+    bb_mapping = nsplit("P OP1 OP2 O5' O3' O1P O2P", 
+                        "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'", 
+                        "C1' C2' O2' O4'")     
+    mapping = {
+        "A":  bb_mapping + nsplit(
+                        "C8",
+                        "N3 C4",
+                        "C2",
+                        "N1",
+                        "N6 C6 H61 H62",
+                        "N7 C5", ),
+        "C":  bb_mapping + nsplit(
+                        "C6",
+                        "O2",
+                        "N3",
+                        "N4 C4 H41 H42",
+                        "C2"),
+        "G":  bb_mapping + nsplit(
+                        "C8",
+                        "C4 N3",
+                        "C2 N2 H22 H21",
+                        "N1", 
+                        "O6",
+                        "C5 N7",
+                        "H1",
+                        "C6"),
+        "U":  bb_mapping + nsplit(
+                        "C6",
+                        "O2",
+                        "N3",
+                        "O4",
+                        "C2",
+                        "H3",
+                        "C4",),
+    }    
+    
+    ForceField.update_non_standard_mapping(mapping)
+    
+    
+    def __init__(self):
         
-    def messages(self):
-        '''Prints any force-field specific logging messages.'''
-        import logging
-        logging.warning('################################################################################')
-        logging.warning('This is a beta of Martini-nucleotide and should NOT be used for production runs.')
-        logging.warning('################################################################################')
-        pass
+        # parameters are defined here for the following (protein) forcefields:
+        self.name = 'martini31nucleic'
+        
+        # Charged types:
+        charges = {"TDU":0.5,   "TA1":0.4, "TA2":-0.3, "TA3":0.5, "TA4":-0.8, "TA5":0.6, "TA6":-0.4, 
+                                "TY1":0.0, "TY2":-0.5, "TY3":-0.6, "TY4":0.6, "TY5":0.5,
+                                "TG1":0.3, "TG2":0.0, "TG3":0.3, "TG4":-0.3, "TG5":-0.5, "TG6":-0.6, "TG7":0.3, "TG8":0.5,
+                                "TU1":0.0, "TU2":-0.5, "TU3":-0.5, "TU4":-0.5, "TU5":0.5, "TU6":0.5, "TU7":0.5,}  
+        self.charges = {key: value * 1.8 for key, value in charges.items()}
+        self.bbcharges = {"BB1":-1}                                                                                                      
+        
+        # Not all (eg Elnedyn) forcefields use backbone-backbone-sidechain angles and BBBB-dihedrals.
+        self.UseBBSAngles          = False 
+        self.UseBBBBDihedrals      = False
+        
+        ##################
+        # DNA PARAMETERS #
+        ##################
 
+        # DNA BACKBONE PARAMETERS
+        self.dna_bb = {
+            'atom'  : spl("Q0 SN0 SC2"),
+            'bond'  : [],         
+            'angle' : [],           
+            'dih'   : [],
+            'excl'  : [],
+            'pair'  : [],
+        }
+        # DNA BACKBONE CONNECTIVITY
+        self.dna_con  = {
+            'bond'  : [],
+            'angle' : [],
+            'dih'   : [],
+            'excl'  : [],
+            'pair'  : [],
+        }
 
+        self.bases = {}
+        self.base_connectivity = {}
+       
 
+        ##################
+        # RNA PARAMETERS # @ff
+        ##################
+
+        # RNA BACKBONE PARAMETERS TUT
+        self.rna_bb = {
+            'atom'  : spl("Q1 N4 N6"),    
+            'bond'  : [(1,  0.349, 18000),          
+                       (1,  0.377, 12000),
+                       (1,  0.240, 18000),
+                       (1,  0.412, 12000)],          
+            'angle' : [(10,  119.0,  27),       
+                       (10,  118.0, 140),
+                       (10,  138.0, 180)],        
+            'dih'   : [(3,    13,  -7, -25,  -6,  25, -2),  # (3,   10,  -8, 22, 8, -26, -6) # (3,   4,  -3, 9, 3, -10, -3)
+                       (1,     0,   6,  1),
+                       (1,   -112.0,   15,  1),],  # (1,     15.0,   5, 1)
+            'excl'  : [(), (), ()],
+            'pair'  : [],
+        }
+        # RNA BACKBONE CONNECTIVITY
+        self.rna_con  = {
+            'bond'  : [(0, 1),
+                       (1, 0),
+                       (1, 2),
+                       (2, 0)],
+            'angle' : [(0, 1, 0),
+                       (1, 0, 1),
+                       (0, 1, 2),],
+            'dih'   : [(0, 1, 0, 1),
+                       (1, 0, 1, 0),
+                       (1, 0, 1, 2),],
+            'excl'  : [(2, 0), (0, 2),],
+            'pair'  : [],
+        }
+        
+        a_itp, c_itp, g_itp, u_itp = ForceField.read_itps(rna_system, 'polar', 'new')
+
+        # ADENINE
+        mapping = [spl("TA1 TA2 TA3 TA4 TA5 TA6")]
+        connectivity, itp_params = martini31nucleic.itp_to_indata(a_itp)
+        parameters = mapping + itp_params
+        self.update_adenine(mapping, connectivity, itp_params)
+        
+        # CYTOSINE
+        mapping = [spl("TY1 TY2 TY3 TY4 TY5")]
+        connectivity, itp_params = martini31nucleic.itp_to_indata(c_itp)
+        parameters = mapping + itp_params
+        self.update_cytosine(mapping, connectivity, itp_params)
+        
+        # GUANINE
+        mapping = [spl("TG1 TG2 TG3 TG4 TG5 TG6 TG7 TG8")]
+        connectivity, itp_params = martini31nucleic.itp_to_indata(g_itp)
+        parameters = mapping + itp_params
+        self.update_guanine(mapping, connectivity, itp_params)
+        
+        # URACIL
+        mapping = [spl("TU1 TU2 TU3 TU4 TU5 TU6 TU7")]
+        connectivity, itp_params = martini31nucleic.itp_to_indata(u_itp)
+        parameters = mapping + itp_params
+        self.update_uracil(mapping, connectivity, itp_params)
+        
+        super().__init__()
+        
+    
 #########################
 ## 7 # ELASTIC NETWORK ##  -> @ELN <-
 #########################
@@ -1569,7 +1153,6 @@ def rubberBands(atomList,lowerBound,upperBound,decayFactor,decayPower,forceConst
         for bj,xj in atomList:
             # Mind the nm/A conversion -- This has to be standardized! Global use of nm?
             d2 = distance2(xi, xj) / 100
-            
             if d2 < u2:
                 dij  = math.sqrt(d2)
                 fscl = decayFunction(dij, lowerBound, decayFactor, decayPower)
@@ -1598,15 +1181,12 @@ pdbBoxLine  = "CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f P 1           1\n"
 def pdbBoxString(box):
     # Box vectors
     u, v, w  = box[0:3], box[3:6], box[6:9]
-
     # Box vector lengths
     nu,nv,nw = [math.sqrt(norm2(i)) for i in (u,v,w)]
-
     # Box vector angles
     alpha = nv*nw == 0 and 90 or math.acos(cos_angle(v,w))/d2r
     beta  = nu*nw == 0 and 90 or math.acos(cos_angle(u,w))/d2r
     gamma = nu*nv == 0 and 90 or math.acos(cos_angle(u,v))/d2r
-
     return pdbBoxLine % (10*norm(u),10*norm(v),10*norm(w),alpha,beta,gamma)
 
 
@@ -1679,44 +1259,6 @@ def pdbFrameIterator(streamIterator):
             atoms.append(pdbAtom(i))
     if atoms:
         yield "".join(title), atoms, box
-
-
-#----+---------+
-## B | GRO I/O |
-#----+---------+
-
-groline = "%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n"                                    
-
-def groBoxRead(a):    
-    b = [float(i) for i in a.split()] + 6*[0]             # Padding for rectangular boxes
-    return b[0], b[3], b[4], b[5], b[1], b[6], b[7], b[8], b[2]   # Return full definition xx,xy,xz,yx,yy,yz,zx,zy,zz
-
-def groAtom(a):
-    # In PDB files, there might by an insertion code. To handle this, we internally add
-    # constant to all resids. To be consistent, we have to do the same for gro files.
-    # 32 equal ord(' '), eg an empty insertion code
-    constant = 32<<20
-    #012345678901234567890123456789012345678901234567890
-    #    1PRN      N    1   4.168  11.132   5.291
-    ## ===> atom name,        res name,          res id,    chain,
-    return (a[10:15].strip(), a[5:10].strip(),   int(a[:5])+constant, " ", 
-    ##               x,                 y,                 z       
-            10*float(a[20:28]),10*float(a[28:36]),10*float(a[36:44]))
-
-# Simple GRO iterator
-def groFrameIterator(streamIterator):
-    while True:
-        try:
-            title = streamIterator.next()
-        except StopIteration:
-            break
-        natoms = streamIterator.next().strip()
-        if not natoms:
-            break
-        natoms = int(natoms)
-        atoms  = [groAtom(streamIterator.next())  for i in range(natoms)] 
-        box    = groBoxRead(streamIterator.next())
-        yield title, atoms, box
 
 
 #----+-------------+
@@ -1822,25 +1364,25 @@ def residueDistance2(r1,r2):
 
 
 # Increased the cut-off from 2.5 to 3.0 for DNA. Should check that no problems arise for proteins.
-def breaks(residuelist, selection=("N","CA","C","P","C2'","C3'","O3'","C4'","C5'","O5'"), cutoff=3.0):
+def breaks(residuelist, selection=("P","C2'","C3'","O3'","C4'","C5'","O5'"), cutoff=3.0):
     # Extract backbone atoms coordinates
     bb = [[atom[4:] for atom in residue if atom[0] in selection] for residue in residuelist]
     # Needed to remove waters residues from mixed residues.
     bb = [res for res in bb if res != []]
-
     # We cannot rely on some standard order for the backbone atoms.
     # Therefore breaks are inferred from the minimal distance between
     # backbone atoms from adjacent residues.
-    return [ i+1 for i in range(len(bb)-1) if residueDistance2(bb[i],bb[i+1]) > cutoff]
+    breaks =  [ i+1 for i in range(len(bb)-1) if residueDistance2(bb[i],bb[i+1]) > cutoff]
+    return breaks
 
 
-def contacts(atoms,cutoff=5):
+def contacts(atoms, cutoff=5):
     rla = range(len(atoms))
     crd = [atom[4:] for atom in atoms]
     return [(i,j) for i in rla[:-1] for j in rla[i+1:] 
             if distance2(crd[i],crd[j]) < cutoff]
 
-def add_dummy(beads,dist=0.11,n=2):
+def add_dummy(beads, dist=0.11, n=2):
     # Generate a random vector in a sphere of -1 to +1, to add to the bead position
     v    = [random.random()*2.-1,random.random()*2.-1,random.random()*2.-1]
     # Calculated the length of the vector and divide by the final distance of the dummy bead
@@ -1856,25 +1398,23 @@ def add_dummy(beads,dist=0.11,n=2):
         m *= -2
     return beads
 
+
 def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
     chainIndex = range(len(chains))
-
     if 'all' in m_list:
         logging.info("All chains will be merged in a single moleculetype.")
         return chainIndex, [chainIndex]
-
     chainID = [chain._id for chain in chains]
-
     # Mark the combinations of chains that need to be merged
     merges = []
     if m_list:
         # Build a dictionary of chain IDs versus index
         # To give higher priority to top chains the lists are reversed 
         # before building the dictionary
-        chainIndex.reverse()
-        chainID.reverse()
-        dct = dict(zip(chainID,chainIndex))
-        chainIndex.reverse()
+        chainIndex = list(reversed(chainIndex))
+        chainID = list(reversed(chainID))
+        dct = dict(zip(chainID, chainIndex))
+        chainIndex = list(reversed(chainIndex))
         # Convert chains in the merge_list to numeric, if necessary
         # NOTE The internal numbering is zero-based, while the 
         # command line chain indexing is one-based. We have to add
@@ -1882,13 +1422,12 @@ def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
         # the numbering from the command line, but then from the 
         # result we need to subtract one again to make indexing 
         # zero-based
-        merges = [[(i.isdigit() and int(i) or dct[i]+1)-1 for i in j] for j in m_list]
+        # merges = [[(i.isdigit() and int(i) or dct[i]+1)-1 for i in j] for j in m_list]
+        merges = [[0, 1]]
         for i in merges:
             i.sort()
-
     # Rearrange merge list to a list of pairs
     pairs = [(i[j],i[k]) for i in merges for j in range(len(i)-1) for k in range(j+1,len(i))]
-
     # Check each combination of chains for connections based on
     # ss-bridges, links and distance restraints
     for i in chainIndex[:-1]:
@@ -1904,33 +1443,8 @@ def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
                     break
             if (i,j) in pairs:
                 continue
-            # Check whether any cystine bond given links these two groups
-            #for a,b in s_list:
-            #    if ((a in chains[i] and b in chains[j]) or 
-            #        (a in chains[j] and b in chains[i])):
-            #        logging.info("Merging chains %d and %d to allow cystine bridge"%(i+1,j+1))
-            #        pairs.append( i<j and (i,j) or (j,i) )
-            #        break
-            #if (i,j) in pairs:
-            #    continue
-            # Check for cystine bridges based on distance
-            if not ss_cutoff:
-                continue
-            # Get SG atoms from cysteines from either chain
-            # Check this pair of chains
-            for cysA in chains[i]["CYS"]:
-                for cysB in chains[j]["CYS"]:
-                    d2 = distance2(cysA["SG"][4:7],cysB["SG"][4:7]) 
-                    if d2 <= ss_cutoff:
-                        logging.info("Found SS contact linking chains %d and %d (%f nm)"%(i+1,j+1,math.sqrt(d2)/10))
-                        pairs.append((i,j))
-                    break
-                if (i,j) in pairs:
-                    break
-
     # Sort the combinations
     pairs.sort(reverse=True)
-
     merges = []
     while pairs:
         merges.append(set([pairs[-1][0]]))
@@ -1942,21 +1456,16 @@ def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
     merges = [list(i) for i in merges]
     for i in merges:
         i.sort()
-
     order = [j for i in merges for j in i]
-
     if merges:
         logging.warning("Merging chains.")
         logging.warning("This may change the order of atoms and will change the number of topology files.")
         logging.info("Merges: " + ", ".join([str([j+1 for j in i]) for i in merges]))
-
     if len(merges) == 1 and len(merges[0]) > 1 and set(merges[0]) == set(chainIndex):
         logging.info("All chains will be merged in a single moleculetype")
-
     # Determine the order for writing; merged chains go first
     merges.extend([[j] for j in chainIndex if not j in order])
     order.extend([j for j in chainIndex if not j in order])
-
     return order, merges
 
 
@@ -1968,7 +1477,7 @@ class Chain:
     # be handled accordingly.
     _attributes = ("residues","sequence","seq","ss","ssclass","sstypes")
 
-    def __init__(self,options,residuelist=[],name=None,multiscale=False):
+    def __init__(self,options, residuelist=[], name=None, multiscale=False):
         self.residues   = residuelist
         self._atoms     = [atom[:3] for residue in residuelist for atom in residue]
         self.sequence   = [residue[0][1] for residue in residuelist]
@@ -1979,7 +1488,7 @@ class Chain:
         self.ssclass    = ""
         self.sstypes    = ""
         self.mapping    = []
-        self.multiscale = multiscale
+        self.multiscale = False
         self.options    = options
 
         # Unknown residues
@@ -1995,7 +1504,8 @@ class Chain:
         # BREAKS: List of indices of residues where a new fragment starts
         # Only when polymeric (protein, DNA, RNA, ...)
         # For now, let's remove it for the Nucleic acids...
-        self.breaks     = self.type() in ("Protein","Mixed") and breaks(self.residues) or []
+        # self.breaks     = self.type() in ("Protein", "Mixed", "Nucleic") and breaks(self.residues) or []
+        self.breaks     = breaks(self.residues)
 
         # LINKS:  List of pairs of pairs of indices of linked residues/atoms
         # This list is used for cysteine bridges and peptide bonds involving side chains
@@ -2027,8 +1537,9 @@ class Chain:
         newchain.breaks     = self.breaks + [shift] + [i+shift for i in other.breaks]
         newchain.links      = self.links + [((i[0]+shift,i[1]),(j[0]+shift,j[1])) for i,j in other.links]
         newchain.natoms     = len(newchain.atoms())
-        newchain.multiscale = self.multiscale or other.multiscale
+        newchain.multiscale = False
         # Return the merged chain
+        print(newchain.breaks)
         return newchain
 
     def __eq__(self,other):
@@ -2036,7 +1547,7 @@ class Chain:
                 self.ss         == other.ss     and
                 self.breaks     == other.breaks and
                 self.links      == other.links  and
-                self.multiscale == other.multiscale)
+                self.multiscale == False)
 
     # Extract a residue by number or the list of residues of a given type
     # This facilitates selecting residues for links, like chain["CYS"]
@@ -2072,7 +1583,7 @@ class Chain:
         ch_sta,ch_end = newchain.residues[0][0][2],newchain.residues[-1][0][2]
         newchain.breaks     = [crack for crack in self.breaks if ch_sta < (crack<<20) < ch_end]
         newchain.links     = [link for link in self.links if ch_sta < (link<<20) < ch_end]
-        newchain.multiscale = self.multiscale
+        newchain.multiscale = False
         newchain.natoms     = len(newchain.atoms())
         newchain.type()
         # Return the chain slice
@@ -2140,15 +1651,15 @@ class Chain:
             name.append(str(self._id))
         return "_".join(name)
 
-    def set_ss(self,ss,source="self"):
+    def set_ss(self, ss, source="self"):
         if len(ss) == 1:
             self.ss = len(self)*ss
         else:
             self.ss = ss
         # Infer the Martini backbone secondary structure types
-        self.ssclass, self.sstypes = ssClassification(self.ss,source)
-
-    def dss(self,method=None,executable=None):
+        self.ssclass, self.sstypes = ssClassification(self.ss, source)
+        
+    def dss(self, method=None, executable=None):
         # The method should take a list of atoms and return a 
         # string of secondary structure classifications       
         if self.type() == "Protein":
@@ -2172,7 +1683,7 @@ class Chain:
 
 
     # XXX The following (at least the greater part of it) should be made a separate function, put under "MAPPING"
-    def cg(self,force=False,com=False,dna=False):
+    def cg(self, force=False, com=False, dna=False):
         # Generate the coarse grained structure
         # Set the b-factor field to something that reflects the secondary structure
         
@@ -2185,7 +1696,7 @@ class Chain:
         bb       = [1]
         fail     = False
         previous = ''
-        for residue,rss,resname in zip(self.residues,self.sstypes,self.sequence):
+        for residue, rss, resname in zip(self.residues, self.sstypes, self.sequence):
             # For DNA we need to get the O3' to the following residue when calculating COM
             # The force and com options ensure that this part does not affect itp generation or anything else
             if com:
@@ -2204,10 +1715,14 @@ class Chain:
                     del residue[store]
 
             # Check if residues names has changed, for example because user has set residues interactively.
-            residue = [(atom[0],resname)+atom[2:] for atom in residue]
+            residue = [(atom[0], resname) + atom[2:] for atom in residue]
             if residue[0][1] in ("SOL","HOH","TIP"):
                 continue
-            if not residue[0][1] in CoarseGrained.mapping.keys():
+            
+            str2ff = {'martini30nucleic': martini30nucleic, 'martini31nucleic': martini31nucleic}
+            ffname = options['ForceField'].name
+            ff = str2ff[ffname]
+            if not residue[0][1] in ff.mapping.keys():
                 logging.warning("Skipped unknown residue %s\n"%residue[0][1])
                 continue
             # Get the mapping for this residue
@@ -2218,10 +1733,10 @@ class Chain:
             # an error
             try:
                 # The last residue, in the case of a polBB has only a CA-positioned bead.
-                beads, ids = map(residue)
-                beads      = zip(CoarseGrained.names[residue[0][1]],beads,ids)
+                beads, ids = map(residue, ff)
+                beads      = zip(CoarseGrained.names[residue[0][1]], beads, ids)
             except ValueError:
-                logging.error("Too many atoms missing from residue %s %d(ch:%s):",residue[0][1],residue[0][2]>>20,residue[0][3])
+                logging.error("Too many atoms missing from residue %s %d(ch:%s):", residue[0][1], residue[0][2]>>20, residue[0][3])
                 logging.error(repr([ i[0] for i in residue ]))
                 fail = True
 
@@ -2451,7 +1966,7 @@ class Dihedral(Bonded):
         self.comments   = "%s(%s)-%s(%s)-%s(%s)-%s(%s)" % (r[0],ss[0],r[1],ss[1],r[2],ss[2],r[3],ss[3])
         self.category   = kwargs.get("category")
         if not self.parameters:
-            self.parameters = self.options['ForceField'].bbGetDihedral(r,ca,ss)
+            self.parameters = self.options['ForceField'].bbGetDihedral(r, ca, ss)
         # If there are more than two parameters given, user HAS TO define the diheral type as the first one.
         # This is to allow use of any gromacs dihedral type.
         if self.parameters and len(self.parameters)>2:
@@ -2501,7 +2016,7 @@ class Topology:
         # For multiscaling we have to keep track of the number of 
         # real atoms that correspond to the beads in the topology
         self.natoms      = 0        
-        self.multiscale  = options['multi']
+        self.multiscale  = False
 
         if options:
             self.options = options
@@ -2512,7 +2027,7 @@ class Topology:
             # Returning an empty instance
             return
         elif isinstance(other,Topology):
-            for attrib in ["atoms","vsites","bonds","angles","dihedrals","impropers","constraints","posres"]:
+            for attrib in ["atoms", "vsites", "bonds", "angles", "dihedrals", "impropers", "constraints", "posres"]:
                 setattr(self,attrib,getattr(other,attrib,[]))
         elif isinstance(other,Chain):
             if other.type() == "Protein" and other.options['ForceField'].name in ['polbb']:
@@ -2533,11 +2048,11 @@ class Topology:
             other = Topology(other)
         shift     = len(self.atoms)
         last      = self.atoms[-1]
-        atoms     = zip(*other.atoms)
+        atoms     = list(zip(*other.atoms))
         atoms[0]  = [i+shift for i in atoms[0]]   # Update atom numbers
         atoms[2]  = [i+last[2] for i in atoms[2]] # Update residue numbers
         atoms[5]  = [i+last[5] for i in atoms[5]] # Update charge group numbers
-        atoms     = zip(*atoms)
+        atoms     = list(zip(*atoms))
         # The zippings above kills all atoms with specified mass (9 long lists) 
         # Let's add some band aid to fix it...
         # This of course doesn't work if there was a secondary structure to keep
@@ -2546,7 +2061,7 @@ class Topology:
             if atoms[i][-1] == 0:
                 atoms[i] = atoms[i] + ('c',)
         self.atoms.extend(atoms)
-        for attrib in ["bonds","vsites","angles","dihedrals","impropers","constraints","posres"]:
+        for attrib in ["bonds", "vsites", "exclusions", "angles", "dihedrals", "impropers", "constraints", "posres"]:
             getattr(self,attrib).extend([source+shift for source in getattr(other,attrib)])
         return self
 
@@ -2558,16 +2073,13 @@ class Topology:
         return out
 
     def __str__(self):
-        if self.multiscale:
-             out  = [ '; MARTINI (%s) Multiscale virtual sites topology section for "%s"' %(self.options['ForceField'].name,self.name) ]
-        else:
-             string  = '; MARTINI (%s) Coarse Grained topology file for "%s"' %(self.options['ForceField'].name, self.name)
-             string += '\n; Created by py version %s \n; Using the following options:  ' %(self.options['Version'])
-             string += ' '.join(self.options['Arguments'])
-             string += '\n; #####################################################################################################'
-             string += '\n; This topology is based on development beta of Martini DNA and should NOT be used for production runs.'
-             string += '\n; #####################################################################################################'
-             out  = [ string ]
+        string  = '; MARTINI (%s) Coarse Grained topology file for "%s"' %(self.options['ForceField'].name, self.name)
+        string += '\n; Created by py version %s \n; Using the following options:  ' %(self.options['Version'])
+        string += ' '.join(self.options['Arguments'])
+        string += '\n; #####################################################################################################'
+        string += '\n; This topology is based on development beta of Martini DNA and should NOT be used for production runs.'
+        string += '\n; #####################################################################################################'
+        out  = [ string ]
         if self.sequence:
             out += [
                 '; Sequence:',
@@ -2664,16 +2176,6 @@ class Topology:
             out.append('\n[ exclusions ]')
             out.extend(exclusions)
 
-        if self.multiscale:
-            out += ['\n;\n; Coarse grained to atomistic mapping\n;',
-                    '#define mapping virtual_sitesn',
-                    '[ mapping ]']
-            for i,j in self.mapping:
-                out.append( ("%5d     2 "%i)+" ".join(["%5d"%k for k in j]) )
-            
-            logging.info('Created virtual sites section for multiscaled topology')
-            return "\n".join(out)
-
         # Angles
         out.append("\n[ angles ]")
         out.append("; Backbone angles")
@@ -2719,23 +2221,11 @@ class Topology:
             # used to construct the coarse grained system from the atomistic one.
             # The function argument "mapping" could be used to use a default 
             # mapping scheme in stead, like the mapping for the GROMOS96 force field.
-            mapping = mapping           or chain.mapping
-            multi   = self.options['multi']  or chain.multiscale
-            self.secstruc = chain.sstypes or len(chain)*"C"
+            mapping = mapping or chain.mapping
+            multi   = False
+            self.secstruc = chain.sstypes or len(chain)*"F"
             self.sequence = chain.sequence
-            # If anything hints towards multiscaling, do multiscaling
-            self.multiscale = self.multiscale or chain.multiscale or multi
-            if self.multiscale:
-                shift        = self.natoms
-                self.natoms += len(chain.atoms())
-        elif not secstruc:
-            # If no secondary structure is provided, set all to coil
-            chain         = None
-            self.secstruc = len(self.sequence)*"C"
-        else:
-            # If a secondary structure is provided, use that. chain is none.
-            chain         = None
-            self.secstruc = secstruc
+            self.multiscale = False
 
         logging.debug(self.secstruc)
         logging.debug(self.sequence)
@@ -2794,9 +2284,12 @@ class Topology:
                 # Exclusions iterate over the second atom.
                 # and then checked for each pair.
                 for l in frg[ind:ind+3]:
-                    excl = Exclusion((k,l), category="BB", options=self.options,)
-                    if excl:
-                        self.exclusions.append(excl) 
+                    # excl = Exclusion((k,l), category="BB", options=self.options,)
+                    # if excl:
+                    #     self.exclusions.append(excl) 
+                    if l > k:
+                        excl = Exclusion((k,l), category="BB", options=self.options,)
+                        self.exclusions.append(excl)
 
                 # Pairs iterate over the second atom.
                 # and then checked for each pair.
@@ -2856,8 +2349,8 @@ class Topology:
                         self.bonds.append(Bond(options=self.options,atoms=atids,parameters=[par[1]],type=par[0],
                                                comments=resname, category="Constraint"))
                     else:
-                        self.bonds.append(Bond(options=self.options,atoms=atids,parameters=par[1:],type=par[0],
-                                               comments=resname,category="SC"))
+                        bond = Bond(options=self.options,atoms=atids,parameters=par[1:],type=par[0], comments=resname,category="SC")
+                        self.bonds.append(bond)
                     # Shift the atom numbers
                     self.bonds[-1] += atid
 
@@ -2885,35 +2378,25 @@ class Topology:
                 # Side Chain V-Sites
                 for atids, par in zip(vsite_con, vsite_par):
                     self.vsites.append(Vsite(options=self.options, atoms=atids, parameters=par, comments=resname, category="SC"))
-                    # Shift the atom numbers
-                    self.vsites[-1] += atid
+                    self.vsites[-1] += atid # Shift the atom numbers
 
-                # XXX Should not be hard coded here!
-                # Currently DNA needs exclusions for the base
-                # The loop runs over the first backbone bead so 3 needs to be added to the indices
-                # for i in range(len(scatoms)):
-                #    for j in range(i+1, len(scatoms)):
-                #        self.exclusions.append(Exclusion(options=self.options,atoms=(i+atid+3,j+atid+3),comments='%s(%s)'%(resname,resi),parameters=(None,)))
-                # The above one is ugly hack if only one connectivity record can be used
-                # The one below is equally ugly but works for now
-                for atids,par in zip(excl_con, excl_par):
-                    self.exclusions.append(Exclusion(options=self.options, atoms=atids, parameters=' '))
-                    # Shift the atom numbers
-                    self.exclusions[-1] += atid
-
+                # Side Chain Exclusions
+                for atids, par in zip(excl_con, excl_par):
+                    exclusion = Exclusion(options=self.options, atoms=atids, parameters=' ', category="SC")
+                    self.exclusions.append(exclusion)
+                    self.exclusions[-1] += atid  # Shift the atom numbers
+                
                 # Pairs
-                for atids,par in zip(pair_con,pair_par):
-                    self.pairs.append(Pair(options=self.options,atoms=atids,parameters=' '))
-                    # Shift the atom numbers
-                    self.pairs[-1] += atid
+                for atids,par in zip(pair_con, pair_par):
+                    pair = Pair(options=self.options, atoms=atids, parameters=' ')
+                    self.pairs.append(pair)
+                    self.pairs[-1] += atid # Shift the atom numbers
                 
                 # All residue atoms
                 counter = 0  # Counts over beads
                 # Need to tweak this to get all the backbone beads to the list with the side chain
                 bbbset = [bbMulti[count], bbMulti[count+1], bbMulti[count+2]]
                 for atype,aname in zip(bbbset+list(scatoms),CoarseGrained.residue_bead_names_dna):
-                    if self.multiscale:
-                        atype,aname = "v"+atype,"v"+aname
                     #self.atoms.append((atid,atype,resi,resname,aname,atid,self.options['ForceField'].getCharge(atype,aname),ss))
                     if atid in [vSite.atoms[0] for vSite in self.vsites]:
                         charge = self.options['ForceField'].getCharge(atype,aname)
@@ -3052,20 +2535,6 @@ def main(options):
             # TER statements are also interpreted as chain separators
             # A chain may have breaks in which case the breaking residues are flagged
             chains = [ Chain(options, [i for i in residues(chain)]) for chain in pdbChains(atoms) ] 
-        else:
-            # The GRO file does not define chains. Here breaks in the backbone are
-            # interpreted as chain separators. 
-            residuelist = [residue for residue in residues(atoms)]
-            # The breaks are indices to residues
-            broken = breaks(residuelist)
-            # Reorder, such that each chain is specified with (i,j,k)
-            # where i and j are the start and end of the chain, and 
-            # k is a chain identifier
-            chains = zip([0]+broken,broken+[len(residuelist)],range(len(broken)+1))
-            chains = [ Chain(options,residuelist[i:j],name=chr(65+k)) for i,j,k in chains ]
-    
-        for chain in chains:
-            chain.multiscale = "all" in options['multi'] or chain._id in options['multi']
             
         # Check the chain identifiers
         if model == 1 and len(chains) != len(set([i._id for i in chains])):
@@ -3073,52 +2542,17 @@ def main(options):
             # PDB file have the same chain ID. The warning pertains to PDB files only, 
             # since chains from GRO files get a unique chain identifier assigned.
             logging.warning("Several chains have identical chain identifiers in the PDB file.")
-    
-        # Check if chains are of mixed type. If so, split them.
-        # Note that in some cases HETATM residues are part of a 
-        # chain. This will get problematic. But we cannot cover
-        # all, probably.
-        # if not options['MixedChains']:
-        #     demixedChains = []
-        #     for chain in chains:
-        #         demixedChains.extend(chain.split())
-        #     chains = demixedChains
 
         n = 1
         logging.info("Found %d chains:"%len(chains))
         for chain in chains:
             logging.info("  %2d:   %s (%s), %d atoms in %d residues."%(n, chain._id, chain._type, chain.natoms, len(chain)))
             n += 1
-        # Check all chains
-        keep = []
-        for chain in chains:
-            if chain.type() == "Water":
-                logging.info("Removing %d water molecules (chain %s)."%(len(chain), chain._id))
-            elif chain.type() in ("Protein","Nucleic"):
-                keep.append(chain)
-            # This is currently not active:
-            elif options['RetainHETATM']:
-                keep.append(chain)
-            else:
-                logging.info("Removing HETATM chain %s consisting of %d residues."%(chain._id, len(chain)))
-        chains = keep
-
-        # Here we interactively check the charge state of resides
-        # Can be easily expanded to residues other than HIS
-        for chain in chains:
-            for i,resname in enumerate(chain.sequence):
-                 if resname == 'HIS' and options['chHIS']:
-                     choices = {0:'HIH',1:'HIS'}
-                     choice = getChargeType(resname,i,choices)
-                     chain.sequence[i] = choice
-
-    
 
         # Check which chains need merging
         if model == 1:
             order, merge = check_merge(chains, options['mergeList'], options['linkList'], options['CystineCheckBonds'] and options['CystineMaxDist2'])
     
-
         # Get the total length of the sequence
         seqlength = sum([len(chain) for chain in chains])
         logging.info('Total size of the system: %s residues.'%seqlength)
@@ -3130,52 +2564,12 @@ def main(options):
             for chain in chains:
                 chain.set_ss("F")
                 ss += chain.ss
-        elif options["-ss"]:
-            # XXX We need error-catching here, 
-            # in case the file doesn't excist, or the string contains bogus.
-            # If the string given for the sequence consists strictly of upper case letters
-            # and does not appear to be a file, assume it is the secondary structure
-            ss = options["-ss"].value.replace('~','L').replace(' ','L')
-            if ss.isalnum() and ss.isupper() and not os.path.exists(options["-ss"].value):
-                ss = options["-ss"].value
-                logging.info('Secondary structure read from command-line:\n'+ss)
-            else:
-                # There ought to be a file with the name specified
-                ssfile = [ i.strip() for i in open(options["-ss"].value) ]
-        
-                # Try to read the file as a Gromacs Secondary Structure Dump
-                # Those have an integer as first line
-                if ssfile[0].isdigit():
-                    logging.info('Will read secondary structure from file (assuming Gromacs ssdump).')
-                    ss = "".join([ i for i in ssfile[1:] ])
-                else:
-                    # Get the secondary structure type from DSSP output
-                    logging.info('Will read secondary structure from file (assuming DSSP output).')
-                    pss = re.compile(r"^([ 0-9]{4}[0-9]){2}")
-                    ss  = "".join([i[16] for i in open(options["-ss"].value) if re.match(pss,i)])        
-            
             # Now set the secondary structure for each of the chains
             sstmp = ss
             for chain in chains:
                 ln = min(len(sstmp),len(chain)) 
                 chain.set_ss(sstmp[:ln])
                 sstmp = ss[:ln]                         
-        else:
-            if options["-dssp"]:
-                method, executable = "dssp", options["-dssp"].value
-            #elif options["-pymol"]:
-            #    method, executable = "pymol", options["-pymol"].value
-            else:
-                logging.warning("No secondary structure or determination method speficied. Protein chains will be set to 'COIL'.")
-                method, executable = None, None
-        
-            for chain in chains:
-                ss += chain.dss(method, executable)
-        
-            # Used to be: if method in ("dssp","pymol"): but pymol is not supported
-            if method in ["dssp"]:
-                logging.debug('%s determined secondary structure:\n'%method.upper()+ss)
-        
         # Collect the secondary structure classifications for different frames
         ssTotal.append(ss)    
     
@@ -3220,142 +2614,9 @@ def main(options):
         # Gather cysteine sulphur coordinates
         cyslist = [cys["SG"] for chain in chains for cys in chain["CYS"]]
         cysteines.append([cys for cys in cyslist if cys])
-    
         model += 1
     
-    
-    # Write the index file if requested.
-    # Mainly of interest for multiscaling.
-    # Could be improved by adding separte groups for BB, SC, etc.
-    if options["-n"].value:
-        logging.info("Writing index file.")
-        # Lists for All-atom, Virtual sites and Coarse Grain.
-        NAA, NVZ, NCG = [], [], []
-        atid = 1
-        for i in order:
-            ci = chains[i]
-            coarseGrained = ci.cg(force=True)
-            if ci.multiscale:
-                NAA.extend([" %5d"%(a+atid) for a in range(ci.natoms)]) 
-                atid += ci.natoms
-            if coarseGrained:
-                # For DNA there is not first bead on 5' end and thus one bead less.
-                if ci.type() == 'Nucleic':
-                    if ci.multiscale:
-                        NVZ.extend([" %5d"%(a+atid) for a in range(len(coarseGrained)-1)])
-                    else:
-                        NCG.extend([" %5d"%(a+atid) for a in range(len(coarseGrained)-1)])
-                    atid += len(coarseGrained)-1               
-                else:
-                    if ci.multiscale:
-                        NVZ.extend([" %5d"%(a+atid) for a in range(len(coarseGrained))])
-                    else:
-                        NCG.extend([" %5d"%(a+atid) for a in range(len(coarseGrained))])
-                    atid += len(coarseGrained)               
-        outNDX   = open(options["-n"].value,"w")
-        outNDX.write("\n[ AA ]\n"+"\n".join([" ".join(NAA[i:i+15]) for i in range(0,len(NAA),15)]))
-        outNDX.write("\n[ VZ ]\n"+"\n".join([" ".join(NVZ[i:i+15]) for i in range(0,len(NVZ),15)]))
-        outNDX.write("\n[ CG ]\n"+"\n".join([" ".join(NCG[i:i+15]) for i in range(0,len(NCG),15)]))
-        outNDX.close()
 
-    
-    # Write the index file for mapping AA trajectory if requested
-    if options["-nmap"].value:
-        logging.info("Writing trajectory index file.")
-        atid = 1
-        outNDX = open(options["-nmap"].value,"w")
-        # Write the list of bead numbers for mapping AA trajectories
-        if options["-seq"].value:
-            logging.info("Writing bead number list.")
-            outSEQ = open(options["-seq"].value,"w")
-            counter = 0
-        # Get all AA atoms as lists of atoms in residues
-        # First we skip hetatoms and unknowns then iterate over beads
-        # DNA requires some modifications for 5' end and O3' atoms, variables for that.
-        current_chain = 0
-        ci = chains[current_chain]
-        atom_limit = ci.natoms
-        chain_residue = 0
-        o3_shift = ''
-        for i_count, i in enumerate(residues(atoms)):
-            if i[0][1] in ("SOL","HOH","TIP"):
-                continue
-            if not i[0][1] in CoarseGrained.mapping.keys():
-                continue
-            nra = 0
-            names = [j[0] for j in i]
-            shift = 0
-            # This gives out a list of atoms in residue, each tuple has other 
-            # stuff in it that's needed elsewhere so we just take the last 
-            # element which is the atom index (in that residue)
-            for j_count, j in enumerate(mapIndex(i)):
-                if atid == atom_limit + 1:
-                    current_chain += 1
-                    ci = chains[current_chain]
-                    atom_limit += ci.natoms
-                    chain_residue = 0
-                # In DNA the first bead of 5' end is omitted, this checks for that.
-                # Also, the O3' atom is mapped together with atoms from the next residue.
-                # This stores it until we get to the next residue.
-                if ci.type() == 'Nucleic' and chain_residue == 0:
-                    if j_count == 0:
-                        for k in j:
-                            if names[k[2]] == "O3'":
-                                o3_shift = k[2]+atid
-                            if k[2] > shift:
-                                shift = k[2]
-                    # On the first residue of chain the bead numbers are shifted down by one.
-                    else:
-                        outNDX.write('[ Bead %i of residue %i ]\n'%(j_count, i_count+1))
-                        line = ''
-                        for k in j:
-                            if names[k[2]] == "O3'":
-                                line += '%s '%(str(o3_shift)) 
-                                o3_shift = k[2]+atid
-                            else:
-                                line += '%i '%(k[2]+atid) 
-                            if k[2] > shift:
-                                shift = k[2]
-                        line += '\n'
-                        outNDX.write(line)
-                        if options["-seq"].value:
-                            outSEQ.write(str(counter) + '\n')
-                            counter += 1
-                # For all DNA residues the O3' atoms need to be put on the next residue.
-                elif ci.type() == 'Nucleic':
-                    outNDX.write('[ Bead %i of residue %i ]\n'%(j_count+1, i_count+1))
-                    line = ''
-                    for k in j:
-                        if names[k[2]] == "O3'":
-                            line += '%s '%(str(o3_shift)) 
-                            o3_shift = k[2]+atid
-                        else:
-                            line += '%i '%(k[2]+atid) 
-                        if k[2] > shift:
-                            shift = k[2]
-                    line += '\n'
-                    outNDX.write(line)
-                    if options["-seq"].value:
-                        outSEQ.write(str(counter) + '\n')
-                        counter += 1
-                # Other types behave normally.
-                else:
-                    outNDX.write('[ Bead %i of residue %i ]\n'%(j_count+1,i_count+1))
-                    line = ''
-                    for k in j:
-                        line += '%i '%(k[2]+atid) 
-                    line += '\n'
-                    outNDX.write(line)
-                    if options["-seq"].value:
-                        outSEQ.write(str(counter) + '\n')
-                        counter += 1
-            atid += shift+1
-            chain_residue += 1
-        outNDX.close()
-        if options["-seq"].value:
-            outSEQ.close()
-
-    
     # Evertything below here we only need, if we need to write a Topology
     if options['-o']:
         # Collect the secondary structure stuff and decide what to do with it
@@ -3442,17 +2703,6 @@ def main(options):
                 mcg, coords = zip(*[(j[:4],j[4:7]) for m in mol for j in m.cg(force=True)])
                 mcg         = list(mcg)
         
-                # Run through the link list and add connections (links = cys bridges or hand specified links)
-                for atomA, atomB, bondlength, forceconst in options['linkListCG']:
-                    if bondlength == -1 and forceconst == -1:
-                        bondlength, forceconst = options['ForceField'].special[(atomA[:2],atomB[:2])]
-                    # Check whether this link applies to this group
-                    atomA = atomA in mcg and mcg.index(atomA)+1
-                    atomB = atomB in mcg and mcg.index(atomB)+1
-                    if atomA and atomB:
-                        cat = (mcg[atomA][1] == "CYS" and mcg[atomB][1] == "CYS") and "Cystine" or "Link"
-                        top.bonds.append(Bond((atomA,atomB),options=options,type=1,parameters=(bondlength,forceconst),category=cat))
-        
                 # Elastic Network
                 # The elastic network is added after the topology is constructed, since that
                 # is where the correct atom list with numbering and the full set of 
@@ -3492,23 +2742,6 @@ def main(options):
                 destination = options["-o"] and open(moleculeTypes[mol]+".itp",'w') or sys.stdout
                 destination.write(str(top))        
 
-                # If index files for parameterization are needed, print them here
-                # This will write out separate index files for bonds, angles and dihedrals
-                if options["-bmap"].value:
-                    logging.info("Writing index file for bonded terms.")
-                    b_out, a_out, d_out = top.ndx(cumulative_atoms)
-                    # Make sure old files are overwritten
-                    if cumulative_atoms == 0:
-                        outB = open(options["-bmap"].value+'-bonds.ndx',"w")
-                        outA = open(options["-bmap"].value+'-angles.ndx',"w")
-                        outD = open(options["-bmap"].value+'-dihedrals.ndx',"w")
-                    else:
-                        outB = open(options["-bmap"].value+'-bonds.ndx',"a")
-                        outA = open(options["-bmap"].value+'-angles.ndx',"a")
-                        outD = open(options["-bmap"].value+'-dihedrals.ndx',"a")
-                    outB.write(b_out); outA.write(a_out); outD.write(d_out)
-                    outB.close(); outA.close(); outD.close()
-        
                 itp += 1
         
             # Check whether other chains are equal to this one 
@@ -3525,48 +2758,7 @@ def main(options):
             cumulative_atoms += len(top.atoms)
         
         logging.info('Written %d ITP file%s'%(itp,itp>1 and "s" or ""))
-                
-        # WRITING THE MASTER TOPOLOGY
-        # Output stream
-        top  = options["-o"] and open(options['-o'].value,'w') or sys.stdout
-        
-        # ITP file listing
-        itps = '\n'.join(['#include "%s.itp"'%molecule for molecule in set(moleculeTypes.values())])
-        
-        # Molecule listing
-        logging.info("Output contains %d molecules:"%len(molecules))
-        n = 1
-        for molecule in molecules:
-            chainInfo = (n, moleculeTypes[molecule], len(molecule)>1 and "s" or " ", " ".join([i._id for i in molecule]))
-            logging.info("  %2d->  %s (chain%s %s)"%chainInfo)
-            n += 1
-        molecules   = '\n'.join(['%s \t 1'%moleculeTypes[molecule] for molecule in molecules])
-        
-        # Set a define if we are to use rubber bands
-        useRubber   = options['ElasticNetwork'] and "#define RUBBER_BANDS" or ""
        
-        # XXX Specify a better, version specific base-itp name.
-        # Do not set a define for position restrains here, as people are more used to do it in mdp file?
-        top.write(
-'''#include "martini.itp"
-    
-%s
-  
-%s
-    
-[ system ]
-; name
-Martini system from %s
-    
-[ molecules ]
-; name        number
-%s''' % (useRubber, itps, options["-f"] and options["-f"].value or "stdin", molecules))
-    
-        logging.info('Written topology files')
-    
-    # Maybe there are forcefield specific log messages?
-    options['ForceField'].messages()
-
     # The following lines are always printed (if no errors occur).
     print("\n\tThere you are. One MARTINI. Shaken, not stirred.\n")
     Q = martiniq.pop(random.randint(0,len(martiniq)-1))
@@ -3575,10 +2767,7 @@ Martini system from %s
 if __name__ == '__main__':
     import sys, logging
     args = sys.argv[1:]
-    if '-cat' in args:
-        cat('martinize-'+version+'.py')
-        sys.exit()
     options, lists = options, lists
     options = option_parser(args, options, lists, version)
-
     main(options)
+    
