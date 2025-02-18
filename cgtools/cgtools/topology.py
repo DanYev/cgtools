@@ -8,6 +8,7 @@ helper functions to improve maintainability.
 """
 
 import logging
+from cgtools.cgtools.forcefields import NucleicForceField
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 # NOTE: The following classes (CategorizedList, Chain, Pair, Bond, Angle, Dihedral,
@@ -17,32 +18,33 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 # elsewhere in your code base.
 
 class Topology:
-    def __init__(self, sequence: List = [], forcefield: str = 'martini30nucleic') -> None:
+    def __init__(self, forcefield, sequence: List = []) -> None:
         """
         Initialize a Topology instance.
 
+        forcefield - an instance of NucleicForceField Class
         :param other: Another Topology or Chain instance to initialize from.
         :param options: Dictionary of options, e.g. ForceField, Version, etc.
         :param name: Optional name for the topology.
         """
+        self.ff = forcefield
+        self.sequence = sequence
         self.name: str = ''
         self.nrexcl: int = 1
-        self.atoms: List = [[], []]
-        self.pairs: List = [[], []]
-        self.vsites: List = [[], []]
-        self.exclusions: List = [[]]
-        self.bonds: List = [[], []]
-        self.angles: List = [[], []]
-        self.dihedrals: List = [[], []]
-        self.impropers: List = [[], []]
-        self.constraints: List = [[]]
-        self.posres: List = [[], []]
-        self.sequence: List = []
+        self.atoms: List = []
+        self.bonds: List = []
+        self.pairs: List = []
+        self.vsites: List = []
+        self.exclusions: List = []
+        self.angles: List = []
+        self.dihedrals: List = []
+        self.impropers: List = []
+        self.constraints: List = []
+        self.posres: List = []
         self.secstruc: str = ""
         self.mapping: List = []
         self.breaks: List = []
         self.natoms: int = 0        
-        self.options: Dict = options if options is not None else {}
 
 
     def __iadd__(self, other: Any) -> "Topology":
@@ -292,75 +294,51 @@ class Topology:
         lines.append("#endif")
         return "\n".join(lines)
 
-    def fromNucleicAcidSequence(self, sequence: Union[str, Any], secstruc: Optional[str] = None,
-                                links: Optional[Any] = None, breaks: Optional[List[int]] = None,
-                                mapping: Optional[Any] = None, rubber: bool = False, multi: bool = False) -> None:
+    @staticmethod
+    def _update_bb_connectivity(conn, atid, reslen, prevreslen=None):
+        result = []
+        prev = -1
+        for idx in conn:
+            if idx < 0:
+                result.append(atid - prevreslen + idx + 3) 
+                continue
+            if idx > prev:
+                result.append(atid + idx)
+            else:
+                result.append(atid + idx + reslen)
+            prev = idx
+        return tuple(result)
+
+    def process_bb_bonds(self, secstruc=[], start_atom=1, start_resi=1):
         """
         Constructs the topology from a nucleic acid sequence.
         This method handles the mapping and the creation of backbone and sidechain connectivity.
 
         :param sequence: The nucleic acid sequence or a Chain instance.
         :param secstruc: Secondary structure information.
-        :param links: Link connectivity information.
-        :param breaks: List of indices indicating chain breaks.
-        :param mapping: Mapping information for the coarse grained system.
-        :param rubber: Whether to apply rubber band constraints.
         """
-        # NOTE: This method is complex and may need further refactoring.
-        shift = 0
-        if isinstance(sequence, Chain):
-            chain = sequence
-            links = chain.links
-            breaks = chain.breaks
-            mapping = mapping or chain.mapping
-            self.secstruc = chain.sstypes or len(chain) * "F"
-            self.sequence = chain.sequence
-            self.multiscale = False
         # Log secondary structure and sequence information.
-        logging.debug(self.secstruc)
+        print(self.sequence)
         logging.debug(self.sequence)
+        logging.debug(secstruc)
+        # Process backbone connectivity 
+        atid = start_atom
+        resid = start_resi
+        prevreslen = None
+        for resname in self.sequence:
+            reslen = len(self.ff.bb_atoms) + len(self.ff.sc_atoms(resname))
+            bonds = self.ff.bb_bonds
+            for bond in bonds:
+                conn = bond[0]
+                params = bond[1]
+                upd_conn = self._update_bb_connectivity(conn, atid, reslen, prevreslen=prevreslen)
+                upd_bond = [upd_conn, params]
+                self.bonds.append(upd_bond)
+            prevreslen = reslen
+            atid += reslen
+            resid += 1
 
-        # Retrieve base information and pad connectivity lists.
-        sc = [(self.options['ForceField'].bases[res] + 8 * [[]])[:8] for res in self.sequence]
-        startAtom = self.natoms + 1 
-        startResi = self.atoms[-1][2] + 1 if self.atoms else 1
-
-        # Compute backbone bead atom IDs.
-        bbid = [[startAtom, startAtom + 1, startAtom + 2]]
-        for beads in sc:
-            bbid1 = bbid[-1][0] + len(beads[0]) + 3
-            bbid.append([bbid1, bbid1 + 1, bbid1 + 2])
-
-        resid = list(range(startResi, startResi + len(self.sequence)))
-        seqss = list(zip(bbid, self.sequence, self.secstruc))
-        bb = [self.options['ForceField'].bbGetBead(res, typ) for num, res, typ in seqss]
-
-        # Process backbone connectivity over fragments.
-        for frag_start, frag_end in zip([0] + (breaks or []), (breaks or []) + [-1]):
-            fragment = seqss[frag_start:] if frag_end == -1 else seqss[frag_start:frag_end]
-            frag_list = [(ids[bead_idx], res, sec, bead_idx)
-                         for ids, res, sec in fragment
-                         for bead_idx in range(len(ids))]
-            for idx, current in enumerate(frag_list):
-                # Create exclusions, pairs, and bonds for current atom with its near neighbors.
-                for neighbor in frag_list[idx:idx+3]:
-                    if neighbor > current:
-                        self.exclusions.append(Exclusion((current, neighbor), category="BB", options=self.options))
-                        pair = Pair((current, neighbor), category="BB", options=self.options)
-                        if pair:
-                            self.pairs.append(pair)
-                        bond = Bond((current, neighbor), category="BB", options=self.options)
-                        self.bonds.append(bond)
-                    for m in frag_list[idx:idx+4]:
-                        if m > neighbor > current:
-                            self.angles.append(Angle((current, neighbor, m), options=self.options, category="BBB"))
-                        for n in frag_list[idx+1:idx+6]:
-                            if n > m > neighbor > current:
-                                dihed = Dihedral((current, neighbor, m, n), options=self.options, category="BBBB")
-                                if dihed.parameters and dihed.parameters[1] != 0:
-                                    self.dihedrals.append(dihed)
-
-        # Process sidechains and atom list
+    def process_sc_bonds(self, secstruc=[], start_atom=1, start_resi=1):
         atid = startAtom
         resid = [resi for resi in resid for _ in range(3)]
         resnames = [res for res in self.sequence for _ in range(3)]

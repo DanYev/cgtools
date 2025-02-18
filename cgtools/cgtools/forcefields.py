@@ -210,9 +210,9 @@ class martini30rna(NucleicForceField):
         # RNA BACKBONE PARAMETERS TUT
         self.bb_atoms = ["Q1n", "C6", "N2"]
         self.bb_bonds = [
-                    [(0, 1), (1,  0.350, 25000)],          
+                    [(0, 1), (1,  0.350, 25000)],
+                    [(1, 2), (1,  0.239, 25000)],          
                     [(1, 0), (1,  0.378, 12000)],
-                    [(1, 2), (1,  0.239, 25000)],
                     [(2, 0), (1,  0.412, 12000)]
                     ]
         self.bb_angles = [
@@ -222,7 +222,7 @@ class martini30rna(NucleicForceField):
                     ]
         self.bb_dihs = [
                     [(0, 1, 0, 1), (1,    0.0, 25.0, 1)],          
-                    [(1, 0, 1, 0), (1,    0.0, 25.0, 1)],
+                    [(-2, 0, 1, 0), (1,    0.0, 25.0, 1)],
                     [(1, 0, 1, 2), (1, -112.0, 15.0, 1),]
                     ]
         self.bb_excls = [
