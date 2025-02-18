@@ -1433,7 +1433,6 @@ def breaks(residuelist, selection=("P","C2'","C3'","O3'","C4'","C5'","O5'"), cut
     # Therefore breaks are inferred from the minimal distance between
     # backbone atoms from adjacent residues.
     breaks =  [ i+1 for i in range(len(bb)-1) if residueDistance2(bb[i],bb[i+1]) > cutoff]
-    print(breaks)
     return breaks
 
 
@@ -2027,7 +2026,7 @@ class Dihedral(Bonded):
         self.comments   = "%s(%s)-%s(%s)-%s(%s)-%s(%s)" % (r[0],ss[0],r[1],ss[1],r[2],ss[2],r[3],ss[3])
         self.category   = kwargs.get("category")
         if not self.parameters:
-            self.parameters = self.options['ForceField'].bbGetDihedral(r,ca,ss)
+            self.parameters = self.options['ForceField'].bbGetDihedral(r, ca, ss)
         # If there are more than two parameters given, user HAS TO define the diheral type as the first one.
         # This is to allow use of any gromacs dihedral type.
         if self.parameters and len(self.parameters)>2:
@@ -2122,7 +2121,7 @@ class Topology:
             if atoms[i][-1] == 0:
                 atoms[i] = atoms[i] + ('c',)
         self.atoms.extend(atoms)
-        for attrib in ["bonds","vsites","angles","dihedrals","impropers","constraints","posres"]:
+        for attrib in ["bonds", "vsites", "exclusions", "angles", "dihedrals", "impropers", "constraints", "posres"]:
             getattr(self,attrib).extend([source+shift for source in getattr(other,attrib)])
         return self
 
@@ -2345,9 +2344,12 @@ class Topology:
                 # Exclusions iterate over the second atom.
                 # and then checked for each pair.
                 for l in frg[ind:ind+3]:
-                    excl = Exclusion((k,l), category="BB", options=self.options,)
-                    if excl:
-                        self.exclusions.append(excl) 
+                    # excl = Exclusion((k,l), category="BB", options=self.options,)
+                    # if excl:
+                    #     self.exclusions.append(excl) 
+                    if l > k:
+                        excl = Exclusion((k,l), category="BB", options=self.options,)
+                        self.exclusions.append(excl)
 
                 # Pairs iterate over the second atom.
                 # and then checked for each pair.
@@ -2407,8 +2409,8 @@ class Topology:
                         self.bonds.append(Bond(options=self.options,atoms=atids,parameters=[par[1]],type=par[0],
                                                comments=resname, category="Constraint"))
                     else:
-                        self.bonds.append(Bond(options=self.options,atoms=atids,parameters=par[1:],type=par[0],
-                                               comments=resname,category="SC"))
+                        bond = Bond(options=self.options,atoms=atids,parameters=par[1:],type=par[0], comments=resname,category="SC")
+                        self.bonds.append(bond)
                     # Shift the atom numbers
                     self.bonds[-1] += atid
 
@@ -2436,27 +2438,19 @@ class Topology:
                 # Side Chain V-Sites
                 for atids, par in zip(vsite_con, vsite_par):
                     self.vsites.append(Vsite(options=self.options, atoms=atids, parameters=par, comments=resname, category="SC"))
-                    # Shift the atom numbers
-                    self.vsites[-1] += atid
+                    self.vsites[-1] += atid # Shift the atom numbers
 
-                # XXX Should not be hard coded here!
-                # Currently DNA needs exclusions for the base
-                # The loop runs over the first backbone bead so 3 needs to be added to the indices
-                # for i in range(len(scatoms)):
-                #    for j in range(i+1, len(scatoms)):
-                #        self.exclusions.append(Exclusion(options=self.options,atoms=(i+atid+3,j+atid+3),comments='%s(%s)'%(resname,resi),parameters=(None,)))
-                # The above one is ugly hack if only one connectivity record can be used
-                # The one below is equally ugly but works for now
-                for atids,par in zip(excl_con, excl_par):
-                    self.exclusions.append(Exclusion(options=self.options, atoms=atids, parameters=' '))
-                    # Shift the atom numbers
-                    self.exclusions[-1] += atid
-
+                # Side Chain Exclusions
+                for atids, par in zip(excl_con, excl_par):
+                    exclusion = Exclusion(options=self.options, atoms=atids, parameters=' ', category="SC")
+                    self.exclusions.append(exclusion)
+                    self.exclusions[-1] += atid  # Shift the atom numbers
+                
                 # Pairs
-                for atids,par in zip(pair_con,pair_par):
-                    self.pairs.append(Pair(options=self.options,atoms=atids,parameters=' '))
-                    # Shift the atom numbers
-                    self.pairs[-1] += atid
+                for atids,par in zip(pair_con, pair_par):
+                    pair = Pair(options=self.options, atoms=atids, parameters=' ')
+                    self.pairs.append(pair)
+                    self.pairs[-1] += atid # Shift the atom numbers
                 
                 # All residue atoms
                 counter = 0  # Counts over beads
@@ -2769,17 +2763,6 @@ def main(options):
                 mcg, coords = zip(*[(j[:4],j[4:7]) for m in mol for j in m.cg(force=True)])
                 mcg         = list(mcg)
         
-                # Run through the link list and add connections (links = cys bridges or hand specified links)
-                for atomA, atomB, bondlength, forceconst in options['linkListCG']:
-                    if bondlength == -1 and forceconst == -1:
-                        bondlength, forceconst = options['ForceField'].special[(atomA[:2],atomB[:2])]
-                    # Check whether this link applies to this group
-                    atomA = atomA in mcg and mcg.index(atomA)+1
-                    atomB = atomB in mcg and mcg.index(atomB)+1
-                    if atomA and atomB:
-                        cat = (mcg[atomA][1] == "CYS" and mcg[atomB][1] == "CYS") and "Cystine" or "Link"
-                        top.bonds.append(Bond((atomA,atomB),options=options,type=1,parameters=(bondlength,forceconst),category=cat))
-        
                 # Elastic Network
                 # The elastic network is added after the topology is constructed, since that
                 # is where the correct atom list with numbering and the full set of 
@@ -2835,48 +2818,7 @@ def main(options):
             cumulative_atoms += len(top.atoms)
         
         logging.info('Written %d ITP file%s'%(itp,itp>1 and "s" or ""))
-                
-        # WRITING THE MASTER TOPOLOGY
-        # Output stream
-        top  = options["-o"] and open(options['-o'].value,'w') or sys.stdout
-        
-        # ITP file listing
-        itps = '\n'.join(['#include "%s.itp"'%molecule for molecule in set(moleculeTypes.values())])
-        
-        # Molecule listing
-        logging.info("Output contains %d molecules:"%len(molecules))
-        n = 1
-        for molecule in molecules:
-            chainInfo = (n, moleculeTypes[molecule], len(molecule)>1 and "s" or " ", " ".join([i._id for i in molecule]))
-            logging.info("  %2d->  %s (chain%s %s)"%chainInfo)
-            n += 1
-        molecules   = '\n'.join(['%s \t 1'%moleculeTypes[molecule] for molecule in molecules])
-        
-        # Set a define if we are to use rubber bands
-        useRubber   = options['ElasticNetwork'] and "#define RUBBER_BANDS" or ""
        
-        # XXX Specify a better, version specific base-itp name.
-        # Do not set a define for position restrains here, as people are more used to do it in mdp file?
-        top.write(
-'''#include "martini.itp"
-    
-%s
-  
-%s
-    
-[ system ]
-; name
-Martini system from %s
-    
-[ molecules ]
-; name        number
-%s''' % (useRubber, itps, options["-f"] and options["-f"].value or "stdin", molecules))
-    
-        logging.info('Written topology files')
-    
-    # Maybe there are forcefield specific log messages?
-    options['ForceField'].messages()
-
     # The following lines are always printed (if no errors occur).
     print("\n\tThere you are. One MARTINI. Shaken, not stirred.\n")
     Q = martiniq.pop(random.randint(0,len(martiniq)-1))
