@@ -672,7 +672,7 @@ class ForceField:
     @staticmethod    
     def read_itps(mol, directory, version):
         # itpdir = os.path.abspath(f'/scratch/dyangali/cgtools/cgtools/itp/{directory}')
-        itpdir = importlib.resources.files('cgtools') / 'martini' / 'itp' / 
+        itpdir = importlib.resources.files('cgtools') / 'martini' / 'itp' 
         file = os.path.join(itpdir, f'{directory}', f'{mol}_A_{version}.itp')
         a_itp_data = ForceField.read_itp(file)
         file = os.path.join(itpdir, f'{directory}', f'{mol}_C_{version}.itp')
@@ -1424,19 +1424,20 @@ def residueDistance2(r1,r2):
 
 
 # Increased the cut-off from 2.5 to 3.0 for DNA. Should check that no problems arise for proteins.
-def breaks(residuelist, selection=("N","CA","C","P","C2'","C3'","O3'","C4'","C5'","O5'"), cutoff=3.0):
+def breaks(residuelist, selection=("P","C2'","C3'","O3'","C4'","C5'","O5'"), cutoff=3.0):
     # Extract backbone atoms coordinates
     bb = [[atom[4:] for atom in residue if atom[0] in selection] for residue in residuelist]
     # Needed to remove waters residues from mixed residues.
     bb = [res for res in bb if res != []]
-
     # We cannot rely on some standard order for the backbone atoms.
     # Therefore breaks are inferred from the minimal distance between
     # backbone atoms from adjacent residues.
-    return [ i+1 for i in range(len(bb)-1) if residueDistance2(bb[i],bb[i+1]) > cutoff]
+    breaks =  [ i+1 for i in range(len(bb)-1) if residueDistance2(bb[i],bb[i+1]) > cutoff]
+    print(breaks)
+    return breaks
 
 
-def contacts(atoms,cutoff=5):
+def contacts(atoms, cutoff=5):
     rla = range(len(atoms))
     crd = [atom[4:] for atom in atoms]
     return [(i,j) for i in rla[:-1] for j in rla[i+1:] 
@@ -1458,15 +1459,13 @@ def add_dummy(beads, dist=0.11, n=2):
         m *= -2
     return beads
 
+
 def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
     chainIndex = range(len(chains))
-
     if 'all' in m_list:
         logging.info("All chains will be merged in a single moleculetype.")
         return chainIndex, [chainIndex]
-
     chainID = [chain._id for chain in chains]
-
     # Mark the combinations of chains that need to be merged
     merges = []
     if m_list:
@@ -1488,10 +1487,8 @@ def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
         merges = [[0, 1]]
         for i in merges:
             i.sort()
-
     # Rearrange merge list to a list of pairs
     pairs = [(i[j],i[k]) for i in merges for j in range(len(i)-1) for k in range(j+1,len(i))]
-
     # Check each combination of chains for connections based on
     # ss-bridges, links and distance restraints
     for i in chainIndex[:-1]:
@@ -1507,33 +1504,8 @@ def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
                     break
             if (i,j) in pairs:
                 continue
-            # Check whether any cystine bond given links these two groups
-            #for a,b in s_list:
-            #    if ((a in chains[i] and b in chains[j]) or 
-            #        (a in chains[j] and b in chains[i])):
-            #        logging.info("Merging chains %d and %d to allow cystine bridge"%(i+1,j+1))
-            #        pairs.append( i<j and (i,j) or (j,i) )
-            #        break
-            #if (i,j) in pairs:
-            #    continue
-            # Check for cystine bridges based on distance
-            # if not ss_cutoff:
-            #     continue
-            # Get SG atoms from cysteines from either chain
-            # Check this pair of chains
-            for cysA in chains[i]["CYS"]:
-                for cysB in chains[j]["CYS"]:
-                    d2 = distance2(cysA["SG"][4:7],cysB["SG"][4:7]) 
-                    if d2 <= ss_cutoff:
-                        logging.info("Found SS contact linking chains %d and %d (%f nm)"%(i+1,j+1,math.sqrt(d2)/10))
-                        pairs.append((i,j))
-                    break
-                if (i,j) in pairs:
-                    break
-
     # Sort the combinations
     pairs.sort(reverse=True)
-
     merges = []
     while pairs:
         merges.append(set([pairs[-1][0]]))
@@ -1545,21 +1517,16 @@ def check_merge(chains, m_list=[], l_list=[], ss_cutoff=0):
     merges = [list(i) for i in merges]
     for i in merges:
         i.sort()
-
     order = [j for i in merges for j in i]
-
     if merges:
         logging.warning("Merging chains.")
         logging.warning("This may change the order of atoms and will change the number of topology files.")
         logging.info("Merges: " + ", ".join([str([j+1 for j in i]) for i in merges]))
-
     if len(merges) == 1 and len(merges[0]) > 1 and set(merges[0]) == set(chainIndex):
         logging.info("All chains will be merged in a single moleculetype")
-
     # Determine the order for writing; merged chains go first
     merges.extend([[j] for j in chainIndex if not j in order])
     order.extend([j for j in chainIndex if not j in order])
-
     return order, merges
 
 
@@ -1598,7 +1565,8 @@ class Chain:
         # BREAKS: List of indices of residues where a new fragment starts
         # Only when polymeric (protein, DNA, RNA, ...)
         # For now, let's remove it for the Nucleic acids...
-        self.breaks     = self.type() in ("Protein","Mixed") and breaks(self.residues) or []
+        # self.breaks     = self.type() in ("Protein", "Mixed", "Nucleic") and breaks(self.residues) or []
+        self.breaks     = breaks(self.residues)
 
         # LINKS:  List of pairs of pairs of indices of linked residues/atoms
         # This list is used for cysteine bridges and peptide bonds involving side chains
@@ -1632,6 +1600,7 @@ class Chain:
         newchain.natoms     = len(newchain.atoms())
         newchain.multiscale = False
         # Return the merged chain
+        print(newchain.breaks)
         return newchain
 
     def __eq__(self,other):
