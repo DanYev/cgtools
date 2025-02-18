@@ -2508,15 +2508,8 @@ def main(options):
     # We use an iterator to wrap around the stream to allow
     # inferring the file type, without consuming lines already
     inStream = streamTag(options["-f"] and options["-f"].value or sys.stdin)
-    
-
-    # The streamTag iterator first yields the file type, which 
-    # is used to specify the function for reading frames
     fileType = next(inStream)
-    if fileType == "GRO":
-        frameIterator = groFrameIterator
-    else:
-        frameIterator = pdbFrameIterator
+    frameIterator = pdbFrameIterator
     
 
     ## ITERATE OVER FRAMES IN STRUCTURE FILE ##
@@ -2585,13 +2578,6 @@ def main(options):
             write_start = 0
             for i in order:
                 ci = chains[i]
-                if ci.multiscale:
-                    for r in ci.residues:
-                        for name,resn,resi,chain,x,y,z in r:
-                            insc  = resi>>20
-                            resi -= insc<<20
-                            cgOutPDB.write(pdbAtomLine%(atid,name,resn[:3],chain,resi,chr(insc),x,y,z,1,0))
-                            atid += 1
                 coarseGrained = ci.cg(com=True)
                 if coarseGrained:
                     # For DNA we need to remove the first bead on the 5' end and shift the atids. 
@@ -2599,11 +2585,9 @@ def main(options):
                         write_start = 1
                     else:
                         write_start = 0
-                    for name,resn,resi,chain,x,y,z,ssid in coarseGrained[write_start:]:
+                    for name, resn, resi, chain, x, y, z, ssid in coarseGrained[write_start:]:
                         insc  = resi>>20
                         resi -= insc<<20
-                        if ci.multiscale:
-                            name = "v"+name
                         cgOutPDB.write(pdbAtomLine%(atid,name,resn[:3],chain,resi,chr(insc),x,y,z,1,ssid))
                         atid += 1 
                     cgOutPDB.write("TER\n")          

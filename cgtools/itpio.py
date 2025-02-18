@@ -8,7 +8,6 @@ def read_itp(filename):
             # Skip comments and empty lines
             if line.strip() == '' or line.strip().startswith(';'):
                 continue
-            
             # Detect section headers
             if line.startswith('[') and line.endswith(']\n'):
                 tag = line.strip()[2:-2]
@@ -62,6 +61,30 @@ def split_conn_params(line, tag):
     connectivity  = tuple([int(i) for i in connectivity])
     parameters = tuple(parameters)
     return connectivity, parameters
+
+
+def bond2str(atoms=None, parameters=None, comment=''):
+    """
+    Returns a formatted string for a bond entry in a Gromacs ITP file.
+    
+    Parameters:
+        atoms (list of int): The two atom indices involved in the bond.
+        parameters (list of float): Bond parameters (e.g., bond length, force constant).
+        comment (str): An optional comment to append.
+        
+    Returns:
+        str: A formatted bond entry string.
+        
+    Example:
+        >>> print(bond2str(atoms=[1, 2], parameters=[1 0.153, 345.0], comment="Harmonic bond"))
+             1     2     1   0.1530  345.0000 ; Harmonic bond
+    """   
+    # Combine everything. 
+    result = "   ".join(str(atom) for atom in atoms) + "   " + "   ".join(str(param) for param in parameters) 
+    if comment: # Append comment if provided.
+        result += " ; " + comment
+    return result
+
     
     
 def make_in_terms(input_file, output_file, dict_of_names):
