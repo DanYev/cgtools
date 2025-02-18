@@ -53,6 +53,37 @@ def memprofit(func):
     return wrapper 
 
 
+@memprofit
+@timeit
+def read_trajectory(resp_ids, pert_ids, f='../traj.trr', s='../traj.pdb',  b=0, e=10000000, skip_rate=1, dtype=np.float32):
+    print(f"Reading trajectory.", file=sys.stderr)
+    def in_range(ts, b, e): # Check if ts.time is within the range (b, e)
+        return b < ts.time < e
+    # Load trajectory
+    u = mda.Universe(s, f)
+    # If IDs are not given the use all atoms
+    if resp_ids:
+        resp_selection = u.atoms[resp_ids]
+    else:
+        resp_selection = u.atoms
+    if pert_ids:
+        pert_selection = u.atoms[pert_ids]       
+    else:
+        pert_selection = u.atoms
+    # Extract positions and velocities efficiently
+    positions = np.array(
+        [resp_selection.positions.flatten() for ts in u.trajectory[::skip_rate] if in_range(ts, b, e)], dtype=dtype
+    )
+    velocities = np.array(
+        [pert_selection.positions.flatten() for ts in u.trajectory[::skip_rate] if in_range(ts, b, e)], dtype=dtype
+    )  
+    # Transpose for memory efficiency (shape: (n_coords, n_frames))
+    positions = np.ascontiguousarray(positions.T)
+    velocities = np.ascontiguousarray(velocities.T)
+    print(f"Finished reading trajectory.", file=sys.stderr)
+    return positions, velocities
+
+
 def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     """
     Compute the correlation function <x(t)y(0)> using FFT.
@@ -187,6 +218,45 @@ def fft_corr(*args, mode='parallel', **kwargs):
     raise ValueError("Currently 'mode' should be 'ser', 'par' or 'gpu'.")
 
 
+def gfft_conv(x, y, loop=False, dtype=cp.float32):
+    """
+    Compute element-wise convolution between two arrays of the same shape <x(t)y(0)> 
+    using FFT along the last axis.
+    Parameters:
+    - x: np.ndarray, first input signal.
+    - y: np.ndarray, second input signal. 
+    - ntmax: positive int, number of time samples to save
+    - center: bool,  whether to mean-center the signals
+    - loop: bool, whether to calculate Cross-Power Spectral Density (CPSD) in a for loop.
+        It's way more memory efficient for large arrays but may be slower
+    Returns:
+    - conv: np.ndarray, computed convolution.
+    """
+    print("Doing FFTs on GPU.", file=sys.stderr)
+    nt = x.shape[-1]
+    nx = x.shape[0]
+    ny = x.shape[1]
+    # Convert NumPy arrays to CuPy arrays
+    x = cp.asarray(x, dtype=dtype)
+    y = cp.asarray(y, dtype=dtype)
+    # Compute FFT along the last axis
+    x_f = cp.fft.fft(x, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
+    y_f = cp.fft.fft(y, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
+    counts = cp.arange(nt,  0, -1, dtype=dtype)**-1 # Normalize correctly over valid indices
+    if loop:  
+        conv = np.zeros((nx, ny, nt), dtype=np.float32)
+        counts = counts[None, :]  # Reshape for broadcasting
+        # Row-wise FFT-based correlation
+        for i in range(nx):
+            conv_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax] * counts
+            conv[i, :, :] = conv_row.get()   
+    else:
+        counts = counts[None, None, :]  # Reshape for broadcasting
+        conv = cp.fft.ifft(x_f * cp.conj(y_f), axis=-1).real[:, :, :nt] * counts
+        conv = conv.get()
+    return conv
+
+
 def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     """
     Compute the Cross-Power Spectral Density (CPSD) using FFT.
@@ -229,37 +299,6 @@ def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
         cpsd = cpsd[:, :, :ntmax]    
     cpsd = np.abs(cpsd) 
     return cpsd
-
-
-@memprofit
-@timeit
-def read_trajectory(resp_ids, pert_ids, f='../traj.trr', s='../traj.pdb',  b=0, e=10000000, skip_rate=1, dtype=np.float32):
-    print(f"Reading trajectory.", file=sys.stderr)
-    def in_range(ts, b, e): # Check if ts.time is within the range (b, e)
-        return b < ts.time < e
-    # Load trajectory
-    u = mda.Universe(s, f)
-    # If IDs are not given the use all atoms
-    if resp_ids:
-        resp_selection = u.atoms[resp_ids]
-    else:
-        resp_selection = u.atoms
-    if pert_ids:
-        pert_selection = u.atoms[pert_ids]       
-    else:
-        pert_selection = u.atoms
-    # Extract positions and velocities efficiently
-    positions = np.array(
-        [resp_selection.positions.flatten() for ts in u.trajectory[::skip_rate] if in_range(ts, b, e)], dtype=dtype
-    )
-    velocities = np.array(
-        [pert_selection.positions.flatten() for ts in u.trajectory[::skip_rate] if in_range(ts, b, e)], dtype=dtype
-    )  
-    # Transpose for memory efficiency (shape: (n_coords, n_frames))
-    positions = np.ascontiguousarray(positions.T)
-    velocities = np.ascontiguousarray(velocities.T)
-    print(f"Finished reading trajectory.", file=sys.stderr)
-    return positions, velocities
 
 
 def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float32):

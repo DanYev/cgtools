@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 
 def fname_filter(f, sw='', cont='', ew=''):  
@@ -21,13 +22,9 @@ def filter_files(fpaths, sw='', cont='', ew=''):
 def pull_all_files(directory, ):
     """
     Recursively lists all files in the given directory and its subdirectories.
-
-    Parameters:
-        directory (str or Path): The root directory to start searching for files.
-
-    Returns:
-        list[Path]: A list of Path objects, each representing the absolute path
-                    to a file within the directory and its subdirectories.
+    Parameters: directory (str or Path): The root directory to start searching for files.
+    Returns: list[Path]: A list of Path objects, each representing the absolute path
+            to a file within the directory and its subdirectories.
     """
     all_files = []
     for root, dirs, files in os.walk(directory):
@@ -36,10 +33,24 @@ def pull_all_files(directory, ):
     return all_files  
 
 
+def pull_prefix_files(directory, prefix):
+    """
+    Recursively lists files that start with 'prefix' in the given directory and its subdirectories.
+    Parameters: directory (str or Path): The root directory to start searching for files.
+    Returns: list[Path]: A list of Path objects, each representing the absolute path
+            to a file within the directory and its subdirectories.
+    """
+    all_files = []
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.startswith(prefix):
+                all_files.append(Path(os.path.join(root, file)))
+    return all_files  
+
+
 def read_data(fpath):
     """ 
     Reads a .csv or .npy file 
-    
     Input 
     ------
     fname: string

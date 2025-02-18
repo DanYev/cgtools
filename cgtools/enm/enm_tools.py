@@ -92,7 +92,7 @@ def read_cif(_pdb_id):
     zn_mask = np.asarray([atom_type == "ZN" for atom_type in atom_types])
     comp_mask = np.asarray([comp == "." or comp == "A" for comp in atom_comps])
     chain_mask  = np.asarray([chain == "DT" or chain == "DT1" or chain == "DT2" for chain in atom_chain_ids]) # DJ - L11 for 5it8
-    mask = ca_mask + c1p_mask # p_mask + 
+    mask = ca_mask + c1p_mask + p_mask
     mask *= comp_mask
     # mask *= np.invert(chain_mask)
 

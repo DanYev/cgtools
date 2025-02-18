@@ -10,7 +10,13 @@ from cgtools.lrt import percentile
 
 
 class Figure:
-    
+    """
+    Input and labels must be a list of lists of the same shape. 
+    The outer list determines the number of plots, the innner lists - the number of graphs for each plot.
+    For a heatmap the length of the inner list shoud be 1.
+    E.g: datas = [[arr1, arr2], arr3], labels  = [[l1, l2], l3] - will result in a figure with 2 plots.
+    2 graphs on the first plot, 1 on the second  
+    """ 
     def __init__(self, datas, **kwargs):
         """
         
@@ -50,7 +56,7 @@ class Figure:
         plt.close()
         
         
-class Plot2D(Figure):   
+class Graph(Figure):   
     
     def __init__(self, datas, labels, **kwargs):
         super().__init__(datas, **kwargs)
@@ -73,7 +79,7 @@ class Plot2D(Figure):
         x = data[0]
         y = data[1]
         ax.plot(x, y, label=label, color=color)
-        if data.shape[1] == 3:
+        if len(data) == 3:
             err = data[2]
             ax.fill_between(x, y - err, y + err, color=color, alpha=self.alpha)
             
@@ -110,9 +116,8 @@ class Plot2D(Figure):
             for domain in self.domains:
                 ax.axvspan(domain[0], domain[1], color='gray', alpha=0.3, label=domain[2])
 
-        
-        
-class HeatMap(Figure):
+               
+class Heatmap(Figure):
     
     def __init__(self, datas, labels, **kwargs):
         super().__init__(datas, **kwargs)
@@ -135,10 +140,10 @@ class HeatMap(Figure):
         self.cmap       = kwargs.pop('cmap', 'coolwarm')
         self.fontsize   = kwargs.pop('fontsize', 18)
         
-    def make_ax(self, ax, subdatas, sublabels):
-        for data, label in zip(subdatas, sublabels):
-            heatmap = ax.imshow(data, cmap=self.cmap, interpolation='nearest', vmin=self.vmin, vmax=self.vmax)
-        self.set_ax_parameters(ax, data)
+    def make_ax(self, ax, datas, labels):
+        for data, label in zip(datas, labels):
+            Heatmap = ax.imshow(data, cmap=self.cmap, interpolation='nearest', vmin=self.vmin, vmax=self.vmax)
+        self.set_ax_parameters(ax, datas)
         
     def set_ticks(self, ax):
         resx = self.resx
@@ -182,7 +187,7 @@ def plot_mean_sem(files, figpath, **kwargs):
     """
     datas = [pd.read_csv(f, header=None) for f in files]
     labels = [f.split('/')[-3] for f in files]
-    plot = Plot2D([datas], [labels], legend=True, loc='upper right', **kwargs)
+    plot = Graph([datas], [labels], legend=True, loc='upper right', **kwargs)
     plot.save_figure(figpath)
     
     
@@ -202,14 +207,14 @@ def plot_xvg(files, figpath, **kwargs):
     """  
     datas = [pd.read_csv(f, sep='\\s+', header=None, usecols=[0, 1]) for f in files]
     labels = [f.split('/')[-3] for f in files]
-    plot = Plot2D([datas], [labels], legend=True, loc='upper right', **kwargs)
+    plot = Graph([datas], [labels], legend=True, loc='upper right', **kwargs)
     plot.save_figure(figpath)    
     
     
 def plot_heatmaps(files, figpath, **kwargs):
     datas = [[pd.read_csv(f, sep=',', header=None)] for f in files]
     labels = [[f.split('/')[-3]] for f in files]
-    plot = HeatMap(datas, labels, **kwargs)
+    plot = Heatmap(datas, labels, **kwargs)
     plot.save_figure(figpath)   
     
     
