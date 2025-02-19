@@ -38,10 +38,10 @@ class Atom:
     """
     Represents an ATOM or HETATM record from a PDB file.
     """
-    def __init__(self, record, serial, name, alt_loc, resname, chain_id, resid,
+    def __init__(self, record, atid, name, alt_loc, resname, chain_id, resid,
                  icode, x, y, z, occupancy, b_factor, element, charge):
         self.record = record          # "ATOM" or "HETATM"
-        self.serial = serial          # Atom serial number
+        self.atid = atid          # Atom atid number
         self.name = name              # Atom name
         self.alt_loc = alt_loc        # Alternate location indicator
         self.resname = resname      # Residue name
@@ -63,7 +63,7 @@ class Atom:
         and return an Atom instance.
         """
         record = line[0:6].strip()
-        serial = int(line[6:11])
+        atid = int(line[6:11])
         name = line[12:16].strip()
         alt_loc = line[16].strip()
         resname = line[17:20].strip()
@@ -79,11 +79,11 @@ class Atom:
         b_factor = float(b_factor_str) if b_factor_str else None
         element = line[76:78].strip()
         charge = line[78:80].strip()
-        return cls(record, serial, name, alt_loc, resname, chain_id, resid,
+        return cls(record, atid, name, alt_loc, resname, chain_id, resid,
                    icode, x, y, z, occupancy, b_factor, element, charge)
 
     def __repr__(self):
-        return (f"<Atom {self.record} {self.serial} {self.name} "
+        return (f"<Atom {self.record} {self.atid} {self.name} "
                 f"{self.resname} {self.chain_id}{self.resid} "
                 f"({self.x:.3f}, {self.y:.3f}, {self.z:.3f})>")
 
@@ -95,7 +95,7 @@ class Atom:
         """
         return (
             f"{self.record:<6}"  # record name left-justified in 6 chars
-            f"{self.serial:>5} "  # serial number right-justified in 5 chars + space
+            f"{self.atid:>5} "  # atid number right-justified in 5 chars + space
             f"{self.name:<4}"     # atom name left-justified in 4 chars
             f"{self.alt_loc:1}"   # alternate location indicator in 1 char
             f"{self.resname:>3} " # residue name right-justified in 3 chars + space
@@ -204,6 +204,12 @@ class System:
         # Models keyed by model id (default id = 1 if no MODEL record is provided)
         self.models = {}
 
+    def __iter__(self):
+        return iter(self.models.values())
+
+    def __repr__(self):
+        return f"<System with {len(self.models)} model(s)>"
+
     def add_atom(self, atom, model_id=1):
         if model_id not in self.models:
             self.models[model_id] = Model(model_id)
@@ -220,13 +226,28 @@ class System:
         all_atoms = []
         for model in self.models.values():
             all_atoms.extend(model.atoms())
-        return all_atoms
+        return all_atoms        
 
-    def __iter__(self):
-        return iter(self.models.values())
+    def residues(self):
+        """
+        Generator that yields each residue from the system.
+        Iterates through all models, chains, and residues in the system.
+        """
+        for model in self.models.values():
+            # If needed, sort chains by chain_id for consistency.
+            for chain in sorted(model.chains.values(), key=lambda c: c.chain_id):
+                # Sort residues by resid and insertion code.
+                for residue in sorted(chain.residues.values(), key=lambda r: (r.resid, r.icode)):
+                    yield residue
 
-    def __repr__(self):
-        return f"<System with {len(self.models)} model(s)>"
+    def chains(self):
+        """
+        Generator that yields each chain from the system.
+        Iterates through all models and yields each chain contained within them..
+        """
+        for model in self.models.values():
+            for chain in sorted(model.chains.values(), key=lambda c: c.chain_id):
+                yield chain
 
     def save_pdb(self, filename):
         """
@@ -237,7 +258,6 @@ class System:
             # Sort models by model_id
             sorted_model_ids = sorted(self.models.keys())
             multiple_models = len(sorted_model_ids) > 1
-
             for model_id in sorted_model_ids:
                 model = self.models[model_id]
                 if multiple_models:

@@ -10,23 +10,8 @@ def read_pdb(pdb_path):
     return system
 
 
-def iterate_residues(system):
-    """
-    Generator that yields each residue from a nested system of models, chains, and residues.
-    Args:
-        system (iterable): An iterable of models, where each model is an iterable of chains,
-                           and each chain is an iterable of residues.
-    Yields:
-        Residue: Each residue in the system.
-    """
-    for model in system:
-        for chain in model:
-            for residue in chain:
-                yield residue
-
-
 def move_o3(system):
-    for i, residue in enumerate(iterate_residues(system)):
+    for i, residue in enumerate(system.residues()):
         atoms = residue.atoms()
         for atom in atoms:
             if atom.name == "O3'":
@@ -66,7 +51,7 @@ def map_residue(residue, mapping, atid):
 
 def map_residues(system, ff, atid=1):
     cgchain = []
-    for idx, residue in enumerate(iterate_residues(system)):
+    for idx, residue in enumerate(system.residues()):
         mapping = ff.mapping[residue.resname]
         if idx == 0:
             del mapping["BB1"]

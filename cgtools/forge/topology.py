@@ -8,19 +8,18 @@ helper functions to improve maintainability.
 """
 
 import logging
+from cgtools import itpio
 from cgtools.forge.forcefields import NucleicForceField
+from cgtools.forge.geometry import get_distance
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-# NOTE: The following classes (CategorizedList, Chain, Pair, Bond, Angle, Dihedral,
-# Vsite, Exclusion, CoarseGrained, etc.) and constants (ElasticMaximumForce,
-# ElasticLowerBound, ElasticUpperBound, ElasticDecayFactor, ElasticDecayPower,
-# ElasticMinimumForce, ElasticBeads, enStrandLengths) are assumed to be defined
-# elsewhere in your code base.
 
 class Topology:
-    def __init__(self, forcefield, sequence: List = [], secstruct: List = []) -> None:
+    def __init__(self, forcefield, sequence: List = [], secstruct: List = [], molname='molecule') -> None:
         """
-        Initialize a Topology instance.
+        Initialize a Topology instance. Main attributes are: 
+        1. atom - [atid, type, resid, resname, name, chargegrp, charge, mass, comment]
+        2. bond - [connectivity, parameters, comment]
 
         forcefield - an instance of NucleicForceField Class
         :param other: Another Topology or Chain instance to initialize from.
@@ -29,7 +28,7 @@ class Topology:
         """
         self.ff = forcefield
         self.sequence = sequence
-        self.name: str = ''
+        self.name = molname
         self.nrexcl: int = 1
         self.atoms: List = []
         self.bonds: List = []
@@ -40,91 +39,86 @@ class Topology:
         self.pairs: List = []
         self.vs3s: List = []      
         self.posres: List = []
+        self.elnet: List = []
         self.mapping: List = []
-        # list with all bonded parameters like in the ff
+        self.natoms = len(self.atoms)
+        # list with all bonded parameters as in the ff
         self.blist = [self.bonds, self.angles, self.dihs, self.cons, 
             self.excls, self.pairs, self.vs3s]  
         # Secondary structure     
         if secstruct:
             self.secstruct = secstruct
         else:
-            self.secstruct = []
+            self.secstruct = ['F' for item in self.sequence]
 
-
-    def __iadd__(self, other: Any) -> "Topology":
+    def __iadd__(self, other) -> "Topology":
         """
         Implements in-place addition of another Topology.
-
+        1. atom - (atid, type, resid, resname, name, chargegrp, charge, mass, comment)
+        2. bond - [connectivity, parameters, comment]      
         :param other: Another Topology instance or object convertible to one.
         :return: self after merging the two topologies.
         """
-        if not isinstance(other, Topology):
-            other = Topology(other)
-        shift = len(self.atoms)
+        def update_atom(atom, atom_shift, residue_shift):
+            atom[0] += atom_shift # Update atom numbers
+            atom[2] += residue_shift # Update residue numbers
+            atom[5] += atom_shift # Update charge group numbers
+            return atom
+        def update_bond(bond, atom_shift):
+            conn = bond[0]
+            conn = [idx + atom_shift for idx in conn]
+            return [conn, bond[1], bond[2]]
+        atom_shift = self.natoms
+        residue_shift = len(self.sequence)
         last_atom = self.atoms[-1]
         # Update atoms
-        new_atoms = list(zip(*other.atoms))
-        new_atoms[0] = [atom_num + shift for atom_num in new_atoms[0]]   # Update atom numbers
-        new_atoms[2] = [resi + last_atom[2] for resi in new_atoms[2]]       # Update residue numbers
-        new_atoms[5] = [cg + last_atom[5] for cg in new_atoms[5]]             # Update charge group numbers
-        new_atoms = list(zip(*new_atoms))
-        new_atoms = [self._fix_atom_record(atom) for atom in new_atoms]
+        new_atoms = other.atoms
+        new_atoms = [update_atom(atom, atom_shift, residue_shift) for atom in new_atoms]   
         self.atoms.extend(new_atoms)
-
-        # Update other categories
-        for attrib in ["bonds", "vsites", "exclusions", "angles", "dihedrals", "impropers", "constraints", "posres"]:
-            category = getattr(self, attrib)
-            other_category = getattr(other, attrib)
-            # Shift indices in each item
-            for item in other_category:
-                item += shift
-            category.extend(other_category)
+        # Update bonds
+        for self_attrib, other_attrib in zip(self.blist, other.blist):
+            other_attrib = [update_bond(bond, atom_shift) for bond in other_attrib]
+            self_attrib.extend(other_attrib) 
         return self
 
-    def __add__(self, other: Any) -> "Topology":
+    def __add__(self, other) -> "Topology":
         """
         Implements addition of two Topology objects.
-
-        :param other: Another Topology or object convertible to Topology.
-        :return: A new Topology instance that is the sum of self and other.
         """
-        new_topology = Topology(self)
-        new_topology += other
-        return new_topology
+        # Create a copy of self. Assumes that the constructor can create a copy from self.
+        new_top = self
+        new_top += other  # Use __iadd__ to add the other topology
+        return new_top
 
+    def lines(self) -> list:
+        """
+        Returns the topology file representation as a list of lines.
+        Returns:
+            list: A list of strings, where each string is a line in the topology file.
+        """
+        lines = itpio.format_header(molname=self.name, forcefield=self.ff.name, 
+                                    version='', arguments='')
+        lines += itpio.format_sequence_section(self.sequence, self.secstruct)
+        lines += itpio.format_moleculetype_section(molname=self.name, nrexcl=1)
+        lines += itpio.format_atoms_section(self.atoms)
+        lines += itpio.format_bonded_section('bonds', self.bonds)
+        lines += itpio.format_bonded_section('angles', self.angles)
+        lines += itpio.format_bonded_section('dihedrals', self.dihs)
+        lines += itpio.format_bonded_section('constraints', self.cons)
+        lines += itpio.format_bonded_section('exclusions', self.excls)
+        lines += itpio.format_bonded_section('pairs', self.pairs)
+        lines += itpio.format_bonded_section('virtual_sites3', self.vs3s)
+        lines += itpio.format_posres_section(self.atoms)
+        logging.info('Created coarsegrained topology')
+        return lines
 
     def __str__(self) -> str:
-        """
-        Returns a string representation of the topology file.
-        """
-        sections = [
-            self._format_header(),
-            self._format_sequence_section(),
-            self._format_moleculetype_section(),
-            self._format_atoms_section(),
-            self._format_pairs_section(),
-            self._format_virtual_sites_section(),
-            self._format_bonds_section(),
-            self._format_constraints_section(),
-            self._format_exclusions_section(),
-            self._format_angles_section(),
-            self._format_dihedrals_section(),
-            self._format_posres_section()
-        ]
-        logging.info('Created coarsegrained topology')
-        return "\n".join([sec for sec in sections if sec])
+        return "".join(self.lines())
 
-
-    def _format_sequence_section(self) -> str:
-        """
-        Formats the sequence section if present.
-        """
-        if not self.sequence:
-            return ""
-        seq_str = '; Sequence:\n; ' + ''.join([AA321.get(AA) for AA in self.sequence])
-        secstruc_str = '; Secondary Structure:\n; ' + self.secstruc
-        return "\n".join([seq_str, secstruc_str])
-
+    def write_itp(self, filename):
+        with open(filename, 'w') as file:
+            for line in self.lines():
+                file.write(line)    
 
     def _format_bonds_section(self) -> str:
         """
@@ -167,7 +161,6 @@ class Topology:
                 lines.extend(bonds)
         return "\n".join(lines)
 
-
     @staticmethod
     def _update_bb_connectivity(conn, atid, reslen, prevreslen=None):
         """Update backbone connectivity indices for a residue.
@@ -186,7 +179,7 @@ class Topology:
                 connectivity list is returned.
 
         Returns:
-            tuple: A tuple of updated connectivity indices.
+            List: A list of updated connectivity indices.
 
         Example:
             >>> conn = [0, 1, -1]
@@ -208,7 +201,7 @@ class Topology:
                 result.append(atid + idx + reslen)
                 atid += reslen
             prev = idx
-        return tuple(result)
+        return result
 
     @staticmethod
     def _update_sc_connectivity(conn, atid):
@@ -218,7 +211,7 @@ class Topology:
         result = []
         for idx in conn:
             result.append(atid + idx)
-        return tuple(result)
+        return result
         
     def _check_connectivity(self, conn):
         """
@@ -248,7 +241,7 @@ class Topology:
                 charge = ffatom[4]
                 mass = ffatom[5]
                 comment = ()
-                atom = (atom_id, atom_type, resid, resname, name, chargegrp, charge, mass, comment)
+                atom = [atom_id, atom_type, resid, resname, name, chargegrp, charge, mass, comment] # Need them mutable
                 self.atoms.append(atom)
             prevreslen = reslen
             atid += reslen
@@ -281,7 +274,7 @@ class Topology:
                         comment = bond[2]              
                         upd_conn = self._update_bb_connectivity(connectivity, atid, reslen, prevreslen=prevreslen)
                         if self._check_connectivity(upd_conn): # Check if the current bond is within the boundaries
-                            upd_bond = [upd_conn, parameters, comment]
+                            upd_bond = [list(upd_conn), list(parameters), comment] # Need them mutable
                             btype.append(upd_bond)
             prevreslen = reslen
             atid += reslen
@@ -311,11 +304,22 @@ class Topology:
                         comment = bond[2]               
                         upd_conn = self._update_sc_connectivity(connectivity, atid)
                         if self._check_connectivity(upd_conn): # Check if the current bond is within the boundaries
-                            upd_bond = [upd_conn, parameters, comment]
+                            upd_bond = [list(upd_conn), list(parameters), comment] # Need them mutable
                             btype.append(upd_bond)
             prevreslen = reslen
             atid += reslen
             resid += 1
         logging.info("Finished nucleic acid topology construction.")
+
+
+    def elastic_network(self, structure, anames=['BB1', 'BB3',], el=0.5, eu=1.2, ef=200):
+        str_atoms = [atom for atom in structure.atoms() if atom.name in anames]
+        for bj, xj in atomList:
+            d = get_distance(xi, xj) / 100
+            if d > el and d < eu:
+                dij  = math.sqrt(d2)
+                fscl = decayFunction(dij, lowerBound, decayFactor, decayPower)
+                if fscl*forceConstant > minimumForce:
+                    self.elnet.append({"atoms":(bi,bj),"parameters": (dij,"RUBBER_FC*%f"%fscl)})
         
 

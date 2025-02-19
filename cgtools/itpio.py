@@ -130,24 +130,38 @@ def bond2line(connectivity=None, parameters='', comment=''):
     return line
 
 
-def format_header(molecule_name='molecule', forcefield='', version='', arguments='') -> List[str]:
+def format_header(molname='molecule', forcefield='', version='', arguments='') -> List[str]:
     """
     Formats the header of the topology file.
     """
-    lines = [f"; MARTINI ({forcefield}) Coarse Grained topology file for \"{molecule_name}\"\n"]
-    lines.append(f"; Created by version {version} \n; Using the following options: {arguments}\n")
+    lines = [f"; MARTINI ({forcefield}) Coarse Grained topology file for \"{molname}\"\n"]
+    lines.append(f"; Created using the following options:\n")
+    lines.append(f"; {arguments}\n")
     lines.append("; " + "#" * 100 + "\n")
     # lines.append("; " + "#" * 100 + "\n")
     return lines
 
 
-def format_moleculetype_section(molecule_name='molecule', nrexcl=1) -> List[str]:
+def format_sequence_section(sequence, secstruct) -> List[str]:
+    """
+    Formats the sequence section.
+    """
+    sequence_str = "".join(i for i in sequence)
+    secstruct_str = "".join(i for i in secstruct)
+    lines = ['; Sequence:\n']
+    lines.append(f'; {sequence_str}\n' )
+    lines.append('; Secondary Structure:\n' )
+    lines.append(f'; {secstruct_str}\n' )
+    return lines
+
+
+def format_moleculetype_section(molname='molecule', nrexcl=1) -> List[str]:
     """
     Formats the moleculetype section.
     """
     lines = ["\n[ moleculetype ]\n"]
     lines.append("; Name         Exclusions\n")
-    lines.append(f"{molecule_name:<15s} {nrexcl:3d}\n")
+    lines.append(f"{molname:<15s} {nrexcl:3d}\n")
     return lines
 
 
@@ -165,6 +179,7 @@ def format_atoms_section(atoms: List[Tuple]) -> List[str]:
     fs8 = '%5d %5s %5d %5s %5s %5d %7.4f ; %s'
     fs9 = '%5d %5s %5d %5s %5s %5d %7.4f %7.4f ; %s'
     for atom in atoms:
+        atom = tuple(atom)
         # Choose format based on length of the atom tuple.
         line = fs9 % atom if len(atom) == 9 else fs8 % atom
         line += "\n"
@@ -410,8 +425,6 @@ def make_ions_itp():
         file.writelines(new_lines + original_content)
         
         
-
-
 if __name__ == '__main__':
     # make_ions_itp()
     make_marnatini_itp()
