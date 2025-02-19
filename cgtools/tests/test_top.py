@@ -18,7 +18,9 @@ def test_top():
     # print(topol.pairs)
     # print(topol.vs3s)
 
-    lines = itpio.format_atoms_section(topol.atoms)
+    lines = itpio.format_header()
+    lines += itpio.format_moleculetype_section()
+    lines += itpio.format_atoms_section(topol.atoms)
     lines += itpio.format_bonded_section('bonds', topol.bonds)
     lines += itpio.format_bonded_section('angles', topol.angles)
     lines += itpio.format_bonded_section('dihedrals', topol.dihs)
@@ -26,6 +28,7 @@ def test_top():
     lines += itpio.format_bonded_section('exclusions', topol.excls)
     lines += itpio.format_bonded_section('pairs', topol.pairs)
     lines += itpio.format_bonded_section('virtual_sites3', topol.vs3s)
+    lines += itpio.format_posres_section(topol.atoms)
     itpio.write_itp('test.itp', lines)
 
 

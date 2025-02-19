@@ -88,20 +88,10 @@ class Topology:
         :param other: Another Topology or object convertible to Topology.
         :return: A new Topology instance that is the sum of self and other.
         """
-        new_topo = Topology(self)
-        new_topo += other
-        return new_topo
+        new_topology = Topology(self)
+        new_topology += other
+        return new_topology
 
-    def _fix_atom_record(self, atom: Tuple) -> Tuple:
-        """
-        Fixes atom record if mass is not specified.
-
-        :param atom: Atom tuple.
-        :return: Fixed atom tuple.
-        """
-        if atom[-1] == 0:
-            return atom + ('c',)
-        return atom
 
     def __str__(self) -> str:
         """
@@ -135,39 +125,6 @@ class Topology:
         secstruc_str = '; Secondary Structure:\n; ' + self.secstruc
         return "\n".join([seq_str, secstruc_str])
 
-    def _format_moleculetype_section(self) -> str:
-        """
-        Formats the moleculetype section.
-        """
-        return "\n[ moleculetype ]\n; Name         Exclusions\n{:<15s} {:3d}".format(self.name, self.nrexcl)
-
- 
-
-    def _format_pairs_section(self) -> str:
-        """
-        Formats the pairs section.
-        """
-        pairs = [str(pair) for pair in self.pairs if str(pair)]
-        if pairs:
-            return "\n[ pairs ]\n" + "\n".join(pairs)
-        return ""
-
-    def _format_virtual_sites_section(self) -> str:
-        """
-        Formats the virtual sites section.
-        """
-        vs_bb = [str(v) for v in self.vsites["BB"] if str(v)]
-        vs_sc = [str(v) for v in self.vsites["SC"] if str(v)]
-        if not (vs_bb or vs_sc):
-            return ""
-        lines = ["\n[ virtual_sites3 ]"]
-        if vs_bb:
-            lines.append("; Backbone virtual sites.")
-            lines.extend(vs_bb)
-        if vs_sc:
-            lines.append("; Sidechain virtual sites.")
-            lines.extend(vs_sc)
-        return "\n".join(lines)
 
     def _format_bonds_section(self) -> str:
         """
@@ -210,64 +167,6 @@ class Topology:
                 lines.extend(bonds)
         return "\n".join(lines)
 
-    def _format_constraints_section(self) -> str:
-        """
-        Formats the constraints section.
-        """
-        lines = ["\n[ constraints ]"]
-        constraints = [str(constraint) for constraint in self.bonds["Constraint"]]
-        lines.extend(constraints)
-        return "\n".join(lines)
-
-    def _format_exclusions_section(self) -> str:
-        """
-        Formats the exclusions section.
-        """
-        exclusions = [str(excl) for excl in self.exclusions if str(excl)]
-        if exclusions:
-            return "\n[ exclusions ]\n" + "\n".join(exclusions)
-        return ""
-
-    def _format_angles_section(self) -> str:
-        """
-        Formats the angles section.
-        """
-        lines = ["\n[ angles ]", "; Backbone angles"]
-        lines.extend([str(angle) for angle in self.angles["BBB"] if str(angle)])
-        lines.append("; Backbone-sidechain angles")
-        lines.extend([str(angle) for angle in self.angles["BBS"] if str(angle)])
-        lines.append("; Sidechain angles")
-        lines.extend([str(angle) for angle in self.angles["SC"] if str(angle)])
-        return "\n".join(lines)
-
-    def _format_dihedrals_section(self) -> str:
-        """
-        Formats the dihedrals section.
-        """
-        lines = ["\n[ dihedrals ]", "; Backbone dihedrals"]
-        lines.extend([str(dihed) for dihed in self.dihedrals["BBBB"] if dihed.parameters])
-        lines.append("; Sidechain dihedrals")
-        lines.extend([str(dihed) for dihed in self.dihedrals["BSC"] if dihed.parameters])
-        lines.append("; Sidechain improper dihedrals")
-        lines.extend([str(dihed) for dihed in self.dihedrals["SC"] if dihed.parameters])
-        return "\n".join(lines)
-
-    def _format_posres_section(self) -> str:
-        """
-        Formats the position restraints section.
-        """
-        if not self.posres:
-            return ""
-        try:
-            posres_force = self.options['PosResForce']
-        except KeyError:
-            posres_force = 0.0
-        lines = ["\n#ifdef POSRES",
-                 "#ifndef POSRES_FC\n#define POSRES_FC %.2f\n#endif" % posres_force,
-                 " [ position_restraints ]"]
-        lines.extend(['  %5d    1    POSRES_FC    POSRES_FC    POSRES_FC' % idx for idx in self.posres])
-        lines.append("#endif")
-        return "\n".join(lines)
 
     @staticmethod
     def _update_bb_connectivity(conn, atid, reslen, prevreslen=None):

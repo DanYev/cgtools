@@ -30,12 +30,16 @@ AA_CODE_CONVERTER = {
 }
 
 
+###################################
+## Generic Classes and Functions ## 
+###################################
+
 class Atom:
     """
     Represents an ATOM or HETATM record from a PDB file.
     """
     def __init__(self, record, serial, name, alt_loc, res_name, chain_id, res_seq,
-                 i_code, x, y, z, occupancy, b_factor, element, charge):
+                 icode, x, y, z, occupancy, b_factor, element, charge):
         self.record = record          # "ATOM" or "HETATM"
         self.serial = serial          # Atom serial number
         self.name = name              # Atom name
@@ -43,7 +47,7 @@ class Atom:
         self.res_name = res_name      # Residue name
         self.chain_id = chain_id      # Chain identifier
         self.res_seq = res_seq        # Residue sequence number
-        self.i_code = i_code          # Insertion code
+        self.icode = icode          # Insertion code
         self.x = x                    # x coordinate
         self.y = y                    # y coordinate
         self.z = z                    # z coordinate
@@ -65,7 +69,7 @@ class Atom:
         res_name = line[17:20].strip()
         chain_id = line[21].strip()
         res_seq = int(line[22:26])
-        i_code = line[26].strip()
+        icode = line[26].strip()
         x = float(line[30:38])
         y = float(line[38:46])
         z = float(line[46:54])
@@ -76,7 +80,7 @@ class Atom:
         element = line[76:78].strip()
         charge = line[78:80].strip()
         return cls(record, serial, name, alt_loc, res_name, chain_id, res_seq,
-                   i_code, x, y, z, occupancy, b_factor, element, charge)
+                   icode, x, y, z, occupancy, b_factor, element, charge)
 
     def __repr__(self):
         return (f"<Atom {self.record} {self.serial} {self.name} "
@@ -97,7 +101,7 @@ class Atom:
             f"{self.res_name:>3} " # residue name right-justified in 3 chars + space
             f"{self.chain_id:1}"  # chain identifier in 1 char
             f"{self.res_seq:>4}"   # residue sequence number right-justified in 4 chars
-            f"{self.i_code:1}   " # insertion code in 1 char, then 3 spaces
+            f"{self.icode:1}   " # insertion code in 1 char, then 3 spaces
             f"{self.x:>8.3f}"     # x coordinate, 8 chars wide, 3 decimals
             f"{self.y:>8.3f}"     # y coordinate, 8 chars wide, 3 decimals
             f"{self.z:>8.3f}"     # z coordinate, 8 chars wide, 3 decimals
@@ -112,10 +116,10 @@ class Residue:
     """
     Represents a residue that holds a list of Atom objects.
     """
-    def __init__(self, res_name, res_seq, i_code):
-        self.res_name = res_name
-        self.res_seq = res_seq
-        self.i_code = i_code
+    def __init__(self, resname, resid, icode):
+        self.resname = resname
+        self.resid = resid
+        self.icode = icode
         self._atoms = []  # List of Atom objects
 
     def add_atom(self, atom):
@@ -129,7 +133,7 @@ class Residue:
         return iter(self._atoms)
 
     def __repr__(self):
-        return f"<Residue {self.res_name} {self.res_seq}{self.i_code} with {len(self._atoms)} atom(s)>"
+        return f"<Residue {self.resname} {self.resid}{self.icode} with {len(self._atoms)} atom(s)>"
 
 
 class Chain:
@@ -138,25 +142,25 @@ class Chain:
     """
     def __init__(self, chain_id):
         self.chain_id = chain_id
-        # Residues keyed by (res_seq, i_code)
+        # Residues keyed by (res_seq, icode)
         self.residues = {}
 
     def add_atom(self, atom):
-        key = (atom.res_seq, atom.i_code)
+        key = (atom.res_seq, atom.icode)
         if key not in self.residues:
-            self.residues[key] = Residue(atom.res_name, atom.res_seq, atom.i_code)
+            self.residues[key] = Residue(atom.res_name, atom.res_seq, atom.icode)
         self.residues[key].add_atom(atom)
 
     def atoms(self):
         """Return a list of all atoms in this chain."""
         all_atoms = []
-        # Sort residues by res_seq and insertion code for ordered iteration.
-        for residue in sorted(self.residues.values(), key=lambda r: (r.res_seq, r.i_code)):
+        # Sort residues by resid and insertion code for ordered iteration.
+        for residue in sorted(self.residues.values(), key=lambda r: (r.resid, r.icode)):
             all_atoms.extend(residue.atoms())
         return all_atoms
 
     def __iter__(self):
-        for residue in sorted(self.residues.values(), key=lambda r: (r.res_seq, r.i_code)):
+        for residue in sorted(self.residues.values(), key=lambda r: (r.resid, r.icode)):
             yield residue
 
     def __repr__(self):
@@ -235,7 +239,7 @@ class System:
                 # Iterate over chains in sorted order by chain_id
                 for chain in sorted(model.chains.values(), key=lambda c: c.chain_id):
                     # Iterate over residues in sorted order
-                    for residue in sorted(chain.residues.values(), key=lambda r: (r.res_seq, r.i_code)):
+                    for residue in sorted(chain.residues.values(), key=lambda r: (r.res_seq, r.icode)):
                         for atom in residue.atoms():
                             f.write(atom.to_pdb_line() + "\n")
                 if multiple_models:
@@ -276,9 +280,9 @@ class PDBParser:
         return system
 
 
-#########################
-#### FUNCTIONS ##########
-#########################
+###################################
+## Higher Level Functions ## 
+###################################
 
 def convert_mutation_format(mutation):
     # Check if the input follows the expected format

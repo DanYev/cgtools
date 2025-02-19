@@ -19,7 +19,6 @@ def test_save_pdb():
     system.save_pdb('saved.pdb')
 
 
-# Example usage:
 if __name__ == "__main__":
     test_read_pdb()     
     test_save_pdb()               

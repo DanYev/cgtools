@@ -130,25 +130,25 @@ def bond2line(connectivity=None, parameters='', comment=''):
     return line
 
 
-def format_header(self) -> str:
+def format_header(molecule_name='molecule', forcefield='', version='', arguments='') -> List[str]:
     """
     Formats the header of the topology file.
     """
-    try:
-        forcefield_name = self.options['ForceField'].name
-        version = self.options['Version']
-        arguments = ' '.join(self.options['Arguments'])
-    except KeyError as e:
-        logging.error("Missing key in options: %s", e)
-        forcefield_name = "Unknown"
-        version = "Unknown"
-        arguments = ""
-    header = f"; MARTINI ({forcefield_name}) Coarse Grained topology file for \"{self.name}\"\n"
-    header += f"; Created by py version {version} \n; Using the following options: {arguments}\n"
-    header += "; " + "#" * 100 + "\n"
-    header += "; This topology is based on development beta of Martini DNA and should NOT be used for production runs.\n"
-    header += "; " + "#" * 100
-    return header
+    lines = [f"; MARTINI ({forcefield}) Coarse Grained topology file for \"{molecule_name}\"\n"]
+    lines.append(f"; Created by version {version} \n; Using the following options: {arguments}\n")
+    lines.append("; " + "#" * 100 + "\n")
+    # lines.append("; " + "#" * 100 + "\n")
+    return lines
+
+
+def format_moleculetype_section(molecule_name='molecule', nrexcl=1) -> List[str]:
+    """
+    Formats the moleculetype section.
+    """
+    lines = ["\n[ moleculetype ]\n"]
+    lines.append("; Name         Exclusions\n")
+    lines.append(f"{molecule_name:<15s} {nrexcl:3d}\n")
+    return lines
 
 
 def format_atoms_section(atoms: List[Tuple]) -> List[str]:
@@ -157,6 +157,7 @@ def format_atoms_section(atoms: List[Tuple]) -> List[str]:
     Args:
         atoms (List[Tuple[Any, ...]]): A list of atom records, where each record is a tuple.
                                        The tuple should have 8 or 9 elements depending on the atom.
+        atom is the tuple: (atid, type, resid, resname, name, chargegrp, charge, mass, comment)
     Returns:
         List[str]: A list of formatted strings representing the atoms section.
     """
@@ -184,6 +185,21 @@ def format_bonded_section(header: str, bonds: List[List]) -> List[str]:
     for bond in bonds:
         line = bond2line(*bond)
         lines.append(line) 
+    return lines
+
+
+def format_posres_section(atoms: List[Tuple], posres_fc=1000, selection=['BB1', 'BB3', 'SC1']) -> List[str]:
+    """
+    Formats the position restraints section.
+    atom is the tuple: (atid, type, resid, resname, name, chargegrp, charge, mass, comment)
+    """
+    lines = ["\n#ifdef POSRES\n",
+                "#define POSRES_FC %.2f\n" % posres_fc,
+                " [ position_restraints ]\n"]
+    for atom in atoms:
+        if atom[4] in selection:
+            lines.append('  %5d    1    POSRES_FC    POSRES_FC    POSRES_FC\n' % atom[0])
+    lines.append("#endif")
     return lines
 
 

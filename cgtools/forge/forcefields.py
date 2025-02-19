@@ -90,14 +90,38 @@ class martini30rna(NucleicForceField):
     resnames = ['A', 'C', 'G', 'U']
 
     # FF mapping
-    bb_mapping = [['P', 'OP1', 'OP2', "O5'", "O3'", 'O1P', 'O2P'], 
-                ["C5'", "1H5'", "2H5'", "H5'", "H5''", "C4'", "H4'", "O4'", "C3'", "H3'"], 
-                ["C1'", "C2'", "O2'", "O4'"]]
+    bb_mapping = {
+                "BB1":  ("P", "OP1", "OP2", "O5'", "O3'", 'O1P', 'O2P'), 
+                "BB2":  ("C5'", "1H5'", "2H5'", "H5'", "H5''", "C4'", "H4'", "O4'", "C3'", "H3'"), 
+                "BB3":  ("C1'", "C2'", "O2'", "O4'")}
+    a_mapping = {
+                "SC1": ("N9", "C8", "H8"), 
+                "SC2": ("N3", "C4"), 
+                "SC3": ("N1", "C2", "H2"), 
+                "SC4": ("N6", "C6", "H61", "H62"), 
+                "SC5": ("N7", "C5")}
+    c_mapping = {
+                "SC1": ("N1", "C5", "C6"), 
+                "SC2": ("C2", "O2"), 
+                "SC3": ("N3"), 
+                "SC4": ("N4", "C4", "H41", "H42")}
+    g_mapping = {
+                "SC1": ("C8", "H8", "N9"), 
+                "SC2": ("C4", "N3"), 
+                "SC3": ("C2", "N2", "H21", "H22"), 
+                "SC4": ("N1"), 
+                "SC5": ("C6", "O6"), 
+                "SC6": ("C5", "N7")}          
+    u_mapping = {
+                "SC1": ("N1", "C5", "C6"), 
+                "SC2": ("C2", "O2"), 
+                "SC3": ("N3"), 
+                "SC4": ("C4", "O4")}
     mapping = {
-        "A":  bb_mapping + [['N9', 'C8', 'H8'], ['N3', 'C4'], ['N1', 'C2', 'H2'], ['N6', 'C6', 'H61', 'H62'], ['N7', 'C5']], 
-        "C":  bb_mapping + [['N1', 'C5', 'C6'], ['C2', 'O2'], ['N3'], ['N4', 'C4', 'H41', 'H42']],
-        "G":  bb_mapping + [['C8', 'H8', 'N9'], ['C4', 'N3'], ['C2', 'N2', 'H21', 'H22'], ['N1'], ['C6', 'O6'], ['C5', 'N7']],
-        "U":  bb_mapping + [['N1', 'C5', 'C6'], ['C2', 'O2'], ['N3'], ['C4', 'O4']],
+        "A":  {**bb_mapping, **a_mapping},
+        "C":  {**bb_mapping, **c_mapping},
+        "G":  {**bb_mapping, **g_mapping}, 
+        "U":  {**bb_mapping, **u_mapping},
     }
     
     # NucleicForceField.update_non_standard_mapping(mapping)
