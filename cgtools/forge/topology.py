@@ -270,10 +270,10 @@ class Topology:
         return "\n".join(lines)
 
     @staticmethod
-    def _update_connectivity(conn, atid, reslen, prevreslen=None):
-        """Update connectivity indices for a residue.
+    def _update_bb_connectivity(conn, atid, reslen, prevreslen=None):
+        """Update backbone connectivity indices for a residue.
 
-        This method updates connectivity indices provided by the force field (FF) for the current
+        This method updates backbone connectivity indices provided by the force field (FF) for the current
         residue. It adjusts atom indices based on the length of the current residue, and for some
         dihedral definitions, uses the length of the previous residue.
 
@@ -311,6 +311,16 @@ class Topology:
             prev = idx
         return tuple(result)
 
+    @staticmethod
+    def _update_sc_connectivity(conn, atid):
+        """Update sidechain connectivity indices for a residue.
+        Same as for the backbone but much simpler
+        """
+        result = []
+        for idx in conn:
+            result.append(atid + idx)
+        return tuple(result)
+        
     def _check_connectivity(self, conn):
         """
         Check if the current bond is within the boundaries
@@ -338,7 +348,7 @@ class Topology:
                 chargegrp = ffatom[3] + atid
                 charge = ffatom[4]
                 mass = ffatom[5]
-                comment = None
+                comment = ()
                 atom = (atom_id, atom_type, resid, resname, name, chargegrp, charge, mass, comment)
                 self.atoms.append(atom)
             prevreslen = reslen
@@ -370,7 +380,7 @@ class Topology:
                         connectivity = bond[0] 
                         parameters = bond[1]
                         comment = bond[2]              
-                        upd_conn = self._update_connectivity(connectivity, atid, reslen, prevreslen=prevreslen)
+                        upd_conn = self._update_bb_connectivity(connectivity, atid, reslen, prevreslen=prevreslen)
                         if self._check_connectivity(upd_conn): # Check if the current bond is within the boundaries
                             upd_bond = [upd_conn, parameters, comment]
                             btype.append(upd_bond)
@@ -386,7 +396,7 @@ class Topology:
         :param sequence: The nucleic acid sequence or a Chain instance.
         :param secstruc: Secondary structure information.
         """
-        # Process backbone connectivity 
+        # Process sidechain connectivity 
         atid = start_atom
         resid = start_resid
         prevreslen = None
@@ -399,8 +409,8 @@ class Topology:
                     if bond: # Don't interate through empty parameters.
                         connectivity = bond[0] 
                         parameters = bond[1]  
-                        comment = bond[2]                   
-                        upd_conn = self._update_connectivity(connectivity, atid, reslen, prevreslen=prevreslen)
+                        comment = bond[2]               
+                        upd_conn = self._update_sc_connectivity(connectivity, atid)
                         if self._check_connectivity(upd_conn): # Check if the current bond is within the boundaries
                             upd_bond = [upd_conn, parameters, comment]
                             btype.append(upd_bond)
