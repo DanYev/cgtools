@@ -8,7 +8,7 @@ helper functions to improve maintainability.
 """
 
 import logging
-from cgtools.cgtools.forcefields import NucleicForceField
+from cgtools.forge.forcefields import NucleicForceField
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 # NOTE: The following classes (CategorizedList, Chain, Pair, Bond, Angle, Dihedral,
@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 # elsewhere in your code base.
 
 class Topology:
-    def __init__(self, forcefield, sequence: List = []) -> None:
+    def __init__(self, forcefield, sequence: List = [], secstruct: List = []) -> None:
         """
         Initialize a Topology instance.
 
@@ -33,18 +33,22 @@ class Topology:
         self.nrexcl: int = 1
         self.atoms: List = []
         self.bonds: List = []
-        self.pairs: List = []
-        self.vsites: List = []
-        self.exclusions: List = []
         self.angles: List = []
-        self.dihedrals: List = []
-        self.impropers: List = []
-        self.constraints: List = []
+        self.dihs: List = []
+        self.cons: List = []
+        self.excls: List = []   
+        self.pairs: List = []
+        self.vs3s: List = []      
         self.posres: List = []
-        self.secstruc: str = ""
         self.mapping: List = []
-        self.breaks: List = []
-        self.natoms: int = 0        
+        # list with all bonded parameters like in the ff
+        self.blist = [self.bonds, self.angles, self.dihs, self.cons, 
+            self.excls, self.pairs, self.vs3s]  
+        # Secondary structure     
+        if secstruct:
+            self.secstruct = secstruct
+        else:
+            self.secstruct = []
 
 
     def __iadd__(self, other: Any) -> "Topology":
@@ -120,25 +124,6 @@ class Topology:
         logging.info('Created coarsegrained topology')
         return "\n".join([sec for sec in sections if sec])
 
-    def _format_header(self) -> str:
-        """
-        Formats the header of the topology file.
-        """
-        try:
-            forcefield_name = self.options['ForceField'].name
-            version = self.options['Version']
-            arguments = ' '.join(self.options['Arguments'])
-        except KeyError as e:
-            logging.error("Missing key in options: %s", e)
-            forcefield_name = "Unknown"
-            version = "Unknown"
-            arguments = ""
-        header = f"; MARTINI ({forcefield_name}) Coarse Grained topology file for \"{self.name}\"\n"
-        header += f"; Created by py version {version} \n; Using the following options: {arguments}\n"
-        header += "; " + "#" * 100 + "\n"
-        header += "; This topology is based on development beta of Martini DNA and should NOT be used for production runs.\n"
-        header += "; " + "#" * 100
-        return header
 
     def _format_sequence_section(self) -> str:
         """
@@ -156,17 +141,7 @@ class Topology:
         """
         return "\n[ moleculetype ]\n; Name         Exclusions\n{:<15s} {:3d}".format(self.name, self.nrexcl)
 
-    def _format_atoms_section(self) -> str:
-        """
-        Formats the atoms section.
-        """
-        out = ["\n[ atoms ]"]
-        fs8 = '%5d %5s %5d %5s %5s %5d %7.4f ; %s'
-        fs9 = '%5d %5s %5d %5s %5s %5d %7.4f %7.4f ; %s'
-        for atom in self.atoms:
-            formatted = fs9 % atom if len(atom) == 9 else fs8 % atom
-            out.append(formatted)
-        return "\n".join(out)
+ 
 
     def _format_pairs_section(self) -> str:
         """
@@ -295,147 +270,143 @@ class Topology:
         return "\n".join(lines)
 
     @staticmethod
-    def _update_bb_connectivity(conn, atid, reslen, prevreslen=None):
+    def _update_connectivity(conn, atid, reslen, prevreslen=None):
+        """Update connectivity indices for a residue.
+
+        This method updates connectivity indices provided by the force field (FF) for the current
+        residue. It adjusts atom indices based on the length of the current residue, and for some
+        dihedral definitions, uses the length of the previous residue.
+
+        Args:
+            conn (list of int): Connectivity indices from the force field.
+                Negative indices indicate a connection relative to the previous residue.
+            atid (int): Atom ID of the first atom in the current residue.
+            reslen (int): Number of atoms in the current residue.
+            prevreslen (Optional[int]): Number of atoms in the previous residue.
+                If None, connectivity for negative indices is not updated and the original
+                connectivity list is returned.
+
+        Returns:
+            tuple: A tuple of updated connectivity indices.
+
+        Example:
+            >>> conn = [0, 1, -1]
+            >>> Topology._update_bb_connectivity(conn, 10, 5, prevreslen=4)
+            (10, 11, 10 - 4 - 1 + 3)  # Adjusted accordingly.
+        """
         result = []
         prev = -1
         for idx in conn:
             if idx < 0:
-                result.append(atid - prevreslen + idx + 3) 
-                continue
+                if prevreslen:
+                    result.append(atid - prevreslen + idx + 3) 
+                    continue
+                else:
+                    return tuple(conn)
             if idx > prev:
                 result.append(atid + idx)
             else:
                 result.append(atid + idx + reslen)
+                atid += reslen
             prev = idx
         return tuple(result)
 
-    def process_bb_bonds(self, secstruc=[], start_atom=1, start_resi=1):
+    def _check_connectivity(self, conn):
         """
-        Constructs the topology from a nucleic acid sequence.
-        This method handles the mapping and the creation of backbone and sidechain connectivity.
+        Check if the current bond is within the boundaries
+        """
+        for idx in conn:
+            if idx < 1 or idx > self.natoms:
+                return False
+        return True
+
+    def process_atoms(self, secstruc=[], start_atom=0, start_resid=1):
+        """
+        Makes a list of tuples representic atoms to convert after to GROMACS itp file
+        FF input is given as (atid, type, name, chargegrp, charge, mass)
+        We need to convert it to (atid, type, resid, resname, name, chargegrp, charge, mass, comment)
+        """
+        atid = start_atom
+        resid = start_resid
+        for resname in self.sequence:
+            res_list = self.ff.bb_atoms + self.ff.sc_atoms(resname) # List of FF atoms in the residue
+            reslen = len(res_list) # N atoms in the current residue
+            for ffatom in res_list:
+                atom_id = ffatom[0] + atid
+                atom_type = ffatom[1]
+                name = ffatom[2]
+                chargegrp = ffatom[3] + atid
+                charge = ffatom[4]
+                mass = ffatom[5]
+                comment = None
+                atom = (atom_id, atom_type, resid, resname, name, chargegrp, charge, mass, comment)
+                self.atoms.append(atom)
+            prevreslen = reslen
+            atid += reslen
+            resid += 1
+        self.atoms.pop(0)  # Remove the first atom
+        self.natoms = len(self.atoms)
+
+    def process_bb_bonds(self, secstruc=[], start_atom=0, start_resid=1):
+        """
+        This method handles the mapping and the creation of backbone connectivity.
+        As is FF, bond must be a list of tuples [(connectivity), (parameters), (comment)]
 
         :param sequence: The nucleic acid sequence or a Chain instance.
         :param secstruc: Secondary structure information.
         """
-        # Log secondary structure and sequence information.
-        print(self.sequence)
         logging.debug(self.sequence)
-        logging.debug(secstruc)
         # Process backbone connectivity 
         atid = start_atom
-        resid = start_resi
+        resid = start_resid
         prevreslen = None
         for resname in self.sequence:
-            reslen = len(self.ff.bb_atoms) + len(self.ff.sc_atoms(resname))
-            bonds = self.ff.bb_bonds
-            for bond in bonds:
-                conn = bond[0]
-                params = bond[1]
-                upd_conn = self._update_bb_connectivity(conn, atid, reslen, prevreslen=prevreslen)
-                upd_bond = [upd_conn, params]
-                self.bonds.append(upd_bond)
+            reslen = len(self.ff.bb_atoms) + len(self.ff.sc_atoms(resname)) # N atoms in the current residue
+            ff_blist = self.ff.bb_blist # List with FF bonded types
+            for btype, ffbtype in zip(self.blist, ff_blist): # Iterating through all types
+                for bond in ffbtype: # Iterating through bonds in the type.
+                # Updating the connectivity since FF connectivity given with respect to 0-th atom
+                    if bond: # Don't interate through empty parameters.
+                        connectivity = bond[0] 
+                        parameters = bond[1]
+                        comment = bond[2]              
+                        upd_conn = self._update_connectivity(connectivity, atid, reslen, prevreslen=prevreslen)
+                        if self._check_connectivity(upd_conn): # Check if the current bond is within the boundaries
+                            upd_bond = [upd_conn, parameters, comment]
+                            btype.append(upd_bond)
             prevreslen = reslen
             atid += reslen
             resid += 1
 
-    def process_sc_bonds(self, secstruc=[], start_atom=1, start_resi=1):
-        atid = startAtom
-        resid = [resi for resi in resid for _ in range(3)]
-        resnames = [res for res in self.sequence for _ in range(3)]
-        scinfos = [item for item in sc for _ in range(3)]
-        secstrucs = [s for s in self.secstruc for _ in range(3)]
-        count = 0
-        for resid, resname, bb_type, scinfo, ss in zip(resids, resnames, bb_type, scinfos, secstrucs):
-            if (count % 3) == 0:
-                (sc_atoms, bond_params, angle_params, dihed_params,
-                 imp_params, vsite_params, excl_params, pair_params) = sidechain_info
-                bon_conn, ang_conn, dih_conn, imp_conn, vsite_conn, excl_conn, pair_conn = \
-                    (self.options['ForceField'].base_connectivity[resname] + 7 * [[]])[:7]
-                for at_ids, par in zip(bon_conn, bond_params):
-                    if par[2] == 100000.00000:
-                        self.bonds.append(Bond(options=self.options, atoms=at_ids, parameters=[par[1]],
-                                                type=par[0], comments=resname, category="Constraint"))
-                    else:
-                        self.bonds.append(Bond(options=self.options, atoms=at_ids, parameters=par[1:],
-                                                type=par[0], comments=resname, category="SC"))
-                    self.bonds[-1] += atid
-                for at_ids, par in zip(ang_conn, angle_params):
-                    self.angles.append(Angle(options=self.options, atoms=at_ids, parameters=par[1:],
-                                             type=par[0], comments=resname, category="SC"))
-                    self.angles[-1] += atid
-                for at_ids, par in zip(dih_conn, dihed_params):
-                    self.dihedrals.append(Dihedral(options=self.options, atoms=at_ids, parameters=par[1:],
-                                                   type=par[0], comments=resname, category="BSC"))
-                    self.dihedrals[-1] += atid
-                for at_ids, par in zip(imp_conn, imp_params):
-                    self.dihedrals.append(Dihedral(options=self.options, atoms=at_ids, parameters=par[1:],
-                                                   type=par[0], comments=resname, category="SC"))
-                    self.dihedrals[-1] += atid
-                for at_ids, par in zip(vsite_conn, vsite_params):
-                    self.vsites.append(Vsite(options=self.options, atoms=at_ids, parameters=par,
-                                             comments=resname, category="SC"))
-                    self.vsites[-1] += atid
-                for at_ids, _ in zip(excl_conn, excl_params):
-                    excl = Exclusion(options=self.options, atoms=at_ids, parameters=' ', category="SC")
-                    self.exclusions.append(excl)
-                    self.exclusions[-1] += atid
-                for at_ids, _ in zip(pair_conn, pair_params):
-                    pair = Pair(options=self.options, atoms=at_ids, parameters=' ')
-                    self.pairs.append(pair)
-                    self.pairs[-1] += atid
+    def process_sc_bonds(self, secstruc=[], start_atom=0, start_resid=1):
+        """
+        This method handles the mapping and the creation of sidechain connectivity.
+        As is FF, bond must be a list of tuples [(connectivity), (parameters), (comment)]
 
-                counter = 0
-                # Process backbone beads and sidechain atoms.
-                bbb_set = [bbMulti[count], bbMulti[count+1], bbMulti[count+2]]
-                for atype, aname in zip(bbb_set + list(sc_atoms), CoarseGrained.residue_bead_names_dna):
-                    charge = self.options['ForceField'].getCharge(atype, aname)
-                    if atid in [vSite.atoms[0] for vSite in self.vsites]:
-                        mass = 0
-                    else:
-                        if aname == 'BB1':
-                            mass = 72
-                        elif aname in ("BB2", "BB3"):
-                            mass = 60
-                        else:
-                            mass = 36
-                    self.atoms.append((atid, atype, resi, resname, aname, atid, charge, mass, ss))
-                    # Position restraints (@POSRES)
-                    if 'all' in self.options.get('PosRes', []):
-                        if aname in ("BB1", "BB2", "BB3", "SC1") and atid - 1 > 1:
-                            self.posres.append(atid - 1)
-                    if 'bb' in self.options.get('PosRes', []):
-                        if aname == "BB2" and atid - 1 > 1:
-                            self.posres.append(atid - 1)
-                    if mapping:
-                        self.mapping.append((atid, [i + shift for i in mapping[counter]]))
-                    atid += 1
-                    counter += 1
-            count += 1
-
-        # Clean up connectivity that may extend beyond the valid atom range.
-        self._cleanup_connectivity()
+        :param sequence: The nucleic acid sequence or a Chain instance.
+        :param secstruc: Secondary structure information.
+        """
+        # Process backbone connectivity 
+        atid = start_atom
+        resid = start_resid
+        prevreslen = None
+        for resname in self.sequence:
+            reslen = len(self.ff.bb_atoms) + len(self.ff.sc_atoms(resname)) # N atoms in the current residue
+            ff_blist = self.ff.sc_blist(resname) # List with FF bonded types
+            for btype, ffbtype in zip(self.blist, ff_blist): # Iterating through all types
+                for bond in ffbtype: # Iterating through bonds in the type.
+                # Updating the connectivity since FF connectivity given with respect to 0-th atom
+                    if bond: # Don't interate through empty parameters.
+                        connectivity = bond[0] 
+                        parameters = bond[1]  
+                        comment = bond[2]                   
+                        upd_conn = self._update_connectivity(connectivity, atid, reslen, prevreslen=prevreslen)
+                        if self._check_connectivity(upd_conn): # Check if the current bond is within the boundaries
+                            upd_bond = [upd_conn, parameters, comment]
+                            btype.append(upd_bond)
+            prevreslen = reslen
+            atid += reslen
+            resid += 1
         logging.info("Finished nucleic acid topology construction.")
+        
 
-    def _cleanup_connectivity(self) -> None:
-        """
-        Remove connectivity entries (dihedrals, angles, bonds, etc.) that reference
-        non-existent atoms and adjust atom numbering.
-        """
-        max_atom = self.atoms[-1][0]
-        for collection in [self.dihedrals, self.angles, self.bonds]:
-            for i in range(len(collection) - 1, -1, -1):
-                if max(collection[i].atoms) > max_atom:
-                    del collection[i]
-        for collection in [self.vsites, self.exclusions, self.pairs]:
-            for i in range(len(collection) - 1, -1, -1):
-                if 1 in collection[i].atoms:
-                    del collection[i]
-                else:
-                    collection[i].atoms = tuple(j - 1 for j in collection[i].atoms)
-        # Remove the first atom and shift the rest.
-        if self.atoms:
-            del self.atoms[0]
-            for i in range(len(self.atoms)):
-                self.atoms[i] = (self.atoms[i][0] - 1,) + self.atoms[i][1:]
-        if self.posres:
-            del self.posres[-1]

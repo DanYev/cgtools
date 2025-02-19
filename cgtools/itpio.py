@@ -1,6 +1,30 @@
 import shutil as sh
+from typing import List, Tuple, Any
+
+###################################
+## Generic functions ## 
+###################################
 
 def read_itp(filename):
+    """
+    Reads a Gromacs ITP file and organizes its contents by section.
+
+    This function parses the ITP file specified by `filename`, splitting it into sections
+    (such as 'bonds', 'angles', etc.). For each section, it creates a list of entries,
+    where each entry is a list containing a tuple of connectivity indices, a tuple of parameters,
+    and an optional comment string.
+
+    Args:
+        filename (str): The path to the ITP file.
+
+    Returns:
+        dict: A dictionary where the keys are section names (str) and the values are lists of
+              entries. Each entry is of the form: [connectivity (tuple), parameters (tuple), comment (str)].
+
+    Example:
+        >>> itp_data = read_itp("topology.itp")
+        >>> print(itp_data.get("bonds"))
+    """
     itp_data = {}
     current_section = None
     with open(filename, 'r') as file:
@@ -11,29 +35,38 @@ def read_itp(filename):
             # Detect section headers
             if line.startswith('[') and line.endswith(']\n'):
                 tag = line.strip()[2:-2]
-                itp_data[tag] = {}
+                itp_data[tag] = []
             else:
-                connectivity, parameters = split_conn_params(line, tag)
-                key = connectivity
-                value = parameters
-                itp_data[tag][key] = value
+                connectivity, parameters, comment = line2bond(line, tag)
+                itp_data[tag].append([connectivity, parameters, comment])
     return itp_data
-    
-    
-def write_itp(filename, itp_data):
-    with open(filename, 'w') as file:
-        for section, data_dict in itp_data.items():
-            file.write(f'[ {section} ]\n')
-            for key, value in data_dict.items():
-                l1 = [str(i) for i in key]
-                l2 = [str(i) for i in value]
-                str1 = ' '.join(l1)
-                str2 = ' '.join(l2)
-                file.write(f'{str1} {str2}\n')
-                
-                
-def split_conn_params(line, tag):
-    data = line.split()
+
+
+def line2bond(line, tag):
+    """
+    Parses a line from an ITP file and returns connectivity, parameters, and comment based on the section.
+
+    This function splits the line at the first semicolon to separate the data from the comment.
+    It then splits the data into tokens and, based on the section specified by `tag`, extracts
+    connectivity indices and parameters. The function converts connectivity to a tuple of ints,
+    and parameters to a tuple of numeric values (with the first parameter as an int and the rest as floats).
+
+    Args:
+        line (str): A line from the ITP file.
+        tag (str): The section tag (e.g., 'bonds', 'angles', etc.) determining the parsing rules.
+
+    Returns:
+        tuple:
+            connectivity (tuple of int): The connectivity indices.
+            parameters (tuple): The associated parameters (numeric values).
+            comment (str): The comment string, if present (empty string otherwise).
+
+    Example:
+        >>> conn, params, comm = line2bond(" 1  2  1 0.153 345.0 ; Harmonic bond", "bonds")
+    """
+    data, sep, comment = line.partition(';')
+    data = data.split()
+    comment = comment.strip()
     if tag == 'bonds':
         connectivity = data[:2]
         parameters = data[2:]
@@ -53,40 +86,118 @@ def split_conn_params(line, tag):
     else:
         connectivity = data
         parameters = []
-    if parameters and parameters[-1].startswith(';'):
-        parameters.pop(-1)
     if parameters:
         parameters[0] = int(parameters[0])
         parameters[1:] = [float(i) for i in parameters[1:]]
-    connectivity  = tuple([int(i) for i in connectivity])
+    connectivity = tuple([int(i) for i in connectivity])
     parameters = tuple(parameters)
-    return connectivity, parameters
+    return connectivity, parameters, comment
 
 
-def bond2str(atoms=None, parameters=None, comment=''):
+def bond2line(connectivity=None, parameters='', comment=''):
     """
     Returns a formatted string for a bond entry in a Gromacs ITP file.
-    
-    Parameters:
-        atoms (list of int): The two atom indices involved in the bond.
+
+    The function formats the given atom indices and bond parameters into a single line.
+    Atom indices and parameters are separated by a consistent amount of whitespace. An
+    optional comment can be appended, preceded by a semicolon.
+
+    Args:
+        atoms (list of int): The atom indices involved in the bond.
         parameters (list of float): Bond parameters (e.g., bond length, force constant).
-        comment (str): An optional comment to append.
-        
+        comment (str): An optional comment to append at the end of the line.
+
     Returns:
         str: A formatted bond entry string.
-        
-    Example:
-        >>> print(bond2str(atoms=[1, 2], parameters=[1 0.153, 345.0], comment="Harmonic bond"))
-             1     2     1   0.1530  345.0000 ; Harmonic bond
-    """   
-    # Combine everything. 
-    result = "   ".join(str(atom) for atom in atoms) + "   " + "   ".join(str(param) for param in parameters) 
-    if comment: # Append comment if provided.
-        result += " ; " + comment
-    return result
 
-    
-    
+    Example:
+        >>> print(bond2line(atoms=[1, 2], parameters=[1, 0.153, 345.0], comment="Harmonic bond"))
+             1     2     1   0.153   345.0 ; Harmonic bond
+    """
+    # Format each connectivity value as a 5-character wide integer.
+    connectivity_str = "   ".join(f"{int(atom):5d}" for atom in connectivity)
+    type_str = ''
+    parameters_str = ''
+    if parameters:
+        # Format each type as a 2-character wide integer.
+        type_str = "   ".join(f"{int(parameters[0]):2d}")
+        # Format each parameter as a 7-character wide float with 4 decimal places.
+        parameters_str = "   ".join(f"{float(param):7.4f}" for param in parameters[1:])
+    line = connectivity_str + "   " + type_str + "   " + parameters_str
+    if comment:  # Append comment if provided.
+        line += " ; " + comment
+    line += "\n"
+    return line
+
+
+def format_header(self) -> str:
+    """
+    Formats the header of the topology file.
+    """
+    try:
+        forcefield_name = self.options['ForceField'].name
+        version = self.options['Version']
+        arguments = ' '.join(self.options['Arguments'])
+    except KeyError as e:
+        logging.error("Missing key in options: %s", e)
+        forcefield_name = "Unknown"
+        version = "Unknown"
+        arguments = ""
+    header = f"; MARTINI ({forcefield_name}) Coarse Grained topology file for \"{self.name}\"\n"
+    header += f"; Created by py version {version} \n; Using the following options: {arguments}\n"
+    header += "; " + "#" * 100 + "\n"
+    header += "; This topology is based on development beta of Martini DNA and should NOT be used for production runs.\n"
+    header += "; " + "#" * 100
+    return header
+
+
+def format_atoms_section(atoms: List[Tuple]) -> List[str]:
+    """
+    Formats the atoms section for a Gromacs ITP file.
+    Args:
+        atoms (List[Tuple[Any, ...]]): A list of atom records, where each record is a tuple.
+                                       The tuple should have 8 or 9 elements depending on the atom.
+    Returns:
+        List[str]: A list of formatted strings representing the atoms section.
+    """
+    lines = ["\n[ atoms ]\n"]
+    fs8 = '%5d %5s %5d %5s %5s %5d %7.4f ; %s'
+    fs9 = '%5d %5s %5d %5s %5s %5d %7.4f %7.4f ; %s'
+    for atom in atoms:
+        # Choose format based on length of the atom tuple.
+        line = fs9 % atom if len(atom) == 9 else fs8 % atom
+        line += "\n"
+        lines.append(line) 
+    return lines
+
+
+def format_bonded_section(header: str, bonds: List[List]) -> List[str]:
+    """
+    Formats the atoms section for a Gromacs ITP file.
+    Args:
+        bonds (List[Tuple[Any, ...]]): A list of atom records, where each record is a tuple.
+                                       The tuple should have 8 or 9 elements depending on the atom.
+    Returns:
+        List[str]: A list of formatted strings representing the atoms section.
+    """
+    lines = [f"\n[ {header} ]\n"]
+    for bond in bonds:
+        line = bond2line(*bond)
+        lines.append(line) 
+    return lines
+
+
+def write_itp(filename, lines):
+    with open(filename, 'w') as file:
+        for line in lines:
+            file.write(line)
+
+
+###################################
+## HL functions for martini_rna ## 
+###################################
+
+
 def make_in_terms(input_file, output_file, dict_of_names):
     tag = None
     pairs = []

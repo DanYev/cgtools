@@ -1,4 +1,4 @@
-import cgtools.cgtools.forcefields as ffs
+import cgtools.forge.forcefields as ffs
 
 ff = ffs.martini30rna()
 # for key, value in ff.mapping.items():
