@@ -38,15 +38,15 @@ class Atom:
     """
     Represents an ATOM or HETATM record from a PDB file.
     """
-    def __init__(self, record, serial, name, alt_loc, res_name, chain_id, res_seq,
+    def __init__(self, record, serial, name, alt_loc, resname, chain_id, resid,
                  icode, x, y, z, occupancy, b_factor, element, charge):
         self.record = record          # "ATOM" or "HETATM"
         self.serial = serial          # Atom serial number
         self.name = name              # Atom name
         self.alt_loc = alt_loc        # Alternate location indicator
-        self.res_name = res_name      # Residue name
+        self.resname = resname      # Residue name
         self.chain_id = chain_id      # Chain identifier
-        self.res_seq = res_seq        # Residue sequence number
+        self.resid = resid        # Residue sequence number
         self.icode = icode          # Insertion code
         self.x = x                    # x coordinate
         self.y = y                    # y coordinate
@@ -66,9 +66,9 @@ class Atom:
         serial = int(line[6:11])
         name = line[12:16].strip()
         alt_loc = line[16].strip()
-        res_name = line[17:20].strip()
+        resname = line[17:20].strip()
         chain_id = line[21].strip()
-        res_seq = int(line[22:26])
+        resid = int(line[22:26])
         icode = line[26].strip()
         x = float(line[30:38])
         y = float(line[38:46])
@@ -79,12 +79,12 @@ class Atom:
         b_factor = float(b_factor_str) if b_factor_str else None
         element = line[76:78].strip()
         charge = line[78:80].strip()
-        return cls(record, serial, name, alt_loc, res_name, chain_id, res_seq,
+        return cls(record, serial, name, alt_loc, resname, chain_id, resid,
                    icode, x, y, z, occupancy, b_factor, element, charge)
 
     def __repr__(self):
         return (f"<Atom {self.record} {self.serial} {self.name} "
-                f"{self.res_name} {self.chain_id}{self.res_seq} "
+                f"{self.resname} {self.chain_id}{self.resid} "
                 f"({self.x:.3f}, {self.y:.3f}, {self.z:.3f})>")
 
 
@@ -98,9 +98,9 @@ class Atom:
             f"{self.serial:>5} "  # serial number right-justified in 5 chars + space
             f"{self.name:<4}"     # atom name left-justified in 4 chars
             f"{self.alt_loc:1}"   # alternate location indicator in 1 char
-            f"{self.res_name:>3} " # residue name right-justified in 3 chars + space
+            f"{self.resname:>3} " # residue name right-justified in 3 chars + space
             f"{self.chain_id:1}"  # chain identifier in 1 char
-            f"{self.res_seq:>4}"   # residue sequence number right-justified in 4 chars
+            f"{self.resid:>4}"   # residue sequence number right-justified in 4 chars
             f"{self.icode:1}   " # insertion code in 1 char, then 3 spaces
             f"{self.x:>8.3f}"     # x coordinate, 8 chars wide, 3 decimals
             f"{self.y:>8.3f}"     # y coordinate, 8 chars wide, 3 decimals
@@ -142,13 +142,13 @@ class Chain:
     """
     def __init__(self, chain_id):
         self.chain_id = chain_id
-        # Residues keyed by (res_seq, icode)
+        # Residues keyed by (resid, icode)
         self.residues = {}
 
     def add_atom(self, atom):
-        key = (atom.res_seq, atom.icode)
+        key = (atom.resid, atom.icode)
         if key not in self.residues:
-            self.residues[key] = Residue(atom.res_name, atom.res_seq, atom.icode)
+            self.residues[key] = Residue(atom.resname, atom.resid, atom.icode)
         self.residues[key].add_atom(atom)
 
     def atoms(self):
@@ -209,6 +209,12 @@ class System:
             self.models[model_id] = Model(model_id)
         self.models[model_id].add_atom(atom)
 
+    def add_atoms(self, atoms, model_id=1):
+        if model_id not in self.models:
+            self.models[model_id] = Model(model_id)
+        for atom in atoms:
+            self.models[model_id].add_atom(atom)
+
     def atoms(self):
         """Return a list of all atoms in the system (from all models)."""
         all_atoms = []
@@ -239,7 +245,7 @@ class System:
                 # Iterate over chains in sorted order by chain_id
                 for chain in sorted(model.chains.values(), key=lambda c: c.chain_id):
                     # Iterate over residues in sorted order
-                    for residue in sorted(chain.residues.values(), key=lambda r: (r.res_seq, r.icode)):
+                    for residue in sorted(chain.residues.values(), key=lambda r: (r.resid, r.icode)):
                         for atom in residue.atoms():
                             f.write(atom.to_pdb_line() + "\n")
                 if multiple_models:

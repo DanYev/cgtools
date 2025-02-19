@@ -91,7 +91,7 @@ class martini30rna(NucleicForceField):
 
     # FF mapping
     bb_mapping = {
-                "BB1":  ("P", "OP1", "OP2", "O5'", "O3'", 'O1P', 'O2P'), 
+                "BB1":  ("P", "OP1", "OP2", "O5'", "O3'", "O1P", "O2P"), 
                 "BB2":  ("C5'", "1H5'", "2H5'", "H5'", "H5''", "C4'", "H4'", "O4'", "C3'", "H3'"), 
                 "BB3":  ("C1'", "C2'", "O2'", "O4'")}
     a_mapping = {
