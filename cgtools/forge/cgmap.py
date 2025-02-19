@@ -11,20 +11,21 @@ def read_pdb(pdb_path):
 
 
 def move_o3(system):
-    for i, residue in enumerate(system.residues()):
-        atoms = residue.atoms()
-        for atom in atoms:
-            if atom.name == "O3'":
-                atoms.remove(atom)
-                if i == 0:
-                    o3atom = atom
-                    break
-                else:
-                    o3atom.resname = residue.resname  
-                    o3atom.resid = residue.resid   
-                    atoms.append(o3atom)  
-                    o3atom = atom 
-                    break
+    for chain in system.chains():
+        for i, residue in enumerate(chain):
+            atoms = residue.atoms()
+            for atom in atoms:
+                if atom.name == "O3'":
+                    atoms.remove(atom)
+                    if i == 0:
+                        o3atom = atom
+                        break
+                    else:
+                        o3atom.resname = residue.resname  
+                        o3atom.resid = residue.resid   
+                        atoms.append(o3atom)  
+                        o3atom = atom 
+                        break
 
 
 def map_residue(residue, mapping, atid):
@@ -33,7 +34,7 @@ def map_residue(residue, mapping, atid):
     for bname, anames in mapping.items():
         bead = copy.deepcopy(dummy_atom)
         bead.name = bname
-        bead.serial = atid
+        bead.atid = atid
         atid += 1
         atoms = [atom for atom in residue.atoms() if atom.name in anames]
         vecs = [(atom.x, atom.y, atom.z) for atom in atoms]
@@ -49,12 +50,13 @@ def map_residue(residue, mapping, atid):
     return cgresidue
 
 
-def map_residues(system, ff, atid=1):
+def map_residues(chain, ff, atid=1):
     cgchain = []
-    for idx, residue in enumerate(system.residues()):
+    for idx, residue in enumerate(chain):
         mapping = ff.mapping[residue.resname]
         if idx == 0:
-            del mapping["BB1"]
+            mapping = mapping.copy()
+            del mapping["BB1"]     
         cgresidue = map_residue(residue, mapping, atid)
         cgchain.extend(cgresidue)
         atid += len(mapping)   

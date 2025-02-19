@@ -8,6 +8,7 @@ helper functions to improve maintainability.
 """
 
 import logging
+import numpy as np
 from cgtools import itpio
 from cgtools.forge.forcefields import NucleicForceField
 from cgtools.forge.geometry import get_distance
@@ -108,58 +109,19 @@ class Topology:
         lines += itpio.format_bonded_section('exclusions', self.excls)
         lines += itpio.format_bonded_section('pairs', self.pairs)
         lines += itpio.format_bonded_section('virtual_sites3', self.vs3s)
+        lines += itpio.format_bonded_section('bonds', self.elnet)
         lines += itpio.format_posres_section(self.atoms)
         logging.info('Created coarsegrained topology')
         return lines
 
-    def __str__(self) -> str:
-        return "".join(self.lines())
+    # def __str__(self) -> str:
+    #     return "".join(self.lines())
 
     def write_itp(self, filename):
         with open(filename, 'w') as file:
             for line in self.lines():
                 file.write(line)    
 
-    def _format_bonds_section(self) -> str:
-        """
-        Formats the bonds section.
-        """
-        lines = ["\n[ bonds ]"]
-        # Backbone-backbone bonds
-        bb_bonds = [str(bond) for bond in self.bonds["BB"] if str(bond)]
-        if bb_bonds:
-            lines.append("; Backbone bonds")
-            lines.extend(bb_bonds)
-        # Rubber bands with CPP directives if present
-        rubber_bonds = [str(bond) for bond in self.bonds.get(("Rubber", True), []) if str(bond)]
-        if rubber_bonds:
-            try:
-                elastic_force = self.options['ElasticMaximumForce']
-            except KeyError:
-                elastic_force = 0.0
-            lines.append("#ifdef RUBBER_BANDS")
-            lines.append("#ifndef RUBBER_FC\n#define RUBBER_FC %f\n#endif" % elastic_force)
-            lines.extend(rubber_bonds)
-            lines.append("#endif")
-        # Sidechain bonds
-        sc_bonds = [str(bond) for bond in self.bonds["SC"] if str(bond)]
-        if sc_bonds:
-            lines.append("; Sidechain bonds")
-            lines.extend(sc_bonds)
-        # Elastic bonds
-        for label, comment in [("Elastic short", "; Short elastic bonds for extended regions"),
-                               ("Elastic long", "; Long elastic bonds for extended regions")]:
-            bonds = [str(bond) for bond in self.bonds[label] if str(bond)]
-            if bonds:
-                lines.append(comment)
-                lines.extend(bonds)
-        # Links
-        for label, comment in [("Link", "; Links")]:
-            bonds = [str(bond) for bond in self.bonds[label] if str(bond)]
-            if bonds:
-                lines.append(comment)
-                lines.extend(bonds)
-        return "\n".join(lines)
 
     @staticmethod
     def _update_bb_connectivity(conn, atid, reslen, prevreslen=None):
@@ -240,7 +202,7 @@ class Topology:
                 chargegrp = ffatom[3] + atid
                 charge = ffatom[4]
                 mass = ffatom[5]
-                comment = ()
+                comment = ""
                 atom = [atom_id, atom_type, resid, resname, name, chargegrp, charge, mass, comment] # Need them mutable
                 self.atoms.append(atom)
             prevreslen = reslen
@@ -312,14 +274,16 @@ class Topology:
         logging.info("Finished nucleic acid topology construction.")
 
 
-    def elastic_network(self, structure, anames=['BB1', 'BB3',], el=0.5, eu=1.2, ef=200):
-        str_atoms = [atom for atom in structure.atoms() if atom.name in anames]
-        for bj, xj in atomList:
-            d = get_distance(xi, xj) / 100
-            if d > el and d < eu:
-                dij  = math.sqrt(d2)
-                fscl = decayFunction(dij, lowerBound, decayFactor, decayPower)
-                if fscl*forceConstant > minimumForce:
-                    self.elnet.append({"atoms":(bi,bj),"parameters": (dij,"RUBBER_FC*%f"%fscl)})
+    def elastic_network(self, atoms, anames=['BB1', 'BB3',], el=0.5, eu=1.2, ef=200):
+        atoms = [atom for atom in atoms if atom.name in anames]
+        for a1 in atoms:
+            for a2 in atoms:
+                if a2.atid - a1.atid > 3:
+                    v1 = np.array((a1.x, a1.y, a1.z))
+                    v2 = np.array((a2.x, a2.y, a2.z))
+                    d = get_distance(v1, v2)
+                    if d > el and d < eu:
+                        comment = a1.resname + str(a1.resid) + "-" + a2.resname + str(a2.resid)
+                        self.elnet.append([[a1.atid, a2.atid], [6, d, ef], comment])
         
 

@@ -3,7 +3,6 @@ import sys
 import copy
 import time
 import numpy as np
-import itpio
 
     
 def get_distance(v1, v2):

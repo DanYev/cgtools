@@ -3,25 +3,43 @@ import cgtools.forge.cgmap as cgmap
 import copy
 from cgtools.forge.topology import Topology
                                  
-if __name__ == "__main__":
-    ff = ffs.martini30rna()
-    pdb = 'chain_A.pdb'
-    # system = cgmap.read_pdb(pdb) 
-    # # Mapping the atomic system  
-    # cgmap.move_o3(system) # Need to move all O3's to the next residue. Annoying but wcyd  
-    # cgchain = cgmap.map_residues(system, ff, atid=1) # Map residue according to the force-field. Returns list of CG atoms 
-    # cgmap.save_pdb(cgchain, fpath='test.pdb') # Saving CG structure
+
+def process_chain(chain, ff, start_atom):
+    # Mapping
+    chain = cgmap.map_residues(chain, ff, atid=start_atom) # Map residue according to the force-field. Returns list of CG atoms 
     # Topology 
-    # sequence = [residue.resname for residue in system.residues()] # So far only need sequence for the topology
-    sequence=list('ACGU')
+    sequence = [residue.resname for residue in chain] # So far only need sequence for the topology
     top = Topology(forcefield=ff, sequence=sequence, )
     top.process_atoms() # Adds itp atom objects to the topology list 
     top.process_bb_bonds() # Adds bb bond objects to the topology list 
     top.process_sc_bonds() # Adds sc bond objects to the topology list 
-    # top.write_itp('test.itp')
-    new_top = copy.deepcopy(top)
-    merged_top = top + new_top
-    merged_top.write_itp('test.itp')
+    return chain, top
+
+
+def merge_topologies(topologies):
+    top = topologies.pop(0)
+    if topologies:
+        for new_top in topologies:
+            top += new_top
+    return top
+
+if __name__ == "__main__":
+    ff = ffs.martini30rna()
+    pdb = 'dsRNA.pdb'
+    system = cgmap.read_pdb(pdb) 
+    cgmap.move_o3(system) # Need to move all O3's to the next residue. Annoying but wcyd
+    structure, topologies = [], [] 
+    start_atom = 1
+    for chain in system.chains():
+        chain, top = process_chain(chain, ff, start_atom)
+        structure.extend(chain)
+        topologies.append(top)
+        start_atom += len(chain)
+    print(topologies)
+    cgmap.save_pdb(structure, fpath='test.pdb') # Saving CG structure    
+    top = merge_topologies(topologies)
+    top.elastic_network(structure, anames=['BB1', 'BB3',], el=0.5, eu=1.2, ef=200) # Adds sc bond objects to the topology list 
+    top.write_itp('test.itp')    
 
         
    
