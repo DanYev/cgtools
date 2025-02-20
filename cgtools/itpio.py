@@ -73,7 +73,6 @@ def line2bond(line, tag):
     elif tag == 'constraints':
         connectivity = data[:2]
         parameters = data[2:]
-        parameters.append(None)
     elif tag == 'angles':
         connectivity = data[:3]
         parameters = data[3:]

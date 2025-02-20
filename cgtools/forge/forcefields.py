@@ -31,9 +31,9 @@ class NucleicForceField:
         sc_bonds = itp_data['bonds']
         sc_angles = itp_data['angles']
         sc_dihs = itp_data['dihedrals']
-        sc_cons = [] # itp_data['constraints']
+        sc_cons = itp_data['constraints']
         sc_excls = itp_data['exclusions']
-        sc_pairs = [] # itp_data['pairs']
+        sc_pairs = itp_data['pairs']
         sc_vs3s = itp_data['virtual_sites3']
         return sc_bonds, sc_angles, sc_dihs, sc_cons, sc_excls, sc_pairs, sc_vs3s
 

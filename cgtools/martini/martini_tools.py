@@ -6,7 +6,6 @@ import pandas as pd
 import shutil
 import subprocess as sp
 from pathlib import Path
-# local
 from cgtools.martini.get_go import get_go
 from cgtools import cli
 
