@@ -19,8 +19,8 @@ class NucleicForceField:
      
     @staticmethod    
     def read_itp(resname, directory, mol, version):
-        # itpdir = os.path.abspath(f'/scratch/dyangali/cgtools/cgtools/itp/{directory}')
-        itpdir = importlib.resources.files('cgtools') / 'martini' / 'itp' 
+        # itpdir = os.path.abspath(f'/scratch/dyangali/cgtools/forge/forcefields/{directory}')
+        itpdir = importlib.resources.files('cgtools') / 'forge' / 'forcefields' 
         file = os.path.join(itpdir, f'{directory}', f'{mol}_{resname}_{version}.itp')
         itp_data = itpio.read_itp(file)
         return itp_data
@@ -126,17 +126,13 @@ class martini30rna(NucleicForceField):
     
     # NucleicForceField.update_non_standard_mapping(mapping)
     
-    def __init__(self, directory='regular', mol=rna_system, version='new'):
+    def __init__(self, directory='rna_reg', mol=rna_system, version='new'):
         super().__init__(directory, mol, version)
-        self.name = 'martini30rna'
-        self.charges = {"Qd":1, "Qa":-1, "SQd":1, "SQa":-1, "RQd":1, "AQa":-1}                                                           #@#
-        self.bbcharges = {"BB1":-1}   
+        self.name = 'martini30rna' 
      
         ##################
-        # RNA PARAMETERS # @ff
+        # RNA PARAMETERS # RNA BACKBONE PARAMETERS TUT
         ##################
-
-        # RNA BACKBONE PARAMETERS TUT
         # Atom must be a tuple (atid, type, name, chargegrp, charge, mass)
         self.bb_atoms = [
                     (0, "Q1n", "BB1", 1, -1, 72), 

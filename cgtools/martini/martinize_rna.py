@@ -15,7 +15,7 @@ def martinize_rna_parser():
     parser.add_argument("-f",  required=True, type=str, help="Input PDB file")
     parser.add_argument("-ot", default="molecule.itp", type=str, help="Output topology file (default: molecule.itp)")
     parser.add_argument("-os", default="molecule.pdb", type=str, help="Output CG structure (default: molecule.pdb)")
-    parser.add_argument("-ff", default="regular", type=str, help="Force field: regular or polar (default: regular)")
+    parser.add_argument("-ff", default="reg", type=str, help="Force field: regular or polar (reg/pol) (default: reg)")
     parser.add_argument("-mol", default="molecule", type=str, help="Molecule name in the .itp file (default: molecule)")
     parser.add_argument("-merge", default=True, type=bool, help="Merge separate chains if detected (default: True)")
     parser.add_argument("-elastic", default=False, type=bool, help="Add elastic network (default: False)")

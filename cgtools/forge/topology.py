@@ -14,9 +14,53 @@ from cgtools.forge.forcefields import NucleicForceField
 from cgtools.forge.geometry import get_distance
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+############################################################
+# Helper class to work with "bonds" - list of bonds.
+# Defined later in Topology calss
+# A bond is [connectivity, parameters, comment]
+############################################################
+
+class BondList(list):
+    """
+    BondList is a helper subclass of the built-in list, specialized for storing bond information.
+    Each element in a BondList is expected to represent a bond (e.g., a list or tuple of atoms
+    connected by the bond), namely [connectivity, parameters, comment].
+
+    Attributes:
+        (inherited from list) The list holds individual bond representations.
+
+    Example:
+        >>> bonds = BondList([['C1', 'C2'], ['C2', 'O1']])
+        >>> print(bonds.connectivity)
+        [('C1', 'C2'), ('C2', 'O1')]
+    """
+    @property
+    def connectivity(self):
+        """
+        Extracts list of connecivities from a list of bonds
+        """
+        conn = [bond[0] for bond in self]
+        return conn
+
+    @property
+    def parameters(self):
+        """
+        Extracts list of parameters from a list of bonds
+        """
+        parameters = [bond[1] for bond in self]
+        return parameters
+
+    @property
+    def comments(self):
+        """
+        Extracts list of connecivities from a list of bonds
+        """
+        comments = [bond[2] for bond in self]
+        return comments
+
 
 class Topology:
-    def __init__(self, forcefield, sequence: List = [], secstruct: List = [], molname='molecule') -> None:
+    def __init__(self, forcefield, sequence: List = [], secstruct: List = [], **kwargs) -> None:
         """
         Initialize a Topology instance. Main attributes are: 
         1. atom - [atid, type, resid, resname, name, chargegrp, charge, mass, comment]
@@ -27,20 +71,22 @@ class Topology:
         :param options: Dictionary of options, e.g. ForceField, Version, etc.
         :param name: Optional name for the topology.
         """
+        molname = kwargs.pop('molname', 'molecule')
+        nrexcl = kwargs.pop('nrexcl', 1)
         self.ff = forcefield
         self.sequence = sequence
         self.name = molname
-        self.nrexcl: int = 1
+        self.nrexcl = nrexcl
         self.atoms: List = []
-        self.bonds: List = []
-        self.angles: List = []
-        self.dihs: List = []
-        self.cons: List = []
-        self.excls: List = []   
-        self.pairs: List = []
-        self.vs3s: List = []      
-        self.posres: List = []
-        self.elnet: List = []
+        self.bonds = BondList()
+        self.angles = BondList()
+        self.dihs = BondList()
+        self.cons = BondList()
+        self.excls = BondList()
+        self.pairs = BondList()
+        self.vs3s = BondList()  
+        self.posres = BondList()
+        self.elnet = BondList()
         self.mapping: List = []
         self.natoms = len(self.atoms)
         # list with all bonded parameters as in the ff
@@ -120,8 +166,7 @@ class Topology:
     def write_itp(self, filename):
         with open(filename, 'w') as file:
             for line in self.lines():
-                file.write(line)    
-
+                file.write(line)   
 
     @staticmethod
     def _update_bb_connectivity(conn, atid, reslen, prevreslen=None):
