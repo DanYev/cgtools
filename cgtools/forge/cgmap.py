@@ -6,7 +6,6 @@ import copy
 def read_pdb(pdb_path):
     parser = PDBParser(pdb_path)
     system = parser.parse()
-    print(system)  # System summary
     return system
 
 

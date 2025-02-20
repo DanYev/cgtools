@@ -6,8 +6,9 @@ import pandas as pd
 import shutil
 import subprocess as sp
 from pathlib import Path
-from .get_go import get_go
-from .. import cli
+# local
+from cgtools.get_go import get_go
+from cgtools import cli
 
 
 def append_to(in_file, out_file):
@@ -184,6 +185,16 @@ def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
     cli.run('python3 -m', script, **kwargs)
     os.chdir(bdir)
     
+
+def martinize_rna(wdir, **kwargs):
+    """
+    Usage: python test_forge.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp
+    """
+    bdir = os.getcwd()
+    os.chdir(wdir)
+    script = 'cgtools.martini.martinize_rna'
+    cli.run('python3 -m', script, **kwargs)
+    os.chdir(bdir)
 
 if __name__  == "__main__":
     pass
