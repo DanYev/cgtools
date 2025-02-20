@@ -119,7 +119,7 @@ def bond2line(connectivity=None, parameters='', comment=''):
     parameters_str = ''
     if parameters:
         # Format each type as a 2-character wide integer.
-        type_str = "   ".join(f"{int(parameters[0]):2d}")
+        type_str = f"{int(parameters[0]):2d}"
         # Format each parameter as a 7-character wide float with 4 decimal places.
         parameters_str = "   ".join(f"{float(param):7.4f}" for param in parameters[1:])
     line = connectivity_str + "   " + type_str + "   " + parameters_str
