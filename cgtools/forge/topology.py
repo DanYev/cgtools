@@ -35,7 +35,7 @@ class BondList(list):
         [('C1', 'C2'), ('C2', 'O1')]
     """
     @property
-    def connectivity(self):
+    def connectivities(self):
         """
         Extracts list of connecivities from a list of bonds
         """
