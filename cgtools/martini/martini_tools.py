@@ -7,7 +7,7 @@ import shutil
 import subprocess as sp
 from pathlib import Path
 # local
-from cgtools.get_go import get_go
+from cgtools.martini.get_go import get_go
 from cgtools import cli
 
 

@@ -350,6 +350,16 @@ class gmxSystem:
             outfile = f.replace('Nucleic', 'chain')
             shutil.move(os.path.join(self.wdir, file), os.path.join(self.topdir, outfile))
 
+    def martinize_rna(self, **kwargs):
+        print("Working on nucleotides", file=sys.stderr)
+        from .martini.martini_tools import martinize_rna
+        for file in os.listdir(self.nucdir):
+            molname = file.split('.')[0]
+            in_pdb = os.path.join(self.nucdir, file)
+            cg_pdb = os.path.join(self.cgdir, file)
+            cg_itp = os.path.join(self.topdir, molname + '.itp')
+            martinize_rna(self.wdir, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
+
     def make_cgpdb_file(self, add_ions=False, **kwargs):
         with open(self.syspdb, 'w') as outfile:
             pass  # makes a clean new file

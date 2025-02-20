@@ -22,7 +22,7 @@ def martinize_rna_parser():
     parser.add_argument("-ef", default=200, type=float, help="Elastic network force constant (default: 200 kJ/mol/nm^2)")
     parser.add_argument("-el", default=0.5, type=float, help="Elastic network lower cutoff (default: 0.5 nm)")
     parser.add_argument("-eu", default=1.2, type=float, help="Elastic network upper cutoff (default: 1.2 nm)")    
-    parser.add_argument("-p", default=None, help="Output position restraints (None/all/bb) (default: None)")  
+    parser.add_argument("-p", default='bb', type=str, help="Output position restraints (no/bb/all) (default: None)")  
     parser.add_argument("-pf", default=1000, type=float, help="Position restraints force constant (default: 1000 kJ/mol/nm^2)")  
     return parser.parse_args()
 
