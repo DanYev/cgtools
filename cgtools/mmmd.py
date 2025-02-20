@@ -11,7 +11,7 @@ from cgtools import cli, pdbtools, lrt
 # mm
 import openmm as mm
 from openmm import app
-from simtk.unit import *
+from openmm.unit import *
 
 ################################################################################
 # Helper functions
@@ -152,110 +152,71 @@ class mmSystem:
         Cleans starting PDB file using PDBfixer by OpenMM
         """
         print("Cleaning the PDB", file=sys.stderr)
-        pdbtools.clean_pdb(pdb_file, self.inpdb, **kwargs)             
+        pdbtools.clean_pdb(pdb_file, self.inpdb, **kwargs)
 
-    def md_system(self, **kwargs):
-        inpdb = kwargs.pop('inpdb', self.inpdb)
-        force_field = kwargs.pop('force_field', 'amber14-all.xml')
-        water_model = kwargs.pop('water_model', 'amber14/tip3p.xml')
-        cation = kwargs.pop('cation', 'Na+')
-        anion = kwargs.pop('anion', 'Cl-')
-        ion_conc = kwargs.pop('ion_conc', 0.15)
-        # Model
+    @staticmethod
+    def forcefield(force_field='amber14-all.xml', water_model='amber14/tip3p.xml', **kwargs):
+        forcefield = app.ForceField(force_field, water_model, **kwargs)
+        return forcefield   
+
+    @staticmethod
+    def modeller(inpdb, forcefield, **kwargs):
+        kwargs.setdefault('model', 'tip3p') 
+        kwargs.setdefault('boxShape', 'dodecahedron') 
+        kwargs.setdefault('padding', 1.0*nanometer) 
+        kwargs.setdefault('positiveIon', 'Na+') 
+        kwargs.setdefault('negativeIon', 'Cl-') 
+        kwargs.setdefault('ionicStrength', 0.1*molar)    
         pdb = app.PDBFile(inpdb) 
         modeller = app.Modeller(pdb.topology, pdb.positions)
-        forcefield = app.ForceField(force_field, water_model)
-        modeller.addSolvent(forcefield, model='tip3p', padding=1.0*nanometer)
-        modeller.addIons(forcefield, cation, anion, ion_conc*mol/liter)
-        # System
-        mdsys = forcefield.createSystem(
-            modeller.topology,
-            nonbondedMethod=PME,
-            nonbondedCutoff=1.0*nanometer,
-            constraints=HBonds, )
+        modeller.addSolvent(forcefield, **kwargs)
+        return modeller        
+
+    def model(self, forcefield, modeller, barostat=None, thermostat=None, **kwargs):
+        kwargs.setdefault('nonbondedMethod', app.PME) 
+        kwargs.setdefault('nonbondedCutoff', 1.0*nanometer) 
+        kwargs.setdefault('constraints', app.HBonds) 
+        model = forcefield.createSystem(modeller.topology, **kwargs)
+        barostat and model.addForce(barostat) # add barostat if given
+        thermostat and model.addForce(thermostat)
         # Saving files
-        with open(self.syspdb, 'w') as pdb_file:
-            PDBFile.writeFile(modeller.topology, modeller.positions, pdb_file, keepIds=True)
-        with open(self.sysxml, 'w') as xml_file:
-            xml_file.write(mm.XmlSerializer.serialize(system))
-        return mdsys
-
-    def integ(self):
-        # Create a Langevin integrator (300 K, friction 1/ps, time step 2 fs)
-        integrator = LangevinIntegrator(300*kelvin, 1/picosecond, 0.002*picoseconds)
-
-        # Set up the simulation object
-        simulation = Simulation(pdb.topology, system, integrator)
-        simulation.context.setPositions(pdb.positions)
-
-        # -----------------------
-        # 2. Energy Minimization
-        # -----------------------
-        print('Minimizing energy...')
-        simulation.minimizeEnergy()
-
-        # -----------------------
-        # 3. Equilibration Phase
-        # -----------------------
-        print('Starting equilibration...')
-        simulation.reporters.append(StateDataReporter(stdout, 1000, step=True, potentialEnergy=True, temperature=True))
-        equilibration_steps = 5000  # Adjust equilibration steps as needed
-        simulation.step(equilibration_steps)
-        print('Equilibration complete.')
-
-        # Save the simulation state after equilibration
-        print('Saving simulation state...')
-        simulation.saveState('state.xml')
-
-        # -----------------------
-        # 4. Production Run (Resumed from saved state)
-        # -----------------------
-        # Later (or in a separate script), you can resume the simulation by reloading the state.
-        print('Loading simulation state to continue production run...')
-        simulation.loadState('state.xml')
-
-        # Optionally, update or add reporters for the production run
-        simulation.reporters = []  # Clear previous reporters if needed
-        simulation.reporters.append(StateDataReporter(stdout, 1000, step=True, potentialEnergy=True, temperature=True))
-        simulation.reporters.append(DCDReporter('trajectory_production.dcd', 1000))
-
-        production_steps = 10000  # Adjust production steps as needed
-        print('Starting production run...')
-        simulation.step(production_steps)
-        print('Production run complete.')
+        with open(self.syspdb, 'w') as file:
+            app.PDBFile.writeFile(modeller.topology, modeller.positions, file, keepIds=True)
+        with open(self.sysxml, 'w') as file:
+            file.write(mm.XmlSerializer.serialize(model))
+        return model
 
 
 ################################################################################
 # MDRun class
 ################################################################################   
 
-class MDRun(mmSystem):
+class mdRun(mmSystem):
     """
     Run molecular dynamics (MD) simulation using the specified input files.
     This method runs the MD simulation by calling an external simulation software, 
     such as GROMACS, with the provided input files.
     """
-    
-    def __init__(self, runname, *args, **kwargs):
+    def __init__(self, sysdir, sysname, runname):
         """
         Initializes required directories and files.
         
         Args:
             runname (str): 
-            rundir (str): Directory for the system files.
-            rmsname (str): Name of the system.
-            cludir (str): clustering
-            covdir (str): covariance analysis
+            rundir (str): Directory for the run files.
+            rmsdir (str): rms analysis directory
+            covdir (str): covariance analysis dir
+            lrtdir (str): covariance analysis dir
+            cludir (str): clustering dir
             pngdir (str): figures
             kwargs: Additional keyword arguments.
         """
-        super().__init__(*args)
+        super().__init__(sysdir, sysname)
         self.runname = runname
-        # self.rundir = '/home/dyangali/tmp'
         self.rundir = os.path.join(self.mddir, self.runname)
         self.rmsdir = os.path.join(self.rundir, 'rms_analysis')
         self.covdir = os.path.join(self.rundir, 'cov_analysis')
-        self.dddir  = os.path.join(self.rundir, 'dci_dfi')
+        self.lrtdir  = os.path.join(self.rundir, 'lrt_analysis')
         self.cludir = os.path.join(self.rundir, 'clusters')
         self.pngdir = os.path.join(self.rundir, 'png')
         
@@ -265,7 +226,83 @@ class MDRun(mmSystem):
         """
         os.makedirs(self.rundir, exist_ok=True)
         os.makedirs(self.rmsdir, exist_ok=True)
-        os.makedirs(self.cludir, exist_ok=True)
         os.makedirs(self.covdir, exist_ok=True)
-        os.makedirs(self.dddir, exist_ok=True)
+        os.makedirs(self.lrtdir, exist_ok=True)
+        os.makedirs(self.cludir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
+
+    def modeller(self):
+        pdb = app.PDBFile(self.syspdb) 
+        modeller = app.Modeller(pdb.topology, pdb.positions)
+        return modeller
+
+    def simulation(self, modeller, integrator):
+        simulation = app.Simulation(modeller.topology, self.sysxml, integrator)
+        simulation.context.setPositions(modeller.positions)
+        return simulation
+
+    def save_state(self, simulation, file_prefix='sim'):
+        pdb_file = os.path.join(self.rundir, file_prefix + '.pdb')
+        xml_file = os.path.join(self.rundir, file_prefix + '.xml')
+        simulation.saveState(xml_file)
+        state = simulation.context.getState(getPositions=True)   
+        positions = state.getPositions()
+        with open(pdb_file, 'w') as file:
+            app.PDBFile.writeFile(simulation.topology, positions, file, keepIds=True)
+        
+    def em(self, simulation, tolerance=100, maxIterations=1000):
+        print('Minimizing energy...', file=sys.stderr)
+        # Files
+        log_file = os.path.join(self.rundir, 'em.log')
+        # Reporters
+        reporter = app.StateDataReporter(log_file, 100, step=True, potentialEnergy=True, temperature=True)
+        # Simulation
+        simulation.reporters.append(reporter)
+        simulation.minimizeEnergy(tolerance, maxIterations)
+        self.save_state(simulation, 'em')
+        print('Minimization complete.', file=sys.stderr)
+
+    def eq(self, simulation, nsteps=10000, nlog=10000, **kwargs):
+        print('Starting equilibration...')
+        kwargs.setdefault('step', True) 
+        kwargs.setdefault('potentialEnergy', True) 
+        kwargs.setdefault('temperature', True) 
+        kwargs.setdefault('density', True)
+        # Files
+        em_xml = os.path.join(self.rundir, 'em.xml')
+        log_file = os.path.join(self.rundir, 'eq.log')
+        # Reporters
+        reporter = app.StateDataReporter(log_file, nlog, **kwargs)
+        # Simulation
+        simulation.loadState(em_xml)
+        simulation.reporters.append(reporter)
+        simulation.step(nsteps)
+        self.save_state(simulation, 'eq')
+        print('Equilibration complete.')
+
+    def md(self, simulation, nsteps=100000, nout=1000, nlog=10000, nchk=10000, **kwargs):
+        print('Production run...')
+        kwargs.setdefault('step', True) 
+        kwargs.setdefault('time', True) 
+        kwargs.setdefault('potentialEnergy', True) 
+        kwargs.setdefault('temperature', True) 
+        kwargs.setdefault('density', False) 
+        # Files
+        eq_xml = os.path.join(self.rundir, 'eq.xml')
+        trj_file = os.path.join(self.rundir, 'md.dcd')
+        log_file = os.path.join(self.rundir, 'md.log')
+        xml_file = os.path.join(self.rundir, 'md.xml')
+        pdb_file = os.path.join(self.rundir, 'md.pdb')
+        # Reporters
+        trj_reporter = app.DCDReporter(trj_file, nout, append=False)
+        pdb_reporter = app.PDBReporter(pdb_file, nchk)
+        log_reporter = app.StateDataReporter(log_file, nlog, **kwargs)
+        xml_reporter = app.CheckpointReporter(xml_file, nchk, writeState=True)
+        reporters = [trj_reporter, log_reporter, xml_reporter]
+        # Simulation
+        simulation.loadState(eq_xml)
+        simulation.reporters.extend(reporters)
+        simulation.step(nsteps)
+        self.save_state(simulation, 'md')
+        print('Production complete.')
+
