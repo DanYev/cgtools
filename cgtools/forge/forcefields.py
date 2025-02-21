@@ -140,6 +140,7 @@ class martini30rna(NucleicForceField):
                     (2, "N2", "BB3", 1, 0, 60), 
                     ]
         # Bond must be a list of tuples [(connectivity), (parameters), (comment)]
+        # Comments are very important: that's how we will indentify between bonds of the same type later
         self.bb_bonds = [
                     [(0, 1), (1,  0.350, 25000), ('BB1-BB2')],
                     [(1, 2), (1,  0.239, 25000), ('BB2-BB3')],          
