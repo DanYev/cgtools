@@ -2,7 +2,7 @@ from cgtools.pdbtools import PDBParser
 
 
 def test_read_pdb():
-    pdb_path = "chain_ds.pdb"  
+    pdb_path = "dsRNA.pdb"  
     parser = PDBParser(pdb_path)
     system = parser.parse()
     print(system)  # System summary
@@ -11,7 +11,7 @@ def test_read_pdb():
 
 
 def test_save_pdb():
-    pdb_path = "chain_ds.pdb" 
+    pdb_path = "dsRNA.pdb" 
     parser = PDBParser(pdb_path)
     system = parser.parse()
     for atom in system.atoms():
@@ -19,6 +19,14 @@ def test_save_pdb():
     system.save_pdb('saved.pdb')
 
 
+def test_mask(mask=["P", "C3'"]):
+    pdb_path = "dsRNA.pdb" 
+    parser = PDBParser(pdb_path)
+    system = parser.parse()
+    atoms = system.atoms()
+    
+
 if __name__ == "__main__":
-    test_read_pdb()     
-    test_save_pdb()               
+    # test_read_pdb()     
+    # test_save_pdb() 
+    test_mask()              

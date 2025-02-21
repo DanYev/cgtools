@@ -6,24 +6,8 @@ import numpy as np
 import pandas as pd
 import shutil
 import subprocess as sp
-from Bio.PDB.PDBParser import PDBParser
-from Bio.PDB.MMCIFParser import MMCIFParser
-from Bio.PDB import PDBIO, Atom
-from cgtools import cli
-from cgtools import lrt
-
-################################################################################
-# Helper functions
-################################################################################   
-
-def sort_uld(alist):
-    """
-    Sorts characters in a list such that they appear in the following order: 
-    uppercase letters first, then lowercase letters, followed by digits. 
-    Helps with orgazing gromacs multichain files
-    """
-    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
-    return slist
+import cgtools
+from cgtools import cli, lrt, pdbtools
 
 ################################################################################
 # CG system class
@@ -32,7 +16,7 @@ def sort_uld(alist):
 class gmxSystem:
     """
     Class to set up and analyze protein-nucliotide-lipid systems for MD with GROMACS
-    All the attributes are the paths to files and directories needed to set up and run CG MD
+    Almost all the attributes are paths to files and directories needed to set up and run the MD
     """    
     MDATDIR = importlib.resources.files("cgtools") / "martini" / "data" 
     MITPDIR = importlib.resources.files("cgtools") / "martini" / "itp" 
@@ -153,77 +137,32 @@ class gmxSystem:
                 
     def make_ref_pdb(self, input_pdb="inpdb.pdb", output_pdb="ref.pdb"):
         os.chdir(self.wdir)
-        def rearrange_chains_and_renumber_atoms(input_pdb, output_pdb):
-            """
-            Rearrange chains in a PDB file alphabetically by chain ID and renumber atom IDs.
-        
-            Parameters:
-                input_pdb (str): Path to the input PDB file.
-                output_pdb (str): Path to save the rearranged PDB file.
-            """
-            with open(input_pdb, 'r') as file:
-                pdb_lines = file.readlines()
-            # Group lines by chain ID
-            chain_dict = {}
-            other_lines = []
-            for line in pdb_lines:
-                if line.startswith(("ATOM", )):
-                    chain_id = line[21]  # Extract chain ID (column 22, index 21)
-                    if chain_id not in chain_dict:
-                        chain_dict[chain_id] = []
-                    chain_dict[chain_id].append(line)
-                else:
-                    # Keep non-ATOM, HETATM, and TER lines (e.g., HEADER, REMARK, END)
-                    other_lines.append(line)      
-            # Sort chains alphabetically
-            sorted_chain_ids = sort_uld(chain_dict.keys())
-            # Renumber atom IDs and write to the output file
-            atom_id = 1  # Start atom ID renumbering
-            with open(output_pdb, 'w') as file:
-                # Write other (non-ATOM) lines first
-                for line in other_lines:
-                    file.write(line)  
-                # Write the sorted chains with updated atom IDs
-                for chain_id in sorted_chain_ids:
-                    for line in chain_dict[chain_id]:
-                        if line.startswith(("ATOM", )):
-                            # Update the atom ID (columns 7-11, index 6-11)
-                            updated_line = f"{line[:6]}{atom_id:5d}{line[11:]}"
-                            file.write(updated_line)
-                            atom_id += 1  # Increment atom ID
-                            if atom_id > 99999:
-                                atom_id = 1
-                        else:
-                            # Write TER lines as-is
-                            file.write(line)      
-        rearrange_chains_and_renumber_atoms(input_pdb, output_pdb)
+        pdbtools.rearrange_chains_and_renumber_atoms(input_pdb, output_pdb)
                        
     def clean_inpdb(self, **kwargs):
         """
         Cleans starting PDB file using PDBfixer by OpenMM
         """
         print("Cleaning the PDB", file=sys.stderr)
-        from pdbtools import prepare_aa_pdb
         in_pdb = self.inpdb
         out_pdb = in_pdb.replace('.pdb', '_clean.pdb')
-        prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
+        pdbtools.prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
         
     def clean_proteins(self, **kwargs):
         """
         Cleans protein PDB files using PDBfixer by OpenMM
         """
         print("Cleaning protein PDBs", file=sys.stderr)
-        from pdbtools import prepare_aa_pdb, rename_chain
         files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir) if not f.endswith('_clean.pdb')]
         files = sorted(files)
         for in_pdb in files:
             print(f"Processing {in_pdb}", file=sys.stderr)
             out_pdb = in_pdb.replace('.pdb', '_clean.pdb')
-            prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
+            pdbtools.prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
             os.remove(in_pdb)
             old_chain_id = 'A'
             new_chain_id = in_pdb.split('chain_')[-1][0]
-            rename_chain(out_pdb, in_pdb, old_chain_id, new_chain_id)
+            pdbtools.rename_chain(out_pdb, in_pdb, old_chain_id, new_chain_id)
             os.remove(out_pdb)
     
     def split_chains(self, from_clean=False):
@@ -251,7 +190,7 @@ class gmxSystem:
         Get go contact maps for proteins using RCSU server
         """
         print('Getting GO-maps', file=sys.stderr)
-        from get_go import get_go
+        from cgtools.get_go import get_go
         pdbs = [os.path.join(self.prodir, file) for file in os.listdir(self.prodir)]
         map_names = [f.replace('pdb', 'map') for f in os.listdir(self.prodir)]
         # Filter out existing maps
@@ -274,7 +213,7 @@ class gmxSystem:
                         resids are the same as in the input pdb (default: mol)
         """
         print("Working on proteins", file=sys.stderr)
-        from .martini.martini_tools import martinize_go
+        from cgtools.martini.martini_tools import martinize_go
         # Make itp files to dump all the virtual CA's parameters into
         file = os.path.join(self.topdir, 'go_atomtypes.itp')
         if not os.path.isfile(file):
@@ -375,9 +314,8 @@ class gmxSystem:
                             outfile.write(line)
         cli.gmx_editconf(self.wdir, **kwargs)
         
-    def make_topology_file(self, ions=['K','MG',], prefix='chain'):
-        itp_files = sorted([f for f in os.listdir(self.topdir) if f.startswith(prefix)]) #
-        ions = self.count_resolved_ions(ions=ions) 
+    def make_martini_topology_file(self, resolved_ions=[], prefix='chain'):
+        itp_files = sorted([f for f in os.listdir(self.topdir) if f.startswith(prefix)]) # 
         with open(self.systop, 'w') as f:
             # Include section
             f.write(f'#define GO_VIRT"\n')
@@ -407,38 +345,12 @@ class gmxSystem:
                     molecule_name = os.path.splitext(filename)[0]
                     f.write(f'{molecule_name}\t\t1\n')
             # Ions
-            for ion, count in ions.items():
-                if count > 0:
-                    f.write(f'{ion}    {count}\n')
-    
-    @staticmethod                
-    def count_itp_atoms(file_path):
-        in_atoms_section = False
-        atom_count = 0
-        try:
-            with open(file_path, 'r') as file:
-                for line in file:
-                    # Strip whitespace and check if it's a comment or empty line
-                    line = line.strip()
-                    if not line or line.startswith(';'):
-                        continue
-                    # Detect the start of the [ atoms ] section
-                    if line.startswith("[ atoms ]"):
-                        in_atoms_section = True
-                        continue
-                    # Detect the start of a new section
-                    if in_atoms_section and line.startswith('['):
-                        break
-                    # Count valid lines in the [ atoms ] section
-                    if in_atoms_section:
-                        atom_count += 1
-            return atom_count
-        except FileNotFoundError:
-            print(f"Error: File {file_path} not found.")
-            return 0
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return 0
+            if resolved_ions:
+                ions = self.count_resolved_ions(ions=resolved_ions) 
+                for ion, count in ions.items():
+                    if count > 0:
+                        f.write(f'{ion}    {count}\n')
+
            
     def make_gro_file(self, d=1.25, bt='dodecahedron'):
         cg_pdb_files = sorted(os.listdir(self.cgdir))
@@ -474,10 +386,10 @@ class gmxSystem:
     def solvate(self, **kwargs):
         cli.gmx_solvate(self.wdir, **kwargs)
         
-    def find_resolved_ions(self):
-        mask_atoms(self.inpdb, 'ions.pdb', mask=['MG', 'ZN', 'K'])
+    def find_resolved_ions(self, mask=['MG', 'ZN', 'K']):
+        mask_atoms(self.inpdb, 'ions.pdb', mask=mask)
         
-    def count_resolved_ions(self, ions=['K','MG',]): # does NOT work for CA atoms for now
+    def count_resolved_ions(self, ions=['MG', 'ZN', 'K']): # does NOT work for CA atoms for now
         counts = {ion: 0 for ion in ions}
         with open(self.syspdb, 'r') as file:
             for line in file:
@@ -487,7 +399,7 @@ class gmxSystem:
                         counts[current_ion] += 1
         return counts
         
-    def add_ions(self, conc=0.15, pname='NA', nname='CL'): 
+    def add_bulk_ions(self, conc=0.15, pname='NA', nname='CL'): 
         bdir = os.getcwd()
         os.chdir(self.wdir)
         command = f'gmx_mpi grompp -f mdp/ions.mdp -c {self.syspdb} -p system.top -o ions.tpr'
@@ -943,4 +855,17 @@ class MDRun(gmxSystem):
             cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n', 
                 o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
                 
-            
+
+################################################################################
+# Helper functions
+################################################################################   
+
+def sort_uld(alist):
+    """
+    Sorts characters in a list such that they appear in the following order: 
+    uppercase letters first, then lowercase letters, followed by digits. 
+    Helps with orgazing gromacs multichain files
+    """
+    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
+    return slist
+

@@ -88,7 +88,6 @@ class Atom:
                 f"{self.resname} {self.chain_id}{self.resid} "
                 f"({self.x:.3f}, {self.y:.3f}, {self.z:.3f})>")
 
-
     def to_pdb_line(self):
         """
         Format the Atom instance as a fixed-width PDB ATOM/HETATM line.
@@ -113,7 +112,232 @@ class Atom:
         )
 
 
-class Residue:
+class AtomList(list):
+    """
+    AtomList is a helper subclass of the built-in list, specialized for storing Atom objects.
+    
+    Each element in an AtomList is expected to be an instance of the Atom class. AtomList
+    provides convenient properties to access or update attributes across all Atom objects
+    in the list. For example, you can get or set the x coordinates for all atoms at once.
+    
+    Example:
+        >>> # Assuming 'Atom' is already defined and atoms are created from a PDB file:
+        >>> atoms = AtomList([atom1, atom2, atom3])
+        >>> print(atoms.names)  # Get a list of atom names
+        ['CA', 'CB', 'CG']
+        >>> atoms.x = [1.0, 2.0, 3.0]  # Set new x coordinates for each atom
+    """
+
+    def __add__(self, other):
+        """
+        Implements addition of two AtomList objects.
+        
+        Parameters:
+            other (AtomList): Another AtomList to concatenate.
+            
+        Returns:
+            AtomList: A new AtomList containing atoms from both self and other.
+        """
+        return AtomList(super().__add__(other))
+
+    @property
+    def records(self):
+        """Return a list of record strings (e.g., 'ATOM' or 'HETATM') for all atoms."""
+        return [atom.record for atom in self]
+
+    @records.setter
+    def records(self, new_records):
+        if len(new_records) != len(self):
+            raise ValueError("Length of new records list must match the number of atoms")
+        for i, rec in enumerate(new_records):
+            self[i].record = rec
+
+    @property
+    def atids(self):
+        """Return a list of atom id numbers for all atoms."""
+        return [atom.atid for atom in self]
+
+    @atids.setter
+    def atids(self, new_atids):
+        if len(new_atids) != len(self):
+            raise ValueError("Length of new atids list must match the number of atoms")
+        for i, aid in enumerate(new_atids):
+            self[i].atid = aid
+
+    @property
+    def names(self):
+        """Return a list of atom names for all atoms."""
+        return [atom.name for atom in self]
+
+    @names.setter
+    def names(self, new_names):
+        if len(new_names) != len(self):
+            raise ValueError("Length of new names list must match the number of atoms")
+        for i, name in enumerate(new_names):
+            self[i].name = name
+
+    @property
+    def alt_locs(self):
+        """Return a list of alternate location indicators for all atoms."""
+        return [atom.alt_loc for atom in self]
+
+    @alt_locs.setter
+    def alt_locs(self, new_alt_locs):
+        if len(new_alt_locs) != len(self):
+            raise ValueError("Length of new alt_locs list must match the number of atoms")
+        for i, alt in enumerate(new_alt_locs):
+            self[i].alt_loc = alt
+
+    @property
+    def resnames(self):
+        """Return a list of residue names for all atoms."""
+        return [atom.resname for atom in self]
+
+    @resnames.setter
+    def resnames(self, new_resnames):
+        if len(new_resnames) != len(self):
+            raise ValueError("Length of new resnames list must match the number of atoms")
+        for i, rn in enumerate(new_resnames):
+            self[i].resname = rn
+
+    @property
+    def chain_ids(self):
+        """Return a list of chain identifiers for all atoms."""
+        return [atom.chain_id for atom in self]
+
+    @chain_ids.setter
+    def chain_ids(self, new_chain_ids):
+        if len(new_chain_ids) != len(self):
+            raise ValueError("Length of new chain_ids list must match the number of atoms")
+        for i, cid in enumerate(new_chain_ids):
+            self[i].chain_id = cid
+
+    @property
+    def resids(self):
+        """Return a list of residue sequence numbers for all atoms."""
+        return [atom.resid for atom in self]
+
+    @resids.setter
+    def resids(self, new_resids):
+        if len(new_resids) != len(self):
+            raise ValueError("Length of new resids list must match the number of atoms")
+        for i, rid in enumerate(new_resids):
+            self[i].resid = rid
+
+    @property
+    def icode(self):
+        """Return a list of insertion codes for all atoms."""
+        return [atom.icode for atom in self]
+
+    @icode.setter
+    def icode(self, new_icode):
+        if len(new_icode) != len(self):
+            raise ValueError("Length of new icode list must match the number of atoms")
+        for i, code in enumerate(new_icode):
+            self[i].icode = code
+
+    @property
+    def x(self):
+        """Return a list of x coordinates for all atoms."""
+        return [atom.x for atom in self]
+
+    @x.setter
+    def x(self, new_x):
+        if len(new_x) != len(self):
+            raise ValueError("Length of new x coordinates must match the number of atoms")
+        for i, x_val in enumerate(new_x):
+            self[i].x = x_val
+            # Update the vector tuple as well.
+            self[i].vec = (self[i].x, self[i].y, self[i].z)
+
+    @property
+    def y(self):
+        """Return a list of y coordinates for all atoms."""
+        return [atom.y for atom in self]
+
+    @y.setter
+    def y(self, new_y):
+        if len(new_y) != len(self):
+            raise ValueError("Length of new y coordinates must match the number of atoms")
+        for i, y_val in enumerate(new_y):
+            self[i].y = y_val
+            self[i].vec = (self[i].x, self[i].y, self[i].z)
+
+    @property
+    def z(self):
+        """Return a list of z coordinates for all atoms."""
+        return [atom.z for atom in self]
+
+    @z.setter
+    def z(self, new_z):
+        if len(new_z) != len(self):
+            raise ValueError("Length of new z coordinates must match the number of atoms")
+        for i, z_val in enumerate(new_z):
+            self[i].z = z_val
+            self[i].vec = (self[i].x, self[i].y, self[i].z)
+
+    @property
+    def occupancy(self):
+        """Return a list of occupancy values for all atoms."""
+        return [atom.occupancy for atom in self]
+
+    @occupancy.setter
+    def occupancy(self, new_occ):
+        if len(new_occ) != len(self):
+            raise ValueError("Length of new occupancy list must match the number of atoms")
+        for i, occ in enumerate(new_occ):
+            self[i].occupancy = occ
+
+    @property
+    def b_factors(self):
+        """Return a list of temperature factors (B-factors) for all atoms."""
+        return [atom.b_factor for atom in self]
+
+    @b_factors.setter
+    def b_factors(self, new_bf):
+        if len(new_bf) != len(self):
+            raise ValueError("Length of new b_factors list must match the number of atoms")
+        for i, bf in enumerate(new_bf):
+            self[i].b_factor = bf
+
+    @property
+    def elements(self):
+        """Return a list of element symbols for all atoms."""
+        return [atom.element for atom in self]
+
+    @elements.setter
+    def elements(self, new_elements):
+        if len(new_elements) != len(self):
+            raise ValueError("Length of new elements list must match the number of atoms")
+        for i, elem in enumerate(new_elements):
+            self[i].element = elem
+
+    @property
+    def charges(self):
+        """Return a list of charge strings for all atoms."""
+        return [atom.charge for atom in self]
+
+    @charges.setter
+    def charges(self, new_charges):
+        if len(new_charges) != len(self):
+            raise ValueError("Length of new charges list must match the number of atoms")
+        for i, ch in enumerate(new_charges):
+            self[i].charge = ch
+
+    def to_pdb_lines(self):
+        """
+        Convert all Atom objects in the list into their corresponding PDB formatted lines.
+        
+        Returns:
+            list: A list of strings, each representing an Atom in PDB format.
+        """
+        return [atom.to_pdb_line() for atom in self]
+
+    def __repr__(self):
+        return f"<AtomList with {len(self)} atoms>"
+
+
+class Residue(AtomList):
     """
     Represents a residue that holds a list of Atom objects.
     """
@@ -137,7 +361,7 @@ class Residue:
         return f"<Residue {self.resname} {self.resid}{self.icode} with {len(self._atoms)} atom(s)>"
 
 
-class Chain:
+class Chain(AtomList):
     """
     Represents a chain that holds residues.
     """
@@ -168,7 +392,7 @@ class Chain:
         return f"<Chain {self.chain_id} with {len(self.residues)} residue(s)>"
 
 
-class Model:
+class Model(AtomList):
     """
     Represents a model that holds chains.
     """
@@ -197,7 +421,7 @@ class Model:
         return f"<Model {self.model_id} with {len(self.chains)} chain(s)>"
 
 
-class System:
+class System(AtomList):
     """
     Represents the entire system that holds models.
     """
@@ -311,32 +535,10 @@ class PDBParser:
 ## Higher Level Functions ## 
 ###################################
 
-def convert_mutation_format(mutation):
-    # Check if the input follows the expected format
-    if len(mutation) < 3 or not mutation[0].isalpha() or not mutation[-1].isalpha() or not mutation[1:-1].isdigit():
-        return "Invalid input format"
-    
-    # Extract components
-    from_aa = mutation[0]
-    to_aa = mutation[-1]
-    position = mutation[1:-1]
-    
-    # Convert using the dictionary
-    from_aa_3letter = AA_CODE_CONVERTER.get(from_aa, "UNK")
-    to_aa_3letter = AA_CODE_CONVERTER.get(to_aa, "UNK")
-    
-    # Return the new format
-    return f"{from_aa_3letter}-{position}-{to_aa_3letter}"
 
-
-def clean_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, pH=7.0, variant=None):
-    if variant:
-        mutations = [convert_mutation_format(mutation) for mutation in variant]
+def clean_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, pH=7.0):
     print(f"Opening {in_pdb}")
     pdb = PDBFixer(filename=in_pdb)
-    if variant:
-        print("Mutating residues")
-        pdb.applyMutations(mutations, "A")
     print("Removing heterogens")
     pdb.removeHeterogens(False)
     print("Looking for missing residues")
@@ -483,7 +685,78 @@ def set_bfactors():
     print(f"Updated PDB file saved as '{output_file}'.")    
 
 
+def rearrange_chains_and_renumber_atoms(input_pdb, output_pdb):
+    """
+    Rearrange chains in a PDB file alphabetically by chain ID and renumber atom IDs.
 
+    Parameters:
+        input_pdb (str): Path to the input PDB file.
+        output_pdb (str): Path to save the rearranged PDB file.
+    """
+    with open(input_pdb, 'r') as file:
+        pdb_lines = file.readlines()
+    # Group lines by chain ID
+    chain_dict = {}
+    other_lines = []
+    for line in pdb_lines:
+        if line.startswith(("ATOM", )):
+            chain_id = line[21]  # Extract chain ID (column 22, index 21)
+            if chain_id not in chain_dict:
+                chain_dict[chain_id] = []
+            chain_dict[chain_id].append(line)
+        else:
+            # Keep non-ATOM, HETATM, and TER lines (e.g., HEADER, REMARK, END)
+            other_lines.append(line)      
+    # Sort chains alphabetically
+    sorted_chain_ids = sort_uld(chain_dict.keys())
+    # Renumber atom IDs and write to the output file
+    atom_id = 1  # Start atom ID renumbering
+    with open(output_pdb, 'w') as file:
+        # Write other (non-ATOM) lines first
+        for line in other_lines:
+            file.write(line)  
+        # Write the sorted chains with updated atom IDs
+        for chain_id in sorted_chain_ids:
+            for line in chain_dict[chain_id]:
+                if line.startswith(("ATOM", )):
+                    # Update the atom ID (columns 7-11, index 6-11)
+                    updated_line = f"{line[:6]}{atom_id:5d}{line[11:]}"
+                    file.write(updated_line)
+                    atom_id += 1  # Increment atom ID
+                    if atom_id > 99999:
+                        atom_id = 1
+                else:
+                    # Write TER lines as-is
+                    file.write(line)  
+
+
+################################################################################
+# Helper functions
+################################################################################  
+
+def sort_uld(alist):
+    """
+    Sorts characters in a list such that they appear in the following order: 
+    uppercase letters first, then lowercase letters, followed by digits. 
+    Helps with orgazing gromacs multichain files
+    """
+    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
+    return slist
+
+
+def convert_mutation_format(mutation):
+    # Check if the input follows the expected format
+    if len(mutation) < 3 or not mutation[0].isalpha() or not mutation[-1].isalpha() or not mutation[1:-1].isdigit():
+        return "Invalid input format"
+    # Extract components
+    from_aa = mutation[0]
+    to_aa = mutation[-1]
+    position = mutation[1:-1] 
+    # Convert using the dictionary
+    from_aa_3letter = AA_CODE_CONVERTER.get(from_aa, "UNK")
+    to_aa_3letter = AA_CODE_CONVERTER.get(to_aa, "UNK")
+    # Return the new format
+    return f"{from_aa_3letter}-{position}-{to_aa_3letter}"
 
     
 
