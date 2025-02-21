@@ -110,26 +110,42 @@ def get_cg_bonds(inpdb, top):
     print('Done!', file=sys.stderr)
     return bonds, angles, dihs
 
+##########################
+## Plotting ##
+##########################
 
-def histogram_bonds(bonds, grid=(2, 3), figpath='test.png', **kwargs):
-    b_dict = bonds.categorize()
-    keys = list(b_dict.keys())
+def init_figure(grid=(2, 3), axsize=(4, 4), **kwargs):
+    """
+    Instantiate a figure.
+    We can modify axes separately
+    """
     m, n = grid
-    fig, axes = plt.subplots(m, n, figsize=(12, 8))
-    for i in range(m):
-        for j in range(n):
-            idx = j + i * n
-            ax = axes[i, j] 
-            key = keys[idx]
-            bonds = b_dict[key]
-            params = bonds.parameters
-            data = [param[1] for param in params]
-            print(key, data)
-            ax.hist(data)
-            ax.set_title(f"{key}")
+    ax_x, ax_y = axsize
+    figsize = (ax_x * n, ax_y * m)
+    fig, axes = plt.subplots(m, n, figsize=figsize, **kwargs)
+    return fig, axes.flatten()
+
+
+def make_hist(ax, datas, params, **kwargs):
+    """
+    ax - matplotlib ax object
+    datas - list of datas to histogram
+    params - list of kwargs dictionary for the histogram
+    """
+    title = kwargs.pop('title', 'Ax')
+    for data, param in zip(datas, params):
+        ax.hist(data, **param)
+    ax.set_title(title)
+
+
+def plot_figure(figpath='test.png', **kwargs):
+    """
+    Finish plotting
+    """
     plt.tight_layout()
     plt.savefig(figpath)
     plt.close()
+ 
     
             
 if __name__ == "__main__":
