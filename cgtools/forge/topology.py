@@ -362,4 +362,33 @@ class Topology:
                         comment = a1.resname + str(a1.resid) + "-" + a2.resname + str(a2.resid)
                         self.elnet.append([[a1.atid, a2.atid], [6, d, ef], comment])
         
+    
+    def from_sequence(self, sequence, secstruc=None):
+        """
+        Process bonds and atoms from the given sequence 
+        :param sequence: The nucleic acid sequence or a Chain instance.
+        :param secstruc: Secondary structure information.
+        """
+        self.sequence = sequence
+        self.process_atoms() # Adds itp atom objects to the topology list 
+        self.process_bb_bonds() # Adds bb bond objects to the topology list 
+        self.process_sc_bonds() # Adds sc bond objects to the topology list 
+
+
+    def from_chain(self, chain, secstruc=None):
+        """
+        :param sequence: Chain instance.
+        :param secstruc: Secondary structure information.
+        """
+        sequence = [residue.resname for residue in chain] # So far only need sequence for the topology
+        self.from_sequence(sequence, secstruc=secstruc)
+
+    @staticmethod
+    def merge_topologies(topologies):
+        top = topologies.pop(0)
+        if topologies:
+            for new_top in topologies:
+                top += new_top
+        return top
+
 

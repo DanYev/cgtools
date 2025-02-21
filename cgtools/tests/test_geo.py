@@ -3,24 +3,8 @@ import sys
 import cgtools.forge.forcefields as ffs
 import cgtools.forge.cgmap as cgmap
 from cgtools.forge.topology import Topology, BondList
-from cgtools.forge.geometry import get_cg_bonds, init_figure, make_hist, plot_figure
-
-
-def process_chain(chain, ff):
-    sequence = [residue.resname for residue in chain] # So far only need sequence for the topology
-    top = Topology(forcefield=ff, sequence=sequence)
-    top.process_atoms() # Adds itp atom objects to the topology list 
-    top.process_bb_bonds() # Adds bb bond objects to the topology list 
-    top.process_sc_bonds() # Adds sc bond objects to the topology list 
-    return top
-
-
-def merge_topologies(topologies):
-    top = topologies.pop(0)
-    if topologies:
-        for new_top in topologies:
-            top += new_top
-    return top
+from cgtools.forge.geometry import get_cg_bonds, get_aa_bonds
+from cgtools.plotting import init_figure, make_hist, plot_figure
 
 
 def get_reference_topology(inpdb):
@@ -30,9 +14,10 @@ def get_reference_topology(inpdb):
     cgmap.move_o3(system) # Need to move all O3's to the next residue. Annoying but wcyd
     topologies = []
     for chain in system.chains():
-        top = process_chain(chain, ff)
+        top = Topology(ff)
+        top.from_chain(chain)
         topologies.append(top)
-    top = merge_topologies(topologies)
+    top = Topology.merge_topologies(topologies)
     print('Done!', file=sys.stderr)
     return top
 

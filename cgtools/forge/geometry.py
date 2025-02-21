@@ -3,7 +3,6 @@ import sys
 import copy
 import time
 import numpy as np
-import matplotlib.pyplot as plt
 import cgtools.forge.cgmap as cgmap
 from cgtools.forge.topology import Topology, BondList
 
@@ -110,45 +109,23 @@ def get_cg_bonds(inpdb, top):
     print('Done!', file=sys.stderr)
     return bonds, angles, dihs
 
-##########################
-## Plotting ##
-##########################
 
-def init_figure(grid=(2, 3), axsize=(4, 4), **kwargs):
+def get_aa_bonds(inpdb, top):
     """
-    Instantiate a figure.
-    We can modify axes separately
+    Calculates bonds, angles, dihedrals given a CG system .pdb and the reference topology oblect
+    Returns three BondList objects: bonds, angles, dihedrals
     """
-    m, n = grid
-    ax_x, ax_y = axsize
-    figsize = (ax_x * n, ax_y * m)
-    fig, axes = plt.subplots(m, n, figsize=figsize, **kwargs)
-    return fig, axes.flatten()
-
-
-def make_hist(ax, datas, params, **kwargs):
-    """
-    ax - matplotlib ax object
-    datas - list of datas to histogram
-    params - list of kwargs dictionary for the histogram
-    """
-    title = kwargs.pop('title', 'Ax')
-    for data, param in zip(datas, params):
-        ax.hist(data, **param)
-    ax.set_title(title)
+    print(f'Calculating bonds, angles and dihedrals from {inpdb}...', file=sys.stderr)
+    system = cgmap.read_pdb(inpdb)
+    bonds, angles, dihs = BondList(), BondList(), BondList()
+    for model in system:
+        bonds.extend(calc_bonds(model, top.bonds + top.cons))
+        angles.extend(calc_angles(model, top.angles))
+        dihs.extend(calc_dihedrals(model, top.dihs))
+    print('Done!', file=sys.stderr)
+    return bonds, angles, dihs
 
 
-def plot_figure(fig, axes, figname='Title', figpath='test.png', **kwargs):
-    """
-    Finish plotting
-    """
-    fig.suptitle(figname)
-    plt.tight_layout()
-    plt.savefig(figpath)
-    plt.close()
- 
-    
-            
 if __name__ == "__main__":
     pass
     
