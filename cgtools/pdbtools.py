@@ -55,7 +55,7 @@ class Atom:
         self.b_factor = b_factor      # Temperature factor
         self.element = element        # Element symbol
         self.charge = charge          # Charge on the atom
-        self.vec = (x, y, z)
+        self.vec = (self.x, self.y, self.z)
 
     @classmethod
     def from_pdb_line(cls, line):

@@ -34,13 +34,12 @@ def get_dihedral(v1, v2, v3, v4):
     return np.degrees(np.arctan2(y, x))
 
 
-def calc_bonds(model, bonds):
+def calc_bonds(atoms, bonds):
     """
     Calculates bond distances given top.bonds instance of Topology class,
-    which contains connectivities, and an instance of Model class which contains a list of atoms
+    which contains connectivities, and a list of pdb Atom objects
     Returns a BondList object
     """
-    atoms = model.atoms()
     conns = bonds.conns
     params = bonds.params
     comms = bonds.comms
@@ -54,13 +53,12 @@ def calc_bonds(model, bonds):
     return BondList(result)
 
 
-def calc_angles(model, angles): 
+def calc_angles(atoms, angles): 
     """
     Calculates angles given top.angles instance of Topology class,
     which contains connectivities, and an instance of Model class which contains a list of atoms
     Returns a BondList object
     """
-    atoms = model.atoms()
     conns = angles.conns
     params = angles.params
     comms = angles.comms
@@ -74,13 +72,12 @@ def calc_angles(model, angles):
     return BondList(result)
 
 
-def calc_dihedrals(model, dihs): 
+def calc_dihedrals(atoms, dihs): 
     """
     Calculates dihedrals given top.dihs instance of Topology class,
     which contains connectivities, and an instance of Model class which contains a list of atoms
     Returns a BondList object
     """
-    atoms = model.atoms()
     conns = dihs.conns
     params = dihs.params
     comms = dihs.comms
@@ -103,22 +100,24 @@ def get_cg_bonds(inpdb, top):
     system = cgmap.read_pdb(inpdb)
     bonds, angles, dihs = BondList(), BondList(), BondList()
     for model in system:
-        bonds.extend(calc_bonds(model, top.bonds + top.cons))
-        angles.extend(calc_angles(model, top.angles))
-        dihs.extend(calc_dihedrals(model, top.dihs))
+        bonds.extend(calc_bonds(model.atoms(), top.bonds + top.cons))
+        angles.extend(calc_angles(model.atoms(), top.angles))
+        dihs.extend(calc_dihedrals(model.atoms(), top.dihs))
     print('Done!', file=sys.stderr)
     return bonds, angles, dihs
 
 
-def get_aa_bonds(inpdb, top):
+def get_aa_bonds(inpdb, ff, top):
     """
-    Calculates bonds, angles, dihedrals given a CG system .pdb and the reference topology oblect
+    Calculates bonds, angles, dihedrals given an AA system .pdb and the reference topology oblect
     Returns three BondList objects: bonds, angles, dihedrals
     """
     print(f'Calculating bonds, angles and dihedrals from {inpdb}...', file=sys.stderr)
     system = cgmap.read_pdb(inpdb)
+    cgmap.move_o3(system)
     bonds, angles, dihs = BondList(), BondList(), BondList()
     for model in system:
+        model = cgmap.map_model(model, ff, atid=1, merge=True)
         bonds.extend(calc_bonds(model, top.bonds + top.cons))
         angles.extend(calc_angles(model, top.angles))
         dihs.extend(calc_dihedrals(model, top.dihs))

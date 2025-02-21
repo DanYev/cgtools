@@ -29,61 +29,141 @@ class BondList(list):
         (inherited from list) The list holds individual bond representations.
 
     Example:
-        >>> bonds = BondList([['C1', 'C2'], ['C2', 'O1']])
-        >>> print(bonds.connectivity)
-        [('C1', 'C2'), ('C2', 'O1')]
+        >>> bonds = BondList([['C1-C2', [1.0, 1.5], 'res1 bead1'], ['C2-O1', [1.1, 1.6], 'res2 bead2']])
+        >>> print(bonds.conns)
+        ['C1-C2', 'C2-O1']
+        >>> bonds.conns = ['C1-C2_mod', 'C2-O1_mod']
+        >>> print(bonds.conns)
+        ['C1-C2_mod', 'C2-O1_mod']
     """
-    @property
-    def conns(self):
-        """
-        Extracts list of connecivities from a list of bonds
-        """
-        conn = [bond[0] for bond in self]
-        return conn
-
-    @property
-    def params(self):
-        """
-        Extracts list of parameters from a list of bonds
-        """
-        parameters = [bond[1] for bond in self]
-        return parameters
-
-    @property
-    def comms(self):
-        """
-        Extracts list of connecivities from a list of bonds
-        """
-        comments = [bond[2] for bond in self]
-        return comments
-
-    @property
-    def measures(self):
-        """
-        Extracts list of connecivities from a list of bonds
-        """
-        measures = [bond[1][1] for bond in self]
-        return measures   
-
-    def categorize(self):
-        """
-        Categorize an instance based on the comments.
-        Usually the first string in the comment is a residue, the second is the bead names forming the bond
-        Returns a dictionary dict[comment] -> bonds with this comment  
-        """
-        keys = [comm.strip() for comm in set(self.comms)]
-        keys = sorted(keys)
-        adict = {key: BondList() for key in keys}
-        for bond in self:
-            key = bond[2].strip() # bond[2] - comment
-            adict[key].append(bond) 
-        return adict     
 
     def __add__(self, other):
         """
         Implements addition of two BondList objects.
         """
-        return BondList(list(self) + list(other))
+        return BondList(super().__add__(other)) # BondList(list(self) + list(other))
+
+    @property
+    def conns(self):
+        """
+        Returns a list of connectivity values extracted from each bond (assumed to be at index 0).
+        """
+        return [bond[0] for bond in self]
+
+    @conns.setter
+    def conns(self, new_conns):
+        """
+        Sets the connectivity for each bond.
+        
+        Parameters:
+            new_conns (iterable): A list-like object of new connectivity values.
+                                  Must have the same length as the BondList.
+        """
+        if len(new_conns) != len(self):
+            raise ValueError("Length of new connectivity list must match the number of bonds")
+        for i, new_conn in enumerate(new_conns):
+            # Convert the bond to a mutable list if needed
+            bond = list(self[i])
+            bond[0] = new_conn
+            self[i] = bond
+
+    @property
+    def params(self):
+        """
+        Returns a list of parameters extracted from each bond (assumed to be at index 1).
+        """
+        return [bond[1] for bond in self]
+
+    @params.setter
+    def params(self, new_params):
+        """
+        Sets the parameters for each bond.
+        
+        Parameters:
+            new_params (iterable): A list-like object of new parameter values.
+                                   Must have the same length as the BondList.
+        """
+        if len(new_params) != len(self):
+            raise ValueError("Length of new parameters list must match the number of bonds")
+        for i, new_param in enumerate(new_params):
+            bond = list(self[i])
+            bond[1] = new_param
+            self[i] = bond
+
+    @property
+    def comms(self):
+        """
+        Returns a list of comments extracted from each bond (assumed to be at index 2).
+        """
+        return [bond[2] for bond in self]
+
+    @comms.setter
+    def comms(self, new_comms):
+        """
+        Sets the comments for each bond.
+        
+        Parameters:
+            new_comms (iterable): A list-like object of new comment values.
+                                  Must have the same length as the BondList.
+        """
+        if len(new_comms) != len(self):
+            raise ValueError("Length of new comments list must match the number of bonds")
+        for i, new_comm in enumerate(new_comms):
+            bond = list(self[i])
+            bond[2] = new_comm
+            self[i] = bond
+
+    @property
+    def measures(self):
+        """
+        Returns a list of 'measures' extracted from each bond.
+        Assumes that each bond's parameter is an iterable where the measure is at index 1.
+        """
+        return [bond[1][1] for bond in self]
+
+    @measures.setter
+    def measures(self, new_measures):
+        """
+        Sets the measure (assumed to be the second element in the parameters) for each bond.
+        
+        Parameters:
+            new_measures (iterable): A list-like object of new measure values.
+                                     Must have the same length as the BondList.
+        """
+        if len(new_measures) != len(self):
+            raise ValueError("Length of new measures list must match the number of bonds")
+        for i, new_measure in enumerate(new_measures):
+            bond = list(self[i])
+            param = list(bond[1])
+            param[1] = new_measure
+            bond[1] = param
+            self[i] = bond
+
+    def categorize(self):
+        """
+        Categorize bonds based on their comments.
+        
+        Typically, the first string in the comment is used as a key.
+        Returns:
+            dict: A dictionary mapping each unique comment (stripped of whitespace) to a BondList of bonds with that comment.
+        """
+        keys = [comm.strip() for comm in set(self.comms)]
+        keys = sorted(keys)
+        adict = {key: BondList() for key in keys}
+        for bond in self:
+            key = bond[2].strip()  # bond[2] is the comment
+            adict[key].append(bond) 
+        return adict     
+
+    def filter(self, condition, bycomm=True):
+        """
+        bycomm (bool): if filter by comment
+        Select bonds based on a generic condition
+        condition (callable): A function that takes a bond as input and returns True if the bond
+                              should be included, False otherwise.
+        """
+        return BondList([bond for bond in self if condition(bond[2])])  
+
 
 
 class Topology:

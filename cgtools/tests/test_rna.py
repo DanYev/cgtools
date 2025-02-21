@@ -29,7 +29,7 @@ def martinize_rna_parser():
 
 def process_chain(chain, ff, start_atom, molname):
     # Mapping
-    atoms = cgmap.map_residues(chain, ff, atid=start_atom) # Map residue according to the force-field. Returns list of CG atoms 
+    atoms = cgmap.map_chain(chain, ff, atid=start_atom) # Map residue according to the force-field. Returns list of CG atoms 
     # Topology 
     sequence = [residue.resname for residue in chain] # So far only need sequence for the topology
     top = Topology(forcefield=ff, sequence=sequence, molname=molname)

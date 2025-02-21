@@ -25,14 +25,14 @@ def make_hist(ax, datas, params, **kwargs):
     title = kwargs.pop('title', 'Ax')
     for data, param in zip(datas, params):
         ax.hist(data, **param)
-    ax.set_title(title)
+    ax.set_title(title, fontsize=16)
 
 
 def plot_figure(fig, axes, figname='Title', figpath='test.png', **kwargs):
     """
     Finish plotting
     """
-    fig.suptitle(figname)
+    fig.suptitle(figname, fontsize=18)
     plt.tight_layout()
     plt.savefig(figpath)
     plt.close()

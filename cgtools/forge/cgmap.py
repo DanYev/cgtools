@@ -72,6 +72,7 @@ def map_residue(residue, mapping, atid):
         bead.x = bvec[0]
         bead.y = bvec[1]
         bead.z = bvec[2]
+        bead.vec = bvec
         if bname.startswith('B'):
             bead.element = 'Z'
         else:
@@ -80,7 +81,7 @@ def map_residue(residue, mapping, atid):
     return cgresidue
 
 
-def map_residues(chain, ff, atid=1):
+def map_chain(chain, ff, atid=1):
     """
     Map a chain of atomistic residues to a coarse-grained (CG) representation.
 
@@ -110,7 +111,27 @@ def map_residues(chain, ff, atid=1):
     return cgchain
 
 
-def save_pdb(atoms, fpath='test.pdb'):
+def map_model(model, ff, atid=1, merge=True):
+    """
+    Map a model of atomistic residues to a coarse-grained (CG) representation.
+    Parameters:
+        model: A list of residue objects.
+        ff: A force field object that contains a 'mapping' dictionary keyed by residue name.
+        atid (int): The starting atom id for the new beads (default is 1).
+        merge (bool): Merge chains - maintain consequtive atids (default is True).
+    Returns:
+        list: A list of coarse-grained bead atoms representing the entire chain.
+    """
+    cgmodel = []
+    i = 0
+    for chain in model:
+        cgchain = map_chain(chain, ff, atid)
+        cgmodel.extend(cgchain)
+        atid += len(cgchain)   
+    return cgmodel
+
+
+def save_model(atoms, fpath='test.pdb'):
     """
     Save a list of atoms to a PDB file.
 
