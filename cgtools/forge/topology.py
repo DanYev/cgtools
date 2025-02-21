@@ -34,7 +34,7 @@ class BondList(list):
         [('C1', 'C2'), ('C2', 'O1')]
     """
     @property
-    def connectivities(self):
+    def conns(self):
         """
         Extracts list of connecivities from a list of bonds
         """
@@ -42,7 +42,7 @@ class BondList(list):
         return conn
 
     @property
-    def parameters(self):
+    def params(self):
         """
         Extracts list of parameters from a list of bonds
         """
@@ -50,12 +50,20 @@ class BondList(list):
         return parameters
 
     @property
-    def comments(self):
+    def comms(self):
         """
         Extracts list of connecivities from a list of bonds
         """
         comments = [bond[2] for bond in self]
         return comments
+
+    @property
+    def measures(self):
+        """
+        Extracts list of connecivities from a list of bonds
+        """
+        measures = [bond[1][1] for bond in self]
+        return measures   
 
     def categorize(self):
         """
@@ -63,13 +71,19 @@ class BondList(list):
         Usually the first string in the comment is a residue, the second is the bead names forming the bond
         Returns a dictionary dict[comment] -> bonds with this comment  
         """
-        keys = [comm.strip() for comm in set(self.comments)]
+        keys = [comm.strip() for comm in set(self.comms)]
         keys = sorted(keys)
         adict = {key: BondList() for key in keys}
         for bond in self:
             key = bond[2].strip() # bond[2] - comment
             adict[key].append(bond) 
-        return adict       
+        return adict     
+
+    def __add__(self, other):
+        """
+        Implements addition of two BondList objects.
+        """
+        return BondList(list(self) + list(other))
 
 
 class Topology:

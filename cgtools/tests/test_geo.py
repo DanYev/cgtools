@@ -37,19 +37,16 @@ def get_reference_topology(inpdb):
     return top
 
 
-def prep_data(bonds):
-    plotparams = [ {'density': False, 'fill': True}, 
-                    {'density': False, 'fill': False}]
+def prep_data(bonds, resname):
+    bins = 50
+    params1 = {'density': False, 'fill': True}
+    params2 = {'density': False, 'fill': False}
     b_dict = bonds.categorize()
-    keys = list(b_dict.keys())
-    idx = 0
-    key = keys[idx]
-    bonds = b_dict[key]
-    params = bonds.parameters
-    data1 = [param[1] for param in params]
-    data2 = np.array(data1) * 1.1
-    datas = [data1, data2]
-    return datas, plotparams
+    res_keys = [key for key in b_dict.keys() if key.startswith(resname)]
+    datas1 = [b_dict[key].measures for key in res_keys]
+    datas2 = datas1
+    titles = [key.split()[1] for key in res_keys]
+    return datas1, datas2, params1, params2, titles
 
 
 if __name__ == "__main__":
@@ -58,14 +55,17 @@ if __name__ == "__main__":
     ff = ffs.martini30rna()
     reference_topology = get_reference_topology(refpdb)
     bonds, angles, dihs = get_cg_bonds(inpdb, reference_topology)
-    # prep data for plotting 
-    datas, params = prep_data(bonds)
-    alsit = [[datas, params], [datas, params], [datas, params], ]
-    # plotting 
-    fig, axes = init_figure(grid=(2, 2), axsize=(4, 4))
-    for ax, (datas, params) in zip(axes, alsit):
-        make_hist(ax, datas, params, title='ax')
-    plot_figure(figpath='test.png')
+    print(f'Plotting...', file=sys.stderr)
+    resnames = {'A': 'Adenine', 'C': 'Cytosine', 'G': 'Guanine', 'U': 'Uracil'}
+    for resid, resname in resnames.items():
+        # prep data for plotting 
+        datas1, datas2, params1, params2, axtitles = prep_data(bonds, resid)
+        # plotting 
+        fig, axes = init_figure(grid=(3, 4), axsize=(4, 4))
+        for ax, data1, data2, axtitle in zip(axes, datas1, datas2, axtitles):
+            make_hist(ax, [data1, data2], [params1, params2], title=axtitle)
+        plot_figure(fig, axes, figname=resname, figpath=f'test_{resid}.png')
+    print(f'Done!', file=sys.stderr)
     
 
 

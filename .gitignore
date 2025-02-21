@@ -5,7 +5,10 @@ tmp
 __pycache__
 .metadata
 .DS_Store
+*martini.itp
+*martini_v3.0.0.itp
 *.pdb
+*.png
 *.pdf
 *.egg*
 *.npz

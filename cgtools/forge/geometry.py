@@ -42,9 +42,9 @@ def calc_bonds(model, bonds):
     Returns a BondList object
     """
     atoms = model.atoms()
-    conns = bonds.connectivities
-    params = bonds.parameters
-    comms = bonds.comments
+    conns = bonds.conns
+    params = bonds.params
+    comms = bonds.comms
     pairs = [(atoms[i-1], atoms[j-1]) for i, j in conns]
     vecs_list = [(a1.vec, a2.vec) for a1, a2 in pairs]
     dists = [get_distance(*vecs) for vecs in vecs_list]
@@ -62,9 +62,9 @@ def calc_angles(model, angles):
     Returns a BondList object
     """
     atoms = model.atoms()
-    conns = angles.connectivities
-    params = angles.parameters
-    comms = angles.comments
+    conns = angles.conns
+    params = angles.params
+    comms = angles.comms
     triplets = [(atoms[i-1], atoms[j-1], atoms[k-1]) for i, j, k in conns]
     vecs_list = [(a1.vec, a2.vec, a3.vec) for a1, a2, a3 in triplets]
     angles = [get_angle(*vecs) for vecs in vecs_list]
@@ -82,9 +82,9 @@ def calc_dihedrals(model, dihs):
     Returns a BondList object
     """
     atoms = model.atoms()
-    conns = dihs.connectivities
-    params = dihs.parameters
-    comms = dihs.comments
+    conns = dihs.conns
+    params = dihs.params
+    comms = dihs.comms
     quads = [(atoms[i-1], atoms[j-1], atoms[k-1], atoms[l-1]) for i, j, k, l in conns]
     vecs_list = [(a1.vec, a2.vec, a3.vec, a4.vec) for a1, a2, a3, a4 in quads]
     dihs = [get_dihedral(*vecs) for vecs in vecs_list]
@@ -104,7 +104,7 @@ def get_cg_bonds(inpdb, top):
     system = cgmap.read_pdb(inpdb)
     bonds, angles, dihs = BondList(), BondList(), BondList()
     for model in system:
-        bonds.extend(calc_bonds(model, top.bonds))
+        bonds.extend(calc_bonds(model, top.bonds + top.cons))
         angles.extend(calc_angles(model, top.angles))
         dihs.extend(calc_dihedrals(model, top.dihs))
     print('Done!', file=sys.stderr)
@@ -138,10 +138,11 @@ def make_hist(ax, datas, params, **kwargs):
     ax.set_title(title)
 
 
-def plot_figure(figpath='test.png', **kwargs):
+def plot_figure(fig, axes, figname='Title', figpath='test.png', **kwargs):
     """
     Finish plotting
     """
+    fig.suptitle(figname)
     plt.tight_layout()
     plt.savefig(figpath)
     plt.close()
