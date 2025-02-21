@@ -26,7 +26,7 @@ def load_data():
     cgangles = np.load('data/cgangles.npy').T
     cgdihedrals = np.load('data/cgdihedrals.npy').T
     return bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals
-    
+
 
 def plot_geometry(bonds, angles, dihedrals, cgbonds, cgangles, cgdihedrals, topology, molecule, resname):
     

@@ -1,7 +1,8 @@
+import sys
 import cgtools.forge.forcefields as ffs
 import cgtools.forge.cgmap as cgmap
-from cgtools.forge.topology import Topology
-from cgtools.forge.geometry import calc_bonds, calc_angles, calc_dihedrals
+from cgtools.forge.topology import Topology, BondList
+from cgtools.forge.geometry import get_cg_bonds, histogram_bonds
 
 
 def process_chain(chain, ff):
@@ -23,6 +24,7 @@ def merge_topologies(topologies):
 
 def get_reference_topology(inpdb):
     # Need to get the topology from the reference system
+    print(f'Calculating the reference topology from {inpdb}...', file=sys.stderr)
     system = cgmap.read_pdb(inpdb) 
     cgmap.move_o3(system) # Need to move all O3's to the next residue. Annoying but wcyd
     topologies = []
@@ -30,6 +32,7 @@ def get_reference_topology(inpdb):
         top = process_chain(chain, ff)
         topologies.append(top)
     top = merge_topologies(topologies)
+    print('Done!', file=sys.stderr)
     return top
 
 
@@ -38,12 +41,9 @@ if __name__ == "__main__":
     inpdb = 'models.pdb'
     ff = ffs.martini30rna()
     top = get_reference_topology(refpdb)
-    system = cgmap.read_pdb(inpdb)
-    for model in system:
-        bonds = calc_bonds(model, top.bonds)
-        angles = calc_angles(model, top.angles)
-        dihs = calc_dihedrals(model, top.dihs)
-        print(dihs)
+    bonds, angles, dihs = get_cg_bonds(inpdb, top)
+    histogram_bonds(bonds)
+
 
 
 

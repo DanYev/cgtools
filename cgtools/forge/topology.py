@@ -11,7 +11,6 @@ import logging
 import numpy as np
 from cgtools import itpio
 from cgtools.forge.forcefields import NucleicForceField
-from cgtools.forge.geometry import get_distance
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 ############################################################
@@ -57,6 +56,20 @@ class BondList(list):
         """
         comments = [bond[2] for bond in self]
         return comments
+
+    def categorize(self):
+        """
+        Categorize an instance based on the comments.
+        Usually the first string in the comment is a residue, the second is the bead names forming the bond
+        Returns a dictionary dict[comment] -> bonds with this comment  
+        """
+        keys = [comm.strip() for comm in set(self.comments)]
+        keys = sorted(keys)
+        adict = {key: BondList() for key in keys}
+        for bond in self:
+            key = bond[2].strip() # bond[2] - comment
+            adict[key].append(bond) 
+        return adict       
 
 
 class Topology:
@@ -320,6 +333,10 @@ class Topology:
 
 
     def elastic_network(self, atoms, anames=['BB1', 'BB3',], el=0.5, eu=1.2, ef=200):
+        def get_distance(v1, v2):
+            v1 = np.array(v1)
+            v2 = np.array(v2)
+            return np.linalg.norm(v1 - v2) / 10.0  
         atoms = [atom for atom in atoms if atom.name in anames]
         for a1 in atoms:
             for a2 in atoms:

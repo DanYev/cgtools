@@ -3,6 +3,9 @@ import sys
 import copy
 import time
 import numpy as np
+import matplotlib.pyplot as plt
+import cgtools.forge.cgmap as cgmap
+from cgtools.forge.topology import Topology, BondList
 
     
 def get_distance(v1, v2):
@@ -42,14 +45,14 @@ def calc_bonds(model, bonds):
     conns = bonds.connectivities
     params = bonds.parameters
     comms = bonds.comments
-    pairs = [(atoms[i - 1], atoms[j - 1]) for i, j in conns]
+    pairs = [(atoms[i-1], atoms[j-1]) for i, j in conns]
     vecs_list = [(a1.vec, a2.vec) for a1, a2 in pairs]
     dists = [get_distance(*vecs) for vecs in vecs_list]
     resnames = [a1.resname for a1, a2 in pairs]
     params = [[param[0], metric] + param[2:] for param, metric in zip(params, dists)]
     comms = [f'{resname} {comm}' for comm, resname in zip(comms, resnames)]
     result = list(zip(conns, params, comms)) 
-    return result
+    return BondList(result)
 
 
 def calc_angles(model, angles): 
@@ -62,14 +65,14 @@ def calc_angles(model, angles):
     conns = angles.connectivities
     params = angles.parameters
     comms = angles.comments
-    triplets = [(atoms[i - 1], atoms[j - 1], atoms[k - 1]) for i, j, k in conns]
+    triplets = [(atoms[i-1], atoms[j-1], atoms[k-1]) for i, j, k in conns]
     vecs_list = [(a1.vec, a2.vec, a3.vec) for a1, a2, a3 in triplets]
     angles = [get_angle(*vecs) for vecs in vecs_list]
     resnames = [a1.resname for a1, a2, a3 in triplets]
     params = [[param[0], metric] + param[2:] for param, metric in zip(params, angles)]
     comms = [f'{resname} {comm}' for comm, resname in zip(comms, resnames)]
     result = list(zip(conns, params, comms)) 
-    return result
+    return BondList(result)
 
 
 def calc_dihedrals(model, dihs): 
@@ -82,14 +85,51 @@ def calc_dihedrals(model, dihs):
     conns = dihs.connectivities
     params = dihs.parameters
     comms = dihs.comments
-    quads = [(atoms[i - 1], atoms[j - 1], atoms[k - 1], atoms[l - 1]) for i, j, k, l in conns]
+    quads = [(atoms[i-1], atoms[j-1], atoms[k-1], atoms[l-1]) for i, j, k, l in conns]
     vecs_list = [(a1.vec, a2.vec, a3.vec, a4.vec) for a1, a2, a3, a4 in quads]
     dihs = [get_dihedral(*vecs) for vecs in vecs_list]
     resnames = [a2.resname for a1, a2, a3, a4 in quads]
     params = [[param[0], metric] + param[2:] for param, metric in zip(params, dihs)]
     comms = [f'{resname} {comm}' for comm, resname in zip(comms, resnames)]
     result = list(zip(conns, params, comms)) 
-    return result    
+    return BondList(result)
+
+
+def get_cg_bonds(inpdb, top):
+    """
+    Calculates bonds, angles, dihedrals given a CG system .pdb and the reference topology oblect
+    Returns three BondList objects: bonds, angles, dihedrals
+    """
+    print(f'Calculating bonds, angles and dihedrals from {inpdb}...', file=sys.stderr)
+    system = cgmap.read_pdb(inpdb)
+    bonds, angles, dihs = BondList(), BondList(), BondList()
+    for model in system:
+        bonds.extend(calc_bonds(model, top.bonds))
+        angles.extend(calc_angles(model, top.angles))
+        dihs.extend(calc_dihedrals(model, top.dihs))
+    print('Done!', file=sys.stderr)
+    return bonds, angles, dihs
+
+
+def histogram_bonds(bonds, grid=(2, 3), figpath='test.png', **kwargs):
+    b_dict = bonds.categorize()
+    keys = list(b_dict.keys())
+    m, n = grid
+    fig, axes = plt.subplots(m, n, figsize=(12, 8))
+    for i in range(m):
+        for j in range(n):
+            idx = j + i * n
+            ax = axes[i, j] 
+            key = keys[idx]
+            bonds = b_dict[key]
+            params = bonds.parameters
+            data = [param[1] for param in params]
+            print(key, data)
+            ax.hist(data)
+            ax.set_title(f"{key}")
+    plt.tight_layout()
+    plt.savefig(figpath)
+    plt.close()
     
             
 if __name__ == "__main__":
