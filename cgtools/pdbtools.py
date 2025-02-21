@@ -41,13 +41,13 @@ class Atom:
     def __init__(self, record, atid, name, alt_loc, resname, chain_id, resid,
                  icode, x, y, z, occupancy, b_factor, element, charge):
         self.record = record          # "ATOM" or "HETATM"
-        self.atid = atid          # Atom atid number
+        self.atid = atid              # Atom atid number
         self.name = name              # Atom name
         self.alt_loc = alt_loc        # Alternate location indicator
-        self.resname = resname      # Residue name
+        self.resname = resname        # Residue name
         self.chain_id = chain_id      # Chain identifier
-        self.resid = resid        # Residue sequence number
-        self.icode = icode          # Insertion code
+        self.resid = resid            # Residue sequence number
+        self.icode = icode            # Insertion code
         self.x = x                    # x coordinate
         self.y = y                    # y coordinate
         self.z = z                    # z coordinate
@@ -94,21 +94,21 @@ class Atom:
         Adjust the formatting as needed.
         """
         return (
-            f"{self.record:<6}"  # record name left-justified in 6 chars
-            f"{self.atid:>5} "  # atid number right-justified in 5 chars + space
-            f"{self.name:<4}"     # atom name left-justified in 4 chars
-            f"{self.alt_loc:1}"   # alternate location indicator in 1 char
-            f"{self.resname:>3} " # residue name right-justified in 3 chars + space
-            f"{self.chain_id:1}"  # chain identifier in 1 char
-            f"{self.resid:>4}"   # residue sequence number right-justified in 4 chars
-            f"{self.icode:1}   " # insertion code in 1 char, then 3 spaces
-            f"{self.x:>8.3f}"     # x coordinate, 8 chars wide, 3 decimals
-            f"{self.y:>8.3f}"     # y coordinate, 8 chars wide, 3 decimals
-            f"{self.z:>8.3f}"     # z coordinate, 8 chars wide, 3 decimals
-            f"{self.occupancy:>6.2f}"  # occupancy, 6 chars wide, 2 decimals
+            f"{self.record:<6}"                 # record name left-justified in 6 chars
+            f"{self.atid:>5} "                  # atid number right-justified in 5 chars + space
+            f"{self.name:<4}"                   # atom name left-justified in 4 chars
+            f"{self.alt_loc:1}"                 # alternate location indicator in 1 char
+            f"{self.resname:>3} "               # residue name right-justified in 3 chars + space
+            f"{self.chain_id:1}"                # chain identifier in 1 char
+            f"{self.resid:>4}"                  # residue sequence number right-justified in 4 chars
+            f"{self.icode:1}   "                # insertion code in 1 char, then 3 spaces
+            f"{self.x:>8.3f}"                   # x coordinate, 8 chars wide, 3 decimals
+            f"{self.y:>8.3f}"                   # y coordinate, 8 chars wide, 3 decimals
+            f"{self.z:>8.3f}"                   # z coordinate, 8 chars wide, 3 decimals
+            f"{self.occupancy:>6.2f}"           # occupancy, 6 chars wide, 2 decimals
             f"{self.b_factor:>6.2f}          "  # temp factor, 6 chars wide, 2 decimals, plus 10 spaces for alignment
-            f"{self.element:>2}"  # element symbol right-justified in 2 chars
-            f"{self.charge:>2}"   # charge right-justified in 2 chars
+            f"{self.element:>2}"                # element symbol right-justified in 2 chars
+            f"{self.charge:>2}"                 # charge right-justified in 2 chars
         )
 
 
@@ -225,24 +225,24 @@ class AtomList(list):
             self[i].resid = rid
 
     @property
-    def icode(self):
+    def icodes(self):
         """Return a list of insertion codes for all atoms."""
         return [atom.icode for atom in self]
 
-    @icode.setter
-    def icode(self, new_icode):
+    @icodes.setter
+    def icodes(self, new_icode):
         if len(new_icode) != len(self):
             raise ValueError("Length of new icode list must match the number of atoms")
         for i, code in enumerate(new_icode):
             self[i].icode = code
 
     @property
-    def x(self):
+    def xs(self):
         """Return a list of x coordinates for all atoms."""
         return [atom.x for atom in self]
 
-    @x.setter
-    def x(self, new_x):
+    @xs.setter
+    def xs(self, new_x):
         if len(new_x) != len(self):
             raise ValueError("Length of new x coordinates must match the number of atoms")
         for i, x_val in enumerate(new_x):
@@ -251,12 +251,12 @@ class AtomList(list):
             self[i].vec = (self[i].x, self[i].y, self[i].z)
 
     @property
-    def y(self):
+    def ys(self):
         """Return a list of y coordinates for all atoms."""
         return [atom.y for atom in self]
 
-    @y.setter
-    def y(self, new_y):
+    @ys.setter
+    def ys(self, new_y):
         if len(new_y) != len(self):
             raise ValueError("Length of new y coordinates must match the number of atoms")
         for i, y_val in enumerate(new_y):
@@ -264,12 +264,12 @@ class AtomList(list):
             self[i].vec = (self[i].x, self[i].y, self[i].z)
 
     @property
-    def z(self):
+    def zs(self):
         """Return a list of z coordinates for all atoms."""
         return [atom.z for atom in self]
 
-    @z.setter
-    def z(self, new_z):
+    @zs.setter
+    def zs(self, new_z):
         if len(new_z) != len(self):
             raise ValueError("Length of new z coordinates must match the number of atoms")
         for i, z_val in enumerate(new_z):
@@ -277,12 +277,12 @@ class AtomList(list):
             self[i].vec = (self[i].x, self[i].y, self[i].z)
 
     @property
-    def occupancy(self):
+    def occupancies(self):
         """Return a list of occupancy values for all atoms."""
         return [atom.occupancy for atom in self]
 
-    @occupancy.setter
-    def occupancy(self, new_occ):
+    @occupancies.setter
+    def occupancies(self, new_occ):
         if len(new_occ) != len(self):
             raise ValueError("Length of new occupancy list must match the number of atoms")
         for i, occ in enumerate(new_occ):
@@ -336,6 +336,21 @@ class AtomList(list):
     def __repr__(self):
         return f"<AtomList with {len(self)} atoms>"
 
+    def mask(self, mask):
+        """
+        Mask an instance based on atom names
+        """
+        return AtomList([atom for atom in self if atom.name in mask])
+
+    def save_pdb(self, filename):
+        """
+        Save the current AromList instance to a PDB file.
+        """
+        with open(filename, "w") as f:
+            for atom in self:
+                f.write(atom.to_pdb_line() + "\n")
+            f.write("END\n")    
+
 
 class Residue(AtomList):
     """
@@ -345,11 +360,12 @@ class Residue(AtomList):
         self.resname = resname
         self.resid = resid
         self.icode = icode
-        self._atoms = []  # List of Atom objects
+        self._atoms = AtomList()  # List of Atom objects
 
     def add_atom(self, atom):
         self._atoms.append(atom)
 
+    @property
     def atoms(self):
         """Return a list of all atoms in this residue."""
         return self._atoms
@@ -376,13 +392,14 @@ class Chain(AtomList):
             self.residues[key] = Residue(atom.resname, atom.resid, atom.icode)
         self.residues[key].add_atom(atom)
 
+    @property
     def atoms(self):
         """Return a list of all atoms in this chain."""
         all_atoms = []
         # Sort residues by resid and insertion code for ordered iteration.
         for residue in sorted(self.residues.values(), key=lambda r: (r.resid, r.icode)):
-            all_atoms.extend(residue.atoms())
-        return all_atoms
+            all_atoms.extend(residue.atoms)
+        return AtomList(all_atoms)
 
     def __iter__(self):
         for residue in sorted(self.residues.values(), key=lambda r: (r.resid, r.icode)):
@@ -407,12 +424,13 @@ class Model(AtomList):
             self.chains[chain_id] = Chain(chain_id)
         self.chains[chain_id].add_atom(atom)
 
+    @property
     def atoms(self):
         """Return a list of all atoms in this model."""
         all_atoms = []
         for chain in self.chains.values():
-            all_atoms.extend(chain.atoms())
-        return all_atoms
+            all_atoms.extend(chain.atoms)
+        return AtomList(all_atoms)
 
     def __iter__(self):
         return iter(self.chains.values())
@@ -446,12 +464,13 @@ class System(AtomList):
         for atom in atoms:
             self.models[model_id].add_atom(atom)
 
+    @property
     def atoms(self):
         """Return a list of all atoms in the system (from all models)."""
         all_atoms = []
         for model in self.models.values():
-            all_atoms.extend(model.atoms())
-        return all_atoms        
+            all_atoms.extend(model.atoms)
+        return AtomList(all_atoms)       
 
     def residues(self):
         """
@@ -491,7 +510,7 @@ class System(AtomList):
                 for chain in sorted(model.chains.values(), key=lambda c: c.chain_id):
                     # Iterate over residues in sorted order
                     for residue in sorted(chain.residues.values(), key=lambda r: (r.resid, r.icode)):
-                        for atom in residue.atoms():
+                        for atom in residue.atoms:
                             f.write(atom.to_pdb_line() + "\n")
                 if multiple_models:
                     f.write("ENDMDL\n")
