@@ -4,8 +4,6 @@ import shutil
 from contextlib import contextmanager
 from functools import wraps
 
-GMX = 'gmx_mpi'
-
 ##############################################################
 # Some helper functions
 ##############################################################
@@ -112,28 +110,6 @@ def run(*args, **kwargs):
     #     sp.run(command.split(), input=clinput, text=cltext, check=True)
     # except sp.CalledProcessError as e:
     #     raise RuntimeError(f"Command '{command}' failed with return code {e.returncode}") from e
-
-
-@from_wdir
-def run_gmx(wdir, command, **kwargs):
-    """
-    Run a GROMACS command from a Python script, switching to the specified working directory.
-
-    Parameters:
-    wdir (str): 
-        The working directory where the command should be executed.
-    command (str): 
-        The GROMACS command to run (e.g., 'editconf', 'solvate').
-    **kwargs: dict
-        Additional options and flags for the GROMACS command.
-        Special keys:
-        - 'clinput' (str, optional): Input to be passed to the command's stdin.
-        - 'cltext' (bool, optional): Whether to treat the input as text.
-    """
-    clinput = kwargs.pop('clinput', None)
-    cltext = kwargs.pop('cltext', True)
-    command = GMX + ' ' + command + ' ' + kwargs_to_str(**kwargs)
-    sp.run(command.split(), input=clinput, text=cltext)
     
     
 def sbatch(script, *args, **kwargs):
@@ -175,14 +151,33 @@ def sbatch(script, *args, **kwargs):
     command = ' '.join(['sbatch' , sbatch_short_opts, sbatch_long_opts, str(script), args_to_str(*args)])
     sp.run(command.split())
 
-    
+
+def gmx(command, gmx_callable='gmx_mpi', **kwargs):
+    """
+    Run a GROMACS command from a Python script, switching to the specified working directory.
+
+    Parameters:
+    wdir (str): 
+        The working directory where the command should be executed.
+    command (str): 
+        The GROMACS command to run (e.g., 'editconf', 'solvate').
+    **kwargs: dict
+        Additional options and flags for the GROMACS command.
+        Special keys:
+        - 'clinput' (str, optional): Input to be passed to the command's stdin.
+        - 'cltext' (bool, optional): Whether to treat the input as text.
+    """
+    clinput = kwargs.pop('clinput', None)
+    cltext = kwargs.pop('cltext', True)
+    command = gmx_callable + ' ' + command + ' ' + kwargs_to_str(**kwargs)
+    sp.run(command.split(), input=clinput, text=cltext)
+
 
 ##############################################################
 # GROMACS functions
 ############################################################## 
 
-@from_wdir
-def gmx_editconf(wdir, **kwargs):
+def gmx_editconf(**kwargs):
     """
     Run the GROMACS 'editconf' command to modify the configuration of the system.
 
@@ -198,16 +193,15 @@ def gmx_editconf(wdir, **kwargs):
         - 'd': '1.25' (distance from the box edge)
     """
     defaults = {
-        'f': 'system.pdb',
-        'o': 'system.pdb',
+        'f': 'solute.pdb',
+        'o': 'solute.pdb',
         'bt': 'triclinic',
     }
     kwargs = set_defaults(kwargs, defaults)
-    run_gmx(wdir, 'editconf', **kwargs)
+    gmx('editconf', **kwargs)
 
 
-@from_wdir
-def gmx_solvate(wdir, **kwargs):
+def gmx_solvate(**kwargs):
     """
     Run the GROMACS 'solvate' command to solvate the system with water.
 
@@ -224,14 +218,14 @@ def gmx_solvate(wdir, **kwargs):
         - 'radius': '0.23' (minimal distance between solute and solvent)
     """
     defaults = {
-        'cp': 'system.pdb',
+        'cp': 'solute.pdb',
         'cs': 'water.gro',
         'p': 'system.top',
         'o': 'system.pdb',
         'radius': '0.23'
     }
     kwargs = set_defaults(kwargs, defaults)
-    run_gmx(wdir, 'solvate', **kwargs)
+    gmx('solvate', **kwargs)
 
 
 @from_wdir
@@ -255,7 +249,7 @@ def gmx_make_ndx(wdir, clinput=None, **kwargs):
         'o': 'index.ndx',
     }
     kwargs = set_defaults(kwargs, defaults)
-    run_gmx(wdir, 'make_ndx', clinput=clinput, cltext=True, **kwargs)
+    gmx('make_ndx', clinput=clinput, cltext=True, **kwargs)
 
 
 @from_wdir
@@ -280,7 +274,7 @@ def gmx_grompp(wdir, **kwargs):
         'maxwarn': '1'
     }
     kwargs = set_defaults(kwargs, defaults)
-    run_gmx(wdir, 'grompp', **kwargs)  
+    gmx('grompp', **kwargs)  
     
     
 @from_wdir
@@ -306,7 +300,7 @@ def gmx_mdrun(wdir, **kwargs):
         'pinstride': '1',
     }
     kwargs = set_defaults(kwargs, defaults)
-    run_gmx(wdir, 'mdrun', **kwargs)
+    gmx('mdrun', **kwargs)
 
 
 @from_wdir
@@ -322,7 +316,7 @@ def gmx_trjconv(wdir, clinput='1\n1\n', **kwargs):
     **kwargs: dict
         Additional options and flags for the 'trjconv' command.
     """
-    run_gmx(wdir, 'trjconv', clinput=clinput, cltext=True, **kwargs)
+    gmx('trjconv', clinput=clinput, cltext=True, **kwargs)
 
 
 @from_wdir
@@ -354,7 +348,7 @@ def gmx_rmsf(wdir, clinput=None, **kwargs):
         'res': 'yes'
     }
     kwargs = set_defaults(kwargs, defaults)
-    run_gmx(wdir, 'rmsf', clinput=clinput, cltext=True, **kwargs)
+    gmx('rmsf', clinput=clinput, cltext=True, **kwargs)
 
 
 @from_wdir
@@ -384,7 +378,7 @@ def gmx_rms(wdir, clinput=None, **kwargs):
         'xvg': 'none'
     }
     kwargs = set_defaults(kwargs, defaults)
-    run_gmx(wdir, 'rms', clinput=clinput, cltext=True, **kwargs)
+    gmx('rms', clinput=clinput, cltext=True, **kwargs)
 
 
 @from_wdir
@@ -414,7 +408,7 @@ def gmx_rdf(wdir, clinput=None, **kwargs):
         'xvg': 'none'
     }
     kwargs = set_defaults(kwargs, defaults)
-    run_gmx(wdir, 'rdf', clinput=clinput, cltext=True, **kwargs)
+    gmx('rdf', clinput=clinput, cltext=True, **kwargs)
 
 
 @from_wdir
@@ -430,7 +424,7 @@ def gmx_cluster(wdir, clinput=None, **kwargs):
     **kwargs: dict
         Additional options and flags for the 'covar' command.
     """
-    run_gmx(wdir, 'cluster', clinput=clinput, cltext=True, **kwargs)
+    gmx('cluster', clinput=clinput, cltext=True, **kwargs)
     
     
 @from_wdir
@@ -446,7 +440,7 @@ def gmx_extract_cluster(wdir, clinput=None, **kwargs):
     **kwargs: dict
         Additional options and flags for the 'covar' command.
     """
-    run_gmx(wdir, 'extract-cluster', clinput=clinput, cltext=True, **kwargs)    
+    gmx('extract-cluster', clinput=clinput, cltext=True, **kwargs)    
 
 
 @from_wdir
@@ -462,7 +456,7 @@ def gmx_covar(wdir, clinput=None, **kwargs):
     **kwargs: dict
         Additional options and flags for the 'covar' command.
     """
-    run_gmx(wdir, 'covar', clinput=clinput, cltext=True, **kwargs)
+    gmx('covar', clinput=clinput, cltext=True, **kwargs)
  
  
 @from_wdir
@@ -474,7 +468,7 @@ def gmx_anaeig(wdir, clinput=None, **kwargs):
         'v': 'eigenvec.trr',
     }
     kwargs = set_defaults(kwargs, defaults)
-    run_gmx(wdir, 'anaeig', clinput=clinput, cltext=True, **kwargs)    
+    gmx('anaeig', clinput=clinput, cltext=True, **kwargs)    
     
     
 @from_wdir
@@ -486,8 +480,9 @@ def gmx_make_edi(wdir, clinput=None, **kwargs):
         'f': 'eigenvec.trr',
     }
     kwargs = set_defaults(kwargs, defaults)
-    run_gmx(wdir, 'make_edi', clinput=clinput, cltext=True, **kwargs)        
+    gmx('make_edi', clinput=clinput, cltext=True, **kwargs)        
 
     
+     
     
     

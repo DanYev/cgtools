@@ -391,6 +391,13 @@ class AtomList(list):
         filter_vals = set(filter_vals)
         return AtomList([atom for atom in self if key_funcs[mode](atom) in filter_vals])
 
+    def renumber(self):
+        """
+        Renumber atoms in the list starting from 1
+        """
+        new_atids = [atid % 99999 for atid in range(1, len(self)+1)]
+        self.atids = new_atids
+
     def remove_atoms(self, atoms_to_remove):
         """
         Remove the specified atoms from the current list.
@@ -714,13 +721,13 @@ def write_ndx(atoms, fpath='system.ndx'):
     in_pdb = 'test.pdb'
     system = parse_pdb(in_pdb)
     atoms = system.atoms
-    atoms.write_ndx(fpath, header=f'[ System ]', append=False, wrap=15) # sys ndx
+    atoms.write_to_ndx(fpath, header=f'[ System ]', append=False, wrap=15) # sys ndx
     backbone = atoms.filter(("CA", "P", "C1'"), mode='name')
-    backbone.write_ndx(fpath, header=f'[ Backbone ]', append=True, wrap=15) # bb ndx
+    backbone.write_to_ndx(fpath, header=f'[ Backbone ]', append=True, wrap=15) # bb ndx
     chids = sorted(set(atoms.chids))
     for chid in chids:
         selected_atoms = atoms.filter(chid, mode='chid')
-        selected_atoms.write_ndx(fpath, header=f'[ chain_{chid} ]', append=True, wrap=15) # chain ndx
+        selected_atoms.write_to_ndx(fpath, header=f'[ chain_{chid} ]', append=True, wrap=15) # chain ndx
         print(f"Written PDB to {fpath}", file=sys.stderr)
 
 
@@ -750,20 +757,6 @@ def sort_uld(alist):
     slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
     return slist
 
-
-def convert_mutation_format(mutation):
-    # Check if the input follows the expected format
-    if len(mutation) < 3 or not mutation[0].isalpha() or not mutation[-1].isalpha() or not mutation[1:-1].isdigit():
-        return "Invalid input format"
-    # Extract components
-    from_aa = mutation[0]
-    to_aa = mutation[-1]
-    position = mutation[1:-1] 
-    # Convert using the dictionary
-    from_aa_3letter = AA_CODE_CONVERTER.get(from_aa, "UNK")
-    to_aa_3letter = AA_CODE_CONVERTER.get(to_aa, "UNK")
-    # Return the new format
-    return f"{from_aa_3letter}-{position}-{to_aa_3letter}"
 
     
 

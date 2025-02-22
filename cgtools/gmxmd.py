@@ -8,6 +8,7 @@ import shutil
 import subprocess as sp
 import cgtools
 from cgtools import cli, lrt, pdbtools
+from cgtools.pdbtools import AtomList
 
 ################################################################################
 # CG system class
@@ -38,8 +39,9 @@ class gmxSystem:
         self.sysdir     = os.path.abspath(sysdir)
         self.wdir       = os.path.join(self.sysdir, sysname)
         self.inpdb      = os.path.join(self.wdir, 'inpdb.pdb')
-        self.sysgro     = os.path.join(self.wdir, 'system.gro')
+        self.solupdb    = os.path.join(self.wdir, 'solute.pdb')
         self.syspdb     = os.path.join(self.wdir, 'system.pdb')
+        self.sysgro     = os.path.join(self.wdir, 'system.gro')        
         self.systop     = os.path.join(self.wdir, 'system.top')
         self.sysndx     = os.path.join(self.wdir, 'system.ndx')
         self.mdcpdb     = os.path.join(self.wdir, 'mdc.pdb')
@@ -120,6 +122,7 @@ class gmxSystem:
         """
         Cleans starting PDB file using PDBfixer by OpenMM
         """
+        os.chdir(self.wdir)
         print("Cleaning the PDB...", file=sys.stderr)
         pdbtools.clean_pdb(self.inpdb, self.inpdb, **kwargs)  
     
@@ -127,6 +130,7 @@ class gmxSystem:
         """
         Cleans a separate PDB file for each chain in the initial structure
         """
+        os.chdir(self.wdir)
         def it_is_nucleotide(atoms): # check if it's RNA or DNA based on residue name
             return atoms.resnames[0] in self.NUC_RESNAMES
         print("Splitting chains...", file=sys.stderr)
@@ -146,6 +150,7 @@ class gmxSystem:
         kwargs.setdefault('add_missing_atoms', True)
         kwargs.setdefault('add_hydrogens', True)
         kwargs.setdefault('pH', 7.0)
+        os.chdir(self.wdir)
         print("Cleaning chain PDBs", file=sys.stderr)
         files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir)]
         files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir)]
@@ -270,41 +275,42 @@ class gmxSystem:
             cg_itp = os.path.join(self.topdir, molname + '.itp')
             martinize_rna(self.wdir, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
 
-    def make_cgpdb_file(self, add_ions=False, **kwargs):
-        with open(self.syspdb, 'w') as outfile:
-            pass  # makes a clean new file
-        with open(self.syspdb, 'a') as outfile:
-            for filename in sorted(os.listdir(self.cgdir)):
-                with open(os.path.join(self.cgdir, filename), 'r') as infile:
-                    outfile.writelines(line for line in infile if line.startswith('ATOM'))
-            if add_ions:
-                with open(self.ionpdb, 'r') as infile:
-                    for line in infile:
-                        if line.startswith('ATOM') or line.startswith('HETATM'):
-                            line = line[:21] + ' ' + line[22:] # dont need the chain ID
-                            outfile.write(line)
-        cli.gmx_editconf(self.wdir, **kwargs)
+    def make_cgpdb_file(self, add_resolved_ions=False, **kwargs):
+        os.chdir(self.wdir)
+        cg_pdb_files = os.listdir(self.cgdir)
+        cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
+        cg_pdb_files = [os.path.join(self.cgdir, fname) for fname in cg_pdb_files]
+        atoms = AtomList()
+        for file in cg_pdb_files:
+            system = pdbtools.parse_pdb(file)
+            atoms.extend(system.atoms)
+        if add_resolved_ions:
+            system = pdbtools.parse_pdb(self.ionpdb)
+            atoms.extend(system.atoms)
+        atoms.renumber()    
+        atoms.write_to_pdb(self.solupdb)
+        cli.gmx('editconf', f=self.solupdb, o=self.solupdb, **kwargs)
         
-    def make_martini_topology_file(self, resolved_ions=[], prefix='chain'):
-        itp_files = sorted([f for f in os.listdir(self.topdir) if f.startswith(prefix)]) # 
+    def make_martini_topology_file(self, add_resolved_ions=False, prefix='chain'):
+        os.chdir(self.wdir)
+        itp_files = [f for f in os.listdir(self.topdir) if f.startswith(prefix) and f.endswith('.itp')] 
+        itp_files = sort_upper_lower_digit(itp_files)
         with open(self.systop, 'w') as f:
             # Include section
             f.write(f'#define GO_VIRT"\n')
             f.write(f'#define RUBBER_BANDS\n')
-            f.write(f'#include "{self.topdir}/martini_v3.0.0.itp"\n')
-            f.write(f'#include "{self.topdir}/martini_v3.0.0_rna.itp"\n')
-            f.write(f'#include "{self.topdir}/martini_ions.itp"\n')
+            f.write(f'#include "topol/martini_v3.0.0.itp"\n')
+            f.write(f'#include "topol/martini_v3.0.0_rna.itp"\n')
+            f.write(f'#include "topol/martini_ions.itp"\n')
             if 'go_atomtypes.itp' in os.listdir(self.topdir):
-                f.write(f'#include "{self.topdir}/go_atomtypes.itp"\n')
-                f.write(f'#include "{self.topdir}/go_nbparams.itp"\n')
-            f.write(f'#include "{self.topdir}/martini_v3.0.0_solvents_v1.itp"\n') 
-            f.write(f'#include "{self.topdir}/martini_v3.0.0_phospholipids_v1.itp"\n')
-            f.write(f'#include "{self.topdir}/martini_v3.0.0_ions_v1.itp"\n')
+                f.write(f'#include "topol/go_atomtypes.itp"\n')
+                f.write(f'#include "topol/go_nbparams.itp"\n')
+            f.write(f'#include "topol/martini_v3.0.0_solvents_v1.itp"\n') 
+            f.write(f'#include "topol/martini_v3.0.0_phospholipids_v1.itp"\n')
+            f.write(f'#include "topol/martini_v3.0.0_ions_v1.itp"\n')
             f.write(f'\n')
             for filename in itp_files:
-                if filename.endswith('.itp'):
-                    filepath = os.path.join(self.topdir, filename)
-                    f.write(f'#include "{filepath}"\n')
+                f.write(f'#include "topol/{filename}"\n')
             # System name
             f.write(f'\n[ system ]\n')
             f.write(f'Martini system for {self.sysname}\n') 
@@ -312,19 +318,19 @@ class gmxSystem:
             f.write('\n[molecules]\n')
             f.write('; name\t\tnumber\n')
             for filename in itp_files:
-                if filename.endswith('.itp'):
-                    molecule_name = os.path.splitext(filename)[0]
-                    f.write(f'{molecule_name}\t\t1\n')
+                molecule_name = os.path.splitext(filename)[0]
+                f.write(f'{molecule_name}\t\t1\n')
             # Ions
-            if resolved_ions:
-                ions = self.count_resolved_ions(ions=resolved_ions) 
+            if add_resolved_ions:
+                ions = self.count_resolved_ions() 
                 for ion, count in ions.items():
                     if count > 0:
                         f.write(f'{ion}    {count}\n')
 
-           
     def make_gro_file(self, d=1.25, bt='dodecahedron'):
-        cg_pdb_files = sorted(os.listdir(self.cgdir))
+        os.chdir(self.wdir)
+        cg_pdb_files = os.listdir(self.cgdir)
+        cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
         for file in cg_pdb_files:
             if file.endswith('.pdb'):
                 pdb_file = os.path.join(self.cgdir, file)
@@ -355,7 +361,8 @@ class gmxSystem:
         sp.run(command.split())
         
     def solvate(self, **kwargs):
-        cli.gmx_solvate(self.wdir, **kwargs)
+        os.chdir(self.wdir)
+        cli.gmx_solvate(**kwargs)
         
     def find_resolved_ions(self, mask=['MG', 'ZN', 'K']):
         mask_atoms(self.inpdb, 'ions.pdb', mask=mask)
@@ -376,73 +383,29 @@ class gmxSystem:
         command = f'gmx_mpi grompp -f mdp/ions.mdp -c {self.syspdb} -p system.top -o ions.tpr'
         sp.run(command.split())
         command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname {pname} -nname {nname} -o {self.syspdb}'
-        sp.run(command.split(), input='W\n', text=True) 
+        sp.run(command.split(), input='W\n', text=True)
+        cli.gmx_editconf(f=self.syspdb, o=self.sysgro)
         os.chdir(bdir)
-        cli.gmx_editconf(self.wdir, f=self.syspdb, o=self.sysgro)
-        
-    def initmd(self, runname):
-        mdrun = MDRun(runname, self.sysdir, self.sysname)
-        # self._mdruns.append(mdrun.runname)
-        return mdrun
 
-    def make_ndx(self, pdb, ndx='index.ndx', groups=[[]], **kwargs):
-        cli.gmx_make_ndx(self.wdir, clinput='keep 0\n q\n', f=pdb, o=ndx, **kwargs)
-        for atoms in groups:
-            ndxstr = 'a ' + ' | a '.join(atoms) + '\n q \n'
-            instr_a = '_'.join(atoms) + '\n'
-            cli.gmx_make_ndx(self.wdir, clinput=ndxstr, f=pdb, o=ndx, n=ndx, **kwargs)
-  
-    @staticmethod    
-    def mask_pdb(inpdb, outpdb, mask=['BB', 'BB1', 'BB2']):
-        """
-        Makes a masked PDB file from the input PDB file
-        Args:
-            inpdb(str): full path to the input pdb
-            outpdb(str): full path to the output pdb
-        """
-        filtered_atoms = []
-        with open(inpdb, 'r') as file:
-            for line in file:
-                if line.startswith('ATOM') or line.startswith('HETATM'):
-                    current_atom_name = line[12:16].strip()
-                    if current_atom_name in mask:
-                        # Copy chain ID to segID
-                        chain_id = line[21].strip()  # Extract chain ID
-                        seg_id = f"{chain_id:<4}"    # Format segID to occupy 4 characters
-                        updated_line = line[:72] + seg_id + line[76:]  # Update segID field
-                        filtered_atoms.append(updated_line)
-        with open(outpdb, 'w') as output_file:
-            for i, atom_line in enumerate(filtered_atoms, start=1):
-                new_serial_number = f'{i:>5}'  
-                new_atom_line = atom_line[:6] + new_serial_number + atom_line[11:]
-                output_file.write(new_atom_line)
-                
-    def make_mdc_pdb_ndx(self, mask=['BB', 'BB1', 'BB2'], **kwargs):
-        """
-        Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
-        Default is to select backbone atoms for proteins and RNA
-        """
-        gmxSystem.mask_pdb(inpdb=self.syspdb, outpdb=self.mdcpdb, mask=mask)
-        gmxSystem.make_index_by_chain(self.wdir, inpdb=self.mdcpdb, chains=self.chains, outndx=self.mdcndx)
-        
-    def make_trj_pdb_ndx(self, mask=['BB', 'BB2', ], **kwargs):
-        """
-        Makes a pdb file of masked selected atoms and a ndx file with separated chains for this pdb
-        Default is to select backbone atoms for proteins and RNA
-        """
-        gmxSystem.mask_pdb(inpdb=self.syspdb, outpdb=self.trjpdb, mask=mask)
-        gmxSystem.make_index_by_chain(self.wdir, inpdb=self.trjpdb,  chains=self.chains, outndx=self.trjndx)
-        
-    @staticmethod
-    @cli.from_wdir
-    def make_index_by_chain(wdir, inpdb='mdc.pdb', outndx='mdc.ndx', chains=[]):
-        """
-        Makes a GROMACS index file containing required chains
-        """
-        chains = sort_uld(chains)
-        commands = [f'chain {x}\n' for x in chains]
-        clinput = 'case \nkeep 0\n' + ' '.join(commands) + 'q\n'
-        cli.run('gmx_mpi make_ndx', f=inpdb, o=outndx, clinput=clinput)
+    def make_sys_ndx(self, backbone_atoms=["CA", "P", "C1'"]): # ["BB", "BB1", "BB3"]
+        system = pdbtools.parse_pdb(self.syspdb).atoms
+        solute = pdbtools.parse_pdb(self.solupdb).atoms
+        # System
+        system.write_to_ndx(self.sysndx, header=f'[ System ]', append=False, wrap=15) 
+        # Solute
+        solute.write_to_ndx(self.sysndx, header=f'[ Solute ]', append=True, wrap=15) 
+        # Backbone
+        backbone = solute.filter(backbone_atoms, mode='name')
+        backbone.write_to_ndx(self.sysndx, header=f'[ Backbone ]', append=True, wrap=15) 
+        # Solvent
+        solvent = AtomList(system[len(solute):])
+        solvent.write_to_ndx(self.sysndx, header=f'[ Solvent ]', append=True, wrap=15) 
+        # Chains
+        chids = sorted(set(solute.chids))
+        for chid in chids:
+            chain = solute.filter(chid, mode='chid')
+            chain.write_to_ndx(self.sysndx, header=f'[ chain_{chid} ]', append=True, wrap=15) 
+        print(f"Written index to {self.sysndx}", file=sys.stderr)
     
     def pull_runs_files(self, fdir, fname):
         """
@@ -510,6 +473,10 @@ class gmxSystem:
         df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
         return mean, sem
         
+    def initmd(self, runname):
+        mdrun = MDRun(runname, self.sysdir, self.sysname)
+        # self._mdruns.append(mdrun.runname)
+        return mdrun        
 
 ################################################################################
 # MDRun class
@@ -831,7 +798,7 @@ class MDRun(gmxSystem):
 # Helper functions
 ################################################################################   
 
-def sort_uld(alist):
+def sort_upper_lower_digit(alist):
     """
     Sorts characters in a list such that they appear in the following order: 
     uppercase letters first, then lowercase letters, followed by digits. 
