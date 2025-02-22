@@ -8,26 +8,53 @@ import pandas as pd
 import shutil
 import subprocess as sp
 import cgtools
+from contextlib import contextmanager
 from cgtools import cli, lrt, pdbtools
 from cgtools.pdbtools import AtomList
 from pathlib import Path
 
+################################################################################
+# Utils
+################################################################################   
 
+# Fancy print statements
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
     format='[%(levelname)s] %(message)s'
 )
 
+@contextmanager
+def cd(newdir):
+    """Context manager for changing the current working directory."""
+    prevdir = Path.cwd()
+    os.chdir(newdir)
+    try:
+        yield
+    finally:
+        clean_dir()
+        os.chdir(prevdir)
+
 
 def clean_dir(directory=".", pattern="#*"):
+    """Clean some of the annoying GROMACS backups."""
     directory = Path(directory)
     for file_path in directory.glob(pattern):    
         if file_path.is_file():
             file_path.unlink()  
 
+
+ def sort_upper_lower_digit(alist):
+    """
+    Sorts characters in a list such that they appear in the following order: 
+    uppercase letters first, then lowercase letters, followed by digits. 
+    Helps with orgazing GROMACS multichain files
+    """
+    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
+    return slist           
+
 ################################################################################
-# CG system class
+# GMX system class
 ################################################################################   
 
 class gmxSystem:
@@ -131,14 +158,13 @@ class gmxSystem:
         """
         Sort and rename atoms and chains
         """
-        os.chdir(self.wdir)
-        pdbtools.sort_pdb(in_pdb, self.inpdb)
+        with cd(self.wdir):
+            pdbtools.sort_pdb(in_pdb, self.inpdb)
                        
     def clean_inpdb(self, **kwargs):
         """
         Cleans starting PDB file using PDBfixer by OpenMM
         """
-        os.chdir(self.wdir)
         logger.info("Cleaning the PDB...")
         pdbtools.clean_pdb(self.inpdb, self.inpdb, **kwargs)  
     
@@ -146,7 +172,6 @@ class gmxSystem:
         """
         Cleans a separate PDB file for each chain in the initial structure
         """
-        os.chdir(self.wdir)
         def it_is_nucleotide(atoms): # check if it's RNA or DNA based on residue name
             return atoms.resnames[0] in self.NUC_RESNAMES
         logger.info("Splitting chains...")
@@ -166,7 +191,6 @@ class gmxSystem:
         kwargs.setdefault('add_missing_atoms', True)
         kwargs.setdefault('add_hydrogens', True)
         kwargs.setdefault('pH', 7.0)
-        os.chdir(self.wdir)
         logger.info("Cleaning chain PDBs")
         files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir)]
         files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir)]
@@ -218,7 +242,7 @@ class gmxSystem:
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace('pdb', 'itp') for f in pdbs]
         if append: # Filter out existing topologies
-         pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
+            pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
@@ -298,25 +322,23 @@ class gmxSystem:
 
     def make_cgpdb_file(self, add_resolved_ions=False, **kwargs):
         logger.info("Merging CG PDBs")
-        os.chdir(self.wdir)
-        cg_pdb_files = os.listdir(self.cgdir)
-        cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
-        cg_pdb_files = [os.path.join(self.cgdir, fname) for fname in cg_pdb_files]
-        atoms = AtomList()
-        for file in cg_pdb_files:
-            system = pdbtools.parse_pdb(file)
-            atoms.extend(system.atoms)
-        if add_resolved_ions:
-            system = pdbtools.parse_pdb(self.ionpdb)
-            atoms.extend(system.atoms)
-        atoms.renumber()    
-        atoms.write_to_pdb(self.solupdb)
-        cli.gmx('editconf', f=self.solupdb, o=self.solupdb, **kwargs)
-        clean_dir(self.wdir)          
+        with cd(self.wdir):
+            cg_pdb_files = os.listdir(self.cgdir)
+            cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
+            cg_pdb_files = [os.path.join(self.cgdir, fname) for fname in cg_pdb_files]
+            atoms = AtomList()
+            for file in cg_pdb_files:
+                system = pdbtools.parse_pdb(file)
+                atoms.extend(system.atoms)
+            if add_resolved_ions:
+                system = pdbtools.parse_pdb(self.ionpdb)
+                atoms.extend(system.atoms)
+            atoms.renumber()    
+            atoms.write_to_pdb(self.solupdb)
+            cli.gmx('editconf', f=self.solupdb, o=self.solupdb, **kwargs)   
         
     def make_martini_topology_file(self, add_resolved_ions=False, prefix='chain'):
         logger.info("Writing CG Topology")
-        os.chdir(self.wdir)
         itp_files = [f for f in os.listdir(self.topdir) if f.startswith(prefix) and f.endswith('.itp')] 
         itp_files = sort_upper_lower_digit(itp_files)
         with open(self.systop, 'w') as f:
@@ -352,42 +374,41 @@ class gmxSystem:
                         f.write(f'{ion}    {count}\n')
 
     def make_gro_file(self, d=1.25, bt='dodecahedron'):
-        os.chdir(self.wdir)
-        cg_pdb_files = os.listdir(self.cgdir)
-        cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
-        for file in cg_pdb_files:
-            if file.endswith('.pdb'):
-                pdb_file = os.path.join(self.cgdir, file)
-                gro_file = pdb_file.replace('.pdb', '.gro').replace('cgpdb', 'gro')
-                command = f'gmx_mpi editconf -f {pdb_file} -o {gro_file}'
-                sp.run(command.split())
-        # Merge all .gro files
-        gro_files = sorted(os.listdir(self.grodir))
-        total_count = 0
-        for filename in gro_files:
-            if filename.endswith(".gro"):
-                filepath = os.path.join(self.grodir, filename)
-                with open(filepath, 'r') as in_f:
-                    atom_count = int(in_f.readlines()[1].strip())
-                    total_count += atom_count
-        with open(self.sysgro, 'w') as out_f:
-            out_f.write(f"{self.sysname} \n")
-            out_f.write(f"  {total_count}\n")
+        with cd(self.wdir):
+            cg_pdb_files = os.listdir(self.cgdir)
+            cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
+            for file in cg_pdb_files:
+                if file.endswith('.pdb'):
+                    pdb_file = os.path.join(self.cgdir, file)
+                    gro_file = pdb_file.replace('.pdb', '.gro').replace('cgpdb', 'gro')
+                    command = f'gmx_mpi editconf -f {pdb_file} -o {gro_file}'
+                    sp.run(command.split())
+            # Merge all .gro files
+            gro_files = sorted(os.listdir(self.grodir))
+            total_count = 0
             for filename in gro_files:
                 if filename.endswith(".gro"):
                     filepath = os.path.join(self.grodir, filename)
                     with open(filepath, 'r') as in_f:
-                        lines = in_f.readlines()[2:-1]
-                        for line in lines:
-                            out_f.write(line)
-            out_f.write("10.00000   10.00000   10.00000\n")  
-        command = f'gmx_mpi editconf -f {self.sysgro} -d {d} -bt {bt}  -o {self.sysgro}'
-        sp.run(command.split())
-        clean_dir(self.wdir)      
+                        atom_count = int(in_f.readlines()[1].strip())
+                        total_count += atom_count
+            with open(self.sysgro, 'w') as out_f:
+                out_f.write(f"{self.sysname} \n")
+                out_f.write(f"  {total_count}\n")
+                for filename in gro_files:
+                    if filename.endswith(".gro"):
+                        filepath = os.path.join(self.grodir, filename)
+                        with open(filepath, 'r') as in_f:
+                            lines = in_f.readlines()[2:-1]
+                            for line in lines:
+                                out_f.write(line)
+                out_f.write("10.00000   10.00000   10.00000\n")  
+            command = f'gmx_mpi editconf -f {self.sysgro} -d {d} -bt {bt}  -o {self.sysgro}'
+            sp.run(command.split())   
         
     def solvate(self, **kwargs):
-        os.chdir(self.wdir)
-        cli.gmx_solvate(**kwargs)
+        with cd(self.wdir):
+            cli.gmx_solvate(**kwargs)
         
     def find_resolved_ions(self, mask=['MG', 'ZN', 'K']):
         mask_atoms(self.inpdb, 'ions.pdb', mask=mask)
@@ -403,15 +424,12 @@ class gmxSystem:
         return counts
         
     def add_bulk_ions(self, conc=0.15, pname='NA', nname='CL'): 
-        bdir = os.getcwd()
-        os.chdir(self.wdir)
-        command = f'gmx_mpi grompp -f mdp/ions.mdp -c {self.syspdb} -p system.top -o ions.tpr'
-        sp.run(command.split())
-        command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname {pname} -nname {nname} -o {self.syspdb}'
-        sp.run(command.split(), input='W\n', text=True)
-        cli.gmx_editconf(f=self.syspdb, o=self.sysgro)
-        os.chdir(bdir)
-        clean_dir(self.wdir) 
+        with cd(self.wdir):
+            command = f'gmx_mpi grompp -f mdp/ions.mdp -c {self.syspdb} -p system.top -o ions.tpr'
+            sp.run(command.split())
+            command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname {pname} -nname {nname} -o {self.syspdb}'
+            sp.run(command.split(), input='W\n', text=True)
+            cli.gmx_editconf(f=self.syspdb, o=self.sysgro)
         clean_dir(self.wdir, pattern='ions.tpr')       
 
     def make_sys_ndx(self, backbone_atoms=["CA", "P", "C1'"]): # ["BB", "BB1", "BB3"]
@@ -826,12 +844,5 @@ class MDRun(gmxSystem):
 # Helper functions
 ################################################################################   
 
-def sort_upper_lower_digit(alist):
-    """
-    Sorts characters in a list such that they appear in the following order: 
-    uppercase letters first, then lowercase letters, followed by digits. 
-    Helps with orgazing gromacs multichain files
-    """
-    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
-    return slist
+
 
