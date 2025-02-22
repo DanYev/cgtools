@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import importlib.resources
 import MDAnalysis as mda
 import numpy as np
@@ -9,6 +10,21 @@ import subprocess as sp
 import cgtools
 from cgtools import cli, lrt, pdbtools
 from cgtools.pdbtools import AtomList
+from pathlib import Path
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(levelname)s] %(message)s'
+)
+
+
+def clean_dir(directory=".", pattern="#*"):
+    directory = Path(directory)
+    for file_path in directory.glob(pattern):    
+        if file_path.is_file():
+            file_path.unlink()  
 
 ################################################################################
 # CG system class
@@ -89,7 +105,7 @@ class gmxSystem:
         Creates the necessary directories for the simulation and copies the 
         relevant input files to the working directory.
         """
-        print('Preparing files and directories', file=sys.stderr)
+        logger.info("Preparing files and directories")
         os.makedirs(self.prodir, exist_ok=True)
         os.makedirs(self.nucdir, exist_ok=True)
         os.makedirs(self.topdir, exist_ok=True)
@@ -123,7 +139,7 @@ class gmxSystem:
         Cleans starting PDB file using PDBfixer by OpenMM
         """
         os.chdir(self.wdir)
-        print("Cleaning the PDB...", file=sys.stderr)
+        logger.info("Cleaning the PDB...")
         pdbtools.clean_pdb(self.inpdb, self.inpdb, **kwargs)  
     
     def split_chains(self):
@@ -133,7 +149,7 @@ class gmxSystem:
         os.chdir(self.wdir)
         def it_is_nucleotide(atoms): # check if it's RNA or DNA based on residue name
             return atoms.resnames[0] in self.NUC_RESNAMES
-        print("Splitting chains...", file=sys.stderr)
+        logger.info("Splitting chains...")
         system = pdbtools.parse_pdb(self.inpdb)
         for chain in system.chains():
             atoms = chain.atoms
@@ -151,12 +167,11 @@ class gmxSystem:
         kwargs.setdefault('add_hydrogens', True)
         kwargs.setdefault('pH', 7.0)
         os.chdir(self.wdir)
-        print("Cleaning chain PDBs", file=sys.stderr)
+        logger.info("Cleaning chain PDBs")
         files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir)]
         files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir)]
         files = sorted(files)
         for file in files:
-            print(f"Processing {file}", file=sys.stderr)
             pdbtools.clean_pdb(file, file, **kwargs)
             new_chain_id = file.split('chain_')[1][0]
             pdbtools.rename_chain_in_pdb(file, new_chain_id)  
@@ -188,7 +203,7 @@ class gmxSystem:
         -resid          How to handle resid. Choice of mol or input. mol: resids are numbered from 1 to n for each molecule input: 
                         resids are the same as in the input pdb (default: mol)
         """
-        print("Working on proteins", file=sys.stderr)
+        logger.info("Working on proteins")
         from cgtools.martini.martini_tools import martinize_go
         # Make itp files to dump all the virtual CA's parameters into
         file = os.path.join(self.topdir, 'go_atomtypes.itp')
@@ -210,6 +225,8 @@ class gmxSystem:
             go_moltype = file.split('.')[0]
             go_map = os.path.join(self.mapdir, f'{go_moltype}.map')
             martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_moltype=go_moltype, go=go_map, **kwargs)
+        clean_dir(self.cgdir)
+        clean_dir(self.wdir)
  
     def martinize_proteins_en(self, append=False, **kwargs):
         """
@@ -228,7 +245,7 @@ class gmxSystem:
                                 Bonds are only created within a unit. Options are molecule, chain, all, or aspecified region defined by resids,
                                 with followingformat: <start_resid_1>:<end_resid_1>, <start_resid_2>:<end_resid_2>... (default: molecule)
         """
-        print("Working on proteins", file=sys.stderr)
+        logger.info("Working on proteins")
         from .martini.martini_tools import martinize_en
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace('pdb', 'itp') for f in pdbs]
@@ -248,9 +265,11 @@ class gmxSystem:
             with open(updated_itp, "w", encoding="utf-8") as f:
                 f.write(updated_content)
             os.remove(new_top)
+        clean_dir(self.cgdir)
+        clean_dir(self.wdir)
     
-    def martinize_nucleotides(self, **kwargs):
-        print("Working on nucleotides", file=sys.stderr)
+    def martinize_nucleotides(self, append=False, **kwargs):
+        logger.info("Working on nucleotides")
         from .martini.martini_tools import martinize_nucleotide
         for file in os.listdir(self.nucdir):
             in_pdb = os.path.join(self.nucdir, file)
@@ -264,9 +283,11 @@ class gmxSystem:
             sp.run(command.split())
             outfile = f.replace('Nucleic', 'chain')
             shutil.move(os.path.join(self.wdir, file), os.path.join(self.topdir, outfile))
+        clean_dir(self.cgdir)
+        clean_dir(self.wdir)    
 
-    def martinize_rna(self, **kwargs):
-        print("Working on nucleotides", file=sys.stderr)
+    def martinize_rna(self, append=False, **kwargs):
+        logger.info("Working on nucleotides")
         from cgtools.martini.martini_tools import martinize_rna
         for file in os.listdir(self.nucdir):
             molname = file.split('.')[0]
@@ -276,6 +297,7 @@ class gmxSystem:
             martinize_rna(self.wdir, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
 
     def make_cgpdb_file(self, add_resolved_ions=False, **kwargs):
+        logger.info("Merging CG PDBs")
         os.chdir(self.wdir)
         cg_pdb_files = os.listdir(self.cgdir)
         cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
@@ -290,8 +312,10 @@ class gmxSystem:
         atoms.renumber()    
         atoms.write_to_pdb(self.solupdb)
         cli.gmx('editconf', f=self.solupdb, o=self.solupdb, **kwargs)
+        clean_dir(self.wdir)          
         
     def make_martini_topology_file(self, add_resolved_ions=False, prefix='chain'):
+        logger.info("Writing CG Topology")
         os.chdir(self.wdir)
         itp_files = [f for f in os.listdir(self.topdir) if f.startswith(prefix) and f.endswith('.itp')] 
         itp_files = sort_upper_lower_digit(itp_files)
@@ -359,6 +383,7 @@ class gmxSystem:
             out_f.write("10.00000   10.00000   10.00000\n")  
         command = f'gmx_mpi editconf -f {self.sysgro} -d {d} -bt {bt}  -o {self.sysgro}'
         sp.run(command.split())
+        clean_dir(self.wdir)      
         
     def solvate(self, **kwargs):
         os.chdir(self.wdir)
@@ -386,8 +411,11 @@ class gmxSystem:
         sp.run(command.split(), input='W\n', text=True)
         cli.gmx_editconf(f=self.syspdb, o=self.sysgro)
         os.chdir(bdir)
+        clean_dir(self.wdir) 
+        clean_dir(self.wdir, pattern='ions.tpr')       
 
     def make_sys_ndx(self, backbone_atoms=["CA", "P", "C1'"]): # ["BB", "BB1", "BB3"]
+        logger.info("Making Index File")
         system = pdbtools.parse_pdb(self.syspdb).atoms
         solute = pdbtools.parse_pdb(self.solupdb).atoms
         # System
@@ -405,7 +433,7 @@ class gmxSystem:
         for chid in chids:
             chain = solute.filter(chid, mode='chid')
             chain.write_to_ndx(self.sysndx, header=f'[ chain_{chid} ]', append=True, wrap=15) 
-        print(f"Written index to {self.sysndx}", file=sys.stderr)
+        logger.info(f"Written index to {self.sysndx}")
     
     def pull_runs_files(self, fdir, fname):
         """

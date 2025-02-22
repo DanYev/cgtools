@@ -688,7 +688,7 @@ def sort_pdb(in_pdb, out_pdb):
 
 
 def clean_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, pH=7.0):
-    print(f"Opening {in_pdb}", file=sys.stderr)
+    print(f"Processing {in_pdb}", file=sys.stderr)
     pdb = PDBFixer(filename=in_pdb)
     print("Removing heterogens, Looking for missing residues", file=sys.stderr)
     pdb.removeHeterogens(False)
