@@ -176,7 +176,7 @@ class gmxSystem:
         else:
             print('Maps already there', file=sys.stderr)
         
-    def martinize_proteins_go(self, **kwargs):
+    def martinize_proteins_go(self, append=False, **kwargs):
         """
         Virtual site based GoMartini:
         -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
@@ -202,8 +202,8 @@ class gmxSystem:
         # Actually martinizing
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace('pdb', 'itp') for f in pdbs]
-        # Filter out existing topologies
-        pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
+        if append: # Filter out existing topologies
+         pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
@@ -211,7 +211,7 @@ class gmxSystem:
             go_map = os.path.join(self.mapdir, f'{go_moltype}.map')
             martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_moltype=go_moltype, go=go_map, **kwargs)
  
-    def martinize_proteins_en(self, **kwargs):
+    def martinize_proteins_en(self, append=False, **kwargs):
         """
         Protein elastic network:
           -elastic              Write elastic bonds (default: False)
@@ -232,8 +232,8 @@ class gmxSystem:
         from .martini.martini_tools import martinize_en
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace('pdb', 'itp') for f in pdbs]
-        # Filter out existing topologies
-        pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
+        if append: # Filter out existing topologies
+            pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
@@ -267,7 +267,7 @@ class gmxSystem:
 
     def martinize_rna(self, **kwargs):
         print("Working on nucleotides", file=sys.stderr)
-        from .martini.martini_tools import martinize_rna
+        from cgtools.martini.martini_tools import martinize_rna
         for file in os.listdir(self.nucdir):
             molname = file.split('.')[0]
             in_pdb = os.path.join(self.nucdir, file)
