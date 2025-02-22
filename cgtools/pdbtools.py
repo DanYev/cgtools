@@ -333,6 +333,22 @@ class AtomList(list):
         """
         return [atom.to_pdb_line() for atom in self]
 
+    def sort(self, key=None, reverse=False):
+        """
+        Sort the AtomList in place.
+        
+        Parameters:
+            key (callable, optional): A function of one argument that is used to extract
+                a comparison key from each list element. Defaults to sorting by
+                (chid, resid, icode, atid).
+            reverse (bool, optional): If True, the list elements are sorted as if each
+                comparison were reversed.
+        """
+        # If no key is provided, use a default key function
+        if key is None:
+            key = lambda atom: (atom.chid, atom.resid, atom.icode, atom.atid)
+        super().sort(key=key, reverse=reverse)
+
     def filter(self, filter_vals, mode="name"):
         """
         Filter atoms based on a given attribute.
