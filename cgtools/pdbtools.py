@@ -344,9 +344,11 @@ class AtomList(list):
             reverse (bool, optional): If True, the list elements are sorted as if each
                 comparison were reversed.
         """
+        def chain_sort_uld(x):
+            return (x.isdigit(), x.islower(), x.isupper(), x)
         # If no key is provided, use a default key function
         if key is None:
-            key = lambda atom: (atom.chid, atom.resid, atom.icode, atom.atid)
+            key = lambda atom: (chain_sort_uld(atom.chid), atom.resid, atom.icode, atom.atid)
         super().sort(key=key, reverse=reverse)
 
     def filter(self, filter_vals, mode="name"):
@@ -404,7 +406,6 @@ class AtomList(list):
             for atom in self:
                 f.write(atom.to_pdb_line() + "\n")
             f.write("END\n")
-
 
 
 class Residue():
@@ -621,198 +622,76 @@ def parse_pdb(pdb_path):
     return system
 
 
+def sort_chains_atoms(atoms):
+    """
+    Sort an AtomList and renumber atom IDs from 1 to 99999
+    """
+    atoms.sort()
+    new_atids = [atid % 99999 for atid in range(1, len(atoms)+1)]
+    atoms.atids = new_atids
+
+
+def rename_chains_for_gromacs(atoms):
+    """
+    Rename chains in a AtomList in the order: uppercase letters, lowercase letters, digits.
+    """
+    import string
+    # Define the order for renaming chains
+    new_chids = list(string.ascii_uppercase + string.ascii_lowercase + string.digits)
+    curr_chid = atoms[0].chid
+    counter = 0
+    for atom in atoms:
+        if atom.chid != curr_chid:
+            curr_chid = atom.chid
+            counter += 1
+        atom.chid = new_chids[counter]      
+
+
+def sort_pdb(in_pdb, out_pdb):
+    """
+    Sort PDB file to make GROMACS happy (hopefully)
+    """
+    system = parse_pdb(in_pdb)
+    atoms = system.atoms
+    sort_chains_atoms(atoms)
+    rename_chains_for_gromacs(atoms)
+    atoms.save_pdb(out_pdb)
+    print(f"Chains and atoms sorted, renamed and saved to {out_pdb}") 
+
+
 def clean_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, pH=7.0):
-    print(f"Opening {in_pdb}")
+    print(f"Opening {in_pdb}", file=sys.stderr)
     pdb = PDBFixer(filename=in_pdb)
-    print("Removing heterogens")
+    print("Removing heterogens, Looking for missing residues", file=sys.stderr)
     pdb.removeHeterogens(False)
-    print("Looking for missing residues")
     pdb.findMissingResidues()
-    print("Looking for non-standard residues")
+    print("Replacing non-standard residues", file=sys.stderr)
     pdb.findNonstandardResidues()
-    print("Replacing non-standard residues")
     pdb.replaceNonstandardResidues()
     if add_missing_atoms:
-        print("Looking for missing atoms")
+        print("Adding missing atoms", file=sys.stderr)
         pdb.findMissingAtoms()
-        print("Adding missing atoms")
         pdb.addMissingAtoms()
     if add_hydrogens:
-        print("Adding missing hydrogens")
+        print("Adding missing hydrogens", file=sys.stderr)
         pdb.addMissingHydrogens(pH)
     topology = pdb.topology
     positions = pdb.positions
-    print("Writing PDB")
     PDBFile.writeFile(topology, positions, open(out_pdb, 'w'))
-    
+    print(f"Written PDB to {out_pdb}", file=sys.stderr)
+            
 
-def rename_chain(in_pdb, out_pdb, old_chid, new_chid):
-    with open(in_pdb, 'r') as file:
-        lines = file.readlines()
-    updated_lines = []
-    for line in lines:
-        # PDB ATOM/HETATM lines have the chain ID in column 22
-        if line.startswith(('ATOM', 'HETATM', )):
-            if line[21] == old_chid:  # Column 22 (index 21) for chain ID
-                line = line[:21] + new_chid + line[22:]
-        updated_lines.append(line)
-    with open(out_pdb, 'w') as file:
-        file.writelines(updated_lines)
-        
-
-def rename_pdb_chains(input_pdb, output_pdb):
+def update_bfactors(in_pdb, out_pdb, bfactors):
     """
-    Rename chains in a PDB file in the order: uppercase letters, lowercase letters, digits.
-
+    Update bfactors in a PDB file
     :param input_pdb: Path to the input PDB file.
     :param output_pdb: Path to the output PDB file.
+    :param bfactors: list or ndarray
     """
-    # Define the order for renaming chains
-    chain_order = list(string.ascii_uppercase + string.ascii_lowercase + string.digits)
-    chain_mapping = {}  # Map original chain IDs to new chain IDs
-    current_chain_index = 0
-
-    with open(input_pdb, 'r') as infile, open(output_pdb, 'w') as outfile:
-        for line in infile:
-            # Only modify lines that define atomic coordinates
-            if line.startswith(("ATOM", "HETATM", "TER")):
-                original_chid = line[21]  # Chain ID is in column 22 (index 21)
-
-                # Assign a new chain ID if this one hasn't been seen before
-                if original_chid not in chain_mapping:
-                    if current_chain_index >= len(chain_order):
-                        raise ValueError("Too many chains in the PDB file to rename!")
-                    chain_mapping[original_chid] = chain_order[current_chain_index]
-                    current_chain_index += 1
-
-                # Replace the chain ID in the line
-                new_chid = chain_mapping[original_chid]
-                line = line[:21] + new_chid + line[22:]
-
-            # Write the (possibly modified) line to the output file
-            outfile.write(line)
-
-    print(f"Chains renamed and saved to {output_pdb}")
-
-
-def extract_chain_names(pdb_file):
-    """
-    Extract a list of unique chain names from a PDB file.
-
-    :param pdb_file: Path to the input PDB file.
-    :return: List of unique chain names.
-    """
-    chain_names = set()
-
-    with open(pdb_file, 'r') as file:
-        for line in file:
-            # Look for lines that define atomic coordinates
-            if line.startswith(("ATOM", "HETATM", "TER")):
-                chid = line[21].strip()  # Chain ID is in column 22 (index 21)
-                if chid:  # Only add non-empty chain IDs
-                    chain_names.add(chid)
-
-    return sorted(chain_names)  # Return sorted list of unique chain names
-    
-    
-def read_b_factors(file_path):
-    """
-    Reads the B-factor file and returns a dictionary mapping residue numbers to B-factors.
-    """
-    b_factors = {}
-    with open(file_path, 'r') as file:
-        for line in file:
-            parts = line.split()
-            if len(parts) != 2:
-                continue
-            residue_number = int(parts[0])
-            b_factor = float(parts[1])
-            b_factors[residue_number] = b_factor
-    return b_factors
-
-
-def update_bfactors(pdb_file, b_factors, output_file):
-    """
-    Reads the PDB file, updates B-factors for each residue, and writes the updated PDB file.
-    """
-    with open(pdb_file, 'r') as file:
-        lines = file.readlines()
-    lines = [line for line in lines if line.startswith("ATOM")]
-    updated_lines = []
-    idx = 0
-    previous_residue_number = int(lines[0][22:26].strip())
-    for line in lines:
-        residue_number = int(line[22:26].strip())
-        if residue_number != previous_residue_number:
-            idx += 1
-        b_factor = b_factors[idx]
-        updated_line = f"{line[:60]}{b_factor:6.2f}{line[66:]}"
-        updated_lines.append(updated_line)
-        previous_residue_number = residue_number
-    with open(output_file, 'w') as file:
-        file.writelines(updated_lines)
-
-
-def set_bfactors():
-    pdb_file = "input.pdb"       # Replace with the path to your PDB file
-    b_factor_file = "b_factors.txt"  # Replace with the path to your B-factor file
-    output_file = "output.pdb"   # Path to save the updated PDB file
-    
-    if not os.path.exists(pdb_file):
-        print(f"PDB file '{pdb_file}' does not exist.")
-        return
-    if not os.path.exists(b_factor_file):
-        print(f"B-factor file '{b_factor_file}' does not exist.")
-        return
-    
     b_factors = read_b_factors(b_factor_file)
     update_pdb_b_factors(pdb_file, b_factors, output_file)
     print(f"Updated PDB file saved as '{output_file}'.")    
 
-
-def rearrange_chains_and_renumber_atoms(input_pdb, output_pdb):
-    """
-    Rearrange chains in a PDB file alphabetically by chain ID and renumber atom IDs.
-
-    Parameters:
-        input_pdb (str): Path to the input PDB file.
-        output_pdb (str): Path to save the rearranged PDB file.
-    """
-    with open(input_pdb, 'r') as file:
-        pdb_lines = file.readlines()
-    # Group lines by chain ID
-    chain_dict = {}
-    other_lines = []
-    for line in pdb_lines:
-        if line.startswith(("ATOM", )):
-            chid = line[21]  # Extract chain ID (column 22, index 21)
-            if chid not in chain_dict:
-                chain_dict[chid] = []
-            chain_dict[chid].append(line)
-        else:
-            # Keep non-ATOM, HETATM, and TER lines (e.g., HEADER, REMARK, END)
-            other_lines.append(line)      
-    # Sort chains alphabetically
-    sorted_chids = sort_uld(chain_dict.keys())
-    # Renumber atom IDs and write to the output file
-    atom_id = 1  # Start atom ID renumbering
-    with open(output_pdb, 'w') as file:
-        # Write other (non-ATOM) lines first
-        for line in other_lines:
-            file.write(line)  
-        # Write the sorted chains with updated atom IDs
-        for chid in sorted_chids:
-            for line in chain_dict[chid]:
-                if line.startswith(("ATOM", )):
-                    # Update the atom ID (columns 7-11, index 6-11)
-                    updated_line = f"{line[:6]}{atom_id:5d}{line[11:]}"
-                    file.write(updated_line)
-                    atom_id += 1  # Increment atom ID
-                    if atom_id > 99999:
-                        atom_id = 1
-                else:
-                    # Write TER lines as-is
-                    file.write(line)  
 
 
 ################################################################################

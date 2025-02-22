@@ -1,12 +1,11 @@
 import os 
-from cgtools.pdbtools import PDBParser, Atom, AtomList, System, Model, Chain, Residue, parse_pdb
+from cgtools.pdbtools import Atom, AtomList, System, Model, Chain, Residue, parse_pdb, sort_pdb
 
-TEST_PDB = "dsRNA.pdb" 
+TEST_PDB = "in_test.pdb" 
 
 def test_read_pdb():
     pdb_path = TEST_PDB
-    parser = PDBParser(pdb_path)
-    system = parser.parse()
+    system = parse_pdb(pdb_path)
     atoms = system.atoms
     if_passed = len(atoms) > 0
     assert if_passed
@@ -39,9 +38,10 @@ def test_chain():
     pdb_path = TEST_PDB
     system = parse_pdb(pdb_path)
     model = system.models[1]
-    chain_a = model.chains["A"]
-    chain_list = model.select_chains(["A", "B"])
-    if_passed = chain_a in chain_list
+    chids = list(model.chains.keys())
+    chain = model.chains[chids[0]]
+    chain_list = model.select_chains(chids)
+    if_passed = chain in chain_list
     assert if_passed
 
 
@@ -72,20 +72,23 @@ def test_sort():
     pdb_path = TEST_PDB
     system = parse_pdb(pdb_path)
     atoms = system.atoms
-    randomized_atoms = AtomList(set(atoms))
+    randomized_atoms = atoms # AtomList(set(atoms))
     randomized_atoms.sort() # key=lambda atom: atom.atid
+    for atom, ratom in zip(atoms, randomized_atoms):
+        print(atom, ratom)
     if_passed = randomized_atoms == atoms
     assert if_passed
     
 
 def test_filter():
     pdb_path = TEST_PDB
-    chain_id_filter = ["A"]
     system = parse_pdb(pdb_path)
     atoms = system.atoms
-    filtered_atoms = atoms.filter(chain_id_filter, mode="chid")
-    chid = list(set(filtered_atoms.chids))[0]
-    if_passed = chid == "A"
+    chids = list(set(atoms.chids))
+    chid = chids[0]
+    filtered_atoms = atoms.filter(chid, mode="chid")
+    test_chid = list(set(filtered_atoms.chids))[0]
+    if_passed = chid == test_chid
     assert if_passed
 
 
@@ -101,6 +104,11 @@ def test_remove():
     assert if_passed
 
 
+def test_sort_pdb():
+    input_pdb = TEST_PDB
+    output_pdb = 'test.pdb'
+    sort_pdb(input_pdb, output_pdb)
+    
 
 if __name__ == "__main__":
     # test_read_pdb()     
@@ -109,8 +117,10 @@ if __name__ == "__main__":
     # test_chain()  
     # test_vecs()   
     # test_segids()   
-    test_sort()
+    # test_sort()
     # test_filter()  
     # test_remove()  
+    # test_rearrange_chains_and_renumber_atoms()
+    test_sort_pdb()
 
   
