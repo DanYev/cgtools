@@ -59,7 +59,6 @@ class gmxSystem:
         self.mddir      = os.path.join(self.wdir, 'mdruns')
         self.datdir     = os.path.join(self.wdir, 'data')
         self.pngdir     = os.path.join(self.wdir, 'png')
-        self._chains    = []
         self._mdruns    = []
        
     @property
@@ -110,56 +109,53 @@ class gmxSystem:
                 outpath = os.path.join(self.topdir, file)
                 shutil.copy(fpath, outpath)
                 
-    def make_ref_pdb(self, input_pdb="inpdb.pdb", output_pdb="ref.pdb"):
+    def sort_input_pdb(self, in_pdb="inpdb.pdb",):
+        """
+        Sort and rename atoms and chains
+        """
         os.chdir(self.wdir)
-        pdbtools.rearrange_chains_and_renumber_atoms(input_pdb, output_pdb)
+        pdbtools.sort_pdb(in_pdb, self.inpdb)
                        
     def clean_inpdb(self, **kwargs):
         """
         Cleans starting PDB file using PDBfixer by OpenMM
         """
-        print("Cleaning the PDB", file=sys.stderr)
-        in_pdb = self.inpdb
-        out_pdb = in_pdb.replace('.pdb', '_clean.pdb')
-        pdbtools.prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
-        
-    def clean_proteins(self, **kwargs):
-        """
-        Cleans protein PDB files using PDBfixer by OpenMM
-        """
-        print("Cleaning protein PDBs", file=sys.stderr)
-        files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir) if not f.endswith('_clean.pdb')]
-        files = sorted(files)
-        for in_pdb in files:
-            print(f"Processing {in_pdb}", file=sys.stderr)
-            out_pdb = in_pdb.replace('.pdb', '_clean.pdb')
-            pdbtools.prepare_aa_pdb(in_pdb, out_pdb, **kwargs)  
-            os.remove(in_pdb)
-            old_chain_id = 'A'
-            new_chain_id = in_pdb.split('chain_')[-1][0]
-            pdbtools.rename_chain(out_pdb, in_pdb, old_chain_id, new_chain_id)
-            os.remove(out_pdb)
+        print("Cleaning the PDB...", file=sys.stderr)
+        pdbtools.clean_pdb(self.inpdb, self.inpdb, **kwargs)  
     
-    def split_chains(self, from_clean=False):
+    def split_chains(self):
         """
         Cleans a separate PDB file for each chain in the initial structure
         """
-        parser = PDBParser()
-        in_pdb = self.inpdb
-        if from_clean:
-            in_pdb = self.inpdb.replace('.pdb', '_clean.pdb')
-        structure = parser.get_structure(self.sysname, in_pdb)
-        io = PDBIO()
-        for model in structure:
-            for chain in model:
-                io.set_structure(chain)
-                chain_id = chain.id
-                if chain.get_unpacked_list()[0].get_resname() in self.NUC_RESNAMES:
-                    out_pdb = os.path.join(self.nucdir, f'chain_{chain_id}.pdb')
-                else:
-                    out_pdb = os.path.join(self.prodir, f'chain_{chain_id}.pdb')
-                io.save(out_pdb)
+        def it_is_nucleotide(atoms): # check if it's RNA or DNA based on residue name
+            return atoms.resnames[0] in self.NUC_RESNAMES
+        print("Splitting chains...", file=sys.stderr)
+        system = pdbtools.parse_pdb(self.inpdb)
+        for chain in system.chains():
+            atoms = chain.atoms
+            if it_is_nucleotide(atoms):
+                out_pdb = os.path.join(self.nucdir, f'chain_{chain.chid}.pdb')
+            else:
+                out_pdb = os.path.join(self.prodir, f'chain_{chain.chid}.pdb')
+            atoms.write_to_pdb(out_pdb)
                 
+    def clean_chains(self, **kwargs):
+        """
+        Cleans protein PDB files using PDBfixer by OpenMM
+        """
+        kwargs.setdefault('add_missing_atoms', True)
+        kwargs.setdefault('add_hydrogens', True)
+        kwargs.setdefault('pH', 7.0)
+        print("Cleaning chain PDBs", file=sys.stderr)
+        files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir)]
+        files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir)]
+        files = sorted(files)
+        for file in files:
+            print(f"Processing {file}", file=sys.stderr)
+            pdbtools.clean_pdb(file, file, **kwargs)
+            new_chain_id = file.split('chain_')[1][0]
+            pdbtools.rename_chain_in_pdb(file, new_chain_id)  
+
     def get_go_maps(self):
         """
         Get go contact maps for proteins using RCSU server

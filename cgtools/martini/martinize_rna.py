@@ -5,6 +5,7 @@ import argparse
 import cgtools.forge.forcefields as ffs
 import cgtools.forge.cgmap as cgmap
 from cgtools.forge.topology import Topology
+from cgtools.pdbtools import parse_pdb, AtomList
 
 
 def martinize_rna_parser():
@@ -22,14 +23,14 @@ def martinize_rna_parser():
     parser.add_argument("-ef", default=200, type=float, help="Elastic network force constant (default: 200 kJ/mol/nm^2)")
     parser.add_argument("-el", default=0.5, type=float, help="Elastic network lower cutoff (default: 0.5 nm)")
     parser.add_argument("-eu", default=1.2, type=float, help="Elastic network upper cutoff (default: 1.2 nm)")    
-    parser.add_argument("-p", default='bb', type=str, help="Output position restraints (no/bb/all) (default: None)")  
+    parser.add_argument("-p", default='backbone', type=str, help="Output position restraints (no/backbone/all) (default: None)")  
     parser.add_argument("-pf", default=1000, type=float, help="Position restraints force constant (default: 1000 kJ/mol/nm^2)")  
     return parser.parse_args()
 
 
 def process_chain(chain, ff, start_atom, molname):
     # Mapping
-    atoms = cgmap.map_residues(chain, ff, atid=start_atom) # Map residue according to the force-field. Returns list of CG atoms 
+    atoms = cgmap.map_chain(chain, ff, atid=start_atom) # Map residue according to the force-field. Returns list of CG atoms 
     # Topology 
     sequence = [residue.resname for residue in chain] # So far only need sequence for the topology
     top = Topology(forcefield=ff, sequence=sequence, molname=molname)
@@ -50,28 +51,28 @@ def merge_topologies(topologies):
 if __name__ == "__main__":
     # Reading options
     options = martinize_rna_parser()
-    if options.ff  == 'regular':  # Force field
+    if options.ff  == 'reg':  # Force field
         ff = ffs.martini30rna()
-    if options.ff  == 'polar':
+    if options.ff  == 'pol':
         ff = ffs.martini31rna()
     inpdb = options.f
     molname = options.mol
     # Processing chains
-    system = cgmap.read_pdb(inpdb) 
+    system = parse_pdb(inpdb) 
     cgmap.move_o3(system) # Need to move all O3's to the next residue. Annoying but wcyd
-    structure, topologies = [], [] 
+    structure, topologies = AtomList(), [] 
     start_atom = 1
     for chain in system.chains():
         atoms, top = process_chain(chain, ff, start_atom, molname)
         structure.extend(atoms)
         topologies.append(top)
         start_atom += len(atoms)
-    cgmap.save_pdb(structure, fpath=options.os) 
+    structure.write_to_pdb(options.os) 
     # Finishing topologies
     top = merge_topologies(topologies)
     if options.elastic: 
         top.elastic_network(structure, anames=['BB1', 'BB3',], el=options.el, eu=options.eu, ef=options.ef) 
-    top.write_itp(options.ot)    
+    top.write_to_itp(options.ot)    
 
         
    

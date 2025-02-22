@@ -270,7 +270,7 @@ class Topology:
     # def __str__(self) -> str:
     #     return "".join(self.lines())
 
-    def write_itp(self, filename):
+    def write_to_itp(self, filename):
         with open(filename, 'w') as file:
             for line in self.lines():
                 file.write(line)   

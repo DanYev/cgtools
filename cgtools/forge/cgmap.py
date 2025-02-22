@@ -2,21 +2,6 @@ from cgtools.pdbtools import System, PDBParser
 import numpy as np
 import copy
 
-def read_pdb(pdb_path):
-    """
-    Read a PDB file and parse it into a system object.
-
-    Parameters:
-        pdb_path (str): The file path to the PDB file.
-
-    Returns:
-        System: A system object representing the parsed PDB structure.
-    """
-    parser = PDBParser(pdb_path)
-    system = parser.parse()
-    return system
-
-
 def move_o3(system):
     """
     Move each O3' atom to the next residue.
@@ -27,7 +12,7 @@ def move_o3(system):
     """
     for chain in system.chains():
         for i, residue in enumerate(chain):
-            atoms = residue.atoms()
+            atoms = residue.atoms
             for atom in atoms:
                 if atom.name == "O3'":
                     atoms.remove(atom)
@@ -60,14 +45,14 @@ def map_residue(residue, mapping, atid):
         list: A list of new bead atoms representing the coarse-grained residue.
     """
     cgresidue = []
-    dummy_atom = residue.atoms()[0]
+    dummy_atom = residue.atoms[0]
     for bname, anames in mapping.items():
         bead = copy.deepcopy(dummy_atom)
         bead.name = bname
         bead.atid = atid
         atid += 1
-        atoms = [atom for atom in residue.atoms() if atom.name in anames]
-        vecs = [(atom.x, atom.y, atom.z) for atom in atoms]
+        atoms = residue.atoms.filter(anames)
+        vecs = atoms.vecs
         bvec = np.average(vecs, axis=0)
         bead.x = bvec[0]
         bead.y = bvec[1]
@@ -130,18 +115,3 @@ def map_model(model, ff, atid=1, merge=True):
         atid += len(cgchain)   
     return cgmodel
 
-
-def save_model(atoms, fpath='test.pdb'):
-    """
-    Save a list of atoms to a PDB file.
-
-    This function creates a new System object, adds the provided atoms to it under model_id 1,
-    and saves the system to a PDB file at the specified path.
-
-    Parameters:
-        atoms (list): A list of atom objects to be saved.
-        fpath (str): The file path where the PDB file will be saved (default is 'test.pdb').
-    """
-    system = System()
-    system.add_atoms(atoms, model_id=1)
-    system.save_pdb(fpath)

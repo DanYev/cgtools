@@ -384,6 +384,8 @@ class AtomList(list):
             "element": lambda atom: atom.element,
             "charge": lambda atom: atom.charge,
         }
+        if isinstance(filter_vals, str):
+            filter_vals = {filter_vals}
         if mode not in key_funcs:
             raise ValueError(f"Invalid mode '{mode}'. Valid modes are: {', '.join(key_funcs.keys())}")
         filter_vals = set(filter_vals)
@@ -398,12 +400,12 @@ class AtomList(list):
             if atom in removal_set:
                 self.remove(atom)
 
-    def write_to_pdb(self, filename, append=False):
+    def write_to_pdb(self, out_pdb, append=False):
         """
         Save the current AtomList instance to a PDB file.
         """
         mode = 'a' if append else 'w'
-        with open(filename, mode) as f:
+        with open(out_pdb, mode) as f:
             for atom in self:
                 f.write(atom.to_pdb_line() + "\n")
 
@@ -488,8 +490,8 @@ class Model():
     """
     Represents a model that holds chains.
     """
-    def __init__(self, model_id):
-        self.model_id = model_id
+    def __init__(self, modid):
+        self.modid = modid
         # Chains keyed by chain identifier.
         self.chains = {}
 
@@ -497,7 +499,7 @@ class Model():
         return iter(self.chains.values())
 
     def __repr__(self):
-        return f"<Model {self.model_id} with {len(self.chains)} chain(s)>"
+        return f"<Model {self.modid} with {len(self.chains)} chain(s)>"
 
     def add_atom(self, atom):
         chid = atom.chid if atom.chid else ' '  # Use a blank chain id if not provided.
@@ -534,16 +536,16 @@ class System():
     def __repr__(self):
         return f"<System with {len(self.models)} model(s)>"
 
-    def add_atom(self, atom, model_id=1):
-        if model_id not in self.models:
-            self.models[model_id] = Model(model_id)
-        self.models[model_id].add_atom(atom)
+    def add_atom(self, atom, modid=1):
+        if modid not in self.models:
+            self.models[modid] = Model(modid)
+        self.models[modid].add_atom(atom)
 
-    def add_atoms(self, atoms, model_id=1):
-        if model_id not in self.models:
-            self.models[model_id] = Model(model_id)
+    def add_atoms(self, atoms, modid=1):
+        if modid not in self.models:
+            self.models[modid] = Model(modid)
         for atom in atoms:
-            self.models[model_id].add_atom(atom)
+            self.models[modid].add_atom(atom)
 
     @property
     def atoms(self):
@@ -580,13 +582,13 @@ class System():
         Writes MODEL/ENDMDL records if multiple models exist.
         """
         with open(filename, "w") as f:
-            # Sort models by model_id
-            sorted_model_ids = sorted(self.models.keys())
-            multiple_models = len(sorted_model_ids) > 1
-            for model_id in sorted_model_ids:
-                model = self.models[model_id]
+            # Sort models by modid
+            sorted_modids = sorted(self.models.keys())
+            multiple_models = len(sorted_modids) > 1
+            for modid in sorted_modids:
+                model = self.models[modid]
                 if multiple_models:
-                    f.write(f"MODEL     {model_id}\n")
+                    f.write(f"MODEL     {modid}\n")
                 # Iterate over chains in sorted order by chid
                 for chain in sorted(model.chains.values(), key=lambda c: c.chid):
                     # Iterate over residues in sorted order
@@ -623,7 +625,7 @@ class PDBParser:
                 elif record_type in ("ATOM", "HETATM"):
                     try:
                         atom = Atom.from_pdb_line(line)
-                        system.add_atom(atom, model_id=current_model)
+                        system.add_atom(atom, modid=current_model)
                     except Exception as e:
                         print(f"Error parsing line: {line.strip()} -> {e}")
                 elif record_type == "ENDMDL":
@@ -698,6 +700,14 @@ def clean_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, pH=
     positions = pdb.positions
     PDBFile.writeFile(topology, positions, open(out_pdb, 'w'))
     print(f"Written PDB to {out_pdb}", file=sys.stderr)
+
+
+def rename_chain_in_pdb(in_pdb, new_chain_id):
+    system = parse_pdb(in_pdb)
+    atoms = system.atoms   
+    new_chids = [new_chain_id for atom in atoms]
+    atoms.chids = new_chids
+    atoms.write_to_pdb(in_pdb)
 
 
 def write_ndx(atoms, fpath='system.ndx'):
