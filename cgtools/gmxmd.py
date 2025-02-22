@@ -61,32 +61,7 @@ class gmxSystem:
         self.pngdir     = os.path.join(self.wdir, 'png')
         self._chains    = []
         self._mdruns    = []
-
-    @property
-    def chains(self):
-        """
-        A list of chain ids in the system. 
-        Either provide or extract from the PDB file
-        Returns:
-            list: List of chain identifiers.
-        """
-        if self._chains:
-            return self._chains
-        chain_names = set()
-        with open(self.syspdb, 'r') as file:
-            for line in file:
-                # Look for lines that define atomic coordinates
-                if line.startswith(("ATOM", "HETATM")):
-                    chain_id = line[21].strip()  # Chain ID is in column 22 (index 21)
-                    if chain_id:  # Only add non-empty chain IDs
-                        chain_names.add(chain_id)
-        self._chains = sort_uld(chain_names)
-        return self._chains
-    
-    @chains.setter
-    def chains(self, chains):
-        self._chains = chains
-        
+       
     @property
     def mdruns(self):
         """

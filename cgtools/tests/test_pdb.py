@@ -4,39 +4,39 @@ from cgtools.pdbtools import Atom, AtomList, System, Model, Chain, Residue, pars
 TEST_PDB = "in_test.pdb" 
 
 def test_read_pdb():
-    pdb_path = TEST_PDB
-    system = parse_pdb(pdb_path)
+    in_pdb = TEST_PDB
+    system = parse_pdb(in_pdb)
     atoms = system.atoms
     if_passed = len(atoms) > 0
     assert if_passed
 
 
 def test_save_system():
-    pdb_path = TEST_PDB 
+    in_pdb = TEST_PDB 
     test_pdb = "test.pdb"
     if test_pdb in os.listdir():
         os.remove(test_pdb)
-    system = parse_pdb(pdb_path)
-    system.save_pdb(test_pdb)
+    system = parse_pdb(in_pdb)
+    system.write_to_pdb(test_pdb)
     if_passed = test_pdb in os.listdir()
     assert if_passed
 
 
 def test_save_atoms():
-    pdb_path = TEST_PDB
+    in_pdb = TEST_PDB
     test_pdb = "test.pdb"
     if test_pdb in os.listdir():
         os.remove(test_pdb)
-    system = parse_pdb(pdb_path)
+    system = parse_pdb(in_pdb)
     atoms = system.atoms
-    atoms.save_pdb(test_pdb)
+    atoms.write_to_pdb(test_pdb)
     if_passed = test_pdb in os.listdir()
     assert if_passed
 
 
 def test_chain():
-    pdb_path = TEST_PDB
-    system = parse_pdb(pdb_path)
+    in_pdb = TEST_PDB
+    system = parse_pdb(in_pdb)
     model = system.models[1]
     chids = list(model.chains.keys())
     chain = model.chains[chids[0]]
@@ -46,8 +46,8 @@ def test_chain():
 
 
 def test_vecs():
-    pdb_path = TEST_PDB
-    system = parse_pdb(pdb_path)
+    in_pdb = TEST_PDB
+    system = parse_pdb(in_pdb)
     model = system.models[1]
     all_atoms = AtomList()
     for chain in model:
@@ -58,8 +58,8 @@ def test_vecs():
 
 
 def test_segids():
-    pdb_path = TEST_PDB
-    system = parse_pdb(pdb_path)
+    in_pdb = TEST_PDB
+    system = parse_pdb(in_pdb)
     atoms = system.atoms
     atoms.segids = atoms.chids
     segids = set([atom.segid for atom in atoms])
@@ -69,20 +69,18 @@ def test_segids():
 
 
 def test_sort():
-    pdb_path = TEST_PDB
-    system = parse_pdb(pdb_path)
+    in_pdb = TEST_PDB
+    system = parse_pdb(in_pdb)
     atoms = system.atoms
     randomized_atoms = atoms # AtomList(set(atoms))
     randomized_atoms.sort() # key=lambda atom: atom.atid
-    for atom, ratom in zip(atoms, randomized_atoms):
-        print(atom, ratom)
     if_passed = randomized_atoms == atoms
     assert if_passed
     
 
 def test_filter():
-    pdb_path = TEST_PDB
-    system = parse_pdb(pdb_path)
+    in_pdb = TEST_PDB
+    system = parse_pdb(in_pdb)
     atoms = system.atoms
     chids = list(set(atoms.chids))
     chid = chids[0]
@@ -93,9 +91,9 @@ def test_filter():
 
 
 def test_remove():
-    pdb_path = TEST_PDB
+    in_pdb = TEST_PDB
     mask = ["P", "C3'"]
-    system = parse_pdb(pdb_path)
+    system = parse_pdb(in_pdb)
     atoms = system.atoms
     initial_len = len(atoms)
     filtered_atoms = atoms.filter(mask)
@@ -105,22 +103,37 @@ def test_remove():
 
 
 def test_sort_pdb():
-    input_pdb = TEST_PDB
-    output_pdb = 'test.pdb'
-    sort_pdb(input_pdb, output_pdb)
+    in_pdb = TEST_PDB
+    out_pdb = 'test.pdb'
+    sort_pdb(in_pdb, out_pdb)
+    if_passed = True
+    assert if_passed
+
+
+def test_write_ndx():
+    in_pdb = TEST_PDB
+    out_ndx = 'test.ndx'
+    if out_ndx in os.listdir():
+        os.remove(out_ndx)
+    system = parse_pdb(in_pdb)
+    atoms = system.atoms
+    atoms.write_to_ndx(out_ndx, header=f'[ System ]', append=False, wrap=15) # sys ndx
+    if_passed = out_ndx in os.listdir()
+    os.remove(out_ndx)
+    assert if_passed
     
 
 if __name__ == "__main__":
-    # test_read_pdb()     
-    # test_save_system() 
-    # test_save_atoms()
-    # test_chain()  
-    # test_vecs()   
-    # test_segids()   
-    # test_sort()
-    # test_filter()  
-    # test_remove()  
-    # test_rearrange_chains_and_renumber_atoms()
+    test_read_pdb()     
+    test_save_system() 
+    test_save_atoms()
+    test_chain()  
+    test_vecs()   
+    test_segids()   
+    test_sort()
+    test_filter()  
+    test_remove()  
     test_sort_pdb()
+    test_write_ndx()
 
   

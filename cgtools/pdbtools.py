@@ -398,14 +398,33 @@ class AtomList(list):
             if atom in removal_set:
                 self.remove(atom)
 
-    def save_pdb(self, filename):
+    def write_to_pdb(self, filename, append=False):
         """
         Save the current AtomList instance to a PDB file.
         """
-        with open(filename, "w") as f:
+        mode = 'a' if append else 'w'
+        with open(filename, mode) as f:
             for atom in self:
                 f.write(atom.to_pdb_line() + "\n")
-            f.write("END\n")
+
+    def write_to_ndx(self, filename, header='[ group ]', append=False, wrap=15):
+        """
+        Write the atom IDs (atids) of the AtomList to a Gromacs .ndx file.
+
+        Parameters:
+            filename (str): The path to the output .ndx file.
+            header (str): The header for the group. Default is '[ group ]'.
+            append (bool): If True, append to the file; otherwise, overwrite it.
+            wrap (int): Number of atids per line in the output file.
+        """
+        mode = 'a' if append else 'w'
+        atids = [str(atid) for atid in self.atids]
+        with open(filename, mode) as f:
+            f.write(f"{header}\n") # Write header
+            for i in range(0, len(self), wrap):  # Write atids wrapping every `wrap` elements
+                line = " ".join(atids[i:i+wrap])
+                f.write(line + "\n") 
+            f.write("\n")  # Add an extra newline for separation between groups if appending
 
 
 class Residue():
@@ -555,7 +574,7 @@ class System():
             for chain in sorted(model.chains.values(), key=lambda c: c.chid):
                 yield chain
 
-    def save_pdb(self, filename):
+    def write_to_pdb(self, filename):
         """
         Save the current System instance to a PDB file.
         Writes MODEL/ENDMDL records if multiple models exist.
@@ -655,7 +674,7 @@ def sort_pdb(in_pdb, out_pdb):
     atoms = system.atoms
     sort_chains_atoms(atoms)
     rename_chains_for_gromacs(atoms)
-    atoms.save_pdb(out_pdb)
+    atoms.write_to_pdb(out_pdb)
     print(f"Chains and atoms sorted, renamed and saved to {out_pdb}") 
 
 
@@ -679,7 +698,21 @@ def clean_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, pH=
     positions = pdb.positions
     PDBFile.writeFile(topology, positions, open(out_pdb, 'w'))
     print(f"Written PDB to {out_pdb}", file=sys.stderr)
-            
+
+
+def write_ndx(atoms, fpath='system.ndx'):
+    in_pdb = 'test.pdb'
+    system = parse_pdb(in_pdb)
+    atoms = system.atoms
+    atoms.write_ndx(fpath, header=f'[ System ]', append=False, wrap=15) # sys ndx
+    backbone = atoms.filter(("CA", "P", "C1'"), mode='name')
+    backbone.write_ndx(fpath, header=f'[ Backbone ]', append=True, wrap=15) # bb ndx
+    chids = sorted(set(atoms.chids))
+    for chid in chids:
+        selected_atoms = atoms.filter(chid, mode='chid')
+        selected_atoms.write_ndx(fpath, header=f'[ chain_{chid} ]', append=True, wrap=15) # chain ndx
+        print(f"Written PDB to {fpath}", file=sys.stderr)
+
 
 def update_bfactors(in_pdb, out_pdb, bfactors):
     """
