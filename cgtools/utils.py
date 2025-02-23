@@ -75,6 +75,14 @@ def clean_dir(directory=".", pattern="#*"):
             file_path.unlink()     
 
 
+def percentile(x):
+    sorted_x = np.argsort(x)
+    px = np.zeros(len(x))
+    for n in range(len(x)):
+        px[n] = np.where(sorted_x == n)[0][0] / len(x)
+    return px            
+
+
 def count_itp_atoms(file_path):
     in_atoms_section = False
     atom_count = 0

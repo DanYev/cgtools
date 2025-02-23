@@ -110,7 +110,7 @@ def cluster(sysdir, sysname, runname, **kwargs):
 def cov_analysis(sysdir, sysname, runname):
     mdrun = MDRun(sysdir, sysname, runname) 
     mdrun.prepare_files()
-    mdrun.get_covmats()
+    mdrun.get_covmats(sample_rate=1, b=100000, e=1000000, n=20, outtag='covmat')
     mdrun.get_pertmats()
     mdrun.get_dfi(outtag='dfi')
     mdrun.get_dci(outtag='dci', asym=False)

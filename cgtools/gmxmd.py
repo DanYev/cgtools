@@ -434,16 +434,17 @@ class gmxSystem:
         datas = [np.load(file) for file in files]
         mean = np.average(datas, axis=0)
         sem = np.std(datas, axis=0) / np.sqrt(len(datas))
-        file_mean = os.path.join(self.datdir, pattern.split('*')[0] + '.csv')
-        file_err = os.path.join(self.datdir, pattern.split('*')[0] + '_err.csv')
-        pd.DataFrame(mean).to_csv(file_mean, header=None, index=False) 
-        pd.DataFrame(sem).to_csv(file_err, header=None, index=False) 
+        file_mean = os.path.join(self.datdir, pattern.split('*')[0] + '_av.npy')
+        file_err = os.path.join(self.datdir, pattern.split('*')[0] + '_err.npy')
+        np.save(file_mean, mean)
+        np.save(file_err, sem)
+        # pd.DataFrame(mean).to_csv(file_mean, header=None, index=False) 
+        # pd.DataFrame(sem).to_csv(file_err, header=None, index=False) 
 
     def initmd(self, runname):
         mdrun = MDRun(self.sysdir, self.sysname, runname)
         # self._mdruns.append(mdrun.runname)
         return mdrun       
-
 
     def get_averages(sysdir, sysname, rmsf=False, dfi=True, dci=True, ):
         system = gmxSystem(sysdir, sysname)  
@@ -504,8 +505,7 @@ class MDRun(gmxSystem):
         self.pngdir = os.path.join(self.rundir, 'png')
         self.str = os.path.join(self.rundir, 'mdc.pdb') # Structure
         self.trj = os.path.join(self.rundir, 'mdc.trr') # Trajectory
-        
-        
+              
     def prepare_files(self):
         """
         Create necessary directories.
