@@ -430,6 +430,7 @@ class gmxSystem:
         return files
 
     def get_mean_sem(self, pattern='dfi*.npy'):
+        logger.info(f"Calculating averages and errors from {pattern}")
         files = io.pull_files(self.mddir, pattern)
         datas = [np.load(file) for file in files]
         mean = np.average(datas, axis=0)
@@ -441,22 +442,35 @@ class gmxSystem:
         # pd.DataFrame(mean).to_csv(file_mean, header=None, index=False) 
         # pd.DataFrame(sem).to_csv(file_err, header=None, index=False) 
 
-    def initmd(self, runname):
-        mdrun = MDRun(self.sysdir, self.sysname, runname)
-        # self._mdruns.append(mdrun.runname)
-        return mdrun       
-
-    def get_averages(sysdir, sysname, rmsf=False, dfi=True, dci=True, ):
+    def get_td_averages(sysdir, sysname, loop=True, pattern='corr_pv.npy'):
+        """
+        Need to loop for big arrays
+        """
         system = gmxSystem(sysdir, sysname)  
-        print('Starting', file=sys.stderr )    
-        all_files = io.pull_all_files(system.mddir)
+        logger.info('Getting time-dependent averages')
+        files = io.pull_files(system.mddir, fname)
+        if loop:
+            logger.info(f'Processing {files[0]}')
+            average = np.load(files[0])
+            for f in files[1:]:
+                logger.info(f'Processing {f}')
+                arr = np.load(f)
+                average += arr
+            average /= len(files)
+        else:
+            arrays = [np.load(f) for f in files]
+            average = np.average(arrays, axis=0)
+        np.save(os.path.join(system.datdir, fname), average) 
+        logger.info('Done!')
+        return average     
+
+    def get_averages(self, rmsf=False, dfi=True, dci=True, ): 
+        all_files = io.pull_all_files(self.mddir)
         if rmsf:  # RMSF
-            print(f'Processing RMSF', file=sys.stderr )
             files = io.filter_files(all_files, sw='rmsf.', ew='.xvg')
             system.get_mean_sem(files, f'rmsf.csv', col=1)
             # Chain RMSF
             for chain in system.chains:
-                print(f'Processing chain {chain}', file=sys.stderr )
                 sw = f'rmsf_{chain}'
                 files = io.filter_files(all_files, sw=sw, ew='.xvg')
                 system.get_mean_sem(files, f'{sw}.csv', col=1)
@@ -469,7 +483,12 @@ class gmxSystem:
             files = io.filter_files(all_files, sw='dci', ew='.xvg')
             system.get_mean_sem_2d(files, out_fname=f'dci.csv', out_errname=f'dci_err.csv')
             files = io.filter_files(all_files, sw='asym', ew='.xvg')
-            system.get_mean_sem_2d(files, out_fname=f'dci.csv', out_errname=f'dci_err.csv')         
+            system.get_mean_sem_2d(files, out_fname=f'dci.csv', out_errname=f'dci_err.csv')   
+
+    def initmd(self, runname):
+        mdrun = MDRun(self.sysdir, self.sysname, runname)
+        # self._mdruns.append(mdrun.runname)
+        return mdrun                    
 
 ################################################################################
 # MDRun class
@@ -487,12 +506,10 @@ class MDRun(gmxSystem):
         Initializes required directories and files.
         
         Args:
-            runname (str): 
-            rundir (str): Directory for the system files.
-            rmsname (str): Name of the system.
-            cludir (str): clustering
-            covdir (str): covariance analysis
-            pngdir (str): figures
+            sysdir (str): Directory for the system files.
+            sysname (str): Name of the system.       
+            runname (str): Name of the MD run.
+
             kwargs: Additional keyword arguments.
         """
         super().__init__(sysdir, sysname)
@@ -591,21 +608,29 @@ class MDRun(gmxSystem):
         """
         Runs 'gmx rmsf' for RMSF calculation
         """
-        kwargs.setdefault('f', 'mdc.xtc')
-        kwargs.setdefault('s', 'mdc.pdb')
-        kwargs.setdefault('n', self.mdcndx)
+        xvg_file = os.path.join(self.rmsdir, 'rmsf.xvg')
+        npy_file = os.path.join(self.rmsdir, 'rmsf.npy')
+        kwargs.setdefault('s', self.str)      
+        kwargs.setdefault('f', self.trj)
+        # kwargs.setdefault('n', self.sysndx)
+        kwargs.setdefault('o', xvg_file)
         with cd(self.rmsdir):
             cli.gmx_rmsf(clinput=clinput, **kwargs)
+            io.xvg2npy(xvg_file, npy_file, usecols=[1])
          
-    def rms(self, clinput=None, **kwargs):
+    def rmsd(self, clinput=None, **kwargs):
         """
         Runs 'gmx rms' for RMSD calculation
-        """        
-        kwargs.setdefault('f', 'mdc.xtc')
-        kwargs.setdefault('s', 'mdc.pdb')
-        kwargs.setdefault('n', self.mdcndx)
+        """ 
+        xvg_file = os.path.join(self.rmsdir, 'rmsd.xvg')
+        npy_file = os.path.join(self.rmsdir, 'rmsd.npy') 
+        kwargs.setdefault('s', self.str)      
+        kwargs.setdefault('f', self.trj)
+        # kwargs.setdefault('n', self.sysndx)
+        kwargs.setdefault('o', xvg_file)
         with cd(self.rmsdir):
             cli.gmx_rms(clinput=clinput, **kwargs)
+            io.xvg2npy(xvg_file, npy_file, usecols=[0, 1])
          
     def rdf(self, clinput=None, **kwargs):
         """
@@ -621,9 +646,9 @@ class MDRun(gmxSystem):
         """
         Runs 'gmx cluster' for clustering
         """  
-        kwargs.setdefault('f', '../traj.xtc')
-        kwargs.setdefault('s', '../traj.pdb')
-        kwargs.setdefault('n', self.trjndx)
+        kwargs.setdefault('s', self.str)      
+        kwargs.setdefault('f', self.trj)
+        # kwargs.setdefault('n', self.sysndx)
         with cd(self.cludir):
             cli.gmx_cluster(clinput=clinput, **kwargs) 
     
@@ -631,7 +656,8 @@ class MDRun(gmxSystem):
         """
         Runs 'gmx extract-cluster' to extract frames belonging to a cluster from the trajectory
         """  
-        kwargs.setdefault('f', '../traj.xtc')
+        # kwargs.setdefault('s', self.str)      
+        kwargs.setdefault('f', self.trj)
         kwargs.setdefault('clusters', 'cluster.ndx')
         with cd(self.cludir):
             cli.gmx_extract_cluster(clinput=clinput, **kwargs) 
@@ -643,7 +669,7 @@ class MDRun(gmxSystem):
         kwargs.setdefault('f', '../traj.xtc')
         kwargs.setdefault('s', '../traj.pdb')
         kwargs.setdefault('n', self.trjndx)
-        with cd(self.cludir):
+        with cd(self.covdir):
             cli.gmx_covar(self.covdir, clinput=clinput, **kwargs) 
         
     def anaeig(self, clinput=None, **kwargs):
@@ -671,8 +697,10 @@ class MDRun(gmxSystem):
         logger.info('Calculating covariance matrices...')
         if not u:
             u = mda.Universe(self.str, self.trj, in_memory=True)
-        if not ag:
-            ag = u.atoms
+        if not ag: # Select the backbone atoms
+            ag = u.atoms.select_atoms("name CA or name P or name C1'")
+            if not ag:
+                ag = u.atoms.select_atoms("name BB or name BB1 or name BB3") 
         positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e) 
         lrt.calc_and_save_covmats(positions, outdir=self.covdir, n=n, outtag=outtag) 
         logger.info('Finished calculating covariance matrices!')
@@ -681,7 +709,6 @@ class MDRun(gmxSystem):
         """
         Calculates perturbation matrices from the covariance matrices
         """
-        bdir = os.getcwd()
         with cd(self.covdir):
             cov_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
             for cov_file in cov_files:

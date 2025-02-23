@@ -46,7 +46,7 @@ def _sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     # Compute FFT along the last axis as an (nx, nt) array
     x_f = fft(x, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
     y_f = fft(y, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
-    counts = np.arange(nt,  nt-ntmax , -1)**-1 # Normalize correctly over valid indices
+    counts = np.arange(nt,  nt-ntmax , -1).astype(dtype)**-1 # Normalize correctly over valid indices
     # Compute the FFT-based correlation via CPSD
     if loop:
         corr = np.zeros((nx, ny, ntmax), dtype=dtype)
@@ -140,14 +140,14 @@ def _gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
 
 @memprofit
 @timeit
-def fft_corr(*args, mode='parallel', **kwargs):
-    if mode == 'ser':
+def fft_corr(*args, mode='serial', **kwargs):
+    if mode == 'serial':
         return _sfft_corr(*args, **kwargs)
-    if mode == 'par':
+    if mode == 'parallel':
         return _pfft_corr(*args, **kwargs)
     if mode == 'gpu':
         return _gfft_corr(*args, **kwargs)
-    raise ValueError("Currently 'mode' should be 'ser', 'par' or 'gpu'.")
+    raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
 
 
 def gfft_conv(x, y, loop=False, dtype=cp.float32):
@@ -336,7 +336,7 @@ def perturbation_matrix(covariance_matrix, dtype=np.float32):
     return pertmat
 
 
-def _td_perturbation_matrix_cpu(ccf, normalize=False, dtype=np.float32):
+def _td_perturbation_matrix_cpu(ccf, normalize=True, dtype=np.float32):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU
     The result is normalized such that the total sum of the matrix elements is equal to 1
@@ -352,7 +352,7 @@ def _td_perturbation_matrix_cpu(ccf, normalize=False, dtype=np.float32):
 
 
 def td_perturbation_matrix(covariance_matrix, dtype=np.float32):
-    pertmat = calc_td_perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
+    pertmat = _td_perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
     return pertmat    
 
 

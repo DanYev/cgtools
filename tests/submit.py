@@ -70,6 +70,13 @@ def cov_analysis(submit=True, **kwargs):
                     J=f'cov_{sysname}_{runname}', **kwargs)
 
 
+def cluster(submit=True, **kwargs):
+    for sysname in sysnames:
+        for runname in runs:
+            dojob(submit, script, pyscript, 'cluster', sysdir, sysname, runname,
+                    J=f'cluster_{sysname}_{runname}', **kwargs)                    
+
+
 def tdlrt_analysis(submit=True, **kwargs):
     kwargs.setdefault('t', '00-01:00:00')
     kwargs.setdefault('mem', '30G')
@@ -93,6 +100,19 @@ def get_averages(submit=False, **kwargs):
     for sysname in sysnames:
         dojob(submit, script, pyscript, 'get_averages', sysdir, sysname, 
             J=f'av_{sysname}', **kwargs)
+
+
+def get_td_averages(submit=False, **kwargs):
+    kwargs.setdefault('mem', '80G')
+    for sysname in sysnames:
+        dojob(submit, script, pyscript, 'get_td_averages', sysdir, sysname, 
+            J=f'tdav_{sysname}', **kwargs)   
+
+
+def plot(submit=False, **kwargs):
+    for sysname in sysnames:
+        dojob(submit, script, 'plot.py', sysdir, sysname, 
+                J=f'sys_job', **kwargs)
 
 
 def sys_job(jobname, submit=False, **kwargs):
@@ -119,12 +139,14 @@ runs = ['mdrun_1', 'mdrun_2', ]  #
 # md(submit=True, ntomp=8, mem='4G', q='public', p='htc', t='00-04:00:00',)
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
 # trjconv(submit=False)
-# cluster(submit=False)
-cov_analysis(submit=False)
-get_averages(submit=False)
-# tdlrt_analysis(submit=False)
-# tdlrt_figs(submit=True)
+# rms_analysis(submit=False)
+# cov_analysis(submit=False)
+# get_averages(submit=False)
 # plot(submit=False)
+# cluster(submit=False)
+# tdlrt_analysis(submit=False)
+get_td_averages(submit=False)
+# tdlrt_figs(submit=True)
 # test(submit=True)
 # sys_job('make_ndx', submit=False)
 

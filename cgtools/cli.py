@@ -308,8 +308,7 @@ def gmx_trjconv(clinput='1\n1\n', **kwargs):
     gmx('trjconv', clinput=clinput, cltext=True, **kwargs)
 
 
-@from_wdir
-def gmx_rmsf(wdir, clinput=None, **kwargs):
+def gmx_rmsf(clinput=None, **kwargs):
     """
     Run the GROMACS 'rmsf' command to calculate root mean square fluctuation (RMSF).
 
@@ -340,8 +339,7 @@ def gmx_rmsf(wdir, clinput=None, **kwargs):
     gmx('rmsf', clinput=clinput, cltext=True, **kwargs)
 
 
-@from_wdir
-def gmx_rms(wdir, clinput=None, **kwargs):
+def gmx_rms(clinput=None, **kwargs):
     """
     Run the GROMACS 'rms' command to calculate root mean square deviation (RMSD).
 
@@ -364,14 +362,14 @@ def gmx_rms(wdir, clinput=None, **kwargs):
         'f': 'mdc.xtc',
         'o': 'rms_analysis/rmsd.xvg',
         'b': '0',
-        'xvg': 'none'
+        'xvg': 'none',
+        'fit': 'rot+trans',
     }
     kwargs = set_defaults(kwargs, defaults)
     gmx('rms', clinput=clinput, cltext=True, **kwargs)
 
 
-@from_wdir
-def gmx_rdf(wdir, clinput=None, **kwargs):
+def gmx_rdf(clinput=None, **kwargs):
     """
     Run the GROMACS 'rdf' command to calculate  calculates radial distribution functions (RDF).
 
@@ -400,8 +398,8 @@ def gmx_rdf(wdir, clinput=None, **kwargs):
     gmx('rdf', clinput=clinput, cltext=True, **kwargs)
 
 
-@from_wdir
-def gmx_cluster(wdir, clinput=None, **kwargs):
+
+def gmx_cluster(clinput=None, **kwargs):
     """
     Run the GROMACS 'cluster' command to get covariance matrix and normal modes.
 
@@ -416,8 +414,7 @@ def gmx_cluster(wdir, clinput=None, **kwargs):
     gmx('cluster', clinput=clinput, cltext=True, **kwargs)
     
     
-@from_wdir
-def gmx_extract_cluster(wdir, clinput=None, **kwargs):
+def gmx_extract_cluster(clinput=None, **kwargs):
     """
     Run the GROMACS 'extract-cluster' command to get covariance matrix and normal modes.
 

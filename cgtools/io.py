@@ -15,19 +15,19 @@ def in_range(ts, b, e): # Check if ts.time is within the range (b, e)
 
 @timeit
 @memprofit
-def read_positions(u, atoms, b=0, e=10000000, sample_rate=1, dtype=np.float32):
+def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
     logger.info("Reading positions...")
     arr = np.array(
-        [atoms.positions.flatten() for ts in u.trajectory[::sample_rate] if in_range(ts, b, e)], dtype=dtype)
+        [ag.positions.flatten() for ts in u.trajectory[::sample_rate] if in_range(ts, b, e)], dtype=dtype)
     arr = np.ascontiguousarray(arr.T)  # Transpose for memory efficiency (shape: (n_coords, n_frames))
     logger.info("Done!")
     return arr
 
 
-def read_velocities(u, atoms, b=0, e=10000000, sample_rate=1, dtype=np.float32):
+def read_velocities(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
     logger.info("Reading velocities...")
     arr = np.array(
-        [atoms.velocities.flatten() for ts in u.trajectory[::sample_rate] if in_range(ts, b, e)], dtype=dtype)
+        [ag.velocities.flatten() for ts in u.trajectory[::sample_rate] if in_range(ts, b, e)], dtype=dtype)
     arr = np.ascontiguousarray(arr.T)  # Transpose for memory efficiency (shape: (n_coords, n_frames))
     logger.info("Done!")
     return arr
@@ -75,6 +75,13 @@ def pull_files(directory, pattern):
 
 def pull_all_files(directory):
     return pull_files(directory, pattern='*')
+
+
+def xvg2npy(xvg_path, npy_path, usecols=[0, 1]):
+    df = pd.read_csv(xvg_path, sep='\\s+', header=None, usecols=usecols)
+    data = np.squeeze(df.to_numpy().T)
+    # data = np.loadtxt(xvg_path, usecols=usecols).T
+    np.save(npy_path, data)
 
 
 def read_data(fpath):
@@ -131,10 +138,9 @@ def read_xvg(fpath, usecols=[0, 1]):
     """
     try:
         df = pd.read_csv(fpath, sep='\\s+', header=None, usecols=usecols)
-        data = df
     except:
         raise ValueError()
-    return data
+    return df
     
     
 def save_data(data, fpath):
@@ -157,12 +163,6 @@ def save_data(data, fpath):
         df = pd.DataFrame(data)
         df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=',')
         
-        
-def calc_mean_sem(datas):
-    datas = np.array(datas)
-    mean = np.average(datas, axis=0)
-    sem = np.std(datas, axis=0) / np.sqrt(datas.shape[0])
-    return mean, sem
 
 
 def save_1d_data(data, ids=[], fpath='dfi.xvg', sep=' '): 
