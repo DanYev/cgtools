@@ -1,5 +1,9 @@
-custom_config.py
 tmp
+tests
+systems
+*data*
+*slurm*
+custom_config.py
 .cache
 .pytest_cache
 __pycache__
@@ -44,5 +48,4 @@ __pycache__
 *.dat
 *.xtc
 *.trr
-file_header_*.txt
-workspace.xml
+*.lock

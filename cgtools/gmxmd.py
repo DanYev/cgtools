@@ -8,23 +8,10 @@ import pandas as pd
 import shutil
 import subprocess as sp
 import cgtools
-from contextlib import contextmanager
 from cgtools import cli, lrt, pdbtools
 from cgtools.pdbtools import AtomList
 from cgtools.utils import cd, clean_dir, logger
-
-################################################################################
-# Utils
-################################################################################   
-
-def sort_upper_lower_digit(alist):
-    """
-    Sorts characters in a list such that they appear in the following order: 
-    uppercase letters first, then lowercase letters, followed by digits. 
-    Helps with orgazing GROMACS multichain files
-    """
-    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
-    return slist           
+     
 
 ################################################################################
 # GMX system class
@@ -541,6 +528,8 @@ class MDRun(gmxSystem):
         os.makedirs(self.covdir, exist_ok=True)
         os.makedirs(self.dddir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
+        shutil.copy(os.path.join(self.wdir, 'atommass.dat'),
+            'atommass.dat', os.path.join(self.rundir, 'atommass.dat'))
         
     def empp(self, **kwargs):
         """
@@ -812,3 +801,16 @@ class MDRun(gmxSystem):
             cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n', 
                 o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
                 
+
+################################################################################
+# Utils
+################################################################################   
+
+def sort_upper_lower_digit(alist):
+    """
+    Sorts characters in a list such that they appear in the following order: 
+    uppercase letters first, then lowercase letters, followed by digits. 
+    Helps with orgazing GROMACS multichain files
+    """
+    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
+    return slist                      

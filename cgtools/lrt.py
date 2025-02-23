@@ -9,7 +9,7 @@ from joblib import Parallel, delayed
 from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
 from scipy import linalg as LA
 from scipy.stats import pearsonr
-from utils import timeit, memprofit, logger
+from cgtools.utils import timeit, memprofit, logger
 
 
 def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
@@ -296,9 +296,6 @@ def calc_ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.flo
     return corr
 
 
-
-    
-      
 def get_perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32):
     directions = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]), dtype=dtype)
     directions = directions.T / np.sqrt(np.sum(directions, axis=1)).T # normalizing directions
