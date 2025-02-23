@@ -1,6 +1,5 @@
 tmp
-tests
-systems
+tests/systems
 *data*
 *slurm*
 custom_config.py
