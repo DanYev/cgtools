@@ -233,7 +233,7 @@ def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     return cpsd
 
 
-def covmat(positions, dtype=np.float32):
+def covariance_matrix(positions, dtype=np.float32):
     """
     Calculate the position-position covariance matrix
     Parameters:
@@ -243,10 +243,10 @@ def covmat(positions, dtype=np.float32):
     mean = positions.mean(axis=-1, keepdims=True) # (n_coords, 1) 
     centered_positions = positions - mean # Center the data by removing mean
     covmat = np.cov(centered_positions, rowvar=True, dtype=dtype) # Compute covariance matrix (n_coords x n_coords)
-    return covmat
+    return np.array(covmat)
 
 
-def calc_and_save_covmats(positions, n=1, dtype=np.float32):
+def calc_and_save_covmats(positions, outdir, n=1, outtag='covmat', dtype=np.float32):
     """
     Calculate and save the position-position covariance matrices by splitting trajectory into n segments
     
@@ -257,16 +257,17 @@ def calc_and_save_covmats(positions, n=1, dtype=np.float32):
     trajs = np.array_split(positions, n, axis=-1)  # Split into `n` segments along frames (axis=1)
     for idx, traj in enumerate(trajs, start=1): # Process each segment
         logger.info(f"Processing matrix {idx}")
-        covmat = covmat(traj), # Compute covariance matrix (n_coords x n_coords)
-        np.save(f'covmat_{idx}.npy', covmat)
-        logger.info(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'")
+        covmat = covariance_matrix(traj, dtype=dtype) # Compute covariance matrix (n_coords x n_coords)
+        outfile = os.path.join(outdir, f'{outtag}_{idx}.npy')
+        np.save(outfile, covmat)
+        logger.info(f"Saved covariance matrix to {outfile}")
         
         
 def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
     """
     Calculate the average cross-correlation function of x and y by splitting them into n segments
     """
-    print(f"Calculating cross-correlation.", file=sys.stderr)
+    logger.info(f"Calculating cross-correlation.")
     # Split trajectories into `n` segments along frames (axis=1)
     xs = np.array_split(xs, n, axis=-1)
     ys = np.array_split(ys, n, axis=-1)

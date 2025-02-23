@@ -8,7 +8,7 @@ import pandas as pd
 import shutil
 import subprocess as sp
 import cgtools
-from cgtools import cli, lrt, pdbtools
+from cgtools import cli, lrt, pdbtools, io
 from cgtools.pdbtools import AtomList
 from cgtools.utils import cd, clean_dir, logger
      
@@ -678,39 +678,37 @@ class MDRun(gmxSystem):
         kwargs.setdefault('s', '../traj.pdb')
         cli.gmx_make_edi(self.covdir, clinput=clinput, **kwargs) 
         
-    def get_covmats(self, **kwargs):
+    def get_covmats(self, u=None, ag=None, sample_rate=1, b=50000, e=1000000, n=10, outtag='covmat'):
         """
         Calculates several covariance matrices by splitting the trajectory into 
         equal chunks defined by the given timestamps
         """
-        kwargs.setdefault('f', '../traj.trr')
-        kwargs.setdefault('s', '../traj.pdb')
-        bdir = os.getcwd()
-        os.chdir(self.covdir)
-        print(f'Working dir: {self.covdir}', file=sys.stderr)
-        lrt.calc_covmats(**kwargs)
-        print('Finished calculating covariance matrices!', file=sys.stderr)
-        os.chdir(bdir)
+        logger.info('Calculating covariance matrices...')
+        if not u:
+            u = mda.Universe(self.str, self.trj, in_memory=True)
+        if not ag:
+            ag = u.atoms
+        positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e) 
+        lrt.calc_and_save_covmats(positions, outdir=self.covdir, n=n, outtag=outtag) 
+        logger.info('Finished calculating covariance matrices!')
 
     def get_pertmats(self, intag='covmat', outtag='pertmat', **kwargs):
         """
         Calculates perturbation matrices from the covariance matrices
         """
         bdir = os.getcwd()
-        os.chdir(self.covdir)
-        print(f'Working dir: {self.covdir}', file=sys.stderr)
-        cov_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
-        for cov_file in cov_files:
-            print(f'  Processing covariance matrix {cov_file}', file=sys.stderr)
-            covmat = np.load(cov_file)
-            print('  Calculating pertubation matrix', file=sys.stderr)
-            pertmat = lrt.calc_perturbation_matrix(covmat)
-            pert_file = cov_file.replace(intag, outtag)
-            print(f'  Saving pertubation matrix at {pert_file}', file=sys.stderr)
-            np.save(pert_file, pertmat)
-            os.remove(cov_file)
-        print('Finished calculating perturbation matrices!', file=sys.stderr)
-        os.chdir(bdir)
+        with cd(self.covdir):
+            cov_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
+            for cov_file in cov_files:
+                logger.info(f'  Processing covariance matrix {cov_file}')
+                covmat = np.load(cov_file)
+                logger.info('  Calculating pertubation matrix')
+                pertmat = lrt.perturbation_matrix(covmat)
+                pert_file = cov_file.replace(intag, outtag)
+                logger.info(f'  Saving pertubation matrix at {pert_file}')
+                np.save(pert_file, pertmat)
+                os.remove(cov_file)
+        logger.info('Finished calculating perturbation matrices!')
         
     def get_dfi(self, intag='pertmat', outtag='dfi', **kwargs):
         """

@@ -59,6 +59,7 @@ def cd(newdir):
     """Context manager for changing the current working directory."""
     prevdir = Path.cwd()
     os.chdir(newdir)
+    logger.info(f'Working directory: {newdir}')
     try:
         yield
     finally:

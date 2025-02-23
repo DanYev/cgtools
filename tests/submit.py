@@ -70,22 +70,22 @@ def cov_analysis(submit=True, **kwargs):
                     J=f'cov_{sysname}_{runname}', **kwargs)
       
 
-def lrt(submit=True):
+def lrt_analysis(submit=True, **kwargs):
     kwargs.setdefault('t', '00-04:00:00')
     kwargs.setdefault('mem', '7G')
     for sysname in sysnames:
         for runname in runs:
-            dojob(submit, script, pyscript, 'lrt', sysdir, sysname, runname,
+            dojob(submit, script, pyscript, 'lrt_analysis', sysdir, sysname, runname,
                     J=f'lrt_{sysname}_{runname}', **kwargs)
 
 
-def tdlrt(submit=True, **kwargs):
+def tdlrt_analysis(submit=True, **kwargs):
     kwargs.setdefault('t', '00-01:00:00')
     kwargs.setdefault('mem', '30G')
     kwargs.setdefault('G', '1')
     for sysname in sysnames:
         for runname in runs:
-            dojob(submit, script, pyscript, 'tdlrt', sysdir, sysname, runname,
+            dojob(submit, script, pyscript, 'tdlrt_analysis', sysdir, sysname, runname,
                     J=f'tdlrt_{sysname}_{runname}', **kwargs)
 
 
@@ -127,11 +127,11 @@ runs = ['mdrun_1', ]  # 'mdrun_2',
 # setup(submit=False)
 # md(submit=True, ntomp=8, mem='4G', q='public', p='htc', t='00-04:00:00',)
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
-trjconv(submit=False)
+# trjconv(submit=False)
 # cluster(submit=False)
 # rms_analysis(submit=True)
-# dci_dfi(submit=True)
-# tdlrt(submit=False)
+lrt_analysis(submit=False)
+# tdlrt_analysis(submit=False)
 # tdlrt_figs(submit=True)
 # get_averages(submit=False)
 # cov_analysis(submit=True)

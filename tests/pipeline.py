@@ -3,11 +3,9 @@ import numpy as np
 import pandas as pd
 import sys
 import shutil
-import cgtools.cli as cli
-import cgtools.lrt as lrt
 import MDAnalysis as mda
+from cgtools import cli, io, lrt
 from cgtools.gmxmd import gmxSystem, MDRun
-from cgtools.dataio import read_data, pull_all_files, filter_files
 from cgtools.utils import *
 from pathlib import Path
 
@@ -85,31 +83,36 @@ def trjconv(sysdir, sysname, runname, mode='solu', fit='rot+trans', **kwargs):
 
     
 def rms_analysis(sysdir, sysname, runname, **kwargs):
-    system = gmxSystem(sysdir, sysname)
-    mdrun = system.initmd(runname)
-    b = 5000
-    e = 10000000
-    f = 'traj.trr'
-    s = 'traj.pdb'
-    # mdrun.rmsf(clinput=f'0\n 0\n', f=f, s=s, b=b, e=e, n=system.trjndx, res='no', fit='yes',  )
+    kwargs.setdefault('b', 50000) # in ps
+    kwargs.setdefault('dt', 1000) # in ps
+    kwargs.setdefault('e', 100000) # in ps
+    mdrun = MDRun(sysdir, sysname, runname)
+    # mdrun.rmsf(clinput=f'0\n 0\n', s=mdrun.str, f=mdrun.trj, n=system.trjndx, res='no', fit='yes', **kwargs)
 
     
 def cluster(sysdir, sysname, runname, **kwargs):
-    system = gmxSystem(sysdir, sysname)
-    mdrun = system.initmd(runname)
+    mdrun = MDRun(sysdir, sysname, runname)
     b = 400000
     mdrun.cluster(b=b, dt=1000, cutoff=0.15, method='gromos', cl='clusters.pdb', clndx='cluster.ndx', av='yes')
     mdrun.extract_cluster()
     
     
-def lrt(sysdir, sysname, runname):
-    system = gmxSystem(sysdir, sysname)
-    run = system.initmd(runname)
-    run.prepare_files()
-    run.get_covmats(f='../traj.trr', s='../traj.pdb', b=0, n=1)
-    run.get_pertmats()
-    run.get_dfi()
-    run.get_full_dci(asym=False)
+def lrt_analysis(sysdir, sysname, runname):
+    mdrun = MDRun(sysdir, sysname, runname) # Init MDRun instance with all the needed paths
+    # u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True) # MDAnalisys universe instance, store in RAM
+    # # Select the backbone atoms
+    # mask = u.atoms.names == 'BB'
+    # ag = u.atoms[mask]
+    # # Read coordinates from 'u.trajectory' for selected atom group 'ag'
+    # # Begin at b picoseconds, end at e, sample each frame
+    # positions = io.read_positions(u, ag, sample_rate=1, b=50000, e=1000000) 
+    # # Split positions into 'n' chunks and calculate covariance matrices
+    # # all of them are stored in mdrun.covdir directory as covmat_{n}.npy files
+    # lrt.calc_and_save_covmats(positions, outdir=mdrun.covdir, n=10) 
+    mdrun.get_covmats()
+    mdrun.get_pertmats()
+    # mdrun.get_dfi()
+    # mdrun.get_dci(asym=False)
     # # group dci
     # u = mda.Universe(self.trjpdb)
     # groups = u.segments.ids
@@ -117,8 +120,7 @@ def lrt(sysdir, sysname, runname):
     # run.get_group_dci(asym=False)
 
 
-
-def tdlrt(sysdir, sysname, runname):
+def tdlrt_analysis(sysdir, sysname, runname):
     system = gmxSystem(sysdir, sysname)
     run = system.initmd(runname)
     run.prepare_files()
@@ -178,7 +180,7 @@ def test(sysdir, sysname, runname, **kwargs):
 
         
 if __name__ == '__main__':
-    todo = sys.argv[1]
+    command = sys.argv[1]
     args = sys.argv[2:]
     commands = {
         "setup": setup,
@@ -188,16 +190,16 @@ if __name__ == '__main__':
         "trjconv": trjconv,
         "rms_analysis": rms_analysis,
         "cluster": cluster,
-        "dci_dfi": dci_dfi,
-        "tdlrt": tdlrt,
+        "lrt_analysis": lrt_analysis,
+        "tdlrt_analysis": tdlrt_analysis,
         "get_averages": get_averages,
         "plot": plot_averages,
         "test": test,
     }
-    if todo in commands:   # Then, assuming `todo` is the command name (a string)
-        commands[todo](*args) # `args` is a list/tuple of arguments
+    if command in commands:   # Then, assuming `command` is the command name (a string)
+        commands[command](*args) # `args` is a list/tuple of arguments
     else:
-        raise ValueError(f"Unknown command: {todo}")
+        raise ValueError(f"Unknown command: {command}")
    
         
     
