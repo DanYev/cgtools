@@ -59,8 +59,8 @@ def rms_analysis(submit=True, **kwargs):
         for runname in runs:
             dojob(submit, script, pyscript, 'rms_analysis', sysdir, sysname, runname,
                     J=f'rms_{sysname}_{runname}', **kwargs)
-                
-            
+      
+
 def cov_analysis(submit=True, **kwargs):
     kwargs.setdefault('t', '00-04:00:00')
     kwargs.setdefault('mem', '7G')
@@ -68,15 +68,6 @@ def cov_analysis(submit=True, **kwargs):
         for runname in runs:
             dojob(submit, script, pyscript, 'cov_analysis', sysdir, sysname, runname,
                     J=f'cov_{sysname}_{runname}', **kwargs)
-      
-
-def lrt_analysis(submit=True, **kwargs):
-    kwargs.setdefault('t', '00-04:00:00')
-    kwargs.setdefault('mem', '7G')
-    for sysname in sysnames:
-        for runname in runs:
-            dojob(submit, script, pyscript, 'lrt_analysis', sysdir, sysname, runname,
-                    J=f'lrt_{sysname}_{runname}', **kwargs)
 
 
 def tdlrt_analysis(submit=True, **kwargs):
@@ -121,7 +112,7 @@ script = 'sbatch.sh'
 pyscript = 'pipeline.py'
 sysdir = 'systems' 
 sysnames = ['1btl',]
-runs = ['mdrun_1', ]  # 'mdrun_2', 
+runs = ['mdrun_1', 'mdrun_2', ]  # 
 
 
 # setup(submit=False)
@@ -129,12 +120,10 @@ runs = ['mdrun_1', ]  # 'mdrun_2',
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
 # trjconv(submit=False)
 # cluster(submit=False)
-# rms_analysis(submit=True)
-lrt_analysis(submit=False)
+# cov_analysis(submit=False)
 # tdlrt_analysis(submit=False)
 # tdlrt_figs(submit=True)
-# get_averages(submit=False)
-# cov_analysis(submit=True)
+get_averages(submit=False)
 # plot(submit=False)
 # test(submit=True)
 # sys_job('make_ndx', submit=False)

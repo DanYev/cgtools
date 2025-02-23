@@ -67,7 +67,7 @@ def make_ndx(sysdir, sysname, **kwargs):
 def trjconv(sysdir, sysname, runname, mode='solu', fit='rot+trans', **kwargs):
     kwargs.setdefault('b', 0) # in ps
     kwargs.setdefault('dt', 1000) # in ps
-    kwargs.setdefault('e', 100000) # in ps
+    kwargs.setdefault('e', 500000) # in ps
     mdrun = MDRun(sysdir, sysname, runname)
     if mode == 'solu': # REMOVE SOLVENT # NDX groups: 1.System 2.Solute 3.Backbone 4.Solvent 5...chains...
         k = 1
@@ -95,10 +95,7 @@ def cluster(sysdir, sysname, runname, **kwargs):
     b = 400000
     mdrun.cluster(b=b, dt=1000, cutoff=0.15, method='gromos', cl='clusters.pdb', clndx='cluster.ndx', av='yes')
     mdrun.extract_cluster()
-    
-    
-def lrt_analysis(sysdir, sysname, runname):
-    mdrun = MDRun(sysdir, sysname, runname) # Init MDRun instance with all the needed paths
+
     # u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True) # MDAnalisys universe instance, store in RAM
     # # Select the backbone atoms
     # mask = u.atoms.names == 'BB'
@@ -109,15 +106,15 @@ def lrt_analysis(sysdir, sysname, runname):
     # # Split positions into 'n' chunks and calculate covariance matrices
     # # all of them are stored in mdrun.covdir directory as covmat_{n}.npy files
     # lrt.calc_and_save_covmats(positions, outdir=mdrun.covdir, n=10) 
+    
+def cov_analysis(sysdir, sysname, runname):
+    mdrun = MDRun(sysdir, sysname, runname) 
+    mdrun.prepare_files()
     mdrun.get_covmats()
     mdrun.get_pertmats()
-    # mdrun.get_dfi()
-    # mdrun.get_dci(asym=False)
-    # # group dci
-    # u = mda.Universe(self.trjpdb)
-    # groups = u.segments.ids
-    # group_ids = [s.segid for s in u.segments]
-    # run.get_group_dci(asym=False)
+    mdrun.get_dfi(outtag='dfi')
+    mdrun.get_dci(outtag='dci', asym=False)
+    mdrun.get_dci(outtag='asym', asym=True)
 
 
 def tdlrt_analysis(sysdir, sysname, runname):
@@ -143,29 +140,12 @@ def tdlrt_analysis(sysdir, sysname, runname):
     os.chdir(bdir)
 
 
-def get_averages(sysdir, sysname, rmsf=True, dfi=True, dci=True, ):
-    system = gmxSystem(sysdir, sysname)  
-    print('Starting', file=sys.stderr )    
-    all_files = pull_all_files(system.mddir)
-    if rmsf:  # RMSF
-        print(f'Processing RMSF', file=sys.stderr )
-        files = filter_files(all_files, sw='rmsf.', ew='.xvg')
-        system.get_mean_sem(files, f'rmsf.csv', col=1)
-        # Chain RMSF
-        for chain in system.chains:
-            print(f'Processing chain {chain}', file=sys.stderr )
-            sw = f'rmsf_{chain}'
-            files = filter_files(all_files, sw=sw, ew='.xvg')
-            system.get_mean_sem(files, f'{sw}.csv', col=1)
-    if dfi:  # DFI
-        print(f'Processing DFI', file=sys.stderr )
-        files = filter_files(all_files, sw='dfi', ew='.xvg')
-        system.get_mean_sem(files, f'dfi.csv', col=1)
-    if dci: # DCI
-        print(f'Processing DCI', file=sys.stderr )
-        files = filter_files(all_files, sw='dci', ew='.xvg')
-        system.get_mean_sem_2d(files, out_fname=f'dci.csv', out_errname=f'dci_err.csv')
-        
+def get_averages(sysdir, sysname, rmsf=False, dfi=True, dci=True, ):
+    system = gmxSystem(sysdir, sysname)   
+    system.get_mean_sem(pattern='dfi*.npy')
+    system.get_mean_sem(pattern='dci*.npy')
+    system.get_mean_sem(pattern='asym*.npy')
+
     
 def plot_averages(sysdir, sysname, **kwargs):    
     from plotting import plot_each_mean_sem
@@ -190,7 +170,7 @@ if __name__ == '__main__':
         "trjconv": trjconv,
         "rms_analysis": rms_analysis,
         "cluster": cluster,
-        "lrt_analysis": lrt_analysis,
+        "cov_analysis": cov_analysis,
         "tdlrt_analysis": tdlrt_analysis,
         "get_averages": get_averages,
         "plot": plot_averages,

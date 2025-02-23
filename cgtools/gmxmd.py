@@ -428,61 +428,47 @@ class gmxSystem:
         files = [os.path.join(rundir, fdir, fname) for rundir in rundirs]
         files = [f for f in files if os.path.exists(f)]
         return files
-        
-    def get_mean_sem(self, files, outfname, col=1):
-        """
-        Calculates the mean and the standard error of mean for a metric
-        of all runs and save them to self.datdir
-        
-        Args:
-            fname(str): Name of the metric file
-               
-        Output: 
-            data
-        """
-        dfs = []
-        for file in files:
-            df = pd.read_csv(file, sep='\\s+', header=None)
-            dfs.append(df)
-        datas = [df[col] for df in dfs]
-        x = df[0]
+
+    def get_mean_sem(self, pattern='dfi*.npy'):
+        files = io.pull_files(self.mddir, pattern)
+        datas = [np.load(file) for file in files]
         mean = np.average(datas, axis=0)
         sem = np.std(datas, axis=0) / np.sqrt(len(datas))
-        df = pd.DataFrame({'x':x, 'mean':mean, 'sem':sem})
-        fpath = os.path.join(self.datdir, outfname)
-        df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
-        return x, mean, sem
-        
-    def get_mean_sem_2d(self, files, out_fname, out_errname):
-        """
-        Calculates the mean and the standard error of mean for a metric
-        of all runs and save them to self.datdir
-        
-        Args:
-            fname(str): Name of the metric file
-               
-        Output: 
-            data
-        """
-        dfs = []
-        for file in files:
-            df = pd.read_csv(file, sep='\\s+', header=None)
-            dfs.append(df)
-        datas = dfs
-        mean = np.average(datas, axis=0)
-        sem = np.std(datas, axis=0) / np.sqrt(len(datas))
-        df = pd.DataFrame(mean)
-        fpath = os.path.join(self.datdir, out_fname)
-        df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
-        df = pd.DataFrame(sem)
-        fpath = os.path.join(self.datdir, out_errname)
-        df.to_csv(fpath, index=False, header=False, float_format='%.3E', sep=',')
-        return mean, sem
-        
+        file_mean = os.path.join(self.datdir, pattern.split('*')[0] + '.csv')
+        file_err = os.path.join(self.datdir, pattern.split('*')[0] + '_err.csv')
+        pd.DataFrame(mean).to_csv(file_mean, header=None, index=False) 
+        pd.DataFrame(sem).to_csv(file_err, header=None, index=False) 
+
     def initmd(self, runname):
         mdrun = MDRun(self.sysdir, self.sysname, runname)
         # self._mdruns.append(mdrun.runname)
-        return mdrun        
+        return mdrun       
+
+
+    def get_averages(sysdir, sysname, rmsf=False, dfi=True, dci=True, ):
+        system = gmxSystem(sysdir, sysname)  
+        print('Starting', file=sys.stderr )    
+        all_files = io.pull_all_files(system.mddir)
+        if rmsf:  # RMSF
+            print(f'Processing RMSF', file=sys.stderr )
+            files = io.filter_files(all_files, sw='rmsf.', ew='.xvg')
+            system.get_mean_sem(files, f'rmsf.csv', col=1)
+            # Chain RMSF
+            for chain in system.chains:
+                print(f'Processing chain {chain}', file=sys.stderr )
+                sw = f'rmsf_{chain}'
+                files = io.filter_files(all_files, sw=sw, ew='.xvg')
+                system.get_mean_sem(files, f'{sw}.csv', col=1)
+        if dfi:  # DFI
+            print(f'Processing DFI', file=sys.stderr )
+            files = io.filter_files(all_files, sw='dfi', ew='.xvg')
+            system.get_mean_sem(files, f'dfi.csv', col=1)
+        if dci: # DCI
+            print(f'Processing DCI', file=sys.stderr )
+            files = io.filter_files(all_files, sw='dci', ew='.xvg')
+            system.get_mean_sem_2d(files, out_fname=f'dci.csv', out_errname=f'dci_err.csv')
+            files = io.filter_files(all_files, sw='asym', ew='.xvg')
+            system.get_mean_sem_2d(files, out_fname=f'dci.csv', out_errname=f'dci_err.csv')         
 
 ################################################################################
 # MDRun class
@@ -530,8 +516,7 @@ class MDRun(gmxSystem):
         os.makedirs(self.covdir, exist_ok=True)
         os.makedirs(self.lrtdir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
-        shutil.copy(os.path.join(self.wdir, 'atommass.dat'),
-            'atommass.dat', os.path.join(self.rundir, 'atommass.dat'))
+        shutil.copy('atommass.dat', os.path.join(self.rundir, 'atommass.dat'))
         
     def empp(self, **kwargs):
         """
@@ -714,40 +699,35 @@ class MDRun(gmxSystem):
         """
         Calculates DFI from perturbation matrices
         """
-        bdir = os.getcwd()
-        os.chdir(self.covdir)
-        print(f'Working dir: {self.covdir}', file=sys.stderr)
-        pert_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
-        for pert_file in pert_files:
-            print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
-            pertmat = np.load(pert_file)
-            print('  Calculating DFI', file=sys.stderr)
-            dfi = lrt.calc_dfi(pertmat)
-            dfi_file = pert_file.replace(intag, outtag).replace('.npy', '.xvg')
-            dfi_file = os.path.join('..', 'dci_dfi', dfi_file)
-            print(f'  Saving DFI at {dfi_file}',  file=sys.stderr)
-            lrt.save_1d_data(dfi, fpath=dfi_file)
-        print('Finished calculating DFIs!', file=sys.stderr)
-        os.chdir(bdir)  
+        with cd(self.covdir):
+            pert_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
+            for pert_file in pert_files:
+                logger.info(f'  Processing perturbation matrix {pert_file}')
+                pertmat = np.load(pert_file)
+                logger.info('  Calculating DFI')
+                dfi = lrt.dfi(pertmat)
+                dfi_file = pert_file.replace(intag, outtag)
+                dfi_file = os.path.join(self.covdir, dfi_file)
+                np.save(dfi_file, dfi)
+                logger.info(f'  Saved DFI at {dfi_file}')
+        logger.info('Finished calculating DFIs!')
         
-    def get_full_dci(self, intag='pertmat', outtag='dci', asym=False):
+    def get_dci(self, intag='pertmat', outtag='dci', asym=False):
         """
         Calculates full DCI matrix from perturbation matrices
         """
-        bdir = os.getcwd()
-        os.chdir(self.covdir)
-        print(f'Working dir: {self.covdir}', file=sys.stderr)
-        pert_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
-        for pert_file in pert_files:
-            print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
-            pertmat = np.load(pert_file)
-            print('  Calculating DCI', file=sys.stderr)
-            dci_file = pert_file.replace(intag, outtag).replace('.npy', '.xvg')
-            ch_dci_file = os.path.join('..', 'dci_dfi', dci_file)
-            dci = lrt.calc_dci(pertmat, asym=asym)
-            lrt.save_2d_data(dci, fpath=dci_file)
-        print('Finished calculating DCIs!', file=sys.stderr)
-        os.chdir(bdir)
+        with cd(self.covdir):
+            pert_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
+            for pert_file in pert_files:
+                logger.info(f'  Processing perturbation matrix {pert_file}')
+                pertmat = np.load(pert_file)
+                logger.info('  Calculating DCI')
+                dci_file = pert_file.replace(intag, outtag)
+                dci_file = os.path.join(self.covdir, dci_file)
+                dci = lrt.dci(pertmat, asym=asym)
+                np.save(dci_file, dci)
+                logger.info(f'  Saved DCI at {dci_file}')
+        logger.info('Finished calculating DCIs!')
 
     def get_group_dci(self, groups=[], group_ids=[], asym=False):
         """
