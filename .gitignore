@@ -42,5 +42,7 @@ __pycache__
 *.blg
 *.synctex.*
 *.dat
+*.xtc
+*.trr
 file_header_*.txt
 workspace.xml

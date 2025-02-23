@@ -11,40 +11,13 @@ import cgtools
 from contextlib import contextmanager
 from cgtools import cli, lrt, pdbtools
 from cgtools.pdbtools import AtomList
-from pathlib import Path
+from cgtools.utils import cd, clean_dir, logger
 
 ################################################################################
 # Utils
 ################################################################################   
 
-# Fancy print statements
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(levelname)s] %(message)s'
-)
-
-@contextmanager
-def cd(newdir):
-    """Context manager for changing the current working directory."""
-    prevdir = Path.cwd()
-    os.chdir(newdir)
-    try:
-        yield
-    finally:
-        clean_dir()
-        os.chdir(prevdir)
-
-
-def clean_dir(directory=".", pattern="#*"):
-    """Clean some of the annoying GROMACS backups."""
-    directory = Path(directory)
-    for file_path in directory.glob(pattern):    
-        if file_path.is_file():
-            file_path.unlink()  
-
-
- def sort_upper_lower_digit(alist):
+def sort_upper_lower_digit(alist):
     """
     Sorts characters in a list such that they appear in the following order: 
     uppercase letters first, then lowercase letters, followed by digits. 
@@ -520,7 +493,7 @@ class gmxSystem:
         return mean, sem
         
     def initmd(self, runname):
-        mdrun = MDRun(runname, self.sysdir, self.sysname)
+        mdrun = MDRun(self.sysdir, self.sysname, runname)
         # self._mdruns.append(mdrun.runname)
         return mdrun        
 
@@ -535,7 +508,7 @@ class MDRun(gmxSystem):
     such as GROMACS, with the provided input files.
     """
     
-    def __init__(self, runname, *args, **kwargs):
+    def __init__(self, sysdir, sysname, runname):
         """
         Initializes required directories and files.
         
@@ -548,7 +521,7 @@ class MDRun(gmxSystem):
             pngdir (str): figures
             kwargs: Additional keyword arguments.
         """
-        super().__init__(*args)
+        super().__init__(sysdir, sysname)
         self.runname = runname
         # self.rundir = '/home/dyangali/tmp'
         self.rundir = os.path.join(self.mddir, self.runname)
@@ -839,10 +812,3 @@ class MDRun(gmxSystem):
             cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n', 
                 o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
                 
-
-################################################################################
-# Helper functions
-################################################################################   
-
-
-

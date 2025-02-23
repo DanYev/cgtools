@@ -121,19 +121,19 @@ def test_write_ndx():
     if_passed = out_ndx in os.listdir()
     os.remove(out_ndx)
     assert if_passed
-    
+
 
 if __name__ == "__main__":
-    test_read_pdb()     
-    test_save_system() 
-    test_save_atoms()
-    test_chain()  
-    test_vecs()   
-    test_segids()   
-    test_sort()
-    test_filter()  
-    test_remove()  
-    test_sort_pdb()
-    test_write_ndx()
+    # test_read_pdb()     
+    # test_save_system() 
+    # test_save_atoms()
+    # test_chain()  
+    # test_vecs()   
+    # test_segids()   
+    # test_sort()
+    # test_filter()  
+    # test_remove()  
+    # test_sort_pdb()
+    # test_write_ndx()
 
   
