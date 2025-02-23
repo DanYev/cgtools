@@ -228,14 +228,11 @@ def gmx_solvate(**kwargs):
     gmx('solvate', **kwargs)
 
 
-@from_wdir
-def gmx_make_ndx(wdir, clinput=None, **kwargs):
+def gmx_make_ndx(clinput=None, **kwargs):
     """
     Run the GROMACS 'make_ndx' command to create an index file.
-
     Parameters:
-    wdir (str): 
-        The working directory where the command should be executed.
+
     clinput (str, optional): 
         Input string passed to the GROMACS command for defining groups.
     **kwargs: dict
@@ -252,14 +249,10 @@ def gmx_make_ndx(wdir, clinput=None, **kwargs):
     gmx('make_ndx', clinput=clinput, cltext=True, **kwargs)
 
 
-@from_wdir
-def gmx_grompp(wdir, **kwargs):
+def gmx_grompp(**kwargs):
     """
     Run the GROMACS 'grompp' command to preprocess the input files and generate the `.tpr` file.
-
     Parameters:
-    wdir (str): 
-        The working directory where the command should be executed.
     **kwargs: dict
         Additional options and flags for the 'grompp' command.
         Defaults:
@@ -283,8 +276,6 @@ def gmx_mdrun(wdir, **kwargs):
     Run the GROMACS 'mdrun' command to perform molecular dynamics or energy minimization.
 
     Parameters:
-    wdir (str): 
-        The working directory where the energy minimization will be performed.
     **kwargs: dict
         Additional options and flags for the 'mdrun' command.
         Defaults:
@@ -303,14 +294,12 @@ def gmx_mdrun(wdir, **kwargs):
     gmx('mdrun', **kwargs)
 
 
-@from_wdir
-def gmx_trjconv(wdir, clinput='1\n1\n', **kwargs):
+def gmx_trjconv(clinput='1\n1\n', **kwargs):
     """
     Run the GROMACS 'trjconv' command to convert trajectory files.
 
     Parameters:
-    wdir (str): 
-        The working directory where the command should be executed.
+
     clinput (str, optional): 
         Input string specifying selections (default '1\n1\n').
     **kwargs: dict

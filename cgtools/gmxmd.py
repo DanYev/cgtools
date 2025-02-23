@@ -510,13 +510,15 @@ class MDRun(gmxSystem):
         """
         super().__init__(sysdir, sysname)
         self.runname = runname
-        # self.rundir = '/home/dyangali/tmp'
         self.rundir = os.path.join(self.mddir, self.runname)
         self.rmsdir = os.path.join(self.rundir, 'rms_analysis')
         self.covdir = os.path.join(self.rundir, 'cov_analysis')
-        self.dddir  = os.path.join(self.rundir, 'dci_dfi')
+        self.lrtdir = os.path.join(self.rundir, 'lrt_analysis')
         self.cludir = os.path.join(self.rundir, 'clusters')
         self.pngdir = os.path.join(self.rundir, 'png')
+        self.str = os.path.join(self.rundir, 'mdc.pdb') # Structure
+        self.trj = os.path.join(self.rundir, 'mdc.trr') # Trajectory
+        
         
     def prepare_files(self):
         """
@@ -526,7 +528,7 @@ class MDRun(gmxSystem):
         os.makedirs(self.rmsdir, exist_ok=True)
         os.makedirs(self.cludir, exist_ok=True)
         os.makedirs(self.covdir, exist_ok=True)
-        os.makedirs(self.dddir, exist_ok=True)
+        os.makedirs(self.lrtdir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
         shutil.copy(os.path.join(self.wdir, 'atommass.dat'),
             'atommass.dat', os.path.join(self.rundir, 'atommass.dat'))
@@ -541,7 +543,8 @@ class MDRun(gmxSystem):
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'em.tpr')
-        cli.gmx_grompp(self.rundir, **kwargs)
+        with cd(self.rundir):
+            cli.gmx_grompp(**kwargs)
         
     def hupp(self, **kwargs):
         """
@@ -553,7 +556,8 @@ class MDRun(gmxSystem):
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'hu.tpr')
-        cli.gmx_grompp(self.rundir, **kwargs)
+        with cd(self.rundir):
+            cli.gmx_grompp(**kwargs)
 
     def eqpp(self, **kwargs):
         """
@@ -565,7 +569,8 @@ class MDRun(gmxSystem):
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'eq.tpr')
-        cli.gmx_grompp(self.rundir, **kwargs)
+        with cd(self.rundir):
+            cli.gmx_grompp(**kwargs)
         
     def mdpp(self, grompp=True, **kwargs):
         """
@@ -577,7 +582,8 @@ class MDRun(gmxSystem):
         kwargs.setdefault('p', self.systop)
         kwargs.setdefault('n', self.sysndx)
         kwargs.setdefault('o', 'md.tpr')
-        cli.gmx_grompp(self.rundir, **kwargs)   
+        with cd(self.rundir):
+            cli.gmx_grompp(**kwargs)   
         
     def mdrun(self,**kwargs):
         """
@@ -586,13 +592,15 @@ class MDRun(gmxSystem):
         kwargs.setdefault('deffnm', 'md')
         kwargs.setdefault('nsteps', '-2')
         kwargs.setdefault('ntomp', '8')
-        cli.gmx_mdrun(self.rundir, **kwargs) 
+        with cd(self.rundir):
+            cli.gmx_mdrun(**kwargs) 
         
     def trjconv(self, clinput=None, **kwargs):
         """
         Runs 'gmx trjconv'
         """
-        cli.gmx_trjconv(self.rundir, clinput=clinput, **kwargs)
+        with cd(self.rundir):
+            cli.gmx_trjconv(clinput=clinput, **kwargs)
          
     def rmsf(self, clinput=None, **kwargs):
         """
@@ -601,7 +609,8 @@ class MDRun(gmxSystem):
         kwargs.setdefault('f', 'mdc.xtc')
         kwargs.setdefault('s', 'mdc.pdb')
         kwargs.setdefault('n', self.mdcndx)
-        cli.gmx_rmsf(self.rundir, clinput=clinput, **kwargs)
+        with cd(self.rmsdir):
+            cli.gmx_rmsf(clinput=clinput, **kwargs)
          
     def rms(self, clinput=None, **kwargs):
         """
@@ -610,7 +619,8 @@ class MDRun(gmxSystem):
         kwargs.setdefault('f', 'mdc.xtc')
         kwargs.setdefault('s', 'mdc.pdb')
         kwargs.setdefault('n', self.mdcndx)
-        cli.gmx_rms(self.rundir, clinput=clinput, **kwargs)
+        with cd(self.rmsdir):
+            cli.gmx_rms(clinput=clinput, **kwargs)
          
     def rdf(self, clinput=None, **kwargs):
         """
@@ -619,7 +629,8 @@ class MDRun(gmxSystem):
         kwargs.setdefault('f', 'mdc.xtc')
         kwargs.setdefault('s', 'mdc.pdb')
         kwargs.setdefault('n', self.mdcndx)
-        cli.gmx_rdf(self.rundir, clinput=clinput, **kwargs)  
+        with cd(self.rmsdir):
+            cli.gmx_rdf(clinput=clinput, **kwargs)  
         
     def cluster(self, clinput=None, **kwargs):
         """
@@ -628,7 +639,8 @@ class MDRun(gmxSystem):
         kwargs.setdefault('f', '../traj.xtc')
         kwargs.setdefault('s', '../traj.pdb')
         kwargs.setdefault('n', self.trjndx)
-        cli.gmx_cluster(self.cludir, clinput=clinput, **kwargs) 
+        with cd(self.cludir):
+            cli.gmx_cluster(clinput=clinput, **kwargs) 
     
     def extract_cluster(self, clinput=None, **kwargs):
         """
@@ -636,7 +648,8 @@ class MDRun(gmxSystem):
         """  
         kwargs.setdefault('f', '../traj.xtc')
         kwargs.setdefault('clusters', 'cluster.ndx')
-        cli.gmx_extract_cluster(self.cludir, clinput=clinput, **kwargs) 
+        with cd(self.cludir):
+            cli.gmx_extract_cluster(clinput=clinput, **kwargs) 
         
     def covar(self, clinput=None, **kwargs):
         """
@@ -645,7 +658,8 @@ class MDRun(gmxSystem):
         kwargs.setdefault('f', '../traj.xtc')
         kwargs.setdefault('s', '../traj.pdb')
         kwargs.setdefault('n', self.trjndx)
-        cli.gmx_covar(self.covdir, clinput=clinput, **kwargs) 
+        with cd(self.cludir):
+            cli.gmx_covar(self.covdir, clinput=clinput, **kwargs) 
         
     def anaeig(self, clinput=None, **kwargs):
         """

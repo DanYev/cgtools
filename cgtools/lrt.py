@@ -12,7 +12,11 @@ from scipy.stats import pearsonr
 from cgtools.utils import timeit, memprofit, logger
 
 
-def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
+##############################################################
+## To calculate correlations ##
+############################################################## 
+
+def _sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     """
     Compute the correlation function <x(t)y(0)> using FFT.
     Parameters:
@@ -25,7 +29,7 @@ def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     Returns:
     - corr: np.ndarray, computed correlation function.
     """
-    print("Doing FFTs serially.", file=sys.stderr)
+    logger.info("Doing FFTs serially.")
     # Helper functions
     def compute_correlation(*args,):
         i, j, x_f, y_f, ntmax, counts = args
@@ -55,7 +59,7 @@ def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     return corr
 
 
-def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
+def _pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     """
     Compute the correlation function using FFT with parallelizing the cross-correlation loop.
     Looks like it starts getting faster for Nt >~ 10000
@@ -70,7 +74,7 @@ def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     Returns:
     - corr: np.ndarray, computed correlation function.
     """
-    print("Doing FFTs in parallel.", file=sys.stderr)
+    logger.info("Doing FFTs in parallel.")
     # Helper functions for parrallelizing
     def compute_correlation(*args,):
         i, j, x_f, y_f, ntmax, counts = args
@@ -104,12 +108,12 @@ def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     return corr
 
 
-def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
+def _gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
     """
     Another version for GPU
     WORKS LIKE WHOOOOOOOOOOOOOOOOOOOSHHHHHHHHHHH!
     """
-    print("Doing FFTs on GPU.", file=sys.stderr)
+    logger.info("Doing FFTs on GPU.")
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
@@ -138,11 +142,11 @@ def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
 @timeit
 def fft_corr(*args, mode='parallel', **kwargs):
     if mode == 'ser':
-        return sfft_corr(*args, **kwargs)
+        return _sfft_corr(*args, **kwargs)
     if mode == 'par':
-        return pfft_corr(*args, **kwargs)
+        return _pfft_corr(*args, **kwargs)
     if mode == 'gpu':
-        return gfft_corr(*args, **kwargs)
+        return _gfft_corr(*args, **kwargs)
     raise ValueError("Currently 'mode' should be 'ser', 'par' or 'gpu'.")
 
 
@@ -229,49 +233,38 @@ def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     return cpsd
 
 
-def calc_covmats(f='../traj.xtc', s='../traj.pdb', n=1, b=000000, dtype=np.float32):
+def covmat(positions, dtype=np.float32):
     """
-    Calculate the position-position covariance matrix from a GROMACS trajectory file.
-    
+    Calculate the position-position covariance matrix
     Parameters:
-        f (str): Path to the GROMACS trajectory file.
-        s (str): Path to the corresponding topology file.
+        positions (ndarray): arrays of positions
         b (float): Time of first frame to read from trajectory (default unit ps)
     """
-    # Load trajectory
-    u = mda.Universe(s, f)
-    selection = u.atoms
-    # Extract positions efficiently
-    positions = np.array(
-        [selection.positions.flatten() for ts in u.trajectory if ts.time > b], dtype=dtype
-    )
-    # Transpose for better memory access (n_coords, n_frames)
-    positions = np.ascontiguousarray(positions.T)  # Ensures efficient memory layout
-    # Compute the mean across frames
-    # mean_positions = positions.mean(axis=1, keepdims=True)  # Shape: (n_coords, 1)
-    # Split into `n` segments along frames (axis=1)
-    trajs = np.array_split(positions, n, axis=-1)
-    # Process each segment
-    for idx, traj in enumerate(trajs, start=1):
-        print(f"Processing matrix {idx}", file=sys.stderr)
-        # Center the data by removing mean
-        mean_traj = traj.mean(axis=-1, keepdims=True)  # Shape: (n_coords, 1)
-        centered_positions = traj - mean_traj  # Broadcasting subtraction
-        # Compute covariance matrix (n_coords x n_coords)
-        covariance_matrix = np.cov(centered_positions, rowvar=True, dtype=dtype)
-        # Save covariance matrix
-        np.save(f'covmat_{idx}.npy', covariance_matrix)
-        print(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'", file=sys.stderr)
+    mean = positions.mean(axis=-1, keepdims=True) # (n_coords, 1) 
+    centered_positions = positions - mean # Center the data by removing mean
+    covmat = np.cov(centered_positions, rowvar=True, dtype=dtype) # Compute covariance matrix (n_coords x n_coords)
+    return covmat
+
+
+def calc_and_save_covmats(positions, n=1, dtype=np.float32):
+    """
+    Calculate and save the position-position covariance matrices by splitting trajectory into n segments
+    
+    Parameters:
+        positions (ndarray): arrays of positions
+        n (int): number of segments
+    """
+    trajs = np.array_split(positions, n, axis=-1)  # Split into `n` segments along frames (axis=1)
+    for idx, traj in enumerate(trajs, start=1): # Process each segment
+        logger.info(f"Processing matrix {idx}")
+        covmat = covmat(traj), # Compute covariance matrix (n_coords x n_coords)
+        np.save(f'covmat_{idx}.npy', covmat)
+        logger.info(f"Covariance matrix {idx} saved to 'covmat_{idx}.npy'")
         
         
-def calc_ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
+def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
     """
     Calculate the average cross-correlation function of x and y by splitting them into n segments
-    
-    Parameters:
-        f (str): Path to the GROMACS trajectory file.
-        s (str): Path to the corresponding topology file.
-        b (float): Time of first frame to read from trajectory (default unit ps)
     """
     print(f"Calculating cross-correlation.", file=sys.stderr)
     # Split trajectories into `n` segments along frames (axis=1)
@@ -296,7 +289,11 @@ def calc_ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.flo
     return corr
 
 
-def get_perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32):
+##############################################################
+## DCI DFI ##
+############################################################## 
+
+def _perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32):
     directions = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]), dtype=dtype)
     directions = directions.T / np.sqrt(np.sum(directions, axis=1)).T # normalizing directions
     directions = directions.T
@@ -313,7 +310,7 @@ def get_perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32):
     return perturbation_matrix
   
     
-def calc_perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
+def _perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU
     The result is normalized such that the total sum of the matrix elements is equal to 1
@@ -331,9 +328,14 @@ def calc_perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
         perturbation_matrix += abs_delta
     perturbation_matrix /= np.sum(perturbation_matrix)
     return perturbation_matrix
-    
 
-def calc_td_perturbation_matrix_cpu(ccf, normalize=False, dtype=np.float32):
+
+def perturbation_matrix(covariance_matrix, dtype=np.float32):
+    pertmat = _perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
+    return pertmat
+
+
+def _td_perturbation_matrix_cpu(ccf, normalize=False, dtype=np.float32):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU
     The result is normalized such that the total sum of the matrix elements is equal to 1
@@ -348,17 +350,12 @@ def calc_td_perturbation_matrix_cpu(ccf, normalize=False, dtype=np.float32):
     return perturbation_matrix    
 
 
-def calc_perturbation_matrix(covariance_matrix, dtype=np.float32):
-    pertmat = calc_perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
-    return pertmat
-
-
-def calc_td_perturbation_matrix(covariance_matrix, dtype=np.float32):
+def td_perturbation_matrix(covariance_matrix, dtype=np.float32):
     pertmat = calc_td_perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
     return pertmat    
 
 
-def calc_dfi(perturbation_matrix):
+def dfi(perturbation_matrix):
     """
     Calculates DFI matrix from the pertubation matrix
     Normalized such that the total sum is equal to 1
@@ -367,7 +364,7 @@ def calc_dfi(perturbation_matrix):
     return dfi
     
 
-def calc_dci(perturbation_matrix, asym=False):
+def dci(perturbation_matrix, asym=False):
     """
     Calculates DCI matrix from the pertubation matrix
     Normalized such that the total sum of the matrix elements is equal to the number of residues
@@ -378,7 +375,7 @@ def calc_dci(perturbation_matrix, asym=False):
     return dci    
     
 
-def calc_group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
+def group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
     """
     Calculates DCI between a group of atoms in 'groups' and the rest of the molecule
     """
@@ -395,7 +392,7 @@ def calc_group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
     return dcis 
     
     
-def calc_group_group_dci(perturbation_matrix, groups=[[]], asym=False):
+def group_group_dci(perturbation_matrix, groups=[[]], asym=False):
     """
     Calculates DCI matrix between the groups of atoms in 'groups'
     """
@@ -417,10 +414,9 @@ def calc_group_group_dci(perturbation_matrix, groups=[[]], asym=False):
     return dcis 
     
 
-def calc_dci_asymmetry(dci):
-    dci_asymmetry = dci - dci.T
-    return dci_asymmetry    
-    
+##############################################################
+## MISC ##
+############################################################## 
  
 def percentile(x):
     sorted_x = np.argsort(x)
@@ -429,10 +425,6 @@ def percentile(x):
         px[n] = np.where(sorted_x == n)[0][0] / len(x)
     return px
     
-    
-
-    
-
 if __name__ == '__main__':
     pass
 

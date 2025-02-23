@@ -12,7 +12,7 @@ from cgtools.utils import *
 from pathlib import Path
 
 
-def setup_cg_model(sysdir, sysname):
+def setup(sysdir, sysname):
 
     ### FOR COARSE-GRAINED MODELS ###
     system = gmxSystem(sysdir, sysname)
@@ -61,32 +61,22 @@ def extend(sysdir, sysname, runname, ntomp):
     mdrun.mdrun(deffnm='md', cpi='md.cpt', ntomp=ntomp, nsteps=-2) 
 
 
-def make_ndx(sysdir, sysname, mode='cg', **kwargs):
+def make_ndx(sysdir, sysname, **kwargs):
     system = gmxSystem(sysdir, sysname)
-    if mode == 'cg':
-        atoms = ['BB', 'BB1', 'BB2', 'BB3', 'SC1', 'SC2', 'SC3', 'SC4', 'SC5', 'SC6', 'SC7', 'SC8']
-        ions = ['K', 'CL', 'MG', 'MGH']
-        system.make_ndx(pdb=system.syspdb, ndx=system.sysndx, groups=[atoms, atoms + ions, ions])
-        mask = atoms + ions
-        system.make_mdc_pdb_ndx(mask=mask)
-        backbone = ['BB', 'BB1', 'BB3']
-        system.make_trj_pdb_ndx(mask=backbone)
-        system.make_ndx(pdb=system.mdcpdb, ndx='bb.ndx', groups=[backbone])
-    if mode == 'aa':
-       pass
+    system.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
       
     
 def trjconv(sysdir, sysname, runname, mode='solu', fit='rot+trans', **kwargs):
-    kwargs.setdefault('b', 0)
-    kwargs.setdefault('dt', 0)
-    kwargs.setdefault('e', 0)
+    kwargs.setdefault('b', 0) # in ps
+    kwargs.setdefault('dt', 1000) # in ps
+    kwargs.setdefault('e', 100000) # in ps
     mdrun = MDRun(sysdir, sysname, runname)
-    if mode == 'solu': # REMOVE SOLVENT
+    if mode == 'solu': # REMOVE SOLVENT # NDX groups: 1.System 2.Solute 3.Backbone 4.Solvent 5...chains...
         k = 1
     if mode == 'bb': # FOR BACKBONE ANALYSIS
         k = 2
     mdrun.trjconv(clinput='k\nk\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='whole', ur='compact', e=0)
-    mdrun.trjconv(clinput='k\nk\n', s='md.tpr', f='md.trr', o='mdc.xtc', n=mdrun.sysndx, pbc='whole', ur='compact', **kwargs)
+    mdrun.trjconv(clinput='k\nk\n', s='md.tpr', f='md.trr', o='mdc.trr', n=mdrun.sysndx, pbc='whole', ur='compact', **kwargs)
     mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', pbc='nojump')
     if fit:
         mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', fit=fit)
@@ -112,7 +102,7 @@ def cluster(sysdir, sysname, runname, **kwargs):
     mdrun.extract_cluster()
     
     
-def dci_dfi(sysdir, sysname, runname):
+def lrt(sysdir, sysname, runname):
     system = gmxSystem(sysdir, sysname)
     run = system.initmd(runname)
     run.prepare_files()
@@ -190,35 +180,24 @@ def test(sysdir, sysname, runname, **kwargs):
 if __name__ == '__main__':
     todo = sys.argv[1]
     args = sys.argv[2:]
-    match todo:
-        case 'setup_cg_model':
-            setup_cg_model(*args)
-        case 'md':
-            md(*args)    
-        case 'extend':
-            extend(*args)
-        case 'make_ndx':
-            make_ndx(*args)
-        case 'trjconv':
-            trjconv(*args,)
-        case 'rms_analysis':
-            rms_analysis(*args)
-        case 'cluster':
-            cluster(*args)
-        case 'cov_analysis':
-            cov_analysis(*args)
-        case 'dci_dfi':
-            dci_dfi(*args)
-        case 'tdlrt':
-            tdlrt(*args)
-        case 'get_averages':
-            get_averages(*args)    
-        case 'plot':
-            plot_averages(*args)
-        case 'tdlrt_figs':
-            tdlrt_figs(*args)
-        case 'test':
-            test(*args)
+    commands = {
+        "setup": setup,
+        "md": md,
+        "extend": extend,
+        "make_ndx": make_ndx,
+        "trjconv": trjconv,
+        "rms_analysis": rms_analysis,
+        "cluster": cluster,
+        "dci_dfi": dci_dfi,
+        "tdlrt": tdlrt,
+        "get_averages": get_averages,
+        "plot": plot_averages,
+        "test": test,
+    }
+    if todo in commands:   # Then, assuming `todo` is the command name (a string)
+        commands[todo](*args) # `args` is a list/tuple of arguments
+    else:
+        raise ValueError(f"Unknown command: {todo}")
    
         
     
