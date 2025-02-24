@@ -8,17 +8,12 @@ from cgtools.utils import timeit, memprofit, logger
 ## Reading trajectories with MDAnalysis
 ################################################################################  
 
-
-def in_range(ts, b, e): # Check if ts.time is within the range (b, e)
-    return b < ts.time < e
-
-
 @timeit
 @memprofit
 def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
     logger.info("Reading positions...")
     arr = np.array(
-        [ag.positions.flatten() for ts in u.trajectory[::sample_rate] if in_range(ts, b, e)], dtype=dtype)
+        [ag.positions.flatten() for ts in u.trajectory[::sample_rate] if b < ts.time < e], dtype=dtype)
     arr = np.ascontiguousarray(arr.T)  # Transpose for memory efficiency (shape: (n_coords, n_frames))
     logger.info("Done!")
     return arr
@@ -27,7 +22,7 @@ def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
 def read_velocities(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
     logger.info("Reading velocities...")
     arr = np.array(
-        [ag.velocities.flatten() for ts in u.trajectory[::sample_rate] if in_range(ts, b, e)], dtype=dtype)
+        [ag.velocities.flatten() for ts in u.trajectory[::sample_rate] if b < ts.time < e], dtype=dtype)
     arr = np.ascontiguousarray(arr.T)  # Transpose for memory efficiency (shape: (n_coords, n_frames))
     logger.info("Done!")
     return arr

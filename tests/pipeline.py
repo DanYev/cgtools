@@ -129,7 +129,7 @@ def tdlrt_analysis(sysdir, sysname, runname):
     np.save(corr_file, corr)
 
 
-def get_averages(sysdir, sysname, rmsf=False, dfi=True, dci=True, ):
+def get_averages(sysdir, sysname):
     system = gmxSystem(sysdir, sysname)   
     system.get_mean_sem(pattern='dfi*.npy')
     system.get_mean_sem(pattern='dci*.npy')

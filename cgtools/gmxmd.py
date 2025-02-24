@@ -142,7 +142,7 @@ class gmxSystem:
                 out_pdb = os.path.join(self.nucdir, f'chain_{chain.chid}.pdb')
             else:
                 out_pdb = os.path.join(self.prodir, f'chain_{chain.chid}.pdb')
-            atoms.write_to_pdb(out_pdb)
+            atoms.write_pdb(out_pdb)
                 
     def clean_chains(self, **kwargs):
         """
@@ -294,7 +294,7 @@ class gmxSystem:
                 system = pdbtools.parse_pdb(self.ionpdb)
                 atoms.extend(system.atoms)
             atoms.renumber()    
-            atoms.write_to_pdb(self.solupdb)
+            atoms.write_pdb(self.solupdb)
             cli.gmx('editconf', f=self.solupdb, o=self.solupdb, **kwargs)   
         
     def make_martini_topology_file(self, add_resolved_ions=False, prefix='chain'):
@@ -394,23 +394,23 @@ class gmxSystem:
 
     def make_sys_ndx(self, backbone_atoms=["CA", "P", "C1'"]): # ["BB", "BB1", "BB3"]
         logger.info("Making Index File")
-        system = pdbtools.parse_pdb(self.syspdb).atoms
-        solute = pdbtools.parse_pdb(self.solupdb).atoms
+        system = pdbtools.pdb2atomlist(self.syspdb)
+        solute = pdbtools.pdb2atomlist(self.solupdb)
         # System
-        system.write_to_ndx(self.sysndx, header=f'[ System ]', append=False, wrap=15) 
+        system.write_ndx(self.sysndx, header=f'[ System ]', append=False, wrap=15) 
         # Solute
-        solute.write_to_ndx(self.sysndx, header=f'[ Solute ]', append=True, wrap=15) 
+        solute.write_ndx(self.sysndx, header=f'[ Solute ]', append=True, wrap=15) 
         # Backbone
         backbone = solute.filter(backbone_atoms, mode='name')
-        backbone.write_to_ndx(self.sysndx, header=f'[ Backbone ]', append=True, wrap=15) 
+        backbone.write_ndx(self.sysndx, header=f'[ Backbone ]', append=True, wrap=15) 
         # Solvent
         solvent = AtomList(system[len(solute):])
-        solvent.write_to_ndx(self.sysndx, header=f'[ Solvent ]', append=True, wrap=15) 
+        solvent.write_ndx(self.sysndx, header=f'[ Solvent ]', append=True, wrap=15) 
         # Chains
         chids = sorted(set(solute.chids))
         for chid in chids:
             chain = solute.filter(chid, mode='chid')
-            chain.write_to_ndx(self.sysndx, header=f'[ chain_{chid} ]', append=True, wrap=15) 
+            chain.write_ndx(self.sysndx, header=f'[ chain_{chid} ]', append=True, wrap=15) 
         logger.info(f"Written index to {self.sysndx}")
     
     def pull_runs_files(self, fdir, fname):

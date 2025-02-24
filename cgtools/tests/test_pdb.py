@@ -17,7 +17,7 @@ def test_save_system():
     if test_pdb in os.listdir():
         os.remove(test_pdb)
     system = parse_pdb(in_pdb)
-    system.write_to_pdb(test_pdb)
+    system.write_pdb(test_pdb)
     if_passed = test_pdb in os.listdir()
     assert if_passed
 
@@ -29,7 +29,7 @@ def test_save_atoms():
         os.remove(test_pdb)
     system = parse_pdb(in_pdb)
     atoms = system.atoms
-    atoms.write_to_pdb(test_pdb)
+    atoms.write_pdb(test_pdb)
     if_passed = test_pdb in os.listdir()
     assert if_passed
 
@@ -117,7 +117,7 @@ def test_write_ndx():
         os.remove(out_ndx)
     system = parse_pdb(in_pdb)
     atoms = system.atoms
-    atoms.write_to_ndx(out_ndx, header=f'[ System ]', append=False, wrap=15) # sys ndx
+    atoms.write_ndx(out_ndx, header=f'[ System ]', append=False, wrap=15) # sys ndx
     if_passed = out_ndx in os.listdir()
     os.remove(out_ndx)
     assert if_passed
