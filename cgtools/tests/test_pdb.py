@@ -78,14 +78,14 @@ def test_sort():
     assert if_passed
     
 
-def test_filter():
+def test_mask():
     in_pdb = TEST_PDB
     system = parse_pdb(in_pdb)
     atoms = system.atoms
     chids = list(set(atoms.chids))
     chid = chids[0]
-    filtered_atoms = atoms.filter(chid, mode="chid")
-    test_chid = list(set(filtered_atoms.chids))[0]
+    masked_atoms = atoms.mask(chid, mode="chid")
+    test_chid = list(set(masked_atoms.chids))[0]
     if_passed = chid == test_chid
     assert if_passed
 
@@ -96,9 +96,9 @@ def test_remove():
     system = parse_pdb(in_pdb)
     atoms = system.atoms
     initial_len = len(atoms)
-    filtered_atoms = atoms.filter(mask)
-    atoms.remove_atoms(filtered_atoms)
-    if_passed = initial_len - len(atoms) - len(filtered_atoms) == 0
+    masked_atoms = atoms.mask(mask)
+    atoms.remove_atoms(masked_atoms)
+    if_passed = initial_len - len(atoms) - len(masked_atoms) == 0
     assert if_passed
 
 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # test_vecs()   
     # test_segids()   
     # test_sort()
-    # test_filter()  
+    # test_mask()  
     # test_remove()  
     # test_sort_pdb()
     # test_write_ndx()

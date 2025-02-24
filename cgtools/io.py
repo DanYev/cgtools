@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from cgtools.utils import timeit, memprofit, logger
+from cgtools.pdbtools import AtomList, System
 
 ################################################################################
 ## Reading trajectories with MDAnalysis
@@ -77,6 +78,24 @@ def xvg2npy(xvg_path, npy_path, usecols=[0, 1]):
     data = np.squeeze(df.to_numpy().T)
     # data = np.loadtxt(xvg_path, usecols=usecols).T
     np.save(npy_path, data)
+
+
+def pdb2system(pdb_path) -> System:
+    """
+    Read a pdb into a System object
+    """
+    parser = PDBParser(pdb_path)
+    system = parser.parse()
+    return system
+
+
+def pdb2atomlist(pdb_path) -> AtomList:
+    """
+    Read a pdb into an AtomList object
+    """
+    atoms = AtomList()
+    atoms.read_pdb(pdb_path)
+    return atoms    
 
 
 def read_data(fpath):

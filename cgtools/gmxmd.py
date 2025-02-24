@@ -87,6 +87,13 @@ class gmxSystem:
     def mdruns(self, mdruns):
         self._mdruns = mdruns
 
+    @property
+    def chains(self):
+        atoms = io.pdb2atomlist(self.inpdb)
+        chains = sort_upper_lower_digit(set(atoms.chids))
+        return chains
+
+
     def prepare_files(self):
         """
         Creates the necessary directories for the simulation and copies the 
@@ -396,20 +403,16 @@ class gmxSystem:
         logger.info("Making Index File")
         system = pdbtools.pdb2atomlist(self.syspdb)
         solute = pdbtools.pdb2atomlist(self.solupdb)
-        # System
-        system.write_ndx(self.sysndx, header=f'[ System ]', append=False, wrap=15) 
-        # Solute
-        solute.write_ndx(self.sysndx, header=f'[ Solute ]', append=True, wrap=15) 
-        # Backbone
-        backbone = solute.filter(backbone_atoms, mode='name')
-        backbone.write_ndx(self.sysndx, header=f'[ Backbone ]', append=True, wrap=15) 
-        # Solvent
         solvent = AtomList(system[len(solute):])
+        backbone = solute.mask(backbone_atoms, mode='name')
+        system.write_ndx(self.sysndx, header=f'[ System ]', append=False, wrap=15) 
+        solute.write_ndx(self.sysndx, header=f'[ Solute ]', append=True, wrap=15) 
+        backbone.write_ndx(self.sysndx, header=f'[ Backbone ]', append=True, wrap=15) 
         solvent.write_ndx(self.sysndx, header=f'[ Solvent ]', append=True, wrap=15) 
         # Chains
         chids = sorted(set(solute.chids))
         for chid in chids:
-            chain = solute.filter(chid, mode='chid')
+            chain = solute.mask(chid, mode='chid')
             chain.write_ndx(self.sysndx, header=f'[ chain_{chid} ]', append=True, wrap=15) 
         logger.info(f"Written index to {self.sysndx}")
     
@@ -698,9 +701,9 @@ class MDRun(gmxSystem):
         if not u:
             u = mda.Universe(self.str, self.trj, in_memory=True)
         if not ag: # Select the backbone atoms
-            ag = u.atoms.select_atoms("name CA or name P or name C1'")
+            ag = u.atoms.select_atoms("name BB or name BB1 or name BB3") 
             if not ag:
-                ag = u.atoms.select_atoms("name BB or name BB1 or name BB3") 
+                ag = u.atoms.select_atoms("name CA or name P or name C1'")
         positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e) 
         lrt.calc_and_save_covmats(positions, outdir=self.covdir, n=n, outtag=outtag) 
         logger.info('Finished calculating covariance matrices!')
@@ -756,42 +759,30 @@ class MDRun(gmxSystem):
                 logger.info(f'  Saved DCI at {dci_file}')
         logger.info('Finished calculating DCIs!')
 
-    def get_group_dci(self, groups=[], group_ids=[], asym=False):
+    def get_group_dci(self, groups=[], labels=[], asym=False):
         """
         Calculates DCI between given groups from perturbation matrices
         """
         bdir = os.getcwd()
         os.chdir(self.covdir)
-        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        logger.info(f'Working dir: {self.covdir}')
         pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
         for pert_file in pert_files:
-            print(f'  Processing perturbation matrix {pert_file}', file=sys.stderr)
+            logger.info(f'  Processing perturbation matrix {pert_file}')
             pertmat = np.load(pert_file)
-            print('  Calculating DCI', file=sys.stderr)
-            dcis = lrt.calc_group_molecule_dci(pertmat, groups=groups, asym=asym)
-            for dci, group, group_id in zip(dcis, groups, group_ids):
-                dci_file = pert_file.replace('pertmat', f'dci_{group_id}').replace('.npy', '.xvg')
-                dci_file = os.path.join('..', 'dci_dfi', dci_file)
-                print(f'  Saving DCI at {dci_file}',  file=sys.stderr)
-                lrt.save_1d_data(dci, fpath=dci_file)
-            ch_dci_file = pert_file.replace('pertmat', f'ch_dci').replace('.npy', '.xvg')
-            ch_dci_file = os.path.join('..', 'dci_dfi', ch_dci_file)
-            ch_dci = lrt.calc_group_group_dci(pertmat, groups=groups, asym=asym)
-            lrt.save_2d_data(ch_dci, fpath=ch_dci_file)
-        print('Finished calculating DCIs!', file=sys.stderr)
-        os.chdir(bdir) 
-
-    def get_power_spectrum_xv(self, resp_ids=[], pert_ids=[], **kwargs):
-        """
-        Position-velocity correlation
-        """
-        kwargs.setdefault('f', '../traj.trr')
-        kwargs.setdefault('s', '../traj.pdb')
-        bdir = os.getcwd()
-        os.chdir(self.covdir)
-        print(f'Working dir: {self.covdir}', file=sys.stderr)
-        lrt.calc_power_spectrum_xv(resp_ids, pert_ids, **kwargs)
-        print('Finished calculating', file=sys.stderr)
+            logger.info('  Calculating DCI')
+            dcis = lrt.group_molecule_dci(pertmat, groups=groups, asym=asym)
+            for dci, group, group_id in zip(dcis, groups, labels):
+                dci_file = pert_file.replace('pertmat', f'gdci_{group_id}')
+                dci_file = os.path.join(self.covdir, dci_file)
+                np.save(dci_file, dci)
+                logger.info(f'  Saved DCI at {dci_file}')
+            ch_dci_file = pert_file.replace('pertmat', f'ggdci')
+            ch_dci_file = os.path.join(self.covdir, ch_dci_file)
+            ch_dci = lrt.group_group_dci(pertmat, groups=groups, asym=asym)
+            np.save(ch_dci_file, ch_dci)
+            logger.info(f'  Saved DCI at {ch_dci_file}')
+        logger.info('Finished calculating DCIs!')
         os.chdir(bdir) 
         
     def get_rmsf_by_chain(self, **kwargs):
@@ -821,6 +812,19 @@ class MDRun(gmxSystem):
                 o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
                 
 
+    def get_power_spectrum_xv(self, resp_ids=[], pert_ids=[], **kwargs):
+        """
+        Position-velocity correlation
+        """
+        kwargs.setdefault('f', '../traj.trr')
+        kwargs.setdefault('s', '../traj.pdb')
+        bdir = os.getcwd()
+        os.chdir(self.covdir)
+        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        lrt.calc_power_spectrum_xv(resp_ids, pert_ids, **kwargs)
+        print('Finished calculating', file=sys.stderr)
+        os.chdir(bdir) 
+        
 ################################################################################
 # Utils
 ################################################################################   

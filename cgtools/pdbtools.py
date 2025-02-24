@@ -1,33 +1,7 @@
 import os
 import sys
-# import openmm as mm
 from pathlib import Path
-from pdbfixer.pdbfixer import PDBFixer
-from openmm.app import PDBFile
-
-
-AA_CODE_CONVERTER = {
-    'A': 'ALA',
-    'C': 'CYS',
-    'D': 'ASP',
-    'E': 'GLU',
-    'F': 'PHE',
-    'G': 'GLY',
-    'H': 'HIS',
-    'I': 'ILE',
-    'K': 'LYS',
-    'L': 'LEU',
-    'M': 'MET',
-    'N': 'ASN',
-    'P': 'PRO',
-    'Q': 'GLN',
-    'R': 'ARG',
-    'S': 'SER',
-    'T': 'THR',
-    'V': 'VAL',
-    'W': 'TRP',
-    'Y': 'TYR'
-}
+from typing import List
 
 ###################################
 ## Classes and Functions ## 
@@ -327,11 +301,41 @@ class AtomList(list):
         for i, nvec in enumerate(new_vecs):
             self[i].vec = nvec
 
-    def to_pdb_lines(self):
+    @vecs.setter
+    def vecs(self, new_vecs):
+        if len(new_vecs) != len(self):
+            raise ValueError("Length of new vectors list must match the number of atoms")
+        for i, nvec in enumerate(new_vecs):
+            self[i].vec = nvec
+
+    @property
+    def chains(self):
         """
-        Convert all Atom objects in the list into their corresponding PDB formatted lines.
+        Return a list of AtomLists grouped by chain id.
+
+        Returns:
+            List[AtomList]: A list of AtomLists, where each list contains atoms with the same chain id.
         """
-        return [atom.to_pdb_line() for atom in self]
+        new_chain = AtomList()
+        chains = []
+        chid = self.chids[0]
+        for atom in self:
+            if atom.chid != chid:
+                chains.append(new_chain)
+                new_chain = AtomList()
+                chid = atom.chid  # Update the current chain id
+            new_chain.append(atom)
+        # Append the final chain if not empty
+        if new_chain:
+            chains.append(new_chain)
+        return AtomListCollection(chains)
+           
+
+    def renum(self):
+        """
+        Renumber atids starting from 0. Needed for masking arrays
+        """
+        self.atids = range(len(self))
 
     def sort(self, key=None, reverse=False):
         """
@@ -351,20 +355,20 @@ class AtomList(list):
             key = lambda atom: (chain_sort_uld(atom.chid), atom.resid, atom.icode, atom.atid)
         super().sort(key=key, reverse=reverse)
 
-    def filter(self, filter_vals, mode="name"):
+    def mask(self, mask_vals, mode="name"):
         """
-        Filter atoms based on a given attribute.
+        Mask atoms based on a given attribute.
 
         Parameters:
-            filter_vals (iterable): An iterable of values to keep.
-            mode (str): Which attribute to filter by. Valid modes include:
+            mask_vals (iterable): An iterable of values to keep.
+            mode (str): Which attribute to mask by. Valid modes include:
                         "record", "atid", "name", "alt_loc", "resname", "chid",
                         "resid", "icode", "x", "y", "z", "occupancy", "bfactor",
                         "segid", "element", "charge".
                         Default is "name".
 
         Returns:
-            AtomList: A new AtomList containing only the atoms for which the chosen attribute is in filter_vals.
+            AtomList: A new AtomList containing only the atoms for which the chosen attribute is in mask_vals.
         """
         key_funcs = {
             "record": lambda atom: atom.record,
@@ -384,12 +388,12 @@ class AtomList(list):
             "element": lambda atom: atom.element,
             "charge": lambda atom: atom.charge,
         }
-        if isinstance(filter_vals, str):
-            filter_vals = {filter_vals}
+        if isinstance(mask_vals, str):
+            mask_vals = {mask_vals}
         if mode not in key_funcs:
             raise ValueError(f"Invalid mode '{mode}'. Valid modes are: {', '.join(key_funcs.keys())}")
-        filter_vals = set(filter_vals)
-        return AtomList([atom for atom in self if key_funcs[mode](atom) in filter_vals])
+        mask_vals = set(mask_vals)
+        return AtomList([atom for atom in self if key_funcs[mode](atom) in mask_vals])
 
     def renumber(self):
         """
@@ -455,6 +459,106 @@ class AtomList(list):
                 line = " ".join(atids[i:i+wrap])
                 f.write(line + "\n") 
             f.write("\n")  # Add an extra newline for separation between groups if appending
+
+
+class AtomListCollection(list):
+    """
+    A collection of AtomList objects.
+    
+    This class acts as a container for multiple AtomList instances.
+    Its properties return a list of lists, where each inner list is the
+    corresponding property from an individual AtomList.
+    
+    Example:
+        >>> # Assuming atoms1 and atoms2 are AtomList instances:
+        >>> collection = AtomListCollection([atoms1, atoms2])
+        >>> print(collection.names)  # Returns [atoms1.names, atoms2.names]
+    """
+
+    @property
+    def records(self) -> List[List]:
+        """Return a list of lists of record strings from each AtomList."""
+        return [alist.records for alist in self]
+
+    @property
+    def atids(self) -> List[List]:
+        """Return a list of lists of atom id numbers from each AtomList."""
+        return [alist.atids for alist in self]
+
+    @property
+    def names(self) -> List[List]:
+        """Return a list of lists of atom names from each AtomList."""
+        return [alist.names for alist in self]
+
+    @property
+    def alt_locs(self) -> List[List]:
+        """Return a list of lists of alternate location indicators from each AtomList."""
+        return [alist.alt_locs for alist in self]
+
+    @property
+    def resnames(self) -> List[List]:
+        """Return a list of lists of residue names from each AtomList."""
+        return [alist.resnames for alist in self]
+
+    @property
+    def chids(self) -> List[List]:
+        """Return a list of lists of chain identifiers from each AtomList."""
+        return [alist.chids for alist in self]
+
+    @property
+    def resids(self) -> List[List]:
+        """Return a list of lists of residue sequence numbers from each AtomList."""
+        return [alist.resids for alist in self]
+
+    @property
+    def icodes(self) -> List[List]:
+        """Return a list of lists of insertion codes from each AtomList."""
+        return [alist.icodes for alist in self]
+
+    @property
+    def xs(self) -> List[List]:
+        """Return a list of lists of x coordinates from each AtomList."""
+        return [alist.xs for alist in self]
+
+    @property
+    def ys(self) -> List[List]:
+        """Return a list of lists of y coordinates from each AtomList."""
+        return [alist.ys for alist in self]
+
+    @property
+    def zs(self) -> List[List]:
+        """Return a list of lists of z coordinates from each AtomList."""
+        return [alist.zs for alist in self]
+
+    @property
+    def occupancies(self) -> List[List]:
+        """Return a list of lists of occupancy values from each AtomList."""
+        return [alist.occupancies for alist in self]
+
+    @property
+    def bfactors(self) -> List[List]:
+        """Return a list of lists of temperature factors from each AtomList."""
+        return [alist.bfactors for alist in self]
+
+    @property
+    def segids(self) -> List[List]:
+        """Return a list of lists of segment identifiers from each AtomList."""
+        return [alist.segids for alist in self]
+
+    @property
+    def elements(self) -> List[List]:
+        """Return a list of lists of element symbols from each AtomList."""
+        return [alist.elements for alist in self]
+
+    @property
+    def charges(self) -> List[List]:
+        """Return a list of lists of charge strings from each AtomList."""
+        return [alist.charges for alist in self]
+
+    @property
+    def vecs(self) -> List[List]:
+        """Return a list of lists of vector tuples from each AtomList."""
+        return [alist.vecs for alist in self]
 
 
 class Residue():
@@ -720,6 +824,8 @@ def sort_pdb(in_pdb, out_pdb):
 
 
 def clean_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, pH=7.0):
+    from pdbfixer.pdbfixer import PDBFixer
+    from openmm.app import PDBFile
     print(f"Processing {in_pdb}", file=sys.stderr)
     pdb = PDBFixer(filename=in_pdb)
     print("Removing heterogens, Looking for missing residues", file=sys.stderr)
@@ -754,11 +860,11 @@ def write_ndx(atoms, fpath='system.ndx', backbone_atoms=("CA", "P", "C1'")):
     system = parse_pdb(in_pdb)
     atoms = system.atoms
     atoms.write_ndx(fpath, header=f'[ System ]', append=False, wrap=15) # sys ndx
-    backbone = atoms.filter(backbone_atoms, mode='name')
+    backbone = atoms.mask(backbone_atoms, mode='name')
     backbone.write_ndx(fpath, header=f'[ Backbone ]', append=True, wrap=15) # bb ndx
     chids = sorted(set(atoms.chids))
     for chid in chids:
-        selected_atoms = atoms.filter(chid, mode='chid')
+        selected_atoms = atoms.mask(chid, mode='chid')
         selected_atoms.write_ndx(fpath, header=f'[ chain_{chid} ]', append=True, wrap=15) # chain ndx
         print(f"Written PDB to {fpath}", file=sys.stderr)
 
@@ -787,8 +893,28 @@ def sort_uld(alist):
     slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
     return slist
 
-
-    
+AA_CODE_CONVERTER = {
+    'A': 'ALA',
+    'C': 'CYS',
+    'D': 'ASP',
+    'E': 'GLU',
+    'F': 'PHE',
+    'G': 'GLY',
+    'H': 'HIS',
+    'I': 'ILE',
+    'K': 'LYS',
+    'L': 'LEU',
+    'M': 'MET',
+    'N': 'ASN',
+    'P': 'PRO',
+    'Q': 'GLN',
+    'R': 'ARG',
+    'S': 'SER',
+    'T': 'THR',
+    'V': 'VAL',
+    'W': 'TRP',
+    'Y': 'TYR'
+}
 
     
     
