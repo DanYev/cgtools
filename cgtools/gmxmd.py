@@ -64,35 +64,12 @@ class gmxSystem:
         self.mddir      = os.path.join(self.wdir, 'mdruns')
         self.datdir     = os.path.join(self.wdir, 'data')
         self.pngdir     = os.path.join(self.wdir, 'png')
-        self._mdruns    = []
-       
-    @property
-    def mdruns(self):
-        """
-        A list of mdruns. Either provide or look up in self.mddir
-        Returns:
-            list: List of chain identifiers.
-        """
-        if self._mdruns:
-            return self._mdruns
-        if not os.path.isdir(self.mddir):
-            return self._mdruns
-        for adir in sorted(os.listdir(self.mddir)):
-            dir_path = os.path.join(self.mddir, adir)
-            if os.path.isdir(dir_path):
-                self._mdruns.append(adir)
-        return self._mdruns
-    
-    @mdruns.setter
-    def mdruns(self, mdruns):
-        self._mdruns = mdruns
 
     @property
     def chains(self):
         atoms = io.pdb2atomlist(self.inpdb)
         chains = sort_upper_lower_digit(set(atoms.chids))
         return chains
-
 
     def prepare_files(self):
         """
@@ -415,22 +392,6 @@ class gmxSystem:
             chain = solute.mask(chid, mode='chid')
             chain.write_ndx(self.sysndx, header=f'[ chain_{chid} ]', append=True, wrap=15) 
         logger.info(f"Written index to {self.sysndx}")
-    
-    def pull_runs_files(self, fdir, fname):
-        """
-        Gets files from each run by name if the files exist
-        
-        Args:
-            fname(str): Name of the file to read
-               
-        Output: 
-            files(list): list of the fpaths
-        """
-        runs = [self.initmd(run) for run in self.mdruns]
-        rundirs = [run.rundir for run in runs]
-        files = [os.path.join(rundir, fdir, fname) for rundir in rundirs]
-        files = [f for f in files if os.path.exists(f)]
-        return files
 
     def get_mean_sem(self, pattern='dfi*.npy'):
         logger.info(f"Calculating averages and errors from {pattern}")
@@ -445,7 +406,7 @@ class gmxSystem:
         # pd.DataFrame(mean).to_csv(file_mean, header=None, index=False) 
         # pd.DataFrame(sem).to_csv(file_err, header=None, index=False) 
 
-    def get_td_averages(sysdir, sysname, loop=True, pattern='corr_pv.npy'):
+    def get_td_averages(self, fname, loop=True):
         """
         Need to loop for big arrays
         """

@@ -329,7 +329,28 @@ class AtomList(list):
         if new_chain:
             chains.append(new_chain)
         return AtomListCollection(chains)
-           
+
+    @property
+    def residues(self):
+        """
+        Return a list of AtomLists grouped by residues in consecutive order
+
+        Returns:
+            List[AtomList]: A list of AtomLists
+        """
+        new_residue = AtomList()
+        residues = []
+        resid = self.resids[0]
+        for atom in self:
+            if atom.resid != resid:
+                residues.append(new_residue)
+                new_residue = AtomList()
+                resid = atom.resid  # Update the current resid
+            new_residue.append(atom)
+        # Append the final residue if not empty
+        if new_residue:
+            residues.append(new_residue)
+        return AtomListCollection(residues)
 
     def renum(self):
         """
