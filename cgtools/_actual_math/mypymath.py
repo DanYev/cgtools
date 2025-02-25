@@ -18,7 +18,7 @@ from cgtools.utils import timeit, memprofit, logger
 
 @memprofit
 @timeit
-def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
+def _sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
     """
     Compute the correlation function <x(t)y(0)> using FFT.
     Parameters:
@@ -62,7 +62,7 @@ def sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
 
 @memprofit
 @timeit
-def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
+def _pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     """
     Compute the correlation function using FFT with parallelizing the cross-correlation loop.
     Looks like it starts getting faster for Nt >~ 10000
@@ -112,7 +112,7 @@ def pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
 
 @memprofit
 @timeit
-def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
+def _gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
     """
     Another version for GPU
     WORKS LIKE WHOOOOOOOOOOOOOOOOOOOSHHHHHHHHHHH!
@@ -140,17 +140,6 @@ def gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
         corr_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax] * counts
         corr[i, :, :] = corr_row.get()   
     return corr
-
-
-
-def fft_corr(*args, mode='serial', **kwargs):
-    if mode == 'serial':
-        return _sfft_corr(*args, **kwargs)
-    if mode == 'parallel':
-        return _pfft_corr(*args, **kwargs)
-    if mode == 'gpu':
-        return _gfft_corr(*args, **kwargs)
-    raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
 
 
 def gfft_conv(x, y, loop=False, dtype=cp.float32):
@@ -296,28 +285,7 @@ def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32)
 ##############################################################
 ## DCI DFI ##
 ############################################################## 
-
-
-def perturbation_matrix(covariance_matrix, dtype=np.float64):
-    pertmat = _perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
-    return pertmat
-
-
-
-def td_perturbation_matrix(covariance_matrix, dtype=np.float32):
-    pertmat = _td_perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
-    return pertmat    
-
-
-def dfi(perturbation_matrix):
-    """
-    Calculates DFI matrix from the pertubation matrix
-    Normalized such that the total sum is equal to 1
-    """
-    dfi = np.sum(perturbation_matrix, axis=-1)
-    dfi *= len(dfi)
-    return dfi
-    
+   
 
 def dci(perturbation_matrix, asym=False):
     """
@@ -365,6 +333,37 @@ def group_group_dci(perturbation_matrix, groups=[[]], asym=False):
         dcis.append(temp)
     return dcis 
     
+##############################################################
+## ENM ##
+############################################################## 
+
+@timeit
+@memprofit
+def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, **kwargs):
+    kwargs.setdefault('k': 'n_modes')
+    kwargs.setdefault('which': 'SM')
+    kwargs.setdefault('tol': 0)
+    kwargs.setdefault('sigma': 0)
+    evals, evecs = scipy.sparse.linalg.eigsh(matrix, **kwargs)
+    inv_evals = evals**-1
+    inv_evals[:k_singular] = 0.0 
+    inv_matrix = np.matmul(evecs, np.matmul(np.diag(inv_evals), evecs.T))
+    return inv_matrix, evals
+
+
+@timeit
+@memprofit   
+def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, gpu_dtype=cp.float32, **kwargs):
+    kwargs.setdefault('k': 'n_modes')
+    kwargs.setdefault('which': 'SA')
+    kwargs.setdefault('tol': 0)
+    kwargs.setdefault('maxiter': None)
+    matrix_gpu = cp.asarray(matrix, gpu_dtype)   
+    evals_gpu, evecs_gpu = cupyx.scipy.sparse.linalg.eigsh(matrix_gpu, **kwargs)           
+    inv_evals_gpu = evals_gpu**-1
+    inv_evals_gpu[:k_singular] = 0.0   
+    inv_matrix_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
+    return inv_matrix_gpu
 
 ##############################################################
 ## MISC ##

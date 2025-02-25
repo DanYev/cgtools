@@ -7,7 +7,7 @@ import scipy.sparse.linalg
 import cupy.linalg
 import cupyx.scipy.sparse.linalg
 from cupyx.profiler import benchmark
-from cgtools.lrt import timeit, memprofit
+from cgtools.utils import timeit, memprofit
 
 
 @timeit

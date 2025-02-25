@@ -10,7 +10,7 @@ from cgtools.utils import timeit, memprofit
 @cython.wraparound(False)
 @timeit
 @memprofit
-def calculate_hessian(int resnum,
+def _calculate_hessian(int resnum,
                       np.ndarray[double, ndim=1] x,
                       np.ndarray[double, ndim=1] y,
                       np.ndarray[double, ndim=1] z,
@@ -73,7 +73,7 @@ def calculate_hessian(int resnum,
 @cython.wraparound(False)
 @timeit
 @memprofit
-def hessian(int resnum,
+def _hessian(int resnum,
                       np.ndarray[double, ndim=1] x,
                       np.ndarray[double, ndim=1] y,
                       np.ndarray[double, ndim=1] z,

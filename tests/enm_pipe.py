@@ -11,24 +11,9 @@ import scipy.linalg
 import MDAnalysis as mda
 from cgtools.gmxmd import gmxSystem
 from cgtools.utils import timeit, memprofit
-from cgtools.mycmath import mycmath, legacy
+from cgtools._actual_math import mycmath, mypymath, legacy
 from cgtools import io, mdm
 from cgtools.plotting import *
-
-
-def plot_dfi(system):
-    # Pulling data
-    datas, errs = pull_data('dfi*')
-    param = {'lw':2}
-    xs = [np.arange(len(data)) for data in datas]
-    datas = [data*len(data) for data in datas]
-    errs = [err*len(err) for err in errs]
-    params = [param for data in datas]
-    # Plotting
-    fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
-    make_errorbar(ax, xs, datas, errs, params, alpha=0.7)
-    set_ax_parameters(ax, xlabel='Residue', ylabel='DFI')
-    plot_figure(fig, ax, figname=system.sysname, figpath='png/dfi.png',)
 
 
 sysdir = 'systems'
@@ -55,14 +40,11 @@ n = len(bb)
 ref_pertmat = np.load(ref_pertmat_path).astype('double')
 ref_covmat = np.load(ref_covmat_path).astype('double')
 
-nt = 50
+nt = 10
 covmat = np.tile(ref_covmat, (nt, nt))
 
 # hess = mycmath.hessian(n, xs, ys, zs, cutoff=25, spring_constant=1e3, dd=0, )
-pertmat =  mdm._td_perturbation_matrix_cpu(covmat, dtype=np.float64)
-# pertmat = mycmath._perturbation_matrix_old(covmat, covmat.shape[0] // 3)
-# pertmat = mycmath._perturbation_matrix(covmat)
-pertmat = mycmath._td_perturbation_matrix(covmat)
+pertmat =  mdm.td_perturbation_matrix(covmat)
 
 
 # Plotting

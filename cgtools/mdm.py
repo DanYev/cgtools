@@ -17,11 +17,11 @@ from cgtools._actual_math import mycmath, mypymath
 @timeit
 def fft_corr(*args, mode='serial', **kwargs):
     if mode == 'serial':
-        return mypymath.sfft_corr(*args, **kwargs)
+        return mypymath._sfft_corr(*args, **kwargs)
     if mode == 'parallel':
-        return mypymath.pfft_corr(*args, **kwargs)
+        return mypymath._pfft_corr(*args, **kwargs)
     if mode == 'gpu':
-        return mypymath.gfft_corr(*args, **kwargs)
+        return mypymath._gfft_corr(*args, **kwargs)
     raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
 
 
@@ -164,20 +164,23 @@ def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32)
     print(f"Finished calculating cross-correlation.", file=sys.stderr)
     return corr
 
-
 ##############################################################
 ## DCI DFI ##
 ############################################################## 
 
-
 def perturbation_matrix(covariance_matrix, dtype=np.float64):
-    pertmat = _perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
+    """Wrapper for the function. TODO: Fix types, add GPU"""
+    covariance_matrix.astype(np.float64)
+    if dtype == np.float64:
+        pertmat = mycmath._perturbation_matrix(covariance_matrix)
     return pertmat
 
 
-
-def td_perturbation_matrix(covariance_matrix, dtype=np.float32):
-    pertmat = _td_perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
+def td_perturbation_matrix(covariance_matrix, dtype=np.float64):
+    """Wrapper for the function. TODO: Fix types, add GPU"""
+    covariance_matrix.astype(np.float64)
+    if dtype == np.float64:
+        pertmat = mycmath._td_perturbation_matrix(covariance_matrix)
     return pertmat    
 
 
@@ -237,6 +240,10 @@ def group_group_dci(perturbation_matrix, groups=[[]], asym=False):
         dcis.append(temp)
     return dcis 
     
+##############################################################
+## ENM ##
+############################################################## 
+
 
 ##############################################################
 ## MISC ##
