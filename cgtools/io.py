@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from cgtools.utils import timeit, memprofit, logger
-from cgtools.pdbtools import AtomList, System
+from cgtools.pdbtools import AtomList, System, PDBParser
 
 ################################################################################
 ## Reading trajectories with MDAnalysis

@@ -83,7 +83,7 @@ class Atom:
             f"{self.z:>8.3f}"                    # z coordinate, 8 chars wide, 3 decimals
             f"{self.occupancy:>6.2f}"            # occupancy, 6 chars wide, 2 decimals
             f"{self.bfactor:>6.2f}"              # temp factor, 6 chars wide, 2 decimals
-            f"{'':6}"                          # 6 spaces for columns 67-72
+            f"{'':6}"                            # 6 spaces for columns 67-72
             f"{self.segid:>4}"                   # segid, right-justified in 4 chars (columns 73-76)
             f"{self.element:>2}"                 # element symbol, right-justified in 2 chars (columns 77-78)
             f"{self.charge:>2}"                  # charge, right-justified in 2 chars (columns 79-80)
@@ -104,6 +104,24 @@ class AtomList(list):
         ['CA', 'CB', 'CG']
         >>> atoms.xs = [1.0, 2.0, 3.0]  # Set new x coordinates for each atom
     """
+    key_funcs = {
+            "record": lambda atom: atom.record,
+            "atid": lambda atom: atom.atid,
+            "name": lambda atom: atom.name,
+            "alt_loc": lambda atom: atom.alt_loc,
+            "resname": lambda atom: atom.resname,
+            "chid": lambda atom: atom.chid,
+            "resid": lambda atom: atom.resid,
+            "icode": lambda atom: atom.icode,
+            "x": lambda atom: atom.x,
+            "y": lambda atom: atom.y,
+            "z": lambda atom: atom.z,
+            "occupancy": lambda atom: atom.occupancy,
+            "bfactor": lambda atom: atom.bfactor,
+            "segid": lambda atom: atom.segid,
+            "element": lambda atom: atom.element,
+            "charge": lambda atom: atom.charge,
+    }
 
     def __add__(self, other):
         """
@@ -391,30 +409,25 @@ class AtomList(list):
         Returns:
             AtomList: A new AtomList containing only the atoms for which the chosen attribute is in mask_vals.
         """
-        key_funcs = {
-            "record": lambda atom: atom.record,
-            "atid": lambda atom: atom.atid,
-            "name": lambda atom: atom.name,
-            "alt_loc": lambda atom: atom.alt_loc,
-            "resname": lambda atom: atom.resname,
-            "chid": lambda atom: atom.chid,
-            "resid": lambda atom: atom.resid,
-            "icode": lambda atom: atom.icode,
-            "x": lambda atom: atom.x,
-            "y": lambda atom: atom.y,
-            "z": lambda atom: atom.z,
-            "occupancy": lambda atom: atom.occupancy,
-            "bfactor": lambda atom: atom.bfactor,
-            "segid": lambda atom: atom.segid,
-            "element": lambda atom: atom.element,
-            "charge": lambda atom: atom.charge,
-        }
         if isinstance(mask_vals, str):
             mask_vals = {mask_vals}
-        if mode not in key_funcs:
-            raise ValueError(f"Invalid mode '{mode}'. Valid modes are: {', '.join(key_funcs.keys())}")
+        if mode not in self.key_funcs:
+            raise ValueError(f"Invalid mode '{mode}'. Valid modes are: {', '.join(self.key_funcs.keys())}")
         mask_vals = set(mask_vals)
-        return AtomList([atom for atom in self if key_funcs[mode](atom) in mask_vals])
+        return AtomList([atom for atom in self if self.key_funcs[mode](atom) in mask_vals])
+
+    def mask_out(self, mask_vals, mode="name"):
+        """
+        Mask out atoms based on a given attribute.
+        Returns:
+            AtomList: A new AtomList containing only the atoms for which the chosen attribute is in mask_vals.
+        """
+        if isinstance(mask_vals, str):
+            mask_vals = {mask_vals}
+        if mode not in self.key_funcs:
+            raise ValueError(f"Invalid mode '{mode}'. Valid modes are: {', '.join(self.key_funcs.keys())}")
+        mask_vals = set(mask_vals)
+        return AtomList([atom for atom in self if self.key_funcs[mode](atom) not in mask_vals])    
 
     def renumber(self):
         """

@@ -7,24 +7,13 @@ import pandas as pd
 import shutil
 import subprocess as sp
 # cgtools
-from cgtools import cli, pdbtools, lrt
+from cgtools import cli, lrt, pdbtools, io
+from cgtools.pdbtools import AtomList
+from cgtools.utils import cd, clean_dir, logger
 # mm
 import openmm as mm
 from openmm import app
 from openmm.unit import *
-
-################################################################################
-# Helper functions
-################################################################################   
-
-def sort_uld(alist):
-    """
-    Sorts characters in a list such that they appear in the following order: 
-    uppercase letters first, then lowercase letters, followed by digits. 
-    Helps with orgazing gromacs multichain files
-    """
-    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
-    return slist
 
 
 ################################################################################
@@ -305,4 +294,18 @@ class mdRun(mmSystem):
         simulation.step(nsteps)
         self.save_state(simulation, 'md')
         print('Production complete.')
+
+
+################################################################################
+# Helper functions
+################################################################################   
+
+def sort_uld(alist):
+    """
+    Sorts characters in a list such that they appear in the following order: 
+    uppercase letters first, then lowercase letters, followed by digits. 
+    Helps with orgazing gromacs multichain files
+    """
+    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
+    return slist
 

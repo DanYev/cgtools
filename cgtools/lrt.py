@@ -294,7 +294,9 @@ def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32)
 ## DCI DFI ##
 ############################################################## 
 
-def _perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32):
+@timeit
+@memprofit   
+def _perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float64):
     directions = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]), dtype=dtype)
     directions = directions.T / np.sqrt(np.sum(directions, axis=1)).T # normalizing directions
     directions = directions.T
@@ -310,7 +312,8 @@ def _perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float32):
     perturbation_matrix /= np.sum(perturbation_matrix)
     return perturbation_matrix
   
-    
+@timeit
+@memprofit    
 def _perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU

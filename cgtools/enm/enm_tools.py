@@ -68,83 +68,10 @@ inverse_kernel = cp.RawKernel(dfi_kernel_code, "inverse_kernel")
 # Functions
 ###########################################################################################
 
-def read_cif(_pdb_id):
-    pdb_info = MMCIF2Dict(_pdb_id)
-    atom_types = pdb_info["_atom_site.label_atom_id"]
-    atom_ids = np.asarray(pdb_info["_atom_site.id"], np.intc)
-    atom_comps = pdb_info["_atom_site.label_alt_id"]
-    residues = pdb_info["_atom_site.label_comp_id"]
-    atom_x_coordinates = np.asarray(pdb_info["_atom_site.Cartn_x"], np.float32)
-    atom_y_coordinates = np.asarray(pdb_info["_atom_site.Cartn_y"], np.float32)
-    atom_z_coordinates = np.asarray(pdb_info["_atom_site.Cartn_z"], np.float32)
-    atom_occupancies = np.asarray(pdb_info["_atom_site.occupancy"], np.float32)
-    atom_chain_ids = pdb_info["_atom_site.auth_asym_id"]
-    atom_sequence_ids = pdb_info["_atom_site.label_seq_id"]
-
-    p_mask = np.asarray([atom_type == "P" for atom_type in atom_types])
-    c1p_mask = np.asarray([atom_type == "C1'" for atom_type in atom_types])
-    n1_mask = np.asarray([atom_type == "N1" for atom_type in atom_types]) \
-        * np.asarray([residue == "A" or residue == "G" for residue in residues])
-    n3_mask = np.asarray([atom_type == "N3" for atom_type in atom_types]) \
-        * np.asarray([residue == "C" or residue == "U" for residue in residues])
-    ca_mask = np.asarray([atom_type == "CA" for atom_type in atom_types])
-    mg_mask = np.asarray([atom_type == "MG" for atom_type in atom_types])
-    zn_mask = np.asarray([atom_type == "ZN" for atom_type in atom_types])
-    comp_mask = np.asarray([comp == "." or comp == "A" for comp in atom_comps])
-    chain_mask  = np.asarray([chain == "DT" or chain == "DT1" or chain == "DT2" for chain in atom_chain_ids]) # DJ - L11 for 5it8
-    mask = ca_mask + c1p_mask + p_mask
-    mask *= comp_mask
-    # mask *= np.invert(chain_mask)
-
-    x_coordinates = atom_x_coordinates[mask]
-    y_coordinates = atom_y_coordinates[mask]
-    z_coordinates = atom_z_coordinates[mask]
-    atypes = []
-    occupancies = atom_occupancies[mask]
-    sel_atom_ids = atom_ids[mask]
-    chain_ids = [item for item, m in zip(atom_chain_ids, mask) if m]
-    sequence_ids = [item for item, m in zip(atom_sequence_ids, mask) if m]
-    return x_coordinates, y_coordinates, z_coordinates, occupancies, chain_ids, sequence_ids
-
-
-def read_pdb(pdb):
-    f=open(pdb,'r')
-    pdb=f.readlines()
-    f.close()
-    x=[]
-    y=[]
-    z=[]
-    chain_ids=[]
-    res_names=[]
-    res_number=[]
-    for line in pdb:
-        if line[:4] == "ATOM" or line[:6] == "HETATM":
-            atomnumber=int(line[6:12].strip())
-            atomname = line[12:16].strip()
-            residuename = line[17:20].strip()
-            chain_id = line[21:22].strip()
-            resnumber = int(line[22:26].strip())
-            orthogonalcoordinatesforx = float(line[30:38])
-            orthogonalcoordinatesfory = float(line[38:46])
-            orthogonalcoordinatesforz = float(line[46:54])
-            occupancy = float(line[56:60].strip())
-            if atomname == "CA" or atomname == "C1'": # or atomname == "ZN" or atomname == "MG":
-                if occupancy != 1.00:
-                    print("SHOUT")
-                    print(atomnumber,atomname,residuename,chain_id,resnumber,occupancy)
-                    return
-                x.append(orthogonalcoordinatesforx)
-                y.append(orthogonalcoordinatesfory)
-                z.append(orthogonalcoordinatesforz)
-                chain_ids.append(chain_id)
-                res_names.append(residuename)
-                res_number.append(resnumber)
-
-    return x,y,z,chain_ids,res_names,res_number    
-
-
+@timeit
+@memprofit
 @njit(parallel=False)
-def calculate_hessian(resnum, x, y, z, cutoff, spring_constant, dtype=np.float64):
+def calculate_hessian(resnum, x, y, z, cutoff=12, spring_constant=1000, dd=0, dtype=np.float64):
     hessian = np.zeros((3 * resnum, 3 * resnum), dtype)
     for i in range(resnum):
         for j in range(resnum):
@@ -156,7 +83,7 @@ def calculate_hessian(resnum, x, y, z, cutoff, spring_constant, dtype=np.float64
             r = np.sqrt(x_ij**2 + y_ij**2 + z_ij**2)
             invr = r**-1            
             if r < cutoff: 
-                gamma = spring_constant * invr**2
+                gamma = spring_constant * invr**(2+dd)
             else:
                 continue
             # creating Hii
@@ -182,34 +109,42 @@ def calculate_hessian(resnum, x, y, z, cutoff, spring_constant, dtype=np.float64
     return hessian
 
 
-@timeit
-@memprofit
-def compute_hessian(resnum, x, y, z,  cutoff, spring_constant,dtype=float):
-    # Convert coordinates into a single matrix for vectorized operations
-    coords = np.vstack((x, y, z)).T  # Shape: (resnum, 3)    
-    # Compute pairwise distance vectors
-    diff = coords[:, np.newaxis, :] - coords[np.newaxis, :, :]  # Shape: (resnum, resnum, 3)    
-    # Compute pairwise distances
-    r = np.linalg.norm(diff, axis=2)  # Shape: (resnum, resnum)    
-    # Avoid division by zero
-    np.fill_diagonal(r, np.inf)    
-    # Compute inverse distance where r < cutoff
-    mask = r < cutoff
-    invr6 = np.where(mask, (1 / r**6) * spring_constant, 0)  # Shape: (resnum, resnum)   
-    # Compute outer products for Hessian entries
-    gamma = invr6[:, :, np.newaxis]  # Shape: (resnum, resnum, 1)
-    outer_prod = gamma * (diff[:, :, :, np.newaxis] * diff[:, :, np.newaxis, :])  # Shape: (resnum, resnum, 3, 3)  
-    # Initialize Hessian
-    hessian = np.zeros((3 * resnum, 3 * resnum), dtype=dtype)
-    # Create index arrays
-    idx = np.arange(resnum)
-    idx_i = np.repeat(3 * idx, 3).reshape(resnum, 3)
-    idx_j = idx_i.T  # Shape for broadcasting
-    # Vectorized Hessian updates
-    hessian[np.ix_(idx_i.ravel(), idx_i.ravel())] += outer_prod.reshape(resnum * 3, resnum * 3)  # Hii
-    hessian[np.ix_(idx_i.ravel(), idx_j.ravel())] -= outer_prod.reshape(resnum * 3, resnum * 3)  # Hij
-    return hessian
-
+def hessian(vecs, cutoff=1.2,  spring_constant=1000, dd=0, dtype=np.float64):
+    n = len(vecs)
+    hess = np.zeros((3 * n, 3 * n), dtype)
+    for i in range(resnum):
+        for j in range(resnum):
+            if j == i:
+                continue
+            x_ij = x[i] - x[j]
+            y_ij = y[i] - y[j]
+            z_ij = z[i] - z[j]
+            r = np.sqrt(x_ij**2 + y_ij**2 + z_ij**2)
+            invr = r**-1            
+            if r < cutoff: 
+                gamma = spring_constant * invr**(2+dd)
+            else:
+                continue
+            # creating Hii
+            hess[3 * i, 3 * i] += gamma * x_ij * x_ij
+            hess[3 * i + 1, 3 * i + 1] += gamma * y_ij * y_ij
+            hess[3 * i + 2, 3 * i + 2] += gamma * z_ij * z_ij
+            hess[3 * i, 3 * i + 1] += gamma * x_ij * y_ij
+            hess[3 * i, 3 * i + 2] += gamma * x_ij * z_ij
+            hess[3 * i + 1, 3 * i] += gamma * y_ij * x_ij
+            hess[3 * i + 1, 3 * i + 2] += gamma * y_ij * z_ij
+            hess[3 * i + 2, 3 * i] += gamma * x_ij * z_ij
+            hess[3 * i + 2, 3 * i + 1] += gamma * y_ij * z_ij
+            hess[3 * i, 3 * j] -= gamma * x_ij * x_ij
+            hess[3 * i + 1, 3 * j + 1] -= gamma * y_ij * y_ij
+            hess[3 * i + 2, 3 * j + 2] -= gamma * z_ij * z_ij           
+            hess[3 * i, 3 * j + 1] -= gamma * x_ij * y_ij
+            hess[3 * i, 3 * j + 2] -= gamma * x_ij * z_ij
+            hess[3 * i + 1, 3 * j] -= gamma * y_ij * x_ij           
+            hess[3 * i + 1, 3 * j + 2] -= gamma * y_ij * z_ij 
+            hess[3 * i + 2, 3 * j] -= gamma * x_ij * z_ij
+            hess[3 * i + 2, 3 * j + 1] -= gamma * y_ij * z_ij
+    return hess
 
 def pad_matrix_if_odd(M):
     m = M.shape[0]
@@ -263,6 +198,9 @@ def invert_matrix_gpu(M, n_modes=20, k_singular=6, DENSE_NOT_SPARSE=True):
     # Finding Inverse
     invM_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
     return invM_gpu
+
+
+    
     
 @timeit
 @memprofit
