@@ -360,7 +360,7 @@ def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, **kwargs):
 
 @timeit
 @memprofit   
-def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, gpu_dtype=cp.float32, **kwargs):
+def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, gpu_dtype=cp.float64, **kwargs):
     kwargs.setdefault('k', n_modes)
     kwargs.setdefault('which', 'SA')
     kwargs.setdefault('tol', 0)
@@ -376,7 +376,7 @@ def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, gpu_dtype=cp.fl
 
 @timeit
 @memprofit 
-def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, gpu_dtype=cp.float32, **kwargs):
+def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, gpu_dtype=cp.float64, **kwargs):
     matrix_gpu = cp.asarray(matrix, gpu_dtype)   
     evals_gpu, evecs_gpu = cupy.linalg.eigh(matrix_gpu, **kwargs)
     print(evals_gpu)

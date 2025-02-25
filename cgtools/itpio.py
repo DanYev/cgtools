@@ -400,6 +400,7 @@ def make_marnatini_itp():
     sh.copy(out_file, '/scratch/dyangali/cgtools/systems/ssRNA/topol/martini_v3.0.0_rna.itp')
     sh.copy(out_file, '/scratch/dyangali/maRNAtini_sims/dimerization_pmf_us/topol/martini_RNA.itp')
     sh.copy(out_file, '/scratch/dyangali/maRNAtini_sims/angled_dimerization_pmf_us/topol/martini_RNA.itp') # angled_dimerization_pmf_us
+       
         
 def make_ions_itp():
     import pandas as pd
@@ -423,6 +424,34 @@ def make_ions_itp():
     with open(out_file, "w+") as file:
         file.writelines(new_lines + original_content)
         
+
+def count_itp_atoms(file_path):
+    in_atoms_section = False
+    atom_count = 0
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                # Strip whitespace and check if it's a comment or empty line
+                line = line.strip()
+                if not line or line.startswith(';'):
+                    continue
+                # Detect the start of the [ atoms ] section
+                if line.startswith("[ atoms ]"):
+                    in_atoms_section = True
+                    continue
+                # Detect the start of a new section
+                if in_atoms_section and line.startswith('['):
+                    break
+                # Count valid lines in the [ atoms ] section
+                if in_atoms_section:
+                    atom_count += 1
+        return atom_count
+    except FileNotFoundError:
+        print(f"Error: File {file_path} not found.")
+        return 0
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return 0        
         
 if __name__ == '__main__':
     # make_ions_itp()
