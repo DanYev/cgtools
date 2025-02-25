@@ -3,16 +3,22 @@ import os
 import sys
 import time
 import tracemalloc
+import cupy as cp
 from contextlib import contextmanager
 from functools import wraps
 from pathlib import Path
 
 
+# Use an environment variable (DEBUG=1) to toggle debug logging
+DEBUG = os.environ.get('DEBUG', '0') == '1'
+log_level = logging.DEBUG if DEBUG else logging.INFO
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='[%(levelname)s] %(message)s'
 )
+# logger.debug("Debug mode is enabled.")
+# logger.info("Logger is set up.")
 
 
 def timeit(func):
@@ -29,7 +35,7 @@ def timeit(func):
         result = func(*args, **kwargs)  # Call the original function
         end_time = time.perf_counter()  # End the timer
         execution_time = end_time - start_time
-        print(f"Function '{func.__name__}' executed in {execution_time:.6f} seconds.", file=sys.stderr)
+        logger.debug(f"Function '{func.__name__}' executed in {execution_time:.6f} seconds.")
         return result
     return wrapper
 
@@ -47,8 +53,7 @@ def memprofit(func):
         tracemalloc.start()             # Start the profiles
         result = func(*args, **kwargs)  # Call the original function
         current, peak = tracemalloc.get_traced_memory()  # Get the current and peak memory usage
-        print(f"Current memory usage after executing '{func.__name__}': {current/1024**2:.2f} MB", file=sys.stderr)
-        print(f"Peak memory usage: {peak/1024**2:.2f} MB", file=sys.stderr)
+        logger.debug(f"Memory usage after executing '{func.__name__}': {current/1024**2:.2f} MB, Peak memory usage: {peak/1024**2:.2f} MB")
         tracemalloc.stop()
         return result
     return wrapper 
@@ -73,6 +78,25 @@ def clean_dir(directory=".", pattern="#*"):
     for file_path in directory.glob(pattern):    
         if file_path.is_file():
             file_path.unlink()     
+
+
+def cuda_info():
+    if cp.cuda.is_available():
+        logger.info("CUDA is available")
+        device_count = cp.cuda.runtime.getDeviceCount()
+        logger.info("Number of CUDA devices:", device_count)
+        return True
+    else:
+        logger.info("CUDA is not available")
+        return False
+
+
+def cuda_detected():
+    if cp.cuda.is_available():
+        return True
+    else:
+        logger.info("CUDA is not available")
+        return False
 
 
 def percentile(x):

@@ -9,7 +9,7 @@ from joblib import Parallel, delayed
 from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
 from scipy import linalg as LA
 from scipy.stats import pearsonr
-from cgtools.utils import timeit, memprofit, logger
+from cgtools.utils import timeit, memprofit, logger, cuda_detected
 from cgtools._actual_math import mycmath, mypymath
 
 
@@ -170,7 +170,7 @@ def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32)
 
 def perturbation_matrix(covariance_matrix, dtype=np.float64):
     """Wrapper for the function. TODO: Fix types, add GPU"""
-    covariance_matrix.astype(np.float64)
+    covariance_matrix = covariance_matrix.astype(np.float64)
     if dtype == np.float64:
         pertmat = mycmath._perturbation_matrix(covariance_matrix)
     return pertmat
@@ -178,7 +178,7 @@ def perturbation_matrix(covariance_matrix, dtype=np.float64):
 
 def td_perturbation_matrix(covariance_matrix, dtype=np.float64):
     """Wrapper for the function. TODO: Fix types, add GPU"""
-    covariance_matrix.astype(np.float64)
+    covariance_matrix = covariance_matrix.astype(np.float64)
     if dtype == np.float64:
         pertmat = mycmath._td_perturbation_matrix(covariance_matrix)
     return pertmat    

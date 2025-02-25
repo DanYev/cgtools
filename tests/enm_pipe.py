@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import logging
 import numpy as np
 import cupy as cp
 import pandas as pd
@@ -10,42 +11,42 @@ import scipy.sparse
 import scipy.linalg
 import MDAnalysis as mda
 from cgtools.gmxmd import gmxSystem
-from cgtools.utils import timeit, memprofit
+from cgtools.utils import timeit, memprofit, logger, cuda_detected
 from cgtools._actual_math import mycmath, mypymath, legacy
 from cgtools import io, mdm
 from cgtools.plotting import *
 
-
+logger.setLevel(logging.DEBUG)
 sysdir = 'systems'
-sysname = '1btl'
+sysname = '1btl' # 1btl # ribosome
 mdsys = gmxSystem(sysdir, sysname)
-pdb = mdsys.inpdb
 # pdb = os.path.join(mdsys.wdir, 'ref.pdb')
-ref_pertmat_path = os.path.join(mdsys.datdir, 'pertmat_av.npy')
-ref_covmat_path = os.path.join(mdsys.datdir, 'covmat_av.npy')
-
-N_MODES = 20
-CUTOFF = 1700000
-DENSE_NOT_SPARSE = False
+pdb = mdsys.inpdb
+# ref_pertmat_path = os.path.join(mdsys.datdir, 'pertmat_av.npy')
+# ref_covmat_path = os.path.join(mdsys.datdir, 'covmat_av.npy')
+# ref_pertmat = np.load(ref_pertmat_path).astype('double')
+# ref_covmat = np.load(ref_covmat_path).astype('double')
 
 atoms = io.pdb2atomlist(pdb)
-mask = ["CA", ] # "P", "C1'"
+mask = ["CA", "C1'"] 
 bb = atoms.mask(mask, mode='name')
-
 xs = np.array(bb.xs)
 ys = np.array(bb.ys)
 zs = np.array(bb.zs)
 n = len(bb)
 
-ref_pertmat = np.load(ref_pertmat_path).astype('double')
-ref_covmat = np.load(ref_covmat_path).astype('double')
+nt = 1
+# covmat = np.tile(ref_covmat, (nt, nt))
 
-nt = 10
-covmat = np.tile(ref_covmat, (nt, nt))
 
-# hess = mycmath.hessian(n, xs, ys, zs, cutoff=25, spring_constant=1e3, dd=0, )
+hess = mycmath._hessian(n, xs, ys, zs, cutoff=18, spring_constant=1e3, dd=0, )
+exit()
+covmat = mypymath._inverse_sparse_matrix_cpu(hess, k_singular=6, n_modes=20)
+# covmat_gpu = mypymath._inverse_matrix_gpu(hess, k_singular=6, n_modes=20, gpu_dtype=cp.float32)
+# covmat_gpu = mypymath._inverse_sparse_matrix_gpu(hess, k_singular=6, n_modes=20, gpu_dtype=cp.float32)
+# covmat = covmat_gpu.get()
+# covmat = mypymath._inverse_sparse_matrix_gpu(hess)
 pertmat =  mdm.td_perturbation_matrix(covmat)
-
 
 # Plotting
 dfi = mdm.dfi(pertmat)

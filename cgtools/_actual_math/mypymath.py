@@ -5,16 +5,20 @@ import MDAnalysis as mda
 import numpy as np
 import cupy as cp
 import pandas as pd
+import scipy.sparse.linalg
+import cupy.linalg
+import cupyx.scipy.sparse.linalg
+from cupyx.profiler import benchmark
+from cgtools.utils import timeit, memprofit, logger
 from joblib import Parallel, delayed
 from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
-from scipy import linalg as LA
 from scipy.stats import pearsonr
-from cgtools.utils import timeit, memprofit, logger
 
 
 ##############################################################
 ## To calculate correlations ##
 ############################################################## 
+
 
 @memprofit
 @timeit
@@ -59,6 +63,7 @@ def _sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
         corr = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
         corr = ifft(corr, axis=-1).real / nt
     return corr
+
 
 @memprofit
 @timeit
@@ -109,6 +114,7 @@ def _pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     # Compute the FFT-based correlation via CPSD
     corr = parallel_fft_correlation(x_f, y_f, ntmax, counts)
     return corr
+
 
 @memprofit
 @timeit
@@ -340,30 +346,47 @@ def group_group_dci(perturbation_matrix, groups=[[]], asym=False):
 @timeit
 @memprofit
 def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, **kwargs):
-    kwargs.setdefault('k': 'n_modes')
-    kwargs.setdefault('which': 'SM')
-    kwargs.setdefault('tol': 0)
-    kwargs.setdefault('sigma': 0)
+    kwargs.setdefault('k', n_modes)
+    kwargs.setdefault('which', 'SA')
+    kwargs.setdefault('tol', 0)
+    kwargs.setdefault('maxiter', None)
     evals, evecs = scipy.sparse.linalg.eigsh(matrix, **kwargs)
     inv_evals = evals**-1
     inv_evals[:k_singular] = 0.0 
+    print(evals[:20])
     inv_matrix = np.matmul(evecs, np.matmul(np.diag(inv_evals), evecs.T))
-    return inv_matrix, evals
+    return inv_matrix
 
 
 @timeit
 @memprofit   
 def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, gpu_dtype=cp.float32, **kwargs):
-    kwargs.setdefault('k': 'n_modes')
-    kwargs.setdefault('which': 'SA')
-    kwargs.setdefault('tol': 0)
-    kwargs.setdefault('maxiter': None)
+    kwargs.setdefault('k', n_modes)
+    kwargs.setdefault('which', 'SA')
+    kwargs.setdefault('tol', 0)
+    kwargs.setdefault('maxiter', None)
     matrix_gpu = cp.asarray(matrix, gpu_dtype)   
     evals_gpu, evecs_gpu = cupyx.scipy.sparse.linalg.eigsh(matrix_gpu, **kwargs)           
     inv_evals_gpu = evals_gpu**-1
-    inv_evals_gpu[:k_singular] = 0.0   
+    inv_evals_gpu[:k_singular] = 0.0  
+    print(evals_gpu[:20])
     inv_matrix_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
     return inv_matrix_gpu
+
+
+@timeit
+@memprofit 
+def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, gpu_dtype=cp.float32, **kwargs):
+    matrix_gpu = cp.asarray(matrix, gpu_dtype)   
+    evals_gpu, evecs_gpu = cupy.linalg.eigh(matrix_gpu, **kwargs)
+    print(evals_gpu)
+    evals_gpu = evals_gpu[:n_modes]
+    evecs_gpu = evecs_gpu[:,:n_modes]       
+    inv_evals_gpu = evals_gpu**-1
+    inv_evals_gpu[:k_singular] = 0.0   
+    print(evals_gpu[:20])
+    invM_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
+    return invM_gpu    
 
 ##############################################################
 ## MISC ##
