@@ -263,7 +263,8 @@ def calc_and_save_covmats(positions, outdir, n=1, outtag='covmat', dtype=np.floa
         
 def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
     """
-    Calculate the average cross-correlation function of x and y by splitting them into n segments
+    Calculate the average cross-correlation function of two (n_coords, n_coords, n_samples) 
+    arrys by splitting them into n segments
     """
     logger.info(f"Calculating cross-correlation.")
     # Split trajectories into `n` segments along frames (axis=1)
@@ -398,6 +399,17 @@ def percentile(x):
     for n in range(len(x)):
         px[n] = np.where(sorted_x == n)[0][0] / len(x)
     return px
+
+
+def fft_corr(*args, mode='serial', **kwargs):
+    if mode == 'serial':
+        return _sfft_corr(*args, **kwargs)
+    if mode == 'parallel':
+        return _pfft_corr(*args, **kwargs)
+    if mode == 'gpu':
+        return _gfft_corr(*args, **kwargs)
+    raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
+   
     
 if __name__ == '__main__':
     pass

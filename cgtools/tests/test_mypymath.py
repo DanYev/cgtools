@@ -58,6 +58,40 @@ def test_pfft_corr():
     np.testing.assert_allclose(corr_par, corr_ser, rtol=1e-10, atol=1e-10) 
 
 
+def test_ccf():
+    """
+    Test that ccf returns a cross-correlation function that matches the 
+    manually computed sliding average correlation.
+    """
+    n_coords = 2
+    n_samples = 128
+    n_seg = 4  # number of segments
+    x = np.random.rand(n_coords, n_samples).astype(np.float64)
+    y = np.random.rand(n_coords, n_samples).astype(np.float64)
+    segments_x = np.array_split(x, n_seg, axis=-1)
+    segments_y = np.array_split(y, n_seg, axis=-1)
+    manual_corr_sum = None
+    for seg_x, seg_y in zip(segments_x, segments_y):
+        x_centered = seg_x - np.mean(seg_x, axis=-1, keepdims=True)
+        y_centered = seg_y - np.mean(seg_y, axis=-1, keepdims=True)
+        nt_seg = seg_x.shape[-1]
+        ntmax_seg = (nt_seg + 1) // 2
+        manual_corr_seg = np.empty((n_coords, n_coords, ntmax_seg), dtype=np.float64)
+        for i in range(n_coords):
+            for j in range(n_coords):
+                for tau in range(ntmax_seg):
+                    window = x_centered[i, tau:nt_seg] * y_centered[j, :nt_seg-tau ]
+                    manual_corr_seg[i, j, tau] = np.average(window)
+        if manual_corr_sum is None:
+            manual_corr_sum = manual_corr_seg
+        else:
+            manual_corr_sum += manual_corr_seg
+    manual_corr = manual_corr_sum / n_seg
+    corr_ccf = mypymath.ccf(x, y, ntmax=None, n=n_seg, mode='parallel', center=True, dtype=np.float32)
+    assert corr_ccf.shape == manual_corr.shape
+    np.testing.assert_allclose(corr_ccf, manual_corr.astype(np.float32), rtol=1e-6, atol=1e-6)
+
+
 def test_inverse_sparse_matrix_cpu():
     # Create a 10x10 diagonal matrix.
     N = 100
