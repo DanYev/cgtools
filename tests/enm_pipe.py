@@ -9,11 +9,11 @@ import cupyx.scipy.sparse.linalg
 import scipy.sparse
 import scipy.linalg
 import MDAnalysis as mda
-import cgtools.enm.enm_tools as enm_tools
 from cgtools.gmxmd import gmxSystem
 from cgtools.utils import timeit, memprofit
+from cgtools.mycmath import mycmath, legacy
 from cgtools import io, lrt
-import cgtools.mycmath.mycmath as mycmath
+
 
 sysdir = 'systems'
 sysname = 'ribosome'
@@ -26,6 +26,7 @@ DENSE_NOT_SPARSE = False
 atoms = io.pdb2atomlist(pdb)
 mask = ["CA", ] # "P", "C1'"
 bb = atoms.mask(mask, mode='name')
+
 xs = np.array(bb.xs)
 ys = np.array(bb.ys)
 zs = np.array(bb.zs)

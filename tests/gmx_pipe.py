@@ -131,10 +131,11 @@ def tdlrt_analysis(sysdir, sysname, runname):
 
 def get_averages(sysdir, sysname):
     system = gmxSystem(sysdir, sysname)   
-    system.get_mean_sem(pattern='dfi*.npy')
-    system.get_mean_sem(pattern='dci*.npy')
-    system.get_mean_sem(pattern='asym*.npy')
-    system.get_mean_sem(pattern='rmsf*.npy')
+    # system.get_mean_sem(pattern='dfi*.npy')
+    system.get_mean_sem(pattern='pertmat*.npy')
+    # system.get_mean_sem(pattern='dci*.npy')
+    # system.get_mean_sem(pattern='asym*.npy')
+    # system.get_mean_sem(pattern='rmsf*.npy')
 
 
 def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):
