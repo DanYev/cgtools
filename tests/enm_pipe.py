@@ -12,7 +12,7 @@ import MDAnalysis as mda
 from cgtools.gmxmd import gmxSystem
 from cgtools.utils import timeit, memprofit
 from cgtools.mycmath import mycmath, legacy
-from cgtools import io, lrt
+from cgtools import io, mdm
 from cgtools.plotting import *
 
 
@@ -55,18 +55,18 @@ n = len(bb)
 ref_pertmat = np.load(ref_pertmat_path).astype('double')
 ref_covmat = np.load(ref_covmat_path).astype('double')
 
-nt = 10
+nt = 50
 covmat = np.tile(ref_covmat, (nt, nt))
 
 # hess = mycmath.hessian(n, xs, ys, zs, cutoff=25, spring_constant=1e3, dd=0, )
-pertmat =  lrt._td_perturbation_matrix_cpu(covmat, dtype=np.float64)
+pertmat =  mdm._td_perturbation_matrix_cpu(covmat, dtype=np.float64)
 # pertmat = mycmath._perturbation_matrix_old(covmat, covmat.shape[0] // 3)
-pertmat = mycmath._perturbation_matrix(covmat)
-# pertmat = mycmath._td_perturbation_matrix(covmat)
+# pertmat = mycmath._perturbation_matrix(covmat)
+pertmat = mycmath._td_perturbation_matrix(covmat)
 
 
 # Plotting
-dfi = lrt.dfi(pertmat)
+dfi = mdm.dfi(pertmat)
 dfi = np.split(dfi, nt)
 dfi = np.sum(dfi, axis=0)
 fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))

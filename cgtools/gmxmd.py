@@ -8,7 +8,7 @@ import pandas as pd
 import shutil
 import subprocess as sp
 import cgtools
-from cgtools import cli, lrt, pdbtools, io
+from cgtools import cli, mdm, pdbtools, io
 from cgtools.pdbtools import AtomList
 from cgtools.utils import cd, clean_dir, logger
      
@@ -666,7 +666,7 @@ class MDRun(gmxSystem):
             if not ag:
                 ag = u.atoms.select_atoms("name CA or name P or name C1'")
         positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e) 
-        lrt.calc_and_save_covmats(positions, outdir=self.covdir, n=n, outtag=outtag) 
+        mdm.calc_and_save_covmats(positions, outdir=self.covdir, n=n, outtag=outtag) 
         logger.info('Finished calculating covariance matrices!')
 
     def get_pertmats(self, intag='covmat', outtag='pertmat', **kwargs):
@@ -679,7 +679,7 @@ class MDRun(gmxSystem):
                 logger.info(f'  Processing covariance matrix {cov_file}')
                 covmat = np.load(cov_file)
                 logger.info('  Calculating pertubation matrix')
-                pertmat = lrt.perturbation_matrix(covmat)
+                pertmat = mdm.perturbation_matrix(covmat)
                 pert_file = cov_file.replace(intag, outtag)
                 logger.info(f'  Saving pertubation matrix at {pert_file}')
                 np.save(pert_file, pertmat)
@@ -695,7 +695,7 @@ class MDRun(gmxSystem):
                 logger.info(f'  Processing perturbation matrix {pert_file}')
                 pertmat = np.load(pert_file)
                 logger.info('  Calculating DFI')
-                dfi = lrt.dfi(pertmat)
+                dfi = mdm.dfi(pertmat)
                 dfi_file = pert_file.replace(intag, outtag)
                 dfi_file = os.path.join(self.covdir, dfi_file)
                 np.save(dfi_file, dfi)
@@ -714,7 +714,7 @@ class MDRun(gmxSystem):
                 logger.info('  Calculating DCI')
                 dci_file = pert_file.replace(intag, outtag)
                 dci_file = os.path.join(self.covdir, dci_file)
-                dci = lrt.dci(pertmat, asym=asym)
+                dci = mdm.dci(pertmat, asym=asym)
                 np.save(dci_file, dci)
                 logger.info(f'  Saved DCI at {dci_file}')
         logger.info('Finished calculating DCIs!')
@@ -731,7 +731,7 @@ class MDRun(gmxSystem):
             logger.info(f'  Processing perturbation matrix {pert_file}')
             pertmat = np.load(pert_file)
             logger.info('  Calculating DCI')
-            dcis = lrt.group_molecule_dci(pertmat, groups=groups, asym=asym)
+            dcis = mdm.group_molecule_dci(pertmat, groups=groups, asym=asym)
             for dci, group, group_id in zip(dcis, groups, labels):
                 dci_file = pert_file.replace('pertmat', f'gdci_{group_id}')
                 dci_file = os.path.join(self.covdir, dci_file)
@@ -739,7 +739,7 @@ class MDRun(gmxSystem):
                 logger.info(f'  Saved DCI at {dci_file}')
             ch_dci_file = pert_file.replace('pertmat', f'ggdci')
             ch_dci_file = os.path.join(self.covdir, ch_dci_file)
-            ch_dci = lrt.group_group_dci(pertmat, groups=groups, asym=asym)
+            ch_dci = mdm.group_group_dci(pertmat, groups=groups, asym=asym)
             np.save(ch_dci_file, ch_dci)
             logger.info(f'  Saved DCI at {ch_dci_file}')
         logger.info('Finished calculating DCIs!')
@@ -781,7 +781,7 @@ class MDRun(gmxSystem):
         bdir = os.getcwd()
         os.chdir(self.covdir)
         print(f'Working dir: {self.covdir}', file=sys.stderr)
-        lrt.calc_power_spectrum_xv(resp_ids, pert_ids, **kwargs)
+        mdm.calc_power_spectrum_xv(resp_ids, pert_ids, **kwargs)
         print('Finished calculating', file=sys.stderr)
         os.chdir(bdir) 
         

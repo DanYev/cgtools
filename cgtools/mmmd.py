@@ -7,7 +7,7 @@ import pandas as pd
 import shutil
 import subprocess as sp
 # cgtools
-from cgtools import cli, lrt, pdbtools, io
+from cgtools import cli, mdm, pdbtools, io
 from cgtools.pdbtools import AtomList
 from cgtools.utils import cd, clean_dir, logger
 # mm

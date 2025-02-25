@@ -48,3 +48,4 @@ __pycache__
 *.xtc
 *.trr
 *.lock
+*mycmath.c

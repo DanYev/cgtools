@@ -10,143 +10,18 @@ from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
 from scipy import linalg as LA
 from scipy.stats import pearsonr
 from cgtools.utils import timeit, memprofit, logger
-
-
-##############################################################
-## To calculate correlations ##
-############################################################## 
-
-def _sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
-    """
-    Compute the correlation function <x(t)y(0)> using FFT.
-    Parameters:
-    - x: np.ndarray, first input signal. Shape - (n_coords, n_samples).
-    - y: np.ndarray, second input signal. Shape - (n_coords, n_samples).
-    - ntmax: positive int, number of time samples to save
-    - center: bool,  whether to mean-center the signals
-    - loop: bool, whether to calculate Cross-Power Spectral Density (CPSD) in a for loop.
-        It's way more memory efficient for large arrays but may be slower
-    Returns:
-    - corr: np.ndarray, computed correlation function.
-    """
-    logger.info("Doing FFTs serially.")
-    # Helper functions
-    def compute_correlation(*args,):
-        i, j, x_f, y_f, ntmax, counts = args
-        corr = ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real
-        return corr * counts
-    nt = x.shape[-1]
-    nx = x.shape[0]
-    ny = y.shape[0]
-    if not ntmax or ntmax > (nt+1)//2: # Extract only the valid part
-        ntmax = (nt+1)//2   
-    if center:  # Mean-center the signals
-        x = x - np.mean(x, axis=-1, keepdims=True)
-        y = y - np.mean(y, axis=-1, keepdims=True)
-    # Compute FFT along the last axis as an (nx, nt) array
-    x_f = fft(x, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
-    y_f = fft(y, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
-    counts = np.arange(nt,  nt-ntmax , -1).astype(dtype)**-1 # Normalize correctly over valid indices
-    # Compute the FFT-based correlation via CPSD
-    if loop:
-        corr = np.zeros((nx, ny, ntmax), dtype=dtype)
-        for i in range(nx):
-            for j in range(ny):
-                corr[i, j] = compute_correlation(i, j, x_f, y_f, ntmax, counts)
-    else:
-        corr = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
-        corr = ifft(corr, axis=-1).real / nt
-    return corr
-
-
-def _pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
-    """
-    Compute the correlation function using FFT with parallelizing the cross-correlation loop.
-    Looks like it starts getting faster for Nt >~ 10000
-    Needs more memory than the serial version
-    Takes 7-8 minutes and ~28Gb for 8 cores to process two (nx, nt)=(1000, 100000) arrays outputting 
-    ~11Gb (nx, ny, nt=ntmax)=(1000, 1000, 1000) correlation array
-    Parameters:
-    - x: np.ndarray, first input signal. Shape - (n_coords, n_samples).
-    - y: np.ndarray, second input signal. Shape - (n_coords, n_samples).
-    - ntmax: positive int, number of time samples to save
-    - center: bool,  whether to mean-center the signals.
-    Returns:
-    - corr: np.ndarray, computed correlation function.
-    """
-    logger.info("Doing FFTs in parallel.")
-    # Helper functions for parrallelizing
-    def compute_correlation(*args,):
-        i, j, x_f, y_f, ntmax, counts = args
-        corr = ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real
-        return corr * counts
-
-    def parallel_fft_correlation(x_f, y_f, ntmax, nt, n_jobs=-1):
-        nx, ny = x_f.shape[0], y_f.shape[0]
-        corr = np.zeros((nx, ny, ntmax), dtype=np.float64)
-        results = Parallel(n_jobs=n_jobs)(
-            delayed(compute_correlation)(i, j, x_f, y_f, ntmax, nt) 
-            for i in range(nx) for j in range(ny)
-        )
-        # Reshape results back to (nx, ny, ntmax)
-        corr = np.array(results).reshape(nx, ny, ntmax)
-        return corr        
-    nt = x.shape[-1]
-    nx = x.shape[0]
-    ny = y.shape[0]
-    if not ntmax or ntmax > (nt+1)//2: # Extract only the valid part
-        ntmax = (nt+1)//2   
-    if center:  # Mean-center the signals
-        x = x - np.mean(x, axis=-1, keepdims=True)
-        y = y - np.mean(y, axis=-1, keepdims=True)
-    # Compute FFT along the last axis as an (nx, nt) array
-    x_f = fft(x, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
-    y_f = fft(y, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
-    counts = np.arange(nt,  nt-ntmax , -1)**-1 # Normalize correctly over valid indices
-    # Compute the FFT-based correlation via CPSD
-    corr = parallel_fft_correlation(x_f, y_f, ntmax, counts)
-    return corr
-
-
-def _gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
-    """
-    Another version for GPU
-    WORKS LIKE WHOOOOOOOOOOOOOOOOOOOSHHHHHHHHHHH!
-    """
-    logger.info("Doing FFTs on GPU.")
-    nt = x.shape[-1]
-    nx = x.shape[0]
-    ny = y.shape[0]
-    if not ntmax or ntmax > (nt+1)//2: # Extract only the valid part
-        ntmax = (nt+1)//2   
-    corr = np.zeros((nx, ny, ntmax), dtype=np.float32)
-    if center:  # Mean-center the signals
-        x = x - np.mean(x, axis=-1, keepdims=True)
-        y = y - np.mean(y, axis=-1, keepdims=True)
-    # Convert NumPy arrays to CuPy arrays
-    x = cp.asarray(x, dtype=dtype)
-    y = cp.asarray(y, dtype=dtype)
-    # Compute FFT along the last axis
-    x_f = cp.fft.fft(x, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
-    y_f = cp.fft.fft(y, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
-    counts = cp.arange(nt,  nt-ntmax , -1, dtype=dtype)**-1 # Normalize correctly over valid indices
-    counts = counts[None, :]  # Reshape for broadcasting
-    # Row-wise FFT-based correlation
-    for i in range(nx):
-        corr_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax] * counts
-        corr[i, :, :] = corr_row.get()   
-    return corr
+from cgtools._actual_math import mycmath, mypymath
 
 
 @memprofit
 @timeit
 def fft_corr(*args, mode='serial', **kwargs):
     if mode == 'serial':
-        return _sfft_corr(*args, **kwargs)
+        return mypymath.sfft_corr(*args, **kwargs)
     if mode == 'parallel':
-        return _pfft_corr(*args, **kwargs)
+        return mypymath.pfft_corr(*args, **kwargs)
     if mode == 'gpu':
-        return _gfft_corr(*args, **kwargs)
+        return mypymath.gfft_corr(*args, **kwargs)
     raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
 
 
@@ -299,22 +174,6 @@ def perturbation_matrix(covariance_matrix, dtype=np.float64):
     pertmat = _perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
     return pertmat
 
-
-@memprofit
-@timeit
-def _td_perturbation_matrix_cpu(ccf, normalize=True, dtype=np.float64):
-    """
-    Calculates perturbation matrix from a covariance matrix or a hessian on CPU
-    The result is normalized such that the total sum of the matrix elements is equal to 1
-    """
-    m = ccf.shape[0] // 3
-    n = ccf.shape[1] // 3
-    blocks = ccf.reshape(m, 3, n, 3).swapaxes(1, 2)
-    perturbation_matrix = np.sum(blocks**2, axis=(-2, -1))
-    perturbation_matrix = np.sqrt(perturbation_matrix)
-    if normalize:
-        perturbation_matrix /= np.sum(perturbation_matrix)
-    return perturbation_matrix    
 
 
 def td_perturbation_matrix(covariance_matrix, dtype=np.float32):
