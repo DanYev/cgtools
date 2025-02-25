@@ -110,7 +110,7 @@ def _pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
     # Compute FFT along the last axis as an (nx, nt) array
     x_f = fft(x, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
     y_f = fft(y, n=2*nt, axis=-1) # Zero-pad to avoid circular effects
-    counts = np.arange(nt,  nt-ntmax , -1)**-1 # Normalize correctly over valid indices
+    counts = np.arange(nt,  nt-ntmax , -1).astype(dtype)**-1 # Normalize correctly over valid indices
     # Compute the FFT-based correlation via CPSD
     corr = parallel_fft_correlation(x_f, y_f, ntmax, counts)
     return corr
@@ -129,7 +129,6 @@ def _gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
     ny = y.shape[0]
     if not ntmax or ntmax > (nt+1)//2: # Extract only the valid part
         ntmax = (nt+1)//2   
-    corr = np.zeros((nx, ny, ntmax), dtype=np.float32)
     if center:  # Mean-center the signals
         x = x - np.mean(x, axis=-1, keepdims=True)
         y = y - np.mean(y, axis=-1, keepdims=True)
@@ -142,9 +141,10 @@ def _gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
     counts = cp.arange(nt,  nt-ntmax , -1, dtype=dtype)**-1 # Normalize correctly over valid indices
     counts = counts[None, :]  # Reshape for broadcasting
     # Row-wise FFT-based correlation
+    corr = cp.zeros((nx, ny, ntmax), dtype=dtype)
     for i in range(nx):
         corr_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax] * counts
-        corr[i, :, :] = corr_row.get()   
+        corr[i, :, :] = corr_row 
     return corr
 
 

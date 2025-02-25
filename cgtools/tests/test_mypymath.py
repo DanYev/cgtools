@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from cgtools._actual_math import mypymath
 
-# Test covariance_matrix function.
+
 def test_covariance_matrix():
     """
     Test that covariance_matrix returns an array with the correct shape
@@ -19,25 +19,43 @@ def test_covariance_matrix():
     # For this degenerate data (linearly dependent), the determinant should be ~0.
     np.testing.assert_almost_equal(np.linalg.det(covmat), 0, decimal=5)
 
-# Test sfft_cpsd function.
+
 def test_sfft_corr():
     """
-    Test that _sfft_corr returns a correlation function with expected shape.
+    Test that _sfft_corr returns a correlation function that
+    matches the manually computed sliding average correlation.
     """
     n_coords = 2
     n_samples = 128
-    # Generate random signals.
+    ntmax = 64
+    x = np.random.rand(n_coords, n_samples).astype(np.float64)
+    y = np.random.rand(n_coords, n_samples).astype(np.float64)  
+    x_centered = x - np.mean(x, axis=-1, keepdims=True)
+    y_centered = y - np.mean(y, axis=-1, keepdims=True)   
+    corr_fft = mypymath._sfft_corr(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)  
+    ref_corr = np.empty((n_coords, n_coords, n_samples), dtype=np.float64) # Manually compute the sliding average correlation.
+    for i in range(n_coords):
+        for j in range(n_coords):
+            for t in range(n_samples):
+                ref_corr[i, j, t] = np.average(x_centered[i, t:] * y_centered[j, :n_samples-t])
+    ref_corr = ref_corr[:,:,:ntmax]
+    np.testing.assert_allclose(corr_fft, ref_corr, rtol=1e-10, atol=1e-10)    
+
+
+def test_pfft_corr():
+    """
+    Test that _pfft_corr returns same result as _sfft_corr
+    """
+    n_coords = 2
+    n_samples = 128
     x = np.random.rand(n_coords, n_samples).astype(np.float64)
     y = np.random.rand(n_coords, n_samples).astype(np.float64)
-    # Specify ntmax.
     ntmax = 64
-    # Call the function with loop=True.
-    corr = mypymath._sfft_corr(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
-    # The expected shape is (n_coords, n_coords, ntmax).
-    assert corr.shape == (n_coords, n_coords, ntmax)
+    corr_par = mypymath._pfft_corr(x, y, ntmax=ntmax, center=True, dtype=np.float64)
+    corr_ser = mypymath._sfft_corr(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
+    np.testing.assert_allclose(corr_par, corr_ser, rtol=1e-10, atol=1e-10) 
 
 
-# Test for the CPU version using sparse eigensolver.
 def test_inverse_sparse_matrix_cpu():
     # Create a 10x10 diagonal matrix.
     N = 100
@@ -57,24 +75,21 @@ try:
 except ImportError:
     cp = None
 
-# Test _gfft_corr function only if CUDA is available.
+
 @pytest.mark.skipif(cp is None, reason="CuPy is not installed")
 def test_gfft_corr():
     """
-    Test that _gfft_corr returns a correlation function with expected shape.
-    This test uses the GPU version and will be skipped if CUDA is not available.
+    Test that _gfft_corr returns same result as _sfft_corr
     """
-    try:
-        import cupy as cp
-    except ImportError:
-        pytest.skip("Cupy not installed")
     n_coords = 2
     n_samples = 128
-    x = np.random.rand(n_coords, n_samples).astype(np.float32)
-    y = np.random.rand(n_coords, n_samples).astype(np.float32)
+    x = np.random.rand(n_coords, n_samples).astype(np.float64)
+    y = np.random.rand(n_coords, n_samples).astype(np.float64)
     ntmax = 64
-    corr = mypymath._gfft_corr(x, y, ntmax=ntmax, center=True, dtype=cp.float32)
-    assert corr.shape == (n_coords, n_coords, ntmax)
+    corr_gpu = mypymath._gfft_corr(x, y, ntmax=ntmax, center=True, dtype=cp.float64)
+    corr = corr_gpu.get()
+    corr_ser = mypymath._sfft_corr(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
+    np.testing.assert_allclose(corr, corr_ser, rtol=1e-10, atol=1e-10) 
 
 
 @pytest.mark.skipif(cp is None, reason="CuPy is not installed")
@@ -107,3 +122,4 @@ def test_inverse_matrix_gpu():
 
 if __name__ == '__main__':
     pytest.main([os.path.abspath(__file__)])
+
