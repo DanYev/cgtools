@@ -294,52 +294,15 @@ def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32)
 ## DCI DFI ##
 ############################################################## 
 
-@timeit
-@memprofit   
-def _perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float64):
-    directions = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]), dtype=dtype)
-    directions = directions.T / np.sqrt(np.sum(directions, axis=1)).T # normalizing directions
-    directions = directions.T
-    perturbation_matrix = np.zeros((resnum, resnum), dtype=dtype)
-    n = resnum
-    for k in range(len(directions)):
-        f = np.ascontiguousarray(directions[k, :])
-        for j in range(n):
-            for i in range(n):
-                cov_ij = np.ascontiguousarray(covariance_matrix[3*i:3*i+3, 3*j:3*j+3])
-                delta = np.dot(cov_ij, f)
-                perturbation_matrix[i,j] += np.sqrt(np.sum(delta * delta))
-    perturbation_matrix /= np.sum(perturbation_matrix)
-    return perturbation_matrix
-  
-@timeit
-@memprofit    
-def _perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
-    """
-    Calculates perturbation matrix from a covariance matrix or a hessian on CPU
-    The result is normalized such that the total sum of the matrix elements is equal to 1
-    """
-    n = covariance_matrix.shape[0] // 3
-    perturbation_matrix = np.zeros((n, n), dtype=dtype)
-    directions = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]), dtype=dtype)
-    directions /= np.linalg.norm(directions, axis=1, keepdims=True)
-    for k in range(len(directions)):
-        f = directions[k, :]
-        cov_blocks = covariance_matrix.reshape(n, 3, n, 3).swapaxes(1, 2)  # Shape: (n, n, 3, 3)
-        # Compute delta for all i, j in one step
-        delta = np.einsum('ijkl,l->ijk', cov_blocks, f)  # Shape: (n, n, 3)
-        abs_delta = np.sqrt(np.sum(delta ** 2, axis=2))  # Shape: (n, n)
-        perturbation_matrix += abs_delta
-    perturbation_matrix /= np.sum(perturbation_matrix)
-    return perturbation_matrix
 
-
-def perturbation_matrix(covariance_matrix, dtype=np.float32):
+def perturbation_matrix(covariance_matrix, dtype=np.float64):
     pertmat = _perturbation_matrix_cpu(covariance_matrix, dtype=dtype)
     return pertmat
 
 
-def _td_perturbation_matrix_cpu(ccf, normalize=True, dtype=np.float32):
+@memprofit
+@timeit
+def _td_perturbation_matrix_cpu(ccf, normalize=True, dtype=np.float64):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU
     The result is normalized such that the total sum of the matrix elements is equal to 1
@@ -365,6 +328,7 @@ def dfi(perturbation_matrix):
     Normalized such that the total sum is equal to 1
     """
     dfi = np.sum(perturbation_matrix, axis=-1)
+    dfi *= len(dfi)
     return dfi
     
 

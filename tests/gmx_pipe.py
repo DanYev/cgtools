@@ -103,12 +103,13 @@ def cov_analysis(sysdir, sysname, runname):
     ag = u.atoms.select_atoms("name CA or name P or name C1'") # Select the backbone atoms
     if not ag:
         ag = u.atoms.select_atoms("name BB or name BB1 or name BB3")
-    clean_dir(mdrun.covdir, '*npy')
+    # clean_dir(mdrun.covdir, '*npy')
     mdrun.get_covmats(u, ag, sample_rate=1, b=50000, e=1000000, n=4, outtag='covmat') #  Begin at b picoseconds, end at e, sample each frame
     mdrun.get_pertmats()
     mdrun.get_dfi(outtag='dfi')
     mdrun.get_dci(outtag='dci', asym=False)
     mdrun.get_dci(outtag='asym', asym=True)
+    # clean_dir(mdrun.covdir, 'covmat*')
 
 
 def tdlrt_analysis(sysdir, sysname, runname):
@@ -131,8 +132,9 @@ def tdlrt_analysis(sysdir, sysname, runname):
 
 def get_averages(sysdir, sysname):
     system = gmxSystem(sysdir, sysname)   
-    # system.get_mean_sem(pattern='dfi*.npy')
     system.get_mean_sem(pattern='pertmat*.npy')
+    system.get_mean_sem(pattern='covmat*.npy')
+    # system.get_mean_sem(pattern='dfi*.npy')
     # system.get_mean_sem(pattern='dci*.npy')
     # system.get_mean_sem(pattern='asym*.npy')
     # system.get_mean_sem(pattern='rmsf*.npy')

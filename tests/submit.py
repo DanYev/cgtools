@@ -237,7 +237,7 @@ def run_job(jobname, submit=False, **kwargs):
 
                 
 script = 'sbatch.sh'
-pyscript = 'pipeline.py'
+pyscript = 'gmx_pipe.py'
 sysdir = 'systems' 
 sysnames = ['1btl',]
 runs = ['mdrun_1', 'mdrun_2', ]  # 
@@ -248,12 +248,12 @@ runs = ['mdrun_1', 'mdrun_2', ]  #
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
 # trjconv(submit=False)
 # rms_analysis(submit=False)
-# cov_analysis(submit=False)
-# get_averages(submit=False)
+cov_analysis(submit=False)
+get_averages(submit=False)
 # plot(submit=False)
 # cluster(submit=False)
 # tdlrt_analysis(submit=False)
-get_td_averages(submit=False)
+# get_td_averages(submit=False)
 # tdlrt_figs(submit=True)
 # test(submit=True)
 # sys_job('make_ndx', submit=False)

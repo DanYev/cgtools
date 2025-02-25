@@ -683,7 +683,6 @@ class MDRun(gmxSystem):
                 pert_file = cov_file.replace(intag, outtag)
                 logger.info(f'  Saving pertubation matrix at {pert_file}')
                 np.save(pert_file, pertmat)
-                os.remove(cov_file)
         logger.info('Finished calculating perturbation matrices!')
         
     def get_dfi(self, intag='pertmat', outtag='dfi', **kwargs):

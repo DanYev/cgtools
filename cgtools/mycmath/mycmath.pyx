@@ -137,10 +137,7 @@ def hessian(int resnum,
 @timeit
 @memprofit
 def _perturbation_matrix_old(np.ndarray[double, ndim=2] covariance_matrix,
-                             int resnum,
-                             double cutoff=1.2,
-                             double spring_constant=1000,
-                             int dd=0):
+                             int resnum):
     cdef int i, j, k, d, n = resnum
     cdef double norm, sum_val, s
     cdef np.ndarray[double, ndim=2] perturbation_matrix
@@ -192,3 +189,126 @@ def _perturbation_matrix_old(np.ndarray[double, ndim=2] covariance_matrix,
 
     return perturbation_matrix
 
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@timeit
+@memprofit
+def _perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.ndarray:
+    """
+    Compute a perturbation matrix from a covariance matrix.
+    
+    Parameters
+    ----------
+    covariance_matrix : ndarray (shape = (3*m, 3*n))
+        A covariance matrix computed from positions.
+        
+    Returns
+    -------
+    perturbation_matrix : ndarray (shape = (m, n))
+        A perturbation matrix, normalized by its total sum.
+    """
+    cdef int i, j, k, d
+    cdef int m = covariance_matrix.shape[0] // 3
+    cdef int n = covariance_matrix.shape[1] // 3
+    cdef double norm, sum_val, s
+    cdef np.ndarray[double, ndim=2] perturbation_matrix = np.zeros((m, n), dtype=np.float64)
+    cdef np.ndarray[double, ndim=2] directions
+    cdef double f0, f1, f2
+    cdef double delta0, delta1, delta2
+
+    # Create an array of 7 direction vectors (7 x 3) and normalize each row.
+    directions = np.array([[1,0,0], [0,1,0], [0,0,1],
+                           [1,1,0], [1,0,1], [0,1,1], [1,1,1]],
+                          dtype=np.float64)
+    for k in range(directions.shape[0]):
+        norm = 0.0
+        for d in range(3):
+            norm += directions[k, d] * directions[k, d]
+        norm = sqrt(norm)
+        for d in range(3):
+            directions[k, d] /= norm
+
+    # Loop over each direction vector.
+    for k in range(directions.shape[0]):
+        f0 = directions[k, 0]
+        f1 = directions[k, 1]
+        f2 = directions[k, 2]
+        for j in range(n):
+            for i in range(m):
+                # Compute dot product of the 3x3 block and the direction vector.
+                # Block is covariance_matrix[3*i:3*i+3, 3*j:3*j+3].
+                delta0 = (covariance_matrix[3*i,   3*j]   * f0 +
+                          covariance_matrix[3*i,   3*j+1] * f1 +
+                          covariance_matrix[3*i,   3*j+2] * f2)
+                delta1 = (covariance_matrix[3*i+1, 3*j]   * f0 +
+                          covariance_matrix[3*i+1, 3*j+1] * f1 +
+                          covariance_matrix[3*i+1, 3*j+2] * f2)
+                delta2 = (covariance_matrix[3*i+2, 3*j]   * f0 +
+                          covariance_matrix[3*i+2, 3*j+1] * f1 +
+                          covariance_matrix[3*i+2, 3*j+2] * f2)
+                s = sqrt(delta0*delta0 + delta1*delta1 + delta2*delta2)
+                perturbation_matrix[i, j] += s
+
+    # Normalize the perturbation matrix.
+    sum_val = 0.0
+    for i in range(m):
+        for j in range(n):
+            sum_val += perturbation_matrix[i, j]
+    if sum_val != 0.0:
+        for i in range(m):
+            for j in range(n):
+                perturbation_matrix[i, j] /= sum_val
+
+    return perturbation_matrix
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@timeit
+@memprofit
+def _td_perturbation_matrix(np.ndarray[double, ndim=2] ccf, bint normalize=True) -> np.ndarray:
+    """
+    Calculate the perturbation matrix from a covariance matrix (or Hessian) on the CPU.
+    
+    The input covariance matrix 'ccf' is expected to have shape (3*m, 3*n).
+    The function computes the perturbation value for each block:
+    
+        perturbation_matrix[i,j] = sqrt( sum_{a=0}^{2} sum_{b=0}^{2} (ccf[3*i+a, 3*j+b])^2 )
+    
+    If normalize is True, the output matrix is normalized so that its total sum equals 1.
+    
+    Parameters
+    ----------
+    ccf : np.ndarray[double, ndim=2]
+        The input covariance matrix with shape (3*m, 3*n).
+    normalize : bool, optional
+        Whether to normalize the output perturbation matrix (default True).
+    
+    Returns
+    -------
+    perturbation_matrix : np.ndarray
+        An (m, n) matrix of perturbation values.
+    """
+    cdef int m = ccf.shape[0] // 3
+    cdef int n = ccf.shape[1] // 3
+    cdef int i, j, a, b
+    cdef double temp, sum_val = 0.0
+    cdef np.ndarray[double, ndim=2] perturbation_matrix = np.empty((m, n), dtype=np.float64)
+    
+    # Loop over each block (i,j)
+    for i in range(m):
+        for j in range(n):
+            temp = 0.0
+            for a in range(3):
+                for b in range(3):
+                    temp += ccf[3*i + a, 3*j + b] * ccf[3*i + a, 3*j + b]
+            perturbation_matrix[i, j] = sqrt(temp)
+            sum_val += perturbation_matrix[i, j]
+    
+    if normalize and sum_val != 0.0:
+        for i in range(m):
+            for j in range(n):
+                perturbation_matrix[i, j] /= sum_val
+    
+    return perturbation_matrix
