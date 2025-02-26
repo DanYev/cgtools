@@ -269,9 +269,8 @@ def gmx_grompp(**kwargs):
     kwargs = set_defaults(kwargs, defaults)
     gmx('grompp', **kwargs)  
     
-    
-@from_wdir
-def gmx_mdrun(wdir, **kwargs):
+
+def gmx_mdrun(**kwargs):
     """
     Run the GROMACS 'mdrun' command to perform molecular dynamics or energy minimization.
 
@@ -286,7 +285,7 @@ def gmx_mdrun(wdir, **kwargs):
         - 'nsteps': '-2' (run for the length defined in the .mdp file)
     """
     defaults = {
-        'ntomp': '6',
+        'ntomp': '8',
         'pin': 'on',
         'pinstride': '1',
     }

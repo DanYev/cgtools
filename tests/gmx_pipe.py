@@ -50,15 +50,15 @@ def md(sysdir, sysname, runname, ntomp):
     mdrun = MDRun(sysdir, sysname, runname)
     mdrun.prepare_files()
     # Choose appropriate mdp files
-    em_mdp = os.path.join(self.mdpdir, 'em.mdp')
-    eq_mdp = os.path.join(self.mdpdir, 'eq.mdp')
-    md_mdp = os.path.join(self.mdpdir, 'md.mdp')
+    em_mdp = os.path.join(mdrun.mdpdir, 'em.mdp')
+    eq_mdp = os.path.join(mdrun.mdpdir, 'eq.mdp')
+    md_mdp = os.path.join(mdrun.mdpdir, 'md.mdp')
     mdrun.empp(f=em_mdp) # Preprocessing 
     mdrun.mdrun(deffnm='em', ntomp=ntomp) # Actual run
-    mdrun.eqpp(f=eq_mdp,c='em.gro', r='em.gro', maxwarn=10) 
+    mdrun.eqpp(f=eq_mdp, c='em.gro', r='em.gro', maxwarn=10) 
     mdrun.mdrun(deffnm='eq', ntomp=ntomp)
-    mdrun.mdpp(c='eq.gro', r='eq.gro')
-    mdrun.mdrun(f=md_mdp, deffnm='md', ntomp=ntomp) 
+    mdrun.mdpp(f=md_mdp, c='eq.gro', r='eq.gro')
+    mdrun.mdrun(deffnm='md', ntomp=ntomp) 
     
     
 def extend(sysdir, sysname, runname, ntomp):    
@@ -79,7 +79,7 @@ def trjconv(sysdir, sysname, runname, mode='solu', fit='rot+trans', **kwargs):
     mdrun = MDRun(sysdir, sysname, runname)
     if mode == 'solu': # REMOVE SOLVENT # NDX groups: 1.System 2.Solute 3.Backbone 4.Solvent 5...chains...
         k = 1
-    if mode == 'bb': # FOR BACKBONE ANALYSIS
+    if mode == 'bb': # JUST FOR BACKBONE ANALYSIS
         k = 2
     mdrun.trjconv(clinput=f'{k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='whole', ur='compact', e=0)
     mdrun.trjconv(clinput=f'{k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.trr', n=mdrun.sysndx, pbc='whole', ur='compact', **kwargs)

@@ -243,8 +243,8 @@ sysnames = ['1btl',]
 runs = ['mdrun_1', 'mdrun_2', ]  # 
 
 
-setup(submit=True)
-# md(submit=True, ntomp=8, mem='4G', q='public', p='htc', t='00-04:00:00',)
+# setup(submit=True)
+md(submit=True, ntomp=8, mem='4G', q='public', p='htc', t='00-04:00:00',)
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
 # trjconv(submit=False)
 # rms_analysis(submit=False)
