@@ -304,15 +304,15 @@ class gmxSystem:
             cg_pdb_files = os.listdir(self.cgdir)
             cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
             cg_pdb_files = [os.path.join(self.cgdir, fname) for fname in cg_pdb_files]
-            atoms = AtomList()
+            all_atoms = AtomList()
             for file in cg_pdb_files:
-                system = pdbtools.parse_pdb(file)
-                atoms.extend(system.atoms)
+                atoms = pdbtools.pdb2atomlist(file)
+                all_atoms.extend(atoms)
             if add_resolved_ions:
-                system = pdbtools.parse_pdb(self.ionpdb)
-                atoms.extend(system.atoms)
-            atoms.renumber()    
-            atoms.write_pdb(self.solupdb)
+                ions = pdbtools.pdb2atomlist(self.ionpdb)
+                all_atoms.extend(ions)
+            all_atoms.renumber()    
+            all_atoms.write_pdb(self.solupdb)
             cli.gmx('editconf', f=self.solupdb, o=self.solupdb, **kwargs)   
         
     def make_martini_topology_file(self, add_resolved_ions=False, prefix='chain'):
