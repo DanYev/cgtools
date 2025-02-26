@@ -10,7 +10,12 @@ from cgtools.utils import *
 from pathlib import Path
 
 
-def setup(sysdir, sysname):
+def setup(*args):
+    # setup_cg_protein_rna(args)
+    setup_cg_protein_lbl(args)
+
+
+def setup_cg_protein_rna(sysdir, sysname):
     ### FOR COARSE-GRAINED MODELS ###
     mdsys = gmxSystem(sysdir, sysname)
 
@@ -27,12 +32,12 @@ def setup(sysdir, sysname):
     mdsys.clean_pdb_gmx(in_pdb=mdsys.inpdb, clinput='8\n 7\n', ignh='no', renum='yes') # 8 for CHARMM, sometimes you need to refer to AMBER FF
     mdsys.split_chains()
     mdsys.clean_chains_gmx(clinput='8\n 7\n', ignh='yes', renum='yes')
-    mdsys.get_go_maps(append=False)
+    mdsys.get_go_maps(append=True)
 
     # # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually. 
     # # mdsys.martinize_proteins_en(ef=500, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
-    mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500) # Martini + Go-network FF
-    mdsys.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=False) # Martini RNA FF 
+    mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500, append=True) # Martini + Go-network FF
+    mdsys.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=True) # Martini RNA FF 
     mdsys.make_martini_topology_file(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
     mdsys.make_cgpdb_file(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
 
@@ -46,6 +51,42 @@ def setup(sysdir, sysname):
     mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
    
       
+def setup_cg_protein_lbl(sysdir, sysname):
+    ### FOR CG LIPID BILAYER ###
+    mdsys = gmxSystem(sysdir, sysname)
+
+    # 1.1. Need to copy force field and md-parameter files and prepare directories
+    mdsys.prepare_files() # be careful it can overwrite later files
+    mdsys.sort_input_pdb(f"{sysname}.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
+
+    # # 1.2.1 Try to clean the input PDB and split the chains based on the type of molecules (protein, RNA/DNA)
+    # mdsys.clean_pdb_mm(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
+    # mdsys.split_chains()
+    # mdsys.clean_chains_mm(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
+    
+    # 1.2.2 Same but if we want Go-Model for the proteins
+    mdsys.clean_pdb_gmx(in_pdb=mdsys.inpdb, clinput='8\n 7\n', ignh='no', renum='yes') # 8 for CHARMM, sometimes you need to refer to AMBER FF
+    mdsys.split_chains()
+    mdsys.clean_chains_gmx(clinput='8\n 7\n', ignh='yes', renum='yes')
+    mdsys.get_go_maps(append=True)
+
+    # # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually. 
+    # # mdsys.martinize_proteins_en(ef=500, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
+    mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500, append=True) # Martini + Go-network FF
+    mdsys.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=True) # Martini RNA FF 
+    mdsys.make_martini_topology_file(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
+    mdsys.make_cgpdb_file(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
+
+    # 1.4. Coarse graining is *hopefully* done. Need to add solvent and ions
+    solvent = os.path.join(mdsys.wdir, 'water.gro')
+    mdsys.solvate(cp=mdsys.solupdb, cs=solvent) # all kwargs go to gmx solvate command
+    mdsys.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
+
+    # 1.5. Need index files to make selections with GROMACS. Very annoying but wcyd. Order:
+    # 1.System 2.Solute 3.Backbone 4.Solvent 5...chains. Can add custom groups using AtomList.write_to_ndx()
+    mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
+
+
 def md(sysdir, sysname, runname, ntomp): 
     mdrun = MDRun(sysdir, sysname, runname)
     mdrun.prepare_files()

@@ -300,7 +300,11 @@ class gmxSystem:
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
             cg_itp = os.path.join(self.topdir, molname + '.itp')
-            martinize_rna(self.wdir, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
+            try:
+                martinize_rna(self.wdir, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
+            except Exception as e:
+                sys.exit(f"Could not coarse-grain {in_pdb}: {e}")
+            
 
     def make_cgpdb_file(self, add_resolved_ions=False, **kwargs):
         logger.info("Merging CG PDBs")
