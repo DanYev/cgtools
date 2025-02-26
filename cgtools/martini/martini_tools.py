@@ -180,6 +180,16 @@ def martinize_rna(wdir, **kwargs):
         cli.run('python3 -m', script, **kwargs)
 
 
+def insert_membrane(wdir, **kwargs):
+    """
+    Usage: python test_forge.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp
+    """
+    with cd(wdir):
+        script = 'cgtools.martini.insane'
+        cli.run('python3 -m', script, **kwargs
+
+
+
 if __name__  == "__main__":
     pass
 

@@ -12,11 +12,11 @@ from pathlib import Path
 
 def setup(*args):
     # setup_cg_protein_rna(args)
-    setup_cg_protein_lbl(args)
+    setup_cg_protein_membrane(args)
 
 
 def setup_cg_protein_rna(sysdir, sysname):
-    ### FOR COARSE-GRAINED MODELS ###
+    ### FOR CG PROTEIN+/RNA SYSTEMS ###
     mdsys = gmxSystem(sysdir, sysname)
 
     # 1.1. Need to copy force field and md-parameter files and prepare directories
@@ -51,8 +51,8 @@ def setup_cg_protein_rna(sysdir, sysname):
     mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
    
       
-def setup_cg_protein_lbl(sysdir, sysname):
-    ### FOR CG LIPID BILAYER ###
+def setup_cg_protein_membrane(sysdir, sysname):
+    ### FOR CG PROTEIN+LIPID BILAYERS ###
     mdsys = gmxSystem(sysdir, sysname)
 
     # 1.1. Need to copy force field and md-parameter files and prepare directories

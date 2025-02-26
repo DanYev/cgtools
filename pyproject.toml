@@ -7,13 +7,13 @@ requires = [
     "numpy",   
 ]
 build-backend = "setuptools.build_meta"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 
 # Self-descriptive entries which should always be present
 # https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 [project]
-name = "cgtools"
-description = "Tools for CGMD"
+name = "reforge"
+description = "MD pipeline"
 dynamic = ["version"]
 readme = "README.md"
 authors = [
@@ -29,17 +29,22 @@ classifiers = [
 
 # Declare any run-time dependencies that should be installed with the package.
 dependencies = [
+    "numpy>=1.21.0",
+    "pandas>=1.3.0",
+    "requests>=2.26.0",
+    "Cython>=0.29.0",
+    "vermouth>=0.13",
 ]
 
 # Update the urls once the hosting is set up.
 [project.urls]
-"Source" = "https://github.com/DanYev/cgtools/"
-"Documentation" = "https://cgtools.readthedocs.io/"
+"Source" = "https://github.com/DanYev/reforge/"
+"Documentation" = "https://reforge.readthedocs.io/"
 
 [project.optional-dependencies]
 test = [
 ]
 
 [tool.setuptools]
-packages = ["cgtools"]
+packages = ["reforge"]
 
