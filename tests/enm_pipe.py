@@ -12,7 +12,7 @@ import scipy.linalg
 import MDAnalysis as mda
 from reforge.gmxmd import gmxSystem
 from reforge.utils import timeit, memprofit, logger, cuda_detected
-from reforge._actual_math import mycmath, mypymath, legacy
+from reforge.actual_math import mycmath, mypymath, legacy
 from reforge import io, mdm
 from reforge.plotting import *
 
