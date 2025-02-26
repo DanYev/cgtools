@@ -38,8 +38,8 @@ n = len(bb)
 nt = 1
 # covmat = np.tile(ref_covmat, (nt, nt))
 
-
-hess = mycmath._hessian(n, xs, ys, zs, cutoff=18, spring_constant=1e3, dd=0, )
+vecs = np.array(bb.vecs)
+hess = mycmath._hessian(vecs, cutoff=18, spring_constant=1e3, dd=0,) 
 exit()
 covmat = mypymath._inverse_sparse_matrix_cpu(hess, k_singular=6, n_modes=20)
 # covmat_gpu = mypymath._inverse_matrix_gpu(hess, k_singular=6, n_modes=20, gpu_dtype=cp.float32)
@@ -56,3 +56,4 @@ fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
 ax.plot(np.arange(len(dfi)), dfi, label='dfi')
 set_ax_parameters(ax, xlabel='Residue', ylabel='DFI')
 plot_figure(fig, ax, figpath='png/dfi.png',)
+dasdasdjjjllllllllllllllllllllll

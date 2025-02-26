@@ -28,6 +28,15 @@ def _calculate_hessian(int resnum,
         dd: Exponent modifier
     Returns:
         A 2D NumPy array (double) of shape (3*resnum, 3*resnum)
+    
+    double *array = (double*)calloc(n * n * sizeof(double));
+    if (array == NULL) {
+        // handle allocation error
+    }
+    // To set all values to zero:
+    for (int i = 0; i < n * n; i++) {
+        array[i] = 0.0;
+    }
     """
     cdef int i, j
     cdef double x_ij, y_ij, z_ij, r, invr, gamma
@@ -73,10 +82,7 @@ def _calculate_hessian(int resnum,
 @cython.wraparound(False)
 @timeit
 @memprofit
-def _hessian(int resnum,
-                      np.ndarray[double, ndim=1] x,
-                      np.ndarray[double, ndim=1] y,
-                      np.ndarray[double, ndim=1] z,
+def _hessian(np.ndarray[double, ndim=2] vec,
                       double cutoff=1.2,
                       double spring_constant=1000,
                       int dd=0):
@@ -90,19 +96,22 @@ def _hessian(int resnum,
         spring_constant: Base spring constant
         dd: Exponent modifier
     Returns:
-        A 2D NumPy array (double) of shape (3*resnum, 3*resnum)
+        A 2D NumPy array (double) 
     """
     cdef int i, j
     cdef double x_ij, y_ij, z_ij, r, invr, gamma
-    cdef np.ndarray[double, ndim=2] hessian = np.zeros((3 * resnum, 3 * resnum), dtype=np.float64)
+    cdef int n = vec.shape[0] // 3
+    cdef np.ndarray[double, ndim=2] hessian 
     
-    for i in range(resnum):
-        for j in range(resnum):
+    hessian = np.zeros((3 * n, 3 * n), dtype=np.float64)
+    
+    for i in range(n):
+        for j in range(n):
             if j == i:
                 continue
-            x_ij = x[i] - x[j]
-            y_ij = y[i] - y[j]
-            z_ij = z[i] - z[j]
+            x_ij = vec[i, 0] - vec[j, 0]
+            y_ij = vec[i, 1] - vec[j, 1]
+            z_ij = vec[i, 2] - vec[j, 2]
             r = sqrt(x_ij*x_ij + y_ij*y_ij + z_ij*z_ij)
             if r < cutoff:
                 invr = 1.0 / r

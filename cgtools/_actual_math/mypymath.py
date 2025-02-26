@@ -14,11 +14,9 @@ from joblib import Parallel, delayed
 from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
 from scipy.stats import pearsonr
 
-
 ##############################################################
-## To calculate correlations ##
+## Correlations ##
 ############################################################## 
-
 
 @memprofit
 @timeit
@@ -151,7 +149,7 @@ def _gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
 def gfft_conv(x, y, loop=False, dtype=cp.float32):
     """
     Compute element-wise convolution between two arrays of the same shape <x(t)y(0)> 
-    using FFT along the last axis.
+    using FFT along the last axis on GPU.
     Parameters:
     - x: np.ndarray, first input signal.
     - y: np.ndarray, second input signal. 
@@ -231,7 +229,7 @@ def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     return cpsd
 
 
-def covariance_matrix(positions, dtype=np.float32):
+def _covariance_matrix(positions, dtype=np.float32):
     """
     Calculate the position-position covariance matrix
     Parameters:
@@ -242,23 +240,6 @@ def covariance_matrix(positions, dtype=np.float32):
     centered_positions = positions - mean # Center the data by removing mean
     covmat = np.cov(centered_positions, rowvar=True, dtype=dtype) # Compute covariance matrix (n_coords x n_coords)
     return np.array(covmat)
-
-
-def calc_and_save_covmats(positions, outdir, n=1, outtag='covmat', dtype=np.float32):
-    """
-    Calculate and save the position-position covariance matrices by splitting trajectory into n segments
-    
-    Parameters:
-        positions (ndarray): arrays of positions
-        n (int): number of segments
-    """
-    trajs = np.array_split(positions, n, axis=-1)  # Split into `n` segments along frames (axis=1)
-    for idx, traj in enumerate(trajs, start=1): # Process each segment
-        logger.info(f"Processing matrix {idx}")
-        covmat = covariance_matrix(traj, dtype=dtype) # Compute covariance matrix (n_coords x n_coords)
-        outfile = os.path.join(outdir, f'{outtag}_{idx}.npy')
-        np.save(outfile, covmat)
-        logger.info(f"Saved covariance matrix to {outfile}")
         
         
 def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
@@ -409,8 +390,8 @@ def fft_corr(*args, mode='serial', **kwargs):
     if mode == 'gpu':
         return _gfft_corr(*args, **kwargs)
     raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
-   
-    
+
+
 if __name__ == '__main__':
     pass
 

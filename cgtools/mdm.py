@@ -108,18 +108,10 @@ def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     return cpsd
 
 
-def covariance_matrix(positions, dtype=np.float32):
-    """
-    Calculate the position-position covariance matrix
-    Parameters:
-        positions (ndarray): arrays of positions
-        b (float): Time of first frame to read from trajectory (default unit ps)
-    """
-    mean = positions.mean(axis=-1, keepdims=True) # (n_coords, 1) 
-    centered_positions = positions - mean # Center the data by removing mean
-    covmat = np.cov(centered_positions, rowvar=True, dtype=dtype) # Compute covariance matrix (n_coords x n_coords)
-    return np.array(covmat)
-
+def covariance_matrix(positions, dtype=np.float64):
+    """Wrapper for the function. TODO: Fix types, add GPU"""
+    return mypymath._covariance_matrix(positions, dtype=dtype)
+    
 
 def calc_and_save_covmats(positions, outdir, n=1, outtag='covmat', dtype=np.float32):
     """
@@ -138,31 +130,7 @@ def calc_and_save_covmats(positions, outdir, n=1, outtag='covmat', dtype=np.floa
         logger.info(f"Saved covariance matrix to {outfile}")
         
         
-def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
-    """
-    Calculate the average cross-correlation function of x and y by splitting them into n segments
-    """
-    logger.info(f"Calculating cross-correlation.")
-    # Split trajectories into `n` segments along frames (axis=1)
-    xs = np.array_split(xs, n, axis=-1)
-    ys = np.array_split(ys, n, axis=-1)
-    nx = xs[0].shape[0]
-    ny = ys[0].shape[0]
-    nt = xs[-1].shape[1]
-    print(f'Splitting trajectory into {n} parts', file=sys.stderr)
-    if not ntmax or ntmax > (nt+1)//2: # Extract only the valid part
-        ntmax = (nt+1)//2   
-    corr = np.zeros((nx, ny, ntmax), dtype=np.float32)
-    # Compute correlation for each segment
-    for x, y in zip(xs, ys):
-        corr_n = fft_corr(x, y, ntmax=ntmax, mode=mode, center=center, dtype=dtype)
-        print(corr_n.shape, file=sys.stderr)
-        corr += corr_n
-    corr = corr / n
-    print(np.sqrt(np.average(corr**2)), file=sys.stderr)
-    # np.save('corr_pp.npy', corr)
-    print(f"Finished calculating cross-correlation.", file=sys.stderr)
-    return corr
+
 
 ##############################################################
 ## DCI DFI ##

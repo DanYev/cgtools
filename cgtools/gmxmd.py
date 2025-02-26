@@ -149,7 +149,7 @@ class gmxSystem:
         Get go contact maps for proteins using RCSU server
         """
         print('Getting GO-maps', file=sys.stderr)
-        from cgtools.get_go import get_go
+        from cgtools.martini import getgo
         pdbs = [os.path.join(self.prodir, file) for file in os.listdir(self.prodir)]
         map_names = [f.replace('pdb', 'map') for f in os.listdir(self.prodir)]
         # Filter out existing maps

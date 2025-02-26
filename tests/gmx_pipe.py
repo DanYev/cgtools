@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 import shutil
 import MDAnalysis as mda
-from cgtools import cli, io, lrt
+from cgtools import cli, io, mdm
 from cgtools.gmxmd import gmxSystem, MDRun
 from cgtools.utils import *
 from pathlib import Path
@@ -15,31 +15,31 @@ def setup(sysdir, sysname):
     ### FOR COARSE-GRAINED MODELS ###
     system = gmxSystem(sysdir, sysname)
 
-    # 1.1. Need to copy force field and md-parameter files and prepare directories
-    system.prepare_files()
+    # # 1.1. Need to copy force field and md-parameter files and prepare directories
+    # system.prepare_files()
 
-    # 1.2. Try to clean the input PDB and split the chains based on the type of molecules (protein, RNA/DNA)
-    system.sort_input_pdb("some_stuff.pdb")
-    system.clean_inpdb(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
-    system.split_chains()
-    # system.clean_chains(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
+    # # 1.2. Try to clean the input PDB and split the chains based on the type of molecules (protein, RNA/DNA)
+    # system.sort_input_pdb("some_stuff.pdb")
+    # system.clean_inpdb(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
+    # system.split_chains()
+    # # system.clean_chains(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
 
     # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually.
-    # system.get_go_maps()
-    # system.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500) # Martini + Go-network FF
-    system.martinize_proteins_en(ef=500, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
-    system.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=False) # Martini RNA FF 
-    system.make_martini_topology_file(add_resolved_ions=False, prefix='chain') # CG topology
-    system.make_cgpdb_file(bt='dodecahedron', d='1.2', ) # CG structure
+    system.get_go_maps()
+    system.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500) # Martini + Go-network FF
+    # system.martinize_proteins_en(ef=500, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
+    # system.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=False) # Martini RNA FF 
+    # system.make_martini_topology_file(add_resolved_ions=False, prefix='chain') # CG topology
+    # system.make_cgpdb_file(bt='dodecahedron', d='1.2', ) # CG structure
 
-    # 1.4. Coarse graining is done. Need to add solvent and ions
-    system.solvate()
-    system.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
+    # # 1.4. Coarse graining is done. Need to add solvent and ions
+    # system.solvate()
+    # system.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
 
-    # 1.5. Need index files to make selections with GROMACS. Very annoying but wcyd. Order:
-    # 1.System 2.Solute 3.Backbone 4.Solvent 5...chains. 
-    # Can add custom groups using AtomList.write_to_ndx() method
-    system.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
+    # # 1.5. Need index files to make selections with GROMACS. Very annoying but wcyd. Order:
+    # # 1.System 2.Solute 3.Backbone 4.Solvent 5...chains. 
+    # # Can add custom groups using AtomList.write_to_ndx() method
+    # system.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
    
       
 def md(sysdir, sysname, runname, ntomp): 

@@ -6,8 +6,9 @@ import pandas as pd
 import shutil
 import subprocess as sp
 from pathlib import Path
-from cgtools.martini.get_go import get_go
+from cgtools.martini.getgo import getgo
 from cgtools import cli
+from cgtools.utils import cd, logger
 
 
 def append_to(in_file, out_file):
@@ -17,17 +18,6 @@ def append_to(in_file, out_file):
         dest.writelines(lines[1:])
 
 
-def prt_parser():
-    """
-    Parse command-line arguments.
-    """
-    parser = argparse.ArgumentParser(description="Runs CGMD simulation for pyRosetta")
-    parser.add_argument("-f", "--pdb", required=True, help="PDB file")
-    parser.add_argument("-d", "--wdir", required=True, help="Relative path to the working directory")
-    parser.add_argument("-n", "--ncpus", required=False, help="Number of requested CPUS for a batch job")
-    return parser.parse_args()
-
-                    
 def make_topology_file(wdir, protein='protein'):
     r"""
     -protein        Name of the protein (just for the reference, doesn't affect anything)
@@ -123,14 +113,12 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein',
     kwargs.setdefault('resid', 'input')
     kwargs.setdefault('ff', 'martini3001')
     kwargs.setdefault('maxwarn', '1000')
-    line = f'-go-moltype {go_moltype} -go-eps {go_eps} -go-low {go_low} -go-up {go_up} -go-res-dis {go_res_dist}'
-    try:
+    with cd(wdir):
+        line = f'-go-moltype {go_moltype} -go-eps {go_eps} -go-low {go_low} -go-up {go_up} -go-res-dis {go_res_dist}'
         cli.run('martinize2', line, **kwargs)
-    except:
-        print('Error')
-    append_to('go_atomtypes.itp', os.path.join(topdir, 'go_atomtypes.itp'))
-    append_to('go_nbparams.itp', os.path.join(topdir, 'go_nbparams.itp'))
-    shutil.move(f'{go_moltype}.itp',  os.path.join(topdir, f'{go_moltype}.itp'))
+        append_to('go_atomtypes.itp', os.path.join(topdir, 'go_atomtypes.itp'))
+        append_to('go_nbparams.itp', os.path.join(topdir, 'go_nbparams.itp'))
+        shutil.move(f'{go_moltype}.itp',  os.path.join(topdir, f'{go_moltype}.itp'))
 
 
 @cli.from_wdir    
@@ -178,22 +166,19 @@ def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
     kwargs.setdefault('o', 'topol.top')
     kwargs.setdefault('p', 'bb')
     kwargs.setdefault('pf', 1000)
-    bdir = os.getcwd()
-    os.chdir(wdir)
-    script = 'cgtools.martini.martinize_nucleotides'
-    cli.run('python3 -m', script, **kwargs)
-    os.chdir(bdir)
-    
+    with cd(wdir):
+        script = 'cgtools.martini.martinize_nucleotides'
+        cli.run('python3 -m', script, **kwargs)
 
+    
 def martinize_rna(wdir, **kwargs):
     """
     Usage: python test_forge.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp
     """
-    bdir = os.getcwd()
-    os.chdir(wdir)
-    script = 'cgtools.martini.martinize_rna'
-    cli.run('python3 -m', script, **kwargs)
-    os.chdir(bdir)
+    with cd(wdir):
+        script = 'cgtools.martini.martinize_rna'
+        cli.run('python3 -m', script, **kwargs)
+
 
 if __name__  == "__main__":
     pass
