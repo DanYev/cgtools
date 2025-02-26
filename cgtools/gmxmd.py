@@ -105,13 +105,28 @@ class gmxSystem:
         with cd(self.wdir):
             pdbtools.sort_pdb(in_pdb, self.inpdb)
                        
-    def clean_inpdb(self, **kwargs):
+    def clean_pdb_mm(self, in_pdb=None, **kwargs):
         """
         Cleans starting PDB file using PDBfixer by OpenMM
         """
         logger.info("Cleaning the PDB...")
-        pdbtools.clean_pdb(self.inpdb, self.inpdb, **kwargs)  
-    
+        if not in_pdb:
+            in_pdb = self.inpdb
+        pdbtools.clean_pdb(in_pdb, in_pdb, **kwargs)  
+
+    def clean_pdb_gmx(self, in_pdb=None, **kwargs):
+        """
+        Cleans PDB files using pdb2gmx from GROMACSv
+        gmx pdb2gmx [-f [<.gro/.g96/...>]] [-o [<.gro/.g96/...>]] [-p [<.top>]]
+        Needed to get Go-Maps from the web-server 
+        http://info.ifpan.edu.pl/~rcsu/rcsu/index.html
+        """
+        logger.info("Cleaning the PDB...")
+        if not in_pdb:
+            in_pdb = self.inpdb
+        with cd(self.wdir):    
+            cli.gmx('pdb2gmx', f=in_pdb, o=in_pdb, **kwargs)
+            
     def split_chains(self):
         """
         Cleans a separate PDB file for each chain in the initial structure
@@ -119,7 +134,7 @@ class gmxSystem:
         def it_is_nucleotide(atoms): # check if it's RNA or DNA based on residue name
             return atoms.resnames[0] in self.NUC_RESNAMES
         logger.info("Splitting chains...")
-        system = pdbtools.parse_pdb(self.inpdb)
+        system = pdbtools.pdb2system(self.inpdb)
         for chain in system.chains():
             atoms = chain.atoms
             if it_is_nucleotide(atoms):
@@ -128,9 +143,9 @@ class gmxSystem:
                 out_pdb = os.path.join(self.prodir, f'chain_{chain.chid}.pdb')
             atoms.write_pdb(out_pdb)
                 
-    def clean_chains(self, **kwargs):
+    def clean_chains_mm(self, **kwargs):
         """
-        Cleans protein PDB files using PDBfixer by OpenMM
+        Cleans PDB files using PDBfixer by OpenMM
         """
         kwargs.setdefault('add_missing_atoms', True)
         kwargs.setdefault('add_hydrogens', True)
@@ -142,20 +157,39 @@ class gmxSystem:
         for file in files:
             pdbtools.clean_pdb(file, file, **kwargs)
             new_chain_id = file.split('chain_')[1][0]
-            pdbtools.rename_chain_in_pdb(file, new_chain_id)  
+            pdbtools.rename_chain_in_pdb(file, new_chain_id) 
 
-    def get_go_maps(self):
+    def clean_chains_gmx(self, **kwargs):
+        """
+        Cleans PDB files using pdb2gmx from GROMACSv
+        gmx pdb2gmx [-f [<.gro/.g96/...>]] [-o [<.gro/.g96/...>]] [-p [<.top>]]
+        Needed to get Go-Maps from the web-server 
+        http://info.ifpan.edu.pl/~rcsu/rcsu/index.html
+        """
+        logger.info("Cleaning chain PDBs")
+        files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir) if not f.startswith('#')]
+        files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir) if not f.startswith('#')]
+        files = sorted(files)
+        with cd(self.wdir): 
+            for file in files:
+                new_chain_id = file.split('chain_')[1][0]
+                cli.gmx('pdb2gmx', f=file, o=file, **kwargs)
+                pdbtools.rename_chain_in_pdb(file, new_chain_id)  
+            clean_dir(self.prodir)
+            clean_dir(self.nucdir)
+        
+    def get_go_maps(self, append=False):
         """
         Get go contact maps for proteins using RCSU server
         """
         print('Getting GO-maps', file=sys.stderr)
         from cgtools.martini import getgo
-        pdbs = [os.path.join(self.prodir, file) for file in os.listdir(self.prodir)]
+        pdbs = sorted([os.path.join(self.prodir, file) for file in os.listdir(self.prodir)])
         map_names = [f.replace('pdb', 'map') for f in os.listdir(self.prodir)]
-        # Filter out existing maps
-        pdbs = [pdb for pdb, amap in zip(pdbs, map_names) if amap not in os.listdir(self.mapdir)]
+        if append: # Filter out existing maps
+            pdbs = [pdb for pdb, amap in zip(pdbs, map_names) if amap not in os.listdir(self.mapdir)]
         if pdbs:
-            get_go(self.mapdir, pdbs)
+            getgo.get_go(self.mapdir, pdbs)
         else:
             print('Maps already there', file=sys.stderr)
         

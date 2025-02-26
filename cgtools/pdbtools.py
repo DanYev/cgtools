@@ -69,10 +69,14 @@ class Atom:
         Format the Atom instance as a fixed-width PDB ATOM/HETATM line.
         Adjust the formatting as needed.
         """
-        return (
+        name_string = f"{self.name:^4}"
+        if len(self.name) == 3:
+            name_string = f" {self.name}"
+
+        line = (
             f"{self.record:<6}"                  # record name, left-justified in 6 chars
-            f"{self.atid:>5} "                   # atid number, right-justified in 5 chars + space
-            f"{self.name:<4}"                    # atom name, left-justified in 4 chars
+            f"{self.atid:>5} " +                 # atid number, right-justified in 5 chars + space
+            name_string +                        # atom name, left-justified in 4 chars
             f"{self.alt_loc:1}"                  # alternate location indicator in 1 char
             f"{self.resname:>3} "                # residue name, right-justified in 3 chars + space
             f"{self.chid:1}"                     # chain identifier in 1 char
@@ -88,6 +92,7 @@ class Atom:
             f"{self.element:>2}"                 # element symbol, right-justified in 2 chars (columns 77-78)
             f"{self.charge:>2}"                  # charge, right-justified in 2 chars (columns 79-80)
         )
+        return line
 
 
 class AtomList(list):
@@ -849,8 +854,7 @@ def sort_pdb(in_pdb, out_pdb):
     """
     Sort PDB file to make GROMACS happy (hopefully)
     """
-    system = parse_pdb(in_pdb)
-    atoms = system.atoms
+    atoms = pdb2atomlist(in_pdb)
     sort_chains_atoms(atoms)
     rename_chains_for_gromacs(atoms)
     atoms.write_pdb(out_pdb)
@@ -882,8 +886,7 @@ def clean_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, pH=
 
 
 def rename_chain_in_pdb(in_pdb, new_chain_id):
-    system = parse_pdb(in_pdb)
-    atoms = system.atoms   
+    atoms = pdb2atomlist(in_pdb)   
     new_chids = [new_chain_id for atom in atoms]
     atoms.chids = new_chids
     atoms.write_pdb(in_pdb)
@@ -891,8 +894,7 @@ def rename_chain_in_pdb(in_pdb, new_chain_id):
 
 def write_ndx(atoms, fpath='system.ndx', backbone_atoms=("CA", "P", "C1'")):
     in_pdb = 'test.pdb'
-    system = parse_pdb(in_pdb)
-    atoms = system.atoms
+    atoms = pdb2atomlist(in_pdb)
     atoms.write_ndx(fpath, header=f'[ System ]', append=False, wrap=15) # sys ndx
     backbone = atoms.mask(backbone_atoms, mode='name')
     backbone.write_ndx(fpath, header=f'[ Backbone ]', append=True, wrap=15) # bb ndx

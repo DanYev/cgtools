@@ -19,14 +19,16 @@ def setup(sysdir, sysname):
     # system.prepare_files()
 
     # # 1.2. Try to clean the input PDB and split the chains based on the type of molecules (protein, RNA/DNA)
-    # system.sort_input_pdb("some_stuff.pdb")
-    # system.clean_inpdb(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
-    # system.split_chains()
-    # # system.clean_chains(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
+    system.sort_input_pdb("1btl.pdb") # sorts chain and atoms in the input file and returns makes system.inpdb file
+    # system.clean_pdb_gmx(in_pdb=system.inpdb, clinput='8\n 7\n', ignh='no', renum='yes')
+    system.clean_pdb_mm(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
+    system.split_chains()
+    # system.clean_chains_mm(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
+    # system.clean_chains_gmx(clinput='8\n 7\n', ignh='yes', renum='yes')
 
-    # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually.
-    system.get_go_maps()
-    system.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500) # Martini + Go-network FF
+    # # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually.
+    system.get_go_maps(append=False)
+    # system.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500) # Martini + Go-network FF
     # system.martinize_proteins_en(ef=500, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
     # system.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=False) # Martini RNA FF 
     # system.make_martini_topology_file(add_resolved_ions=False, prefix='chain') # CG topology

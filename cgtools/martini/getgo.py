@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.firefox.options import Options
 from webdriver_manager.firefox import GeckoDriverManager
-
+from cgtools.utils import logger
 
 def parse_arguments():
     """
@@ -64,18 +64,18 @@ def install_webdriver(browser_name):
         elif browser_name == "safari" and platform.system() == 'Darwin':
             driver = webdriver.Safari()
         else:
-            print(f"WebDriver installation for {browser_name} is not supported in this script.")
+            logger.info(f"WebDriver installation for {browser_name} is not supported in this script.")
             return
 
-        print(f"WebDriver for {browser_name} installed successfully.")
+        logger.info(f"WebDriver for {browser_name} installed successfully.")
         driver.quit()
     except Exception as e:
-        print(f"Error installing WebDriver for {browser_name}: {str(e)}")
+        logger.info(f"Error installing WebDriver for {browser_name}: {str(e)}")
 
 
 def check_browsers():
     """
-    Check for installed browsers and print their status.
+    Check for installed browsers and logger.info their status.
     """
     browsers = {
         "firefox": check_browser("Firefox", "firefox") or check_debian_package("firefox-esr"),
@@ -84,9 +84,9 @@ def check_browsers():
         "safari": platform.system() == 'Darwin' and check_browser("Safari", "safari"),
     }
     
-    print("Installed browsers:")
+    logger.info("Installed browsers:")
     for browser, installed in browsers.items():
-        print(f"{browser.capitalize()}: {'Installed' if installed else 'Not installed'}")
+        logger.info(f"{browser.capitalize()}: {'Installed' if installed else 'Not installed'}")
 
 
 def check_geckodriver_installed():
@@ -104,7 +104,7 @@ def init_webdriver(download_dir):
     """
     Initialize the Firefox WebDriver with specified options.
     """
-    print("Initializing WebDriver...")
+    logger.info("Initializing WebDriver...")
     options = Options()
     options.add_argument("-headless")  # Run in headless mode, remove this if you want to see the browser
 
@@ -119,7 +119,7 @@ def init_webdriver(download_dir):
         driver = webdriver.Firefox(options=options)
     else:
         driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options)
-    print("WebDriver initialized.")
+    logger.info("WebDriver initialized.")
     return driver
 
 
@@ -128,10 +128,10 @@ def get_go_maps(driver, pdb_files):
     Use Selenium to automate downloading Go maps from the server.
     pdb_files - path to pdb files
     """
-    print("Submitting PDBs...")
+    logger.info("Submitting PDBs...")
     
     for f in pdb_files:
-        print(f"Processing {f}...")
+        logger.info(f"Processing {f}...")
         driver.get("http://info.ifpan.edu.pl/~rcsu/rcsu/index.html")
     
         try:
@@ -144,28 +144,28 @@ def get_go_maps(driver, pdb_files):
                 EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "here"))
             )
             
-            print("Downloading the map...")
+            logger.info("Downloading the map...")
             download_link.click()
     
             time.sleep(10)  # Wait for the download to complete
-            print(f"Downloaded Go map for {f}.")
+            logger.info(f"Downloaded Go map for {f}.")
     
         except Exception as e:
-            print(f"An error occurred while processing {f}: {str(e)}")
+            logger.info(f"An error occurred while processing {f}: {str(e)}")
     
     driver.quit()
-    print("Go maps download process completed.")
+    logger.info("Go maps download process completed.")
 
 
 def extract_go_maps(wdir):
     """
     Extract downloaded Go maps from tar.gz files and organize them.
     """
-    print("Extracting Go maps...")
+    logger.info("Extracting Go maps...")
     tgz_files = [f for f in os.listdir(wdir) if f.endswith(".tgz")]
     for f in tgz_files:
         tgz_path = os.path.join(wdir, f)
-        print(f"Extracting {f}...")
+        logger.info(f"Extracting {f}...")
         sp.run(["tar", "-xzf", tgz_path, "-C", wdir])
         os.remove(tgz_path)
     
@@ -179,9 +179,9 @@ def extract_go_maps(wdir):
                 source_file = os.path.join(source_dir, files[0])
                 shutil.move(source_file, os.path.join(wdir, files[0]))
         shutil.rmtree(work2_dir)
-        print("It worked! Here are your maps!")
+        logger.info(f"It worked! Here are your maps {os.path.abspath(wdir)}!")
     else:
-        print(f"Directory {work2_dir} not found")
+        logger.info(f"Directory {work2_dir} not found")
         
         
 def get_go(wdir, path_to_pdbs):

@@ -6,7 +6,7 @@ import pandas as pd
 import shutil
 import subprocess as sp
 from pathlib import Path
-from cgtools.martini.getgo import getgo
+from cgtools.martini import getgo
 from cgtools import cli
 from cgtools.utils import cd, logger
 
@@ -84,7 +84,7 @@ def prepare_files(pdb, wdir='test', mutations=None, protein='protein'):
     link_itps(wdir)
     make_topology_file(wdir, protein=protein)
     print("Getting Go-map...")
-    get_go(wdir, protein)
+    getgo.get_go(wdir, protein)
     fix_go_map(wdir, in_map='protein_map.map')
     print('All the files are ready!')
     
