@@ -118,7 +118,7 @@ class gmxSystem:
 
     def clean_pdb_gmx(self, in_pdb=None, **kwargs):
         """
-        Cleans PDB files using pdb2gmx from GROMACSv
+        Cleans PDB files using pdb2gmx from GROMACS
         gmx pdb2gmx [-f [<.gro/.g96/...>]] [-o [<.gro/.g96/...>]] [-p [<.top>]]
         Needed to get Go-Maps from the web-server 
         http://info.ifpan.edu.pl/~rcsu/rcsu/index.html
@@ -227,9 +227,9 @@ class gmxSystem:
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
-            go_moltype = file.split('.')[0]
-            go_map = os.path.join(self.mapdir, f'{go_moltype}.map')
-            martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_moltype=go_moltype, go=go_map, **kwargs)
+            name = file.split('.')[0]
+            go_map = os.path.join(self.mapdir, f'{name}.map')
+            martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, name=name, **kwargs)
         clean_dir(self.cgdir)
         clean_dir(self.wdir)
         clean_dir(self.wdir, '*.itp')

@@ -239,12 +239,11 @@ def run_job(jobname, submit=False, **kwargs):
 script = 'sbatch.sh'
 pyscript = 'gmx_pipe.py'
 sysdir = 'systems' 
-sysnames = ['ribosome',] # 1btl
+sysnames = ['1btl',] # 1btl
 runs = ['mdrun_1', 'mdrun_2', ] # 
 
-from reforge.actual_math import mycmath, legacy
-exit()
-setup(submit=False)
+
+setup(submit=True)
 # md(submit=True, ntomp=8, mem='4G', q='public', p='htc', t='00-04:00:00',)
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
 # trjconv(submit=False)

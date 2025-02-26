@@ -6,9 +6,20 @@ import pandas as pd
 import shutil
 import subprocess as sp
 from pathlib import Path
+from MDAnalysis import Universe
+from MDAnalysis.analysis.dssp import translate, DSSP
 from reforge.martini import getgo
 from reforge import cli
 from reforge.utils import cd, logger
+
+
+def dssp(in_file):
+    adic = {'-':'C', 'H':'H', 'E':'E'}
+    u = Universe(in_file)
+    run = DSSP(u).run()
+    mean_secondary_structure = translate(run.results.dssp_ndarray.mean(axis=0))
+    ss = ''.join(mean_secondary_structure).replace('-', 'C')
+    return ss
 
 
 def append_to(in_file, out_file):
@@ -88,9 +99,10 @@ def prepare_files(pdb, wdir='test', mutations=None, protein='protein'):
     fix_go_map(wdir, in_map='protein_map.map')
     print('All the files are ready!')
     
+
 @cli.from_wdir    
-def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein', 
-    go_eps=9.414, go_low=0.3, go_up=1.1, go_res_dist=3, **kwargs):
+def martinize_go(wdir, topdir, aapdb, cgpdb, name='protein', 
+    go_eps=9.414, go_low=0.3, go_up=1.1, go_res_dist=3, go_write_file='map/contacts.map', **kwargs):
     """
     Virtual site based GoMartini:
     -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
@@ -102,28 +114,28 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, go_moltype='protein',
     """
     kwargs.setdefault('f', aapdb)
     kwargs.setdefault('x', cgpdb)
-    kwargs.setdefault('go', 'go_map')
+    kwargs.setdefault('go', '')
     kwargs.setdefault('o', 'protein.top')
     kwargs.setdefault('cys', 0.3)  
     kwargs.setdefault('p', 'all')
     kwargs.setdefault('pf', 1000)    
-    kwargs.setdefault('dssp', ' ')
     kwargs.setdefault('sep', ' ')
-    kwargs.setdefault('scfix', ' ')
     kwargs.setdefault('resid', 'input')
     kwargs.setdefault('ff', 'martini3001')
     kwargs.setdefault('maxwarn', '1000')
+    ss = dssp(aapdb)
     with cd(wdir):
-        line = f'-go-moltype {go_moltype} -go-eps {go_eps} -go-low {go_low} -go-up {go_up} -go-res-dis {go_res_dist}'
+        line = f'-name {name} -go-eps {go_eps} -go-low {go_low} -go-up {go_up} \
+                    -go-res-dis {go_res_dist} -go-write-file {go_write_file} -ss {ss}'
         cli.run('martinize2', line, **kwargs)
         append_to('go_atomtypes.itp', os.path.join(topdir, 'go_atomtypes.itp'))
         append_to('go_nbparams.itp', os.path.join(topdir, 'go_nbparams.itp'))
-        shutil.move(f'{go_moltype}.itp',  os.path.join(topdir, f'{go_moltype}.itp'))
+        shutil.move(f'{name}.itp',  os.path.join(topdir, f'{name}.itp'))
 
 
 @cli.from_wdir    
 def martinize_en(wdir, aapdb, cgpdb, elastic=' ', 
-    ef=1000, el=0.0, eu=0.9,  **kwargs):
+    ef=700, el=0.0, eu=0.9,  **kwargs):
     """
     Protein elastic network:
       -elastic              Write elastic bonds (default: False)
@@ -146,7 +158,7 @@ def martinize_en(wdir, aapdb, cgpdb, elastic=' ',
     kwargs.setdefault('p', 'all')
     kwargs.setdefault('pf', 1000)    
     kwargs.setdefault('dssp', ' ')
-    kwargs.setdefault('sep', ' ')
+    kwargs.setdefault('sep', False)
     kwargs.setdefault('scfix', ' ')
     kwargs.setdefault('resid', 'input')
     kwargs.setdefault('ff', 'martini3001')
@@ -186,12 +198,12 @@ def insert_membrane(wdir, **kwargs):
     """
     with cd(wdir):
         script = 'reforge.martini.insane'
-        cli.run('python3 -m', script, **kwargs
+        cli.run('python3 -m', script, **kwargs)
 
 
 
 if __name__  == "__main__":
-    pass
+    dssp('../tests/1btl.pdb')
 
 
 

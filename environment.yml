@@ -10,10 +10,12 @@ dependencies:
   - memory_profiler
   - numpy 
   - openmm
+  - requests
   - setuptools
   - selenium
   - selenium-manager
   - pandas
   - packaging
   - pytest
-  - vermouth 
+  - vermouth
+  - webdriver-manager 
