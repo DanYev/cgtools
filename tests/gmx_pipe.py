@@ -11,62 +11,65 @@ from pathlib import Path
 
 
 def setup(sysdir, sysname):
-
     ### FOR COARSE-GRAINED MODELS ###
-    system = gmxSystem(sysdir, sysname)
+    mdsys = gmxSystem(sysdir, sysname)
 
     # 1.1. Need to copy force field and md-parameter files and prepare directories
-    system.prepare_files() # be careful it can overwrite later files
-    system.sort_input_pdb("1btl.pdb") # sorts chain and atoms in the input file and returns makes system.inpdb file
+    mdsys.prepare_files() # be careful it can overwrite later files
+    mdsys.sort_input_pdb("1btl.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
 
     # # 1.2.1 Try to clean the input PDB and split the chains based on the type of molecules (protein, RNA/DNA)
-    # system.clean_pdb_mm(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
-    # system.split_chains()
-    # system.clean_chains_mm(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
+    # mdsys.clean_pdb_mm(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
+    # mdsys.split_chains()
+    # mdsys.clean_chains_mm(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
     
     # 1.2.2 Same but if we want Go-Model for the proteins
-    system.clean_pdb_gmx(in_pdb=system.inpdb, clinput='8\n 7\n', ignh='no', renum='yes') # 8 for CHARMM, sometimes you need to refer to AMBER FF
-    system.split_chains()
-    system.clean_chains_gmx(clinput='8\n 7\n', ignh='yes', renum='yes')
-    system.get_go_maps(append=False)
+    mdsys.clean_pdb_gmx(in_pdb=mdsys.inpdb, clinput='8\n 7\n', ignh='no', renum='yes') # 8 for CHARMM, sometimes you need to refer to AMBER FF
+    mdsys.split_chains()
+    mdsys.clean_chains_gmx(clinput='8\n 7\n', ignh='yes', renum='yes')
+    mdsys.get_go_maps(append=False)
 
     # # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually. 
-    # system.martinize_proteins_en(ef=500, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
-    system.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500) # Martini + Go-network FF
-    system.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=False) # Martini RNA FF 
-    system.make_martini_topology_file(add_resolved_ions=False, prefix='chain') # CG topology. Returns system.systop ("system.top") file
-    system.make_cgpdb_file(bt='dodecahedron', d='1.2', ) # CG structure. Returns system.solupdb ("solute.pdb") file
+    # # mdsys.martinize_proteins_en(ef=500, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
+    mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500) # Martini + Go-network FF
+    mdsys.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=False) # Martini RNA FF 
+    mdsys.make_martini_topology_file(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
+    mdsys.make_cgpdb_file(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
 
-    # # 1.4. Coarse graining is done. Need to add solvent and ions
-    solvent = os.path.join(system.wdir, 'water.gro')
-    system.solvate(cp=system.solupdb, cs=solvent) # all kwargs go to gmx solvate command
-    system.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
+    # 1.4. Coarse graining is *hopefully* done. Need to add solvent and ions
+    solvent = os.path.join(mdsys.wdir, 'water.gro')
+    mdsys.solvate(cp=mdsys.solupdb, cs=solvent) # all kwargs go to gmx solvate command
+    mdsys.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
 
-    # # 1.5. Need index files to make selections with GROMACS. Very annoying but wcyd. Order:
-    # # 1.System 2.Solute 3.Backbone 4.Solvent 5...chains. Can add custom groups using AtomList.write_to_ndx()
-    system.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
+    # 1.5. Need index files to make selections with GROMACS. Very annoying but wcyd. Order:
+    # 1.System 2.Solute 3.Backbone 4.Solvent 5...chains. Can add custom groups using AtomList.write_to_ndx()
+    mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
    
       
 def md(sysdir, sysname, runname, ntomp): 
     mdrun = MDRun(sysdir, sysname, runname)
     mdrun.prepare_files()
-    mdrun.empp()
-    mdrun.mdrun(deffnm='em', ntomp=ntomp)
-    mdrun.eqpp(c='em.gro', r='em.gro', maxwarn=10) 
+    # Choose appropriate mdp files
+    em_mdp = os.path.join(self.mdpdir, 'em.mdp')
+    eq_mdp = os.path.join(self.mdpdir, 'eq.mdp')
+    md_mdp = os.path.join(self.mdpdir, 'md.mdp')
+    mdrun.empp(f=em_mdp) # Preprocessing 
+    mdrun.mdrun(deffnm='em', ntomp=ntomp) # Actual run
+    mdrun.eqpp(f=eq_mdp,c='em.gro', r='em.gro', maxwarn=10) 
     mdrun.mdrun(deffnm='eq', ntomp=ntomp)
     mdrun.mdpp(c='eq.gro', r='eq.gro')
-    mdrun.mdrun(deffnm='md', ntomp=ntomp) 
+    mdrun.mdrun(f=md_mdp, deffnm='md', ntomp=ntomp) 
     
     
 def extend(sysdir, sysname, runname, ntomp):    
-    system = gmxSystem(sysdir, sysname)
-    mdrun = system.initmd(runname)
+    mdsys = gmxSystem(sysdir, sysname)
+    mdrun = mdsys.initmd(runname)
     mdrun.mdrun(deffnm='md', cpi='md.cpt', ntomp=ntomp, nsteps=-2) 
 
 
 def make_ndx(sysdir, sysname, **kwargs):
-    system = gmxSystem(sysdir, sysname)
-    system.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
+    mdsys = gmxSystem(sysdir, sysname)
+    mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
       
     
 def trjconv(sysdir, sysname, runname, mode='solu', fit='rot+trans', **kwargs):
@@ -136,22 +139,22 @@ def tdlrt_analysis(sysdir, sysname, runname):
 
 
 def get_averages(sysdir, sysname):
-    system = gmxSystem(sysdir, sysname)   
-    system.get_mean_sem(pattern='pertmat*.npy')
-    system.get_mean_sem(pattern='covmat*.npy')
-    # system.get_mean_sem(pattern='dfi*.npy')
-    # system.get_mean_sem(pattern='dci*.npy')
-    # system.get_mean_sem(pattern='asym*.npy')
-    # system.get_mean_sem(pattern='rmsf*.npy')
+    mdsys = gmxSystem(sysdir, sysname)   
+    mdsys.get_mean_sem(pattern='pertmat*.npy')
+    mdsys.get_mean_sem(pattern='covmat*.npy')
+    # mdsys.get_mean_sem(pattern='dfi*.npy')
+    # mdsys.get_mean_sem(pattern='dci*.npy')
+    # mdsys.get_mean_sem(pattern='asym*.npy')
+    # mdsys.get_mean_sem(pattern='rmsf*.npy')
 
 
 def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):
     """
     Need to loop for big arrays
     """
-    system = gmxSystem(sysdir, sysname)  
+    mdsys = gmxSystem(sysdir, sysname)  
     print('Getting averages', file=sys.stderr)  
-    files = io.pull_files(system.mddir, fname)
+    files = io.pull_files(mdsys.mddir, fname)
     if loop:
         print(f'Processing {files[0]}', file=sys.stderr) 
         average = np.load(files[0])
@@ -163,7 +166,7 @@ def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):
     else:
         arrays = [np.load(f) for f in files]
         average = np.average(arrays, axis=0)
-    np.save(os.path.join(system.datdir, fname), average) 
+    np.save(os.path.join(mdsys.datdir, fname), average) 
     print('Done!', file=sys.stderr)  
     return average
 

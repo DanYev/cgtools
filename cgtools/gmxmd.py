@@ -23,6 +23,7 @@ class gmxSystem:
     Almost all the attributes are paths to files and directories needed to set up and run the MD
     """    
     MDATDIR = importlib.resources.files("cgtools") / "martini" / "data" 
+    MMDPDIR= importlib.resources.files("cgtools") / "martini" / "data" / "mdp"
     MITPDIR = importlib.resources.files("cgtools") / "martini" / "itp" 
     NUC_RESNAMES = ['A', 'C', 'G', 'U', 'RA3', 'RA5', 'RC3', 'RC5', 'RG3', 'RG5', 'RU3', 'RU5']
     
@@ -86,12 +87,13 @@ class gmxSystem:
         os.makedirs(self.grodir, exist_ok=True)
         os.makedirs(self.datdir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
-        for file in os.listdir(self.MDATDIR):
+        for file in os.listdir(self.MMDPDIR):
             if file.endswith('.mdp'):
-                fpath = os.path.join(self.MDATDIR, file)
+                fpath = os.path.join(self.MMDPDIR, file)
                 outpath = os.path.join(self.mdpdir, file)
                 shutil.copy(fpath, outpath)
         shutil.copy(os.path.join(self.MDATDIR, 'water.gro'), self.wdir)
+        shutil.copy(os.path.join(self.MDATDIR, 'atommass.dat'), self.wdir)
         for file in os.listdir(self.MITPDIR):
             if file.endswith('.itp'):
                 fpath = os.path.join(self.MITPDIR, file)
@@ -207,6 +209,12 @@ class gmxSystem:
         """
         logger.info("Working on proteins")
         from cgtools.martini.martini_tools import martinize_go
+        pdbs = sorted(os.listdir(self.prodir))
+        itps = [f.replace('pdb', 'itp') for f in pdbs]
+        if append: # Filter out existing topologies
+            pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
+        else:
+            clean_dir(self.topdir, 'go_*.itp')
         # Make itp files to dump all the virtual CA's parameters into
         file = os.path.join(self.topdir, 'go_atomtypes.itp')
         if not os.path.isfile(file):
@@ -215,12 +223,7 @@ class gmxSystem:
         file = os.path.join(self.topdir, 'go_nbparams.itp')
         if not os.path.isfile(file):
             with open(file, 'w') as f:        
-                f.write(f'[ nonbond_params ]\n')
-        # Actually martinizing
-        pdbs = sorted(os.listdir(self.prodir))
-        itps = [f.replace('pdb', 'itp') for f in pdbs]
-        if append: # Filter out existing topologies
-            pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
+                f.write(f'[ nonbond_params ]\n')       
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
@@ -229,7 +232,8 @@ class gmxSystem:
             martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, go_moltype=go_moltype, go=go_map, **kwargs)
         clean_dir(self.cgdir)
         clean_dir(self.wdir)
- 
+        clean_dir(self.wdir, '*.itp')
+         
     def martinize_proteins_en(self, append=False, **kwargs):
         """
         Protein elastic network:
