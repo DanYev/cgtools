@@ -263,7 +263,7 @@ class gmxSystem:
             new_itp = os.path.join(self.wdir, 'molecule_0.itp')
             updated_itp = os.path.join(self.topdir, file.replace('pdb', 'itp'))
             new_top = os.path.join(self.wdir, 'protein.top')
-            martinize_en(self.wdir, in_pdb, cg_pdb,  **kwargs) 
+            martinize_en(self.wdir, self.topdir, in_pdb, cg_pdb, **kwargs) 
             # Replace 'molecule_0' in the itp with the file name
             with open(new_itp, "r", encoding="utf-8") as f:
                 content = f.read()

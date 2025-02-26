@@ -134,7 +134,7 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, name='protein',
 
 
 @cli.from_wdir    
-def martinize_en(wdir, aapdb, cgpdb, elastic=' ', 
+def martinize_en(wdir, topdir, aapdb, cgpdb, name='protein', 
     ef=700, el=0.0, eu=0.9,  **kwargs):
     """
     Protein elastic network:
@@ -157,18 +157,17 @@ def martinize_en(wdir, aapdb, cgpdb, elastic=' ',
     kwargs.setdefault('cys', 0.3)  
     kwargs.setdefault('p', 'all')
     kwargs.setdefault('pf', 1000)    
-    kwargs.setdefault('dssp', ' ')
-    kwargs.setdefault('sep', False)
-    kwargs.setdefault('scfix', ' ')
+    kwargs.setdefault('sep', '')
     kwargs.setdefault('resid', 'input')
     kwargs.setdefault('ff', 'martini3001')
     kwargs.setdefault('maxwarn', '1000')
-    line = f'-elastic {elastic} -ef {ef} -eu {eu}'
-    try:
+    kwargs.setdefault('elastic', '')
+    ss = dssp(aapdb)
+    line = f'-ef {ef} -eu {eu} -ss {ss}'
+    with cd(wdir):
         cli.run('martinize2', line, **kwargs)
-    except:
-        print('Error')
-    
+        
+
     
 def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
     kwargs.setdefault('f', aapdb)
@@ -181,8 +180,8 @@ def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
     with cd(wdir):
         script = 'reforge.martini.martinize_nucleotides'
         cli.run('python3 -m', script, **kwargs)
+        
 
-    
 def martinize_rna(wdir, **kwargs):
     """
     Usage: python test_forge.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp

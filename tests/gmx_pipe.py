@@ -35,20 +35,20 @@ def setup_cg_protein_rna(sysdir, sysname):
     # mdsys.get_go_maps(append=True)
 
     # # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually. 
-    # # mdsys.martinize_proteins_en(ef=500, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
+    mdsys.martinize_proteins_en(ef=700, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
     # mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500, append=False) # Martini + Go-network FF
     # mdsys.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=True) # Martini RNA FF 
-    mdsys.make_martini_topology_file(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
-    mdsys.make_cgpdb_file(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
+    # mdsys.make_martini_topology_file(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
+    # mdsys.make_cgpdb_file(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
     
-    # 1.4. Coarse graining is *hopefully* done. Need to add solvent and ions
-    solvent = os.path.join(mdsys.wdir, 'water.gro')
-    mdsys.solvate(cp=mdsys.solupdb, cs=solvent) # all kwargs go to gmx solvate command
-    mdsys.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
+    # # 1.4. Coarse graining is *hopefully* done. Need to add solvent and ions
+    # solvent = os.path.join(mdsys.wdir, 'water.gro')
+    # mdsys.solvate(cp=mdsys.solupdb, cs=solvent) # all kwargs go to gmx solvate command
+    # mdsys.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
 
-    # 1.5. Need index files to make selections with GROMACS. Very annoying but wcyd. Order:
-    # 1.System 2.Solute 3.Backbone 4.Solvent 5...chains. Can add custom groups using AtomList.write_to_ndx()
-    mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
+    # # 1.5. Need index files to make selections with GROMACS. Very annoying but wcyd. Order:
+    # # 1.System 2.Solute 3.Backbone 4.Solvent 5...chains. Can add custom groups using AtomList.write_to_ndx()
+    # mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
    
       
 def setup_cg_protein_membrane(sysdir, sysname):
