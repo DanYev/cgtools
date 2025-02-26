@@ -1,4 +1,3 @@
-#!/bin/python
 import os
 import sys
 import MDAnalysis as mda

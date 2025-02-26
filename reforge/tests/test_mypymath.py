@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pytest
-from reforge._actual_math import mypymath
+from reforge.actual_math import mypymath
 
 
 def test_covariance_matrix():
