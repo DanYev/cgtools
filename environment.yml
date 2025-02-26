@@ -4,17 +4,16 @@ channels:
 dependencies:
   - python
   - cython
-  - numpy 2.2.3
-  - vermouth 0.13
+  - cupy
   - mdanalysis
   - matplotlib
   - memory_profiler
-  - setuptools
+  - numpy 
   - openmm
-  - cupy
+  - setuptools
   - selenium
   - selenium-manager
   - pandas
   - packaging
   - pytest
-  - setuptools
+  - vermouth 
