@@ -892,6 +892,18 @@ def rename_chain_in_pdb(in_pdb, new_chain_id):
     atoms.write_pdb(in_pdb)
 
 
+def rename_chain_and_histidines_in_pdb(in_pdb, new_chain_id):
+    atoms = pdb2atomlist(in_pdb)   
+    new_chids = [new_chain_id for atom in atoms]
+    atoms.chids = new_chids
+    for atom in atoms:
+        if atom.resname == 'HSD':
+            atom.resname = 'HIS'
+        if atom.resname == 'HSE':
+            atom.resname = 'HIE`'
+    atoms.write_pdb(in_pdb)
+
+
 def write_ndx(atoms, fpath='system.ndx', backbone_atoms=("CA", "P", "C1'")):
     in_pdb = 'test.pdb'
     atoms = pdb2atomlist(in_pdb)

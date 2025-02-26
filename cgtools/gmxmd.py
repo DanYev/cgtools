@@ -174,7 +174,7 @@ class gmxSystem:
             for file in files:
                 new_chain_id = file.split('chain_')[1][0]
                 cli.gmx('pdb2gmx', f=file, o=file, **kwargs)
-                pdbtools.rename_chain_in_pdb(file, new_chain_id)  
+                pdbtools.rename_chain_and_histidines_in_pdb(file, new_chain_id)  
             clean_dir(self.prodir)
             clean_dir(self.nucdir)
         
