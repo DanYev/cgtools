@@ -5,7 +5,7 @@ import argparse
 import cgtools.forge.forcefields as ffs
 import cgtools.forge.cgmap as cgmap
 from cgtools.forge.topology import Topology
-from cgtools.pdbtools import parse_pdb, AtomList
+from cgtools.pdbtools import AtomList, pdb2atomlist, pdb2system
 
 
 def martinize_rna_parser():
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     inpdb = options.f
     molname = options.mol
     # Processing chains
-    system = parse_pdb(inpdb) 
+    system = pdb2system(inpdb) 
     cgmap.move_o3(system) # Need to move all O3's to the next residue. Annoying but wcyd
     structure, topologies = AtomList(), [] 
     start_atom = 1
@@ -67,7 +67,7 @@ if __name__ == "__main__":
         structure.extend(atoms)
         topologies.append(top)
         start_atom += len(atoms)
-    structure.write_to_pdb(options.os) 
+    structure.write_pdb(options.os) 
     # Finishing topologies
     top = merge_topologies(topologies)
     if options.elastic: 

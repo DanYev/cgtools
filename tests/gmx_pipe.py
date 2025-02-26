@@ -16,7 +16,7 @@ def setup(sysdir, sysname):
 
     # 1.1. Need to copy force field and md-parameter files and prepare directories
     mdsys.prepare_files() # be careful it can overwrite later files
-    mdsys.sort_input_pdb("1btl.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
+    mdsys.sort_input_pdb(f"{sysname}.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
 
     # # 1.2.1 Try to clean the input PDB and split the chains based on the type of molecules (protein, RNA/DNA)
     # mdsys.clean_pdb_mm(add_missing_atoms=False, add_hydrogens=True, pH=7.0)

@@ -51,7 +51,7 @@ def map_residue(residue, mapping, atid):
         bead.name = bname
         bead.atid = atid
         atid += 1
-        atoms = residue.atoms.filter(anames)
+        atoms = residue.atoms.mask(anames)
         vecs = atoms.vecs
         bvec = np.average(vecs, axis=0)
         bead.x = bvec[0]
