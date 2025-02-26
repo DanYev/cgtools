@@ -9,8 +9,8 @@ helper functions to improve maintainability.
 
 import logging
 import numpy as np
-from cgtools import itpio
-from cgtools.forge.forcefields import NucleicForceField
+from reforge import itpio
+from reforge.forge.forcefields import NucleicForceField
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 ############################################################

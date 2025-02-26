@@ -5,8 +5,8 @@ import pandas as pd
 import sys
 import shutil
 import MDAnalysis as mda
-from cgtools import cli, lrt
-from cgtools.mmmd import mmSystem, mdRun
+from reforge import cli, lrt
+from reforge.mmmd import mmSystem, mdRun
 from openmm import app
 from openmm.unit import *
 from pathlib import Path

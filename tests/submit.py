@@ -1,4 +1,4 @@
-from cgtools.cli import sbatch, run
+from reforge.cli import sbatch, run
 
 def dojob(submit, *args, **kwargs):
     """

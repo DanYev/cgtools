@@ -1,5 +1,5 @@
 import os 
-from cgtools.pdbtools import Atom, AtomList, System, Model, Chain, Residue, parse_pdb, sort_pdb
+from reforge.pdbtools import Atom, AtomList, System, Model, Chain, Residue, parse_pdb, sort_pdb
 
 TEST_PDB = "in_test.pdb" 
 

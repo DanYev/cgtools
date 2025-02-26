@@ -1,4 +1,4 @@
-from cgtools.pdbtools import System, PDBParser
+from reforge.pdbtools import System, PDBParser
 import numpy as np
 import copy
 

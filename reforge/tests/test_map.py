@@ -1,5 +1,5 @@
-from cgtools.forge.forcefields import martini30rna
-import cgtools.forge.cgmap as cgmap
+from reforge.forge.forcefields import martini30rna
+import reforge.forge.cgmap as cgmap
                                  
 if __name__ == "__main__":
     ff = martini30rna()

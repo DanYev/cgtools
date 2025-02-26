@@ -2,9 +2,9 @@
 Usage: python test_rna.py -f dsRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp
 """
 import argparse
-import cgtools.forge.forcefields as ffs
-import cgtools.forge.cgmap as cgmap
-from cgtools.forge.topology import Topology
+import reforge.forge.forcefields as ffs
+import reforge.forge.cgmap as cgmap
+from reforge.forge.topology import Topology
 
 
 def martinize_rna_parser():

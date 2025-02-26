@@ -1,6 +1,6 @@
-from cgtools import itpio
-from cgtools.forge.forcefields import martini30rna
-from cgtools.forge.topology import Topology
+from reforge import itpio
+from reforge.forge.forcefields import martini30rna
+from reforge.forge.topology import Topology
 
 
 def test_top():

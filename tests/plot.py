@@ -2,9 +2,9 @@ import os
 import numpy as np
 import pandas as pd
 import sys
-from cgtools import io, gmxmd
-from cgtools.plotting import *
-from cgtools.lrt import percentile
+from reforge import io, gmxmd
+from reforge.plotting import *
+from reforge.lrt import percentile
 
 
 def pull_data(metric):

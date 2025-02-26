@@ -10,11 +10,11 @@ import cupyx.scipy.sparse.linalg
 import scipy.sparse
 import scipy.linalg
 import MDAnalysis as mda
-from cgtools.gmxmd import gmxSystem
-from cgtools.utils import timeit, memprofit, logger, cuda_detected
-from cgtools._actual_math import mycmath, mypymath, legacy
-from cgtools import io, mdm
-from cgtools.plotting import *
+from reforge.gmxmd import gmxSystem
+from reforge.utils import timeit, memprofit, logger, cuda_detected
+from reforge._actual_math import mycmath, mypymath, legacy
+from reforge import io, mdm
+from reforge.plotting import *
 
 logger.setLevel(logging.DEBUG)
 sysdir = 'systems'

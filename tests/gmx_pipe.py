@@ -4,9 +4,9 @@ import pandas as pd
 import sys
 import shutil
 import MDAnalysis as mda
-from cgtools import cli, io, mdm
-from cgtools.gmxmd import gmxSystem, MDRun
-from cgtools.utils import *
+from reforge import cli, io, mdm
+from reforge.gmxmd import gmxSystem, MDRun
+from reforge.utils import *
 from pathlib import Path
 
 

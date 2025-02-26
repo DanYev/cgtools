@@ -391,13 +391,13 @@ def make_marnatini_itp():
                         'TU6':  None,
                         'TU7':  None,
     }
-    out_file = 'cgtools/itp/martini_RNA.itp'
+    out_file = 'reforge/itp/martini_RNA.itp'
     
-    make_in_terms('cgtools/itp/martini.itp', out_file, dict_of_names)
+    make_in_terms('reforge/itp/martini.itp', out_file, dict_of_names)
     for new_name, old_name in dict_of_names.items():
-        make_cross_terms('cgtools/itp/martini.itp', out_file, old_name, new_name)
-    sh.copy(out_file, '/scratch/dyangali/cgtools/systems/dsRNA/topol/martini_v3.0.0_rna.itp')
-    sh.copy(out_file, '/scratch/dyangali/cgtools/systems/ssRNA/topol/martini_v3.0.0_rna.itp')
+        make_cross_terms('reforge/itp/martini.itp', out_file, old_name, new_name)
+    sh.copy(out_file, '/scratch/dyangali/reforge/systems/dsRNA/topol/martini_v3.0.0_rna.itp')
+    sh.copy(out_file, '/scratch/dyangali/reforge/systems/ssRNA/topol/martini_v3.0.0_rna.itp')
     sh.copy(out_file, '/scratch/dyangali/maRNAtini_sims/dimerization_pmf_us/topol/martini_RNA.itp')
     sh.copy(out_file, '/scratch/dyangali/maRNAtini_sims/angled_dimerization_pmf_us/topol/martini_RNA.itp') # angled_dimerization_pmf_us
        
@@ -406,15 +406,15 @@ def make_ions_itp():
     import pandas as pd
     dict_of_names = {   'TMG': 'TD',
     }
-    out_file = 'cgtools/itp/ions.itp'
+    out_file = 'reforge/itp/ions.itp'
     for new_name, old_name in dict_of_names.items():
-        make_cross_terms('cgtools/itp/martini_v3.0.0.itp', out_file, old_name, new_name)
+        make_cross_terms('reforge/itp/martini_v3.0.0.itp', out_file, old_name, new_name)
     df = pd.read_csv(out_file, sep='\\s+', header=None)
     df[3] -= 0.08
-    tmp_file = 'cgtools/itp/ions_tmp.itp'
+    tmp_file = 'reforge/itp/ions_tmp.itp'
     df.to_csv(tmp_file, sep=' ', header=None, index=False, float_format='%.6e')
     
-    out_file = 'cgtools/itp/martini_ions.itp'
+    out_file = 'reforge/itp/martini_ions.itp'
     new_lines = ["[ atomtypes ]\n", 
         "TMG  45.000  0.000  A  0.0  0.0\n\n", 
         "[ nonbond_params ]\n", 

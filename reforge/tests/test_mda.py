@@ -1,5 +1,5 @@
 import MDAnalysis as mda
-import cgtools.dataio as io
+import reforge.dataio as io
 
 s = 'mdc.pdb' # topology
 f = 'mdc.trr' # trajectory

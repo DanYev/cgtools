@@ -6,9 +6,9 @@ import pandas as pd
 import shutil
 import subprocess as sp
 from pathlib import Path
-from cgtools.martini import getgo
-from cgtools import cli
-from cgtools.utils import cd, logger
+from reforge.martini import getgo
+from reforge import cli
+from reforge.utils import cd, logger
 
 
 def append_to(in_file, out_file):
@@ -167,7 +167,7 @@ def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
     kwargs.setdefault('p', 'bb')
     kwargs.setdefault('pf', 1000)
     with cd(wdir):
-        script = 'cgtools.martini.martinize_nucleotides'
+        script = 'reforge.martini.martinize_nucleotides'
         cli.run('python3 -m', script, **kwargs)
 
     
@@ -176,7 +176,7 @@ def martinize_rna(wdir, **kwargs):
     Usage: python test_forge.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp
     """
     with cd(wdir):
-        script = 'cgtools.martini.martinize_rna'
+        script = 'reforge.martini.martinize_rna'
         cli.run('python3 -m', script, **kwargs)
 
 
@@ -185,7 +185,7 @@ def insert_membrane(wdir, **kwargs):
     Usage: python test_forge.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp
     """
     with cd(wdir):
-        script = 'cgtools.martini.insane'
+        script = 'reforge.martini.insane'
         cli.run('python3 -m', script, **kwargs
 
 

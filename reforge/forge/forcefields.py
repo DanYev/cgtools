@@ -1,7 +1,7 @@
 import importlib.resources
 import os
 import sys
-from cgtools import itpio
+from reforge import itpio
 
 
 forcefields = ['martini30rna','martini31nucleic']
@@ -19,8 +19,8 @@ class NucleicForceField:
      
     @staticmethod    
     def read_itp(resname, directory, mol, version):
-        # itpdir = os.path.abspath(f'/scratch/dyangali/cgtools/forge/forcefields/{directory}')
-        itpdir = importlib.resources.files('cgtools') / 'forge' / 'forcefields' 
+        # itpdir = os.path.abspath(f'/scratch/dyangali/reforge/forge/forcefields/{directory}')
+        itpdir = importlib.resources.files('reforge') / 'forge' / 'forcefields' 
         file = os.path.join(itpdir, f'{directory}', f'{mol}_{resname}_{version}.itp')
         itp_data = itpio.read_itp(file)
         return itp_data

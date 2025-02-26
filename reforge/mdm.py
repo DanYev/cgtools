@@ -9,8 +9,8 @@ from joblib import Parallel, delayed
 from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
 from scipy import linalg as LA
 from scipy.stats import pearsonr
-from cgtools.utils import timeit, memprofit, logger, cuda_detected
-from cgtools._actual_math import mycmath, mypymath
+from reforge.utils import timeit, memprofit, logger, cuda_detected
+from reforge._actual_math import mycmath, mypymath
 
 
 @memprofit

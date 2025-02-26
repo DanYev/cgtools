@@ -2,10 +2,10 @@
 Usage: python martinize_rna.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp
 """
 import argparse
-import cgtools.forge.forcefields as ffs
-import cgtools.forge.cgmap as cgmap
-from cgtools.forge.topology import Topology
-from cgtools.pdbtools import AtomList, pdb2atomlist, pdb2system
+import reforge.forge.forcefields as ffs
+import reforge.forge.cgmap as cgmap
+from reforge.forge.topology import Topology
+from reforge.pdbtools import AtomList, pdb2atomlist, pdb2system
 
 
 def martinize_rna_parser():

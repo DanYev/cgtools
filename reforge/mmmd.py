@@ -6,10 +6,10 @@ import numpy as np
 import pandas as pd
 import shutil
 import subprocess as sp
-# cgtools
-from cgtools import cli, mdm, pdbtools, io
-from cgtools.pdbtools import AtomList
-from cgtools.utils import cd, clean_dir, logger
+# reforge
+from reforge import cli, mdm, pdbtools, io
+from reforge.pdbtools import AtomList
+from reforge.utils import cd, clean_dir, logger
 # mm
 import openmm as mm
 from openmm import app
@@ -25,8 +25,8 @@ class mmSystem:
     Class to set up and analyze protein-nucliotide-lipid systems for MD with GROMACS
     All the attributes are the paths to files and directories needed to set up and run CG MD
     """    
-    MDATDIR = importlib.resources.files("cgtools") / "martini" / "data" 
-    MITPDIR = importlib.resources.files("cgtools") / "martini" / "itp" 
+    MDATDIR = importlib.resources.files("reforge") / "martini" / "data" 
+    MITPDIR = importlib.resources.files("reforge") / "martini" / "itp" 
     NUC_RESNAMES = ['A', 'C', 'G', 'U', 'RA3', 'RA5', 'RC3', 'RC5', 'RG3', 'RG5', 'RU3', 'RU5']
     
     def __init__(self, sysdir, sysname, **kwargs):

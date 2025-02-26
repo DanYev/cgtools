@@ -3,8 +3,8 @@ import sys
 import copy
 import time
 import numpy as np
-import cgtools.forge.cgmap as cgmap
-from cgtools.forge.topology import Topology, BondList
+import reforge.forge.cgmap as cgmap
+from reforge.forge.topology import Topology, BondList
 
     
 def get_distance(v1, v2):

@@ -9,7 +9,7 @@ import scipy.sparse.linalg
 import cupy.linalg
 import cupyx.scipy.sparse.linalg
 from cupyx.profiler import benchmark
-from cgtools.utils import timeit, memprofit, logger
+from reforge.utils import timeit, memprofit, logger
 from joblib import Parallel, delayed
 from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
 from scipy.stats import pearsonr

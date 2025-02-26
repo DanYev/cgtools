@@ -14,8 +14,8 @@ from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
 from scipy import linalg as LA
 from scipy.stats import pearsonr
 from functools import wraps
-from cgtools import gmxmd, lrt
-from cgtools.plotting import plot_mean_sem, plot_heatmaps
+from reforge import gmxmd, lrt
+from reforge.plotting import plot_mean_sem, plot_heatmaps
 
 
 def timeit(func):

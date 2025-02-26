@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 import shutil
 import subprocess as sp
-import cgtools
-from cgtools import cli, mdm, pdbtools, io
-from cgtools.pdbtools import AtomList
-from cgtools.utils import cd, clean_dir, logger
+import reforge
+from reforge import cli, mdm, pdbtools, io
+from reforge.pdbtools import AtomList
+from reforge.utils import cd, clean_dir, logger
      
 
 ################################################################################
@@ -22,9 +22,9 @@ class gmxSystem:
     Class to set up and analyze protein-nucliotide-lipid systems for MD with GROMACS
     Almost all the attributes are paths to files and directories needed to set up and run the MD
     """    
-    MDATDIR = importlib.resources.files("cgtools") / "martini" / "data" 
-    MMDPDIR= importlib.resources.files("cgtools") / "martini" / "data" / "mdp"
-    MITPDIR = importlib.resources.files("cgtools") / "martini" / "itp" 
+    MDATDIR = importlib.resources.files("reforge") / "martini" / "data" 
+    MMDPDIR= importlib.resources.files("reforge") / "martini" / "data" / "mdp"
+    MITPDIR = importlib.resources.files("reforge") / "martini" / "itp" 
     NUC_RESNAMES = ['A', 'C', 'G', 'U', 'RA3', 'RA5', 'RC3', 'RC5', 'RG3', 'RG5', 'RU3', 'RU5']
     
     def __init__(self, sysdir, sysname, **kwargs):
@@ -185,7 +185,7 @@ class gmxSystem:
         Get go contact maps for proteins using RCSU server
         """
         print('Getting GO-maps', file=sys.stderr)
-        from cgtools.martini import getgo
+        from reforge.martini import getgo
         pdbs = sorted([os.path.join(self.prodir, file) for file in os.listdir(self.prodir)])
         map_names = [f.replace('pdb', 'map') for f in os.listdir(self.prodir)]
         if append: # Filter out existing maps
@@ -208,7 +208,7 @@ class gmxSystem:
                         resids are the same as in the input pdb (default: mol)
         """
         logger.info("Working on proteins")
-        from cgtools.martini.martini_tools import martinize_go
+        from reforge.martini.martini_tools import martinize_go
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace('pdb', 'itp') for f in pdbs]
         if append: # Filter out existing topologies
@@ -294,7 +294,7 @@ class gmxSystem:
 
     def martinize_rna(self, append=False, **kwargs):
         logger.info("Working on nucleotides")
-        from cgtools.martini.martini_tools import martinize_rna
+        from reforge.martini.martini_tools import martinize_rna
         for file in os.listdir(self.nucdir):
             molname = file.split('.')[0]
             in_pdb = os.path.join(self.nucdir, file)

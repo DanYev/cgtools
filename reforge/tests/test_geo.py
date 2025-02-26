@@ -1,10 +1,10 @@
 import numpy as np
 import sys
-import cgtools.forge.forcefields as ffs
-import cgtools.forge.cgmap as cgmap
-from cgtools.forge.topology import Topology, BondList
-from cgtools.forge.geometry import get_cg_bonds, get_aa_bonds
-from cgtools.plotting import init_figure, make_hist, plot_figure
+import reforge.forge.forcefields as ffs
+import reforge.forge.cgmap as cgmap
+from reforge.forge.topology import Topology, BondList
+from reforge.forge.geometry import get_cg_bonds, get_aa_bonds
+from reforge.plotting import init_figure, make_hist, plot_figure
 
 
 def get_reference_topology(inpdb):
