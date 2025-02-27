@@ -1,5 +1,4 @@
 """
-===============================================================================
 File: pdbtools.py
 Description:
     This module provides utilities for parsing, manipulating, and writing PDB files.
@@ -22,7 +21,6 @@ Requirements:
 
 Author: DY
 Date: 2025-02-27
-===============================================================================
 """
 
 import os

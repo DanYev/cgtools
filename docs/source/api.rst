@@ -5,6 +5,6 @@ API Documentation
    :toctree: autosummary
    :recursive:
 
-   reforge.mdm
+   reforge.pdbtools
 
    

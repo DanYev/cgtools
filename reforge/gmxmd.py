@@ -1,5 +1,4 @@
 """
-===============================================================================
 File: gmxmd.py
 Description:
     This module provides classes and functions for setting up, running, and
@@ -29,7 +28,6 @@ Requirements:
 
 Author: DY
 Date: 2025-02-27
-===============================================================================
 """
 
 import os
@@ -704,10 +702,6 @@ class gmxSystem:
         mdrun = MDRun(self.sysdir, self.sysname, runname)
         return mdrun
 
-
-################################################################################
-# MDRun class
-################################################################################
 
 class MDRun(gmxSystem):
     """

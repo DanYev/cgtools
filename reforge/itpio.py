@@ -1,3 +1,30 @@
+"""
+File: itpio.py
+Description:
+    This module provides functions for reading, parsing, formatting, and writing 
+    GROMACS ITP files. It includes utilities to extract and format different sections 
+    (such as bonds, angles, atoms, etc.) and higher-level functions tailored for 
+    Martini RNA and ion topologies.
+
+Usage:
+    To read and process an ITP file:
+    
+        from itpio import read_itp, format_header
+        itp_data = read_itp("topology.itp")
+        header_lines = format_header(molname="MyMolecule", forcefield="MartiniRNA", 
+                                     version="3.0", arguments="--option value")
+        # Further processing...
+    
+Requirements:
+    - Python 3.x
+    - Standard library modules: shutil, typing
+    - (Optional) Additional modules for extended functionality.
+
+Author: DY
+Date: 2025-02-27
+"""
+
+
 import shutil as sh
 from typing import List, Tuple, Any
 
@@ -454,5 +481,6 @@ def count_itp_atoms(file_path):
         return 0        
         
 if __name__ == '__main__':
+    pass
     # make_ions_itp()
-    make_marnatini_itp()
+    # make_marnatini_itp()

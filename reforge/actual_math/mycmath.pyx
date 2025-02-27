@@ -1,4 +1,22 @@
 # mycmath.pyx
+#
+# A Cython module for optimized mathematical calculations in the reForge project.
+#
+# This module provides functions to calculate position-position Hessian matrices and
+# perturbation matrices from coordinate and covariance data. The implementations
+# use Cython for performance, with custom decorators (timeit, memprofit) to track 
+# execution time and memory usage.
+#
+# Functions:
+#     _calculate_hessian      - Compute the Hessian matrix from separate coordinate arrays.
+#     _hessian                - Compute the Hessian matrix from a coordinate matrix.
+#     _perturbation_matrix_old- Compute a perturbation matrix (legacy method) from a covariance matrix.
+#     _perturbation_matrix    - Compute a normalized perturbation matrix from a covariance matrix.
+#     _td_perturbation_matrix - Compute a perturbation matrix using block-wise norms.
+#
+# Author: Your Name
+# Date: YYYY-MM-DD
+# License: MIT License
 
 import numpy as np
 cimport numpy as np
@@ -6,37 +24,43 @@ cimport cython
 from libc.math cimport sqrt, pow
 from reforge.utils import timeit, memprofit
 
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @timeit
 @memprofit
 def _calculate_hessian(int resnum,
-                      np.ndarray[double, ndim=1] x,
-                      np.ndarray[double, ndim=1] y,
-                      np.ndarray[double, ndim=1] z,
-                      double cutoff=1.2,
-                      double spring_constant=1000,
-                      int dd=0):
+                       np.ndarray[double, ndim=1] x,
+                       np.ndarray[double, ndim=1] y,
+                       np.ndarray[double, ndim=1] z,
+                       double cutoff=1.2,
+                       double spring_constant=1000,
+                       int dd=0):
     """
-    Calculate the position-position Hessian matrix.
-    
-    Parameters:
-        resnum: Number of residues (atoms)
-        x, y, z: 1D NumPy arrays of coordinates (dtype double)
-        cutoff: Distance cutoff
-        spring_constant: Base spring constant
-        dd: Exponent modifier
-    Returns:
-        A 2D NumPy array (double) of shape (3*resnum, 3*resnum)
-    
-    double *array = (double*)calloc(n * n * sizeof(double));
-    if (array == NULL) {
-        // handle allocation error
-    }
-    // To set all values to zero:
-    for (int i = 0; i < n * n; i++) {
-        array[i] = 0.0;
-    }
+    Calculate the position-position Hessian matrix based on individual coordinate arrays.
+
+    Parameters
+    ----------
+    resnum : int
+        Number of residues (atoms).
+    x : ndarray of double, 1D
+        Array of x coordinates.
+    y : ndarray of double, 1D
+        Array of y coordinates.
+    z : ndarray of double, 1D
+        Array of z coordinates.
+    cutoff : double, optional
+        Distance cutoff threshold. Interactions beyond this distance are ignored (default is 1.2).
+    spring_constant : double, optional
+        Base spring constant used in the calculation (default is 1000).
+    dd : int, optional
+        Exponent modifier applied to the inverse distance factor (default is 0).
+
+    Returns
+    -------
+    hessian : ndarray of double, 2D
+        Hessian matrix of shape (3*resnum, 3*resnum) representing the second derivatives 
+        of the system energy with respect to positions.
     """
     cdef int i, j
     cdef double x_ij, y_ij, z_ij, r, invr, gamma
@@ -56,25 +80,25 @@ def _calculate_hessian(int resnum,
             else:
                 continue
             # Update diagonal elements (Hii)
-            hessian[3 * i, 3 * i]       += gamma * x_ij * x_ij
-            hessian[3 * i + 1, 3 * i + 1] += gamma * y_ij * y_ij
-            hessian[3 * i + 2, 3 * i + 2] += gamma * z_ij * z_ij
-            hessian[3 * i, 3 * i + 1]     += gamma * x_ij * y_ij
-            hessian[3 * i, 3 * i + 2]     += gamma * x_ij * z_ij
-            hessian[3 * i + 1, 3 * i]     += gamma * y_ij * x_ij
-            hessian[3 * i + 1, 3 * i + 2] += gamma * y_ij * z_ij
-            hessian[3 * i + 2, 3 * i]     += gamma * x_ij * z_ij
-            hessian[3 * i + 2, 3 * i + 1] += gamma * y_ij * z_ij
+            hessian[3 * i, 3 * i]         += gamma * x_ij * x_ij
+            hessian[3 * i + 1, 3 * i + 1]   += gamma * y_ij * y_ij
+            hessian[3 * i + 2, 3 * i + 2]   += gamma * z_ij * z_ij
+            hessian[3 * i, 3 * i + 1]       += gamma * x_ij * y_ij
+            hessian[3 * i, 3 * i + 2]       += gamma * x_ij * z_ij
+            hessian[3 * i + 1, 3 * i]       += gamma * y_ij * x_ij
+            hessian[3 * i + 1, 3 * i + 2]   += gamma * y_ij * z_ij
+            hessian[3 * i + 2, 3 * i]       += gamma * x_ij * z_ij
+            hessian[3 * i + 2, 3 * i + 1]   += gamma * y_ij * z_ij
             # Update off-diagonal elements (Hij)
-            hessian[3 * i, 3 * j]       -= gamma * x_ij * x_ij
-            hessian[3 * i + 1, 3 * j + 1] -= gamma * y_ij * y_ij
-            hessian[3 * i + 2, 3 * j + 2] -= gamma * z_ij * z_ij
-            hessian[3 * i, 3 * j + 1]     -= gamma * x_ij * y_ij
-            hessian[3 * i, 3 * j + 2]     -= gamma * x_ij * z_ij
-            hessian[3 * i + 1, 3 * j]     -= gamma * y_ij * x_ij
-            hessian[3 * i + 1, 3 * j + 2] -= gamma * y_ij * z_ij
-            hessian[3 * i + 2, 3 * j]     -= gamma * x_ij * z_ij
-            hessian[3 * i + 2, 3 * j + 1] -= gamma * y_ij * z_ij
+            hessian[3 * i, 3 * j]         -= gamma * x_ij * x_ij
+            hessian[3 * i + 1, 3 * j + 1]   -= gamma * y_ij * y_ij
+            hessian[3 * i + 2, 3 * j + 2]   -= gamma * z_ij * z_ij
+            hessian[3 * i, 3 * j + 1]       -= gamma * x_ij * y_ij
+            hessian[3 * i, 3 * j + 2]       -= gamma * x_ij * z_ij
+            hessian[3 * i + 1, 3 * j]       -= gamma * y_ij * x_ij
+            hessian[3 * i + 1, 3 * j + 2]   -= gamma * y_ij * z_ij
+            hessian[3 * i + 2, 3 * j]       -= gamma * x_ij * z_ij
+            hessian[3 * i + 2, 3 * j + 1]   -= gamma * y_ij * z_ij
     return hessian
 
 
@@ -83,27 +107,36 @@ def _calculate_hessian(int resnum,
 @timeit
 @memprofit
 def _hessian(np.ndarray[double, ndim=2] vec,
-                      double cutoff=1.2,
-                      double spring_constant=1000,
-                      int dd=0):
+             double cutoff=1.2,
+             double spring_constant=1000,
+             int dd=0):
     """
-    Calculate the position-position Hessian matrix.
-    
-    Parameters:
-        resnum: Number of residues (atoms)
-        x, y, z: 1D NumPy arrays of coordinates (dtype double)
-        cutoff: Distance cutoff
-        spring_constant: Base spring constant
-        dd: Exponent modifier
-    Returns:
-        A 2D NumPy array (double) 
+    Calculate the position-position Hessian matrix from a coordinate matrix.
+
+    Parameters
+    ----------
+    vec : ndarray of double, 2D
+        A coordinate matrix where each residue's coordinates are provided.
+        Note: The function computes n = vec.shape[0] // 3; thus, vec.shape[0]
+        should be a multiple of 3. Each residue is expected to have three entries
+        corresponding to its x, y, and z coordinates.
+    cutoff : double, optional
+        Distance cutoff threshold. Interactions beyond this distance are ignored (default is 1.2).
+    spring_constant : double, optional
+        Base spring constant used in the calculation (default is 1000).
+    dd : int, optional
+        Exponent modifier applied to the inverse distance factor (default is 0).
+
+    Returns
+    -------
+    hessian : ndarray of double, 2D
+        Hessian matrix of shape (3*n, 3*n) representing the second derivatives of the system energy,
+        where n is derived from the input coordinate matrix.
     """
     cdef int i, j
     cdef double x_ij, y_ij, z_ij, r, invr, gamma
     cdef int n = vec.shape[0] // 3
-    cdef np.ndarray[double, ndim=2] hessian 
-    
-    hessian = np.zeros((3 * n, 3 * n), dtype=np.float64)
+    cdef np.ndarray[double, ndim=2] hessian = np.zeros((3 * n, 3 * n), dtype=np.float64)
     
     for i in range(n):
         for j in range(n):
@@ -119,25 +152,25 @@ def _hessian(np.ndarray[double, ndim=2] vec,
             else:
                 continue
             # Update diagonal elements (Hii)
-            hessian[3 * i, 3 * i]       += gamma * x_ij * x_ij
-            hessian[3 * i + 1, 3 * i + 1] += gamma * y_ij * y_ij
-            hessian[3 * i + 2, 3 * i + 2] += gamma * z_ij * z_ij
-            hessian[3 * i, 3 * i + 1]     += gamma * x_ij * y_ij
-            hessian[3 * i, 3 * i + 2]     += gamma * x_ij * z_ij
-            hessian[3 * i + 1, 3 * i]     += gamma * y_ij * x_ij
-            hessian[3 * i + 1, 3 * i + 2] += gamma * y_ij * z_ij
-            hessian[3 * i + 2, 3 * i]     += gamma * x_ij * z_ij
-            hessian[3 * i + 2, 3 * i + 1] += gamma * y_ij * z_ij
+            hessian[3 * i, 3 * i]         += gamma * x_ij * x_ij
+            hessian[3 * i + 1, 3 * i + 1]   += gamma * y_ij * y_ij
+            hessian[3 * i + 2, 3 * i + 2]   += gamma * z_ij * z_ij
+            hessian[3 * i, 3 * i + 1]       += gamma * x_ij * y_ij
+            hessian[3 * i, 3 * i + 2]       += gamma * x_ij * z_ij
+            hessian[3 * i + 1, 3 * i]       += gamma * y_ij * x_ij
+            hessian[3 * i + 1, 3 * i + 2]   += gamma * y_ij * z_ij
+            hessian[3 * i + 2, 3 * i]       += gamma * x_ij * z_ij
+            hessian[3 * i + 2, 3 * i + 1]   += gamma * y_ij * z_ij
             # Update off-diagonal elements (Hij)
-            hessian[3 * i, 3 * j]       -= gamma * x_ij * x_ij
-            hessian[3 * i + 1, 3 * j + 1] -= gamma * y_ij * y_ij
-            hessian[3 * i + 2, 3 * j + 2] -= gamma * z_ij * z_ij
-            hessian[3 * i, 3 * j + 1]     -= gamma * x_ij * y_ij
-            hessian[3 * i, 3 * j + 2]     -= gamma * x_ij * z_ij
-            hessian[3 * i + 1, 3 * j]     -= gamma * y_ij * x_ij
-            hessian[3 * i + 1, 3 * j + 2] -= gamma * y_ij * z_ij
-            hessian[3 * i + 2, 3 * j]     -= gamma * x_ij * z_ij
-            hessian[3 * i + 2, 3 * j + 1] -= gamma * y_ij * z_ij
+            hessian[3 * i, 3 * j]         -= gamma * x_ij * x_ij
+            hessian[3 * i + 1, 3 * j + 1]   -= gamma * y_ij * y_ij
+            hessian[3 * i + 2, 3 * j + 2]   -= gamma * z_ij * z_ij
+            hessian[3 * i, 3 * j + 1]       -= gamma * x_ij * y_ij
+            hessian[3 * i, 3 * j + 2]       -= gamma * x_ij * z_ij
+            hessian[3 * i + 1, 3 * j]       -= gamma * y_ij * x_ij
+            hessian[3 * i + 1, 3 * j + 2]   -= gamma * y_ij * z_ij
+            hessian[3 * i + 2, 3 * j]       -= gamma * x_ij * z_ij
+            hessian[3 * i + 2, 3 * j + 1]   -= gamma * y_ij * z_ij
     return hessian
 
 
@@ -147,18 +180,32 @@ def _hessian(np.ndarray[double, ndim=2] vec,
 @memprofit
 def _perturbation_matrix_old(np.ndarray[double, ndim=2] covariance_matrix,
                              int resnum):
+    """
+    Compute a perturbation matrix from a covariance matrix using an older method.
+
+    Parameters
+    ----------
+    covariance_matrix : ndarray of double, 2D
+        A covariance matrix of shape (3*resnum, 3*resnum) computed from position data.
+    resnum : int
+        Number of residues (atoms).
+
+    Returns
+    -------
+    perturbation_matrix : ndarray of double, 2D
+        A normalized perturbation matrix of shape (resnum, resnum), where each element 
+        represents the cumulative perturbation contribution from directional projections.
+    """
     cdef int i, j, k, d, n = resnum
     cdef double norm, sum_val, s
-    cdef np.ndarray[double, ndim=2] perturbation_matrix
+    cdef np.ndarray[double, ndim=2] perturbation_matrix = np.zeros((n, n), dtype=np.float64)
     cdef np.ndarray[double, ndim=2] directions
     cdef double f0, f1, f2
     cdef double delta0, delta1, delta2
 
-    perturbation_matrix = np.zeros((n, n), dtype=np.float64)
-    
     directions = np.array(
-        [[1,0,0], [0,1,0], [0,0,1],
-         [1,1,0], [1,0,1], [0,1,1], [1,1,1]],
+        [[1, 0, 0], [0, 1, 0], [0, 0, 1],
+         [1, 1, 0], [1, 0, 1], [0, 1, 1], [1, 1, 1]],
         dtype=np.float64
     )
     for k in range(directions.shape[0]):
@@ -175,15 +222,15 @@ def _perturbation_matrix_old(np.ndarray[double, ndim=2] covariance_matrix,
         f2 = directions[k, 2]
         for j in range(n):
             for i in range(n):
-                delta0 = covariance_matrix[3*i, 3*j] + \
-                         covariance_matrix[3*i, 3*j+1] * f1 + \
-                         covariance_matrix[3*i, 3*j+2] * f2
-                delta1 = covariance_matrix[3*i+1, 3*j] + \
-                         covariance_matrix[3*i+1, 3*j+1] * f1 + \
-                         covariance_matrix[3*i+1, 3*j+2] * f2
-                delta2 = covariance_matrix[3*i+2, 3*j] + \
-                         covariance_matrix[3*i+2, 3*j+1] * f1 + \
-                         covariance_matrix[3*i+2, 3*j+2] * f2
+                delta0 = (covariance_matrix[3*i,   3*j] +
+                          covariance_matrix[3*i,   3*j+1] * f1 +
+                          covariance_matrix[3*i,   3*j+2] * f2)
+                delta1 = (covariance_matrix[3*i+1, 3*j] +
+                          covariance_matrix[3*i+1, 3*j+1] * f1 +
+                          covariance_matrix[3*i+1, 3*j+2] * f2)
+                delta2 = (covariance_matrix[3*i+2, 3*j] +
+                          covariance_matrix[3*i+2, 3*j+1] * f1 +
+                          covariance_matrix[3*i+2, 3*j+2] * f2)
                 s = sqrt(delta0*delta0 + delta1*delta1 + delta2*delta2)
                 perturbation_matrix[i, j] += s
 
@@ -206,16 +253,18 @@ def _perturbation_matrix_old(np.ndarray[double, ndim=2] covariance_matrix,
 def _perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.ndarray:
     """
     Compute a perturbation matrix from a covariance matrix.
-    
+
     Parameters
     ----------
-    covariance_matrix : ndarray (shape = (3*m, 3*n))
-        A covariance matrix computed from positions.
-        
+    covariance_matrix : ndarray of double, 2D
+        A covariance matrix computed from positional data with shape (3*m, 3*n), where m and n
+        are the numbers of residues in two systems.
+
     Returns
     -------
-    perturbation_matrix : ndarray (shape = (m, n))
-        A perturbation matrix, normalized by its total sum.
+    perturbation_matrix : ndarray of double, 2D
+        A normalized perturbation matrix of shape (m, n). Each element represents the aggregated
+        perturbation computed from the directional components of the corresponding 3x3 block.
     """
     cdef int i, j, k, d
     cdef int m = covariance_matrix.shape[0] // 3
@@ -226,9 +275,9 @@ def _perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.nda
     cdef double f0, f1, f2
     cdef double delta0, delta1, delta2
 
-    # Create an array of 7 direction vectors (7 x 3) and normalize each row.
-    directions = np.array([[1,0,0], [0,1,0], [0,0,1],
-                           [1,1,0], [1,0,1], [0,1,1], [1,1,1]],
+    # Create and normalize an array of 7 directional vectors.
+    directions = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1],
+                           [1, 1, 0], [1, 0, 1], [0, 1, 1], [1, 1, 1]],
                           dtype=np.float64)
     for k in range(directions.shape[0]):
         norm = 0.0
@@ -238,15 +287,12 @@ def _perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.nda
         for d in range(3):
             directions[k, d] /= norm
 
-    # Loop over each direction vector.
     for k in range(directions.shape[0]):
         f0 = directions[k, 0]
         f1 = directions[k, 1]
         f2 = directions[k, 2]
         for j in range(n):
             for i in range(m):
-                # Compute dot product of the 3x3 block and the direction vector.
-                # Block is covariance_matrix[3*i:3*i+3, 3*j:3*j+3].
                 delta0 = (covariance_matrix[3*i,   3*j]   * f0 +
                           covariance_matrix[3*i,   3*j+1] * f1 +
                           covariance_matrix[3*i,   3*j+2] * f2)
@@ -259,7 +305,6 @@ def _perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.nda
                 s = sqrt(delta0*delta0 + delta1*delta1 + delta2*delta2)
                 perturbation_matrix[i, j] += s
 
-    # Normalize the perturbation matrix.
     sum_val = 0.0
     for i in range(m):
         for j in range(n):
@@ -278,26 +323,24 @@ def _perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.nda
 @memprofit
 def _td_perturbation_matrix(np.ndarray[double, ndim=2] ccf, bint normalize=True) -> np.ndarray:
     """
-    Calculate the perturbation matrix from a covariance matrix (or Hessian) on the CPU.
-    
-    The input covariance matrix 'ccf' is expected to have shape (3*m, 3*n).
-    The function computes the perturbation value for each block:
-    
-        perturbation_matrix[i,j] = sqrt( sum_{a=0}^{2} sum_{b=0}^{2} (ccf[3*i+a, 3*j+b])^2 )
-    
-    If normalize is True, the output matrix is normalized so that its total sum equals 1.
-    
+    Calculate the perturbation matrix from a covariance (or Hessian) matrix using block-wise norms.
+
+    The input covariance matrix 'ccf' is expected to have shape (3*m, 3*n). For each block (i,j),
+    the perturbation value is computed as the square root of the sum of the squares of the corresponding
+    3x3 block elements.
+
     Parameters
     ----------
-    ccf : np.ndarray[double, ndim=2]
-        The input covariance matrix with shape (3*m, 3*n).
+    ccf : ndarray of double, 2D
+        Input covariance matrix with shape (3*m, 3*n).
     normalize : bool, optional
-        Whether to normalize the output perturbation matrix (default True).
-    
+        If True, the output perturbation matrix is normalized so that the total sum of its elements equals 1
+        (default is True).
+
     Returns
     -------
-    perturbation_matrix : np.ndarray
-        An (m, n) matrix of perturbation values.
+    perturbation_matrix : ndarray of double, 2D
+        An (m, n) matrix of perturbation values computed from the blocks of ccf.
     """
     cdef int m = ccf.shape[0] // 3
     cdef int n = ccf.shape[1] // 3
@@ -305,7 +348,7 @@ def _td_perturbation_matrix(np.ndarray[double, ndim=2] ccf, bint normalize=True)
     cdef double temp, sum_val = 0.0
     cdef np.ndarray[double, ndim=2] perturbation_matrix = np.empty((m, n), dtype=np.float64)
     
-    # Loop over each block (i,j)
+    # Compute the block-wise norm for each (i,j) block.
     for i in range(m):
         for j in range(n):
             temp = 0.0
@@ -321,6 +364,3 @@ def _td_perturbation_matrix(np.ndarray[double, ndim=2] ccf, bint normalize=True)
                 perturbation_matrix[i, j] /= sum_val
     
     return perturbation_matrix
-
-
-    
