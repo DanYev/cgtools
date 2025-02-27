@@ -49,3 +49,4 @@ __pycache__
 *.trr
 *.lock
 *mycmath.c
+*test.itp

@@ -423,8 +423,8 @@ class gmxSystem:
 
         Args:
             kwargs: Additional keyword arguments for the GROMACS editconf command. Defaults:
-                    - d: Distance parameter (default: 1.0)
-                    - bt: Box type (default: 'dodecahedron')
+                - d: Distance parameter (default: 1.0)
+                - bt: Box type (default: 'dodecahedron')
 
         Uses the AtomList from pdbtools to merge and renumber atoms, then calls the
         GROMACS 'editconf' command to finalize the solute PDB.

@@ -374,7 +374,6 @@ def gmx_extract_cluster(clinput=None, **kwargs):
     gmx('extract-cluster', clinput=clinput, cltext=True, **kwargs)    
 
 
-@from_wdir
 def gmx_covar(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'covar' command to get covariance matrix and normal modes.
@@ -390,7 +389,7 @@ def gmx_covar(wdir, clinput=None, **kwargs):
     gmx('covar', clinput=clinput, cltext=True, **kwargs)
  
  
-@from_wdir
+
 def gmx_anaeig(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'anaeig' command to get covariance matrix and normal modes.
@@ -402,7 +401,7 @@ def gmx_anaeig(wdir, clinput=None, **kwargs):
     gmx('anaeig', clinput=clinput, cltext=True, **kwargs)    
     
     
-@from_wdir
+
 def gmx_make_edi(wdir, clinput=None, **kwargs):
     """
     Run the GROMACS 'make_edi' for essential dynamics(ED)
@@ -412,6 +411,7 @@ def gmx_make_edi(wdir, clinput=None, **kwargs):
     }
     kwargs = set_defaults(kwargs, defaults)
     gmx('make_edi', clinput=clinput, cltext=True, **kwargs)        
+    
     
 ##############################################################
 # Some helper functions

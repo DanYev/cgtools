@@ -180,11 +180,15 @@ def test_inverse_sparse_matrix_cpu():
 # Skip GPU tests if CuPy is not installed.
 try:
     import cupy as cp
+    from cgtools.utils import cuda_detected
+    cuda_detected()
 except ImportError:
     cp = None
+    skip_reason = 'CUDA not detected'
 
 
-@pytest.mark.skipif(cp is None, reason="CuPy is not installed")
+
+@pytest.mark.skipif(cp is None, reason=skip_reason)
 def test_gfft_corr():
     """
     Validate the GPU-based FFT correlation function (_gfft_corr).
@@ -208,7 +212,7 @@ def test_gfft_corr():
     np.testing.assert_allclose(corr, corr_ser, rtol=1e-10, atol=1e-10)
 
 
-@pytest.mark.skipif(cp is None, reason="CuPy is not installed")
+@pytest.mark.skipif(cp is None, reason=skip_reason)
 def test_inverse_sparse_matrix_gpu():
     """
     Test the GPU-based sparse matrix inversion (_inverse_sparse_matrix_gpu).
@@ -230,7 +234,7 @@ def test_inverse_sparse_matrix_gpu():
     np.testing.assert_allclose(inv_matrix, expected_inv, rtol=0, atol=1e-6)
 
 
-@pytest.mark.skipif(cp is None, reason="CuPy is not installed")
+@pytest.mark.skipif(cp is None, reason=skip_reason)
 def test_inverse_matrix_gpu():
     """
     Verify the GPU matrix inversion function (_inverse_matrix_gpu).
