@@ -115,18 +115,19 @@ def make_ndx(sysdir, sysname, **kwargs):
     
 def trjconv(sysdir, sysname, runname, mode='solu', fit='rot+trans', **kwargs):
     kwargs.setdefault('b', 0) # in ps
-    kwargs.setdefault('dt', 200) # in ps
+    kwargs.setdefault('dt', 1000) # in ps
     kwargs.setdefault('e', 1000000) # in ps
     mdrun = MDRun(sysdir, sysname, runname)
     if mode == 'solu': # REMOVE SOLVENT # NDX groups: 1.System 2.Solute 3.Backbone 4.Solvent 5...chains...
         k = 1
     if mode == 'bb': # JUST FOR BACKBONE ANALYSIS
         k = 2
-    mdrun.trjconv(clinput=f'{k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, pbc='whole', ur='compact', e=0)
-    mdrun.trjconv(clinput=f'{k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.trr', n=mdrun.sysndx, pbc='whole', ur='compact', **kwargs)
-    mdrun.trjconv(clinput='0\n 0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', pbc='nojump')
+    # mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, center='yes', pbc='cluster', ur='compact', e=0)
+    # mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.trr', n=mdrun.sysndx, center='yes', pbc='cluster', ur='compact', **kwargs)
+    # mdrun.trjconv(clinput='0\n 0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', pbc='nojump')
     if fit:
-        mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', fit=fit)
+        # mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', fit=fit)
+        mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdv.pdb', dt=10000)
     clean_dir(mdrun.rundir)
     
 

@@ -1,6 +1,6 @@
 tmp
 build
-tests/systems
+workflows/systems
 *data*
 *slurm*
 custom_config.py
