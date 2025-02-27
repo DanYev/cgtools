@@ -1058,7 +1058,7 @@ def rename_chain_and_histidines_in_pdb(in_pdb, new_chain_id):
         if atom.resname == 'HSD':
             atom.resname = 'HIS'
         if atom.resname == 'HSE':
-            atom.resname = 'HIE`'
+            atom.resname = 'HIE'
     atoms.write_pdb(in_pdb)
 
 def write_ndx(atoms, fpath='system.ndx', backbone_atoms=("CA", "P", "C1'")):
