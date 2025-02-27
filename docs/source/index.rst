@@ -11,13 +11,10 @@ Add your content using ``reStructuredText`` syntax. See the
 documentation for details.
 
 
-.. automodule:: reforge.pdbtools
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+
+   api
 

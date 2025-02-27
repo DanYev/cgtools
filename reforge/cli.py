@@ -4,86 +4,6 @@ import shutil
 from contextlib import contextmanager
 from functools import wraps
 
-##############################################################
-# Some helper functions
-##############################################################
-
-@contextmanager
-def change_directory(new_dir):
-    """
-    Context manager to temporarily change the working directory.
-
-    Parameters:
-    new_dir (str): The directory to switch to temporarily.
-    """
-    prev_dir = os.getcwd()
-    os.chdir(new_dir)
-    try:
-        yield
-    finally:
-        os.chdir(prev_dir)
-        
-        
-def from_wdir(func):
-    """
-    Decorator to temporarily change the working directory before executing a function.
-    
-    The first argument of the decorated function is expected to be the working directory (wdir).
-    """
-    @wraps(func)
-    def wrapper(wdir, *args, **kwargs):
-        with change_directory(wdir):  # Change to the given directory
-            return func(wdir, *args, **kwargs)  # Execute the decorated function
-    return wrapper
-    
-    
-def args_to_str(*args):
-    """
-    Convert the positional arguments into a space-separated string.
-
-    Parameters:
-    *args: str
-        Positional arguments to be converted.
-
-    Returns:
-    str: 
-        A space-separated string of the arguments.
-    """
-    return ' '.join([str(arg) for arg in args])
-
-
-def kwargs_to_str(hyphen='-', **kwargs):
-    """
-    Convert keyword arguments of the form 'key=value' into a string of '-key value'.
-
-    Parameters:
-    **kwargs: dict
-        Keyword arguments to be converted.
-
-    Returns:
-    str:
-        A string of keyword arguments formatted as '-key value'.
-    """
-    return ' '.join([f'{hyphen}{key} {value}' for key, value in kwargs.items()])    
-
-
-def set_defaults(kwargs, defaults):
-    """
-    Set default values for kwargs if not already provided.
-    
-    Parameters:
-    kwargs: dict
-        The current keyword arguments passed to the function.
-    defaults: dict
-        The default values for the function.
-        
-    Returns:
-    dict:
-        The updated kwargs with defaults set.
-    """
-    for key, value in defaults.items():
-        kwargs.setdefault(key, value)
-    return kwargs
 
 ##############################################################
 # Generic functions
@@ -92,6 +12,7 @@ def set_defaults(kwargs, defaults):
 def run(*args, **kwargs):
     """
     Run a command line command from a Python script.
+    Can pass user's input to the command's stdin via 'clinput' keyword.
 
     Parameters:
     *args: str
@@ -106,10 +27,6 @@ def run(*args, **kwargs):
     cltext = kwargs.pop('cltext', True)
     command = args_to_str(*args) + ' ' + kwargs_to_str(**kwargs)
     sp.run(command.split(), input=clinput, text=cltext, check=False)
-    # try:
-    #     sp.run(command.split(), input=clinput, text=cltext, check=True)
-    # except sp.CalledProcessError as e:
-    #     raise RuntimeError(f"Command '{command}' failed with return code {e.returncode}") from e
     
     
 def sbatch(script, *args, **kwargs):
@@ -142,8 +59,7 @@ def sbatch(script, *args, **kwargs):
     kwargs.setdefault('o', 'slurm_jobs/output.%A.out')
     # Separate long and short options
     long_options = {key: value for key, value in kwargs.items() if len(key) > 1}
-    short_options = {key: value for key, value in kwargs.items() if len(key) == 1}
-    
+    short_options = {key: value for key, value in kwargs.items() if len(key) == 1} 
     # Build the sbatch command string
     # sbatch_long_opts = kwargs_to_str(hyphen='--', **long_options)
     sbatch_long_opts = ' '.join([f'--{key.replace("_", "-")}={value}' for key, value in long_options.items()])
@@ -154,11 +70,9 @@ def sbatch(script, *args, **kwargs):
 
 def gmx(command, gmx_callable='gmx_mpi', **kwargs):
     """
-    Run a GROMACS command from a Python script, switching to the specified working directory.
+    Run a GROMACS command from a Python script
 
     Parameters:
-    wdir (str): 
-        The working directory where the command should be executed.
     command (str): 
         The GROMACS command to run (e.g., 'editconf', 'solvate').
     **kwargs: dict
@@ -171,6 +85,38 @@ def gmx(command, gmx_callable='gmx_mpi', **kwargs):
     cltext = kwargs.pop('cltext', True)
     command = gmx_callable + ' ' + command + ' ' + kwargs_to_str(**kwargs)
     sp.run(command.split(), input=clinput, text=cltext)
+
+##############################################################
+# Util functions
+##############################################################
+
+@contextmanager
+def change_directory(new_dir):
+    """
+    Context manager to temporarily change the working directory.
+
+    Parameters:
+    new_dir (str): The directory to switch to temporarily.
+    """
+    prev_dir = os.getcwd()
+    os.chdir(new_dir)
+    try:
+        yield
+    finally:
+        os.chdir(prev_dir)
+        
+        
+def from_wdir(func):
+    """
+    Decorator to temporarily change the working directory before executing a function.
+    
+    The first argument of the decorated function is expected to be the working directory (wdir).
+    """
+    @wraps(func)
+    def wrapper(wdir, *args, **kwargs):
+        with change_directory(wdir):  # Change to the given directory
+            return func(wdir, *args, **kwargs)  # Execute the decorated function
+    return wrapper
 
 
 ##############################################################
@@ -466,8 +412,57 @@ def gmx_make_edi(wdir, clinput=None, **kwargs):
     }
     kwargs = set_defaults(kwargs, defaults)
     gmx('make_edi', clinput=clinput, cltext=True, **kwargs)        
+    
+##############################################################
+# Some helper functions
+##############################################################
+    
+def args_to_str(*args):
+    """
+    Convert the positional arguments into a space-separated string.
 
+    Parameters:
+    *args: str
+        Positional arguments to be converted.
+
+    Returns:
+    str: 
+        A space-separated string of the arguments.
+    """
+    return ' '.join([str(arg) for arg in args])
+
+
+def kwargs_to_str(hyphen='-', **kwargs):
+    """
+    Convert keyword arguments of the form 'key=value' into a string of '-key value'.
+
+    Parameters:
+    **kwargs: dict
+        Keyword arguments to be converted.
+
+    Returns:
+    str:
+        A string of keyword arguments formatted as '-key value'.
+    """
+    return ' '.join([f'{hyphen}{key} {value}' for key, value in kwargs.items()])    
+
+
+def set_defaults(kwargs, defaults):
+    """
+    Set default values for kwargs if not already provided.
     
-     
-    
+    Parameters:
+    kwargs: dict
+        The current keyword arguments passed to the function.
+    defaults: dict
+        The default values for the function.
+        
+    Returns:
+    dict:
+        The updated kwargs with defaults set.
+    """
+    for key, value in defaults.items():
+        kwargs.setdefault(key, value)
+    return kwargs
+  
     

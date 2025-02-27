@@ -68,7 +68,6 @@ def cd(newdir):
     try:
         yield
     finally:
-        clean_dir()
         os.chdir(prevdir)
 
 

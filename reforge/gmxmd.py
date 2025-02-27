@@ -41,36 +41,43 @@ class gmxSystem:
         """
         self.sysname    = sysname
         self.sysdir     = os.path.abspath(sysdir)
-        self.wdir       = os.path.join(self.sysdir, sysname)
-        self.inpdb      = os.path.join(self.wdir, 'inpdb.pdb')
-        self.solupdb    = os.path.join(self.wdir, 'solute.pdb')
-        self.syspdb     = os.path.join(self.wdir, 'system.pdb')
-        self.sysgro     = os.path.join(self.wdir, 'system.gro')        
-        self.systop     = os.path.join(self.wdir, 'system.top')
-        self.sysndx     = os.path.join(self.wdir, 'system.ndx')
-        self.mdcpdb     = os.path.join(self.wdir, 'mdc.pdb')
-        self.mdcndx     = os.path.join(self.wdir, 'mdc.ndx')
-        self.bbndx      = os.path.join(self.wdir, 'bb.ndx')
-        self.trjpdb     = os.path.join(self.wdir, 'traj.pdb')
-        self.trjndx     = os.path.join(self.wdir, 'traj.ndx')
-        self.prodir     = os.path.join(self.wdir, 'proteins')
-        self.nucdir     = os.path.join(self.wdir, 'nucleotides')
-        self.iondir     = os.path.join(self.wdir, 'ions')
+        self.root       = os.path.join(self.sysdir, sysname)
+        self.inpdb      = os.path.join(self.root, 'inpdb.pdb')
+        self.solupdb    = os.path.join(self.root, 'solute.pdb')
+        self.syspdb     = os.path.join(self.root, 'system.pdb')
+        self.sysgro     = os.path.join(self.root, 'system.gro')        
+        self.systop     = os.path.join(self.root, 'system.top')
+        self.sysndx     = os.path.join(self.root, 'system.ndx')
+        self.mdcpdb     = os.path.join(self.root, 'mdc.pdb')
+        self.mdcndx     = os.path.join(self.root, 'mdc.ndx')
+        self.bbndx      = os.path.join(self.root, 'bb.ndx')
+        self.trjpdb     = os.path.join(self.root, 'traj.pdb')
+        self.trjndx     = os.path.join(self.root, 'traj.ndx')
+        self.prodir     = os.path.join(self.root, 'proteins')
+        self.nucdir     = os.path.join(self.root, 'nucleotides')
+        self.iondir     = os.path.join(self.root, 'ions')
         self.ionpdb     = os.path.join(self.iondir, 'ions.pdb')
-        self.topdir     = os.path.join(self.wdir, 'topol')
-        self.mapdir     = os.path.join(self.wdir, 'map')
-        self.mdpdir     = os.path.join(self.wdir, 'mdp')
-        self.cgdir      = os.path.join(self.wdir, 'cgpdb')
-        self.grodir     = os.path.join(self.wdir, 'gro')
-        self.mddir      = os.path.join(self.wdir, 'mdruns')
-        self.datdir     = os.path.join(self.wdir, 'data')
-        self.pngdir     = os.path.join(self.wdir, 'png')
+        self.topdir     = os.path.join(self.root, 'topol')
+        self.mapdir     = os.path.join(self.root, 'map')
+        self.mdpdir     = os.path.join(self.root, 'mdp')
+        self.cgdir      = os.path.join(self.root, 'cgpdb')
+        self.grodir     = os.path.join(self.root, 'gro')
+        self.mddir      = os.path.join(self.root, 'mdruns')
+        self.datdir     = os.path.join(self.root, 'data')
+        self.pngdir     = os.path.join(self.root, 'png')
+
 
     @property
     def chains(self):
         atoms = io.pdb2atomlist(self.inpdb)
         chains = sort_upper_lower_digit(set(atoms.chids))
         return chains
+
+    def gmx(self, command='-h', clinput=None, clean_wdir=True, **kwargs):
+        with cd(self.root):
+            cli.gmx(command, clinput=clinput, **kwargs)
+            if clean_wdir:
+                clean_dir()
 
     def prepare_files(self):
         """
@@ -92,8 +99,8 @@ class gmxSystem:
                 fpath = os.path.join(self.MMDPDIR, file)
                 outpath = os.path.join(self.mdpdir, file)
                 shutil.copy(fpath, outpath)
-        shutil.copy(os.path.join(self.MDATDIR, 'water.gro'), self.wdir)
-        shutil.copy(os.path.join(self.MDATDIR, 'atommass.dat'), self.wdir)
+        shutil.copy(os.path.join(self.MDATDIR, 'water.gro'), self.root)
+        shutil.copy(os.path.join(self.MDATDIR, 'atommass.dat'), self.root)
         for file in os.listdir(self.MITPDIR):
             if file.endswith('.itp'):
                 fpath = os.path.join(self.MITPDIR, file)
@@ -104,7 +111,7 @@ class gmxSystem:
         """
         Sort and rename atoms and chains
         """
-        with cd(self.wdir):
+        with cd(self.root):
             pdbtools.sort_pdb(in_pdb, self.inpdb)
                        
     def clean_pdb_mm(self, in_pdb=None, **kwargs):
@@ -125,9 +132,8 @@ class gmxSystem:
         """
         logger.info("Cleaning the PDB...")
         if not in_pdb:
-            in_pdb = self.inpdb
-        with cd(self.wdir):    
-            cli.gmx('pdb2gmx', f=in_pdb, o=in_pdb, **kwargs)
+            in_pdb = self.inpdb  
+        self.gmx('pdb2gmx', f=in_pdb, o=in_pdb, **kwargs)
             
     def split_chains(self):
         """
@@ -172,7 +178,7 @@ class gmxSystem:
         files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir) if not f.startswith('#')]
         files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir) if not f.startswith('#')]
         files = sorted(files)
-        with cd(self.wdir): 
+        with cd(self.root): 
             for file in files:
                 new_chain_id = file.split('chain_')[1][0]
                 cli.gmx('pdb2gmx', f=file, o=file, **kwargs)
@@ -229,10 +235,10 @@ class gmxSystem:
             cg_pdb = os.path.join(self.cgdir, file)
             name = file.split('.')[0]
             go_map = os.path.join(self.mapdir, f'{name}.map')
-            martinize_go(self.wdir, self.topdir, in_pdb, cg_pdb, name=name, **kwargs)
+            martinize_go(self.root, self.topdir, in_pdb, cg_pdb, name=name, **kwargs)
         clean_dir(self.cgdir)
-        clean_dir(self.wdir)
-        clean_dir(self.wdir, '*.itp')
+        clean_dir(self.root)
+        clean_dir(self.root, '*.itp')
          
     def martinize_proteins_en(self, append=False, **kwargs):
         """
@@ -260,10 +266,10 @@ class gmxSystem:
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
-            new_itp = os.path.join(self.wdir, 'molecule_0.itp')
+            new_itp = os.path.join(self.root, 'molecule_0.itp')
             updated_itp = os.path.join(self.topdir, file.replace('pdb', 'itp'))
-            new_top = os.path.join(self.wdir, 'protein.top')
-            martinize_en(self.wdir, self.topdir, in_pdb, cg_pdb, **kwargs) 
+            new_top = os.path.join(self.root, 'protein.top')
+            martinize_en(self.root, self.topdir, in_pdb, cg_pdb, **kwargs) 
             # Replace 'molecule_0' in the itp with the file name
             with open(new_itp, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -272,7 +278,7 @@ class gmxSystem:
                 f.write(updated_content)
             os.remove(new_top)
         clean_dir(self.cgdir)
-        clean_dir(self.wdir)
+        clean_dir(self.root)
     
     def martinize_nucleotides(self, append=False, **kwargs):
         logger.info("Working on nucleotides")
@@ -280,17 +286,17 @@ class gmxSystem:
         for file in os.listdir(self.nucdir):
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
-            martinize_nucleotide(self.wdir, in_pdb, cg_pdb, **kwargs)
+            martinize_nucleotide(self.root, in_pdb, cg_pdb, **kwargs)
         bdir = os.getcwd()
-        nfiles = [f for f in os.listdir(self.wdir) if f.startswith('Nucleic')]
+        nfiles = [f for f in os.listdir(self.root) if f.startswith('Nucleic')]
         for f in nfiles:
-            file = os.path.join(self.wdir, f)
+            file = os.path.join(self.root, f)
             command = f'sed -i s/Nucleic_/chain_/g {file}'
             sp.run(command.split())
             outfile = f.replace('Nucleic', 'chain')
-            shutil.move(os.path.join(self.wdir, file), os.path.join(self.topdir, outfile))
+            shutil.move(os.path.join(self.root, file), os.path.join(self.topdir, outfile))
         clean_dir(self.cgdir)
-        clean_dir(self.wdir)    
+        clean_dir(self.root)    
 
     def martinize_rna(self, append=False, **kwargs):
         logger.info("Working on nucleotides")
@@ -301,14 +307,14 @@ class gmxSystem:
             cg_pdb = os.path.join(self.cgdir, file)
             cg_itp = os.path.join(self.topdir, molname + '.itp')
             try:
-                martinize_rna(self.wdir, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
+                martinize_rna(self.root, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
             except Exception as e:
                 sys.exit(f"Could not coarse-grain {in_pdb}: {e}")
             
 
     def make_cgpdb_file(self, add_resolved_ions=False, **kwargs):
         logger.info("Merging CG PDBs")
-        with cd(self.wdir):
+        with cd(self.root):
             cg_pdb_files = os.listdir(self.cgdir)
             cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
             cg_pdb_files = [os.path.join(self.cgdir, fname) for fname in cg_pdb_files]
@@ -360,7 +366,7 @@ class gmxSystem:
                         f.write(f'{ion}    {count}\n')
 
     def make_gro_file(self, d=1.25, bt='dodecahedron'):
-        with cd(self.wdir):
+        with cd(self.root):
             cg_pdb_files = os.listdir(self.cgdir)
             cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
             for file in cg_pdb_files:
@@ -393,7 +399,7 @@ class gmxSystem:
             sp.run(command.split())   
         
     def solvate(self, **kwargs):
-        with cd(self.wdir):
+        with cd(self.root):
             cli.gmx_solvate(**kwargs)
         
     def find_resolved_ions(self, mask=['MG', 'ZN', 'K']):
@@ -410,13 +416,13 @@ class gmxSystem:
         return counts
         
     def add_bulk_ions(self, conc=0.15, pname='NA', nname='CL'): 
-        with cd(self.wdir):
+        with cd(self.root):
             command = f'gmx_mpi grompp -f mdp/ions.mdp -c {self.syspdb} -p system.top -o ions.tpr'
             sp.run(command.split())
             command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname {pname} -nname {nname} -o {self.syspdb}'
             sp.run(command.split(), input='W\n', text=True)
             cli.gmx_editconf(f=self.syspdb, o=self.sysgro)
-        clean_dir(self.wdir, pattern='ions.tpr')       
+        clean_dir(self.root, pattern='ions.tpr')       
 
     def make_sys_ndx(self, backbone_atoms=["CA", "P", "C1'"]): # ["BB", "BB1", "BB3"]
         logger.info("Making Index File")
