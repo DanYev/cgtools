@@ -134,7 +134,9 @@ class gmxSystem:
         if not in_pdb:
             in_pdb = self.inpdb  
         self.gmx('pdb2gmx', f=in_pdb, o=in_pdb, **kwargs)
-            
+        clean_dir(self.root, 'topol*')
+        clean_dir(self.root, 'posre*')
+
     def split_chains(self):
         """
         Cleans a separate PDB file for each chain in the initial structure
