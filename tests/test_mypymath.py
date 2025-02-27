@@ -15,7 +15,7 @@ def test_covariance_matrix():
                           [7, 8, 9]], dtype=np.float64)
     nt = 10
     positions = np.tile(positions, (nt, nt))
-    covmat = mypymath.covariance_matrix(positions, dtype=np.float64)
+    covmat = mypymath._covariance_matrix(positions, dtype=np.float64)
     # Expect a (3, 3) covariance matrix when rowvar=True.
     assert covmat.shape == (3*nt, 3*nt)
     # For this degenerate data (linearly dependent), the determinant should be ~0.

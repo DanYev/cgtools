@@ -12,7 +12,7 @@ from reforge.utils import timeit, memprofit
 
 @timeit
 @memprofit
-def calculate_hessian(resnum, x, y, z, cutoff=12, spring_constant=1000, dd=0, dtype=np.float64):
+def _calculate_hessian(resnum, x, y, z, cutoff=12, spring_constant=1000, dd=0, dtype=np.float64):
     hessian = np.zeros((3 * resnum, 3 * resnum), dtype)
     for i in range(resnum):
         for j in range(resnum):
@@ -62,7 +62,7 @@ def _perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float64):
         f = np.ascontiguousarray(directions[k, :])
         for j in range(n):
             for i in range(n):
-                cov_ij = np.ascontiguousarray(covariance_matrix[3*i:3*i+3, 3*j:3*j+3])
+                cov_ij = covariance_matrix[3*i:3*i+3, 3*j:3*j+3]
                 delta = np.dot(cov_ij, f)
                 perturbation_matrix[i,j] += np.sqrt(np.sum(delta * delta))
     perturbation_matrix /= np.sum(perturbation_matrix)
@@ -71,7 +71,7 @@ def _perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float64):
 
 @timeit
 @memprofit    
-def _perturbation_matrix_cpu(covariance_matrix, dtype=np.float32):
+def _perturbation_matrix_cpu(covariance_matrix, dtype=np.float64):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU
     The result is normalized such that the total sum of the matrix elements is equal to 1
