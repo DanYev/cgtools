@@ -1,3 +1,26 @@
+"""
+===============================================================================
+File: test_pdbtools.py
+Description:
+    This module contains unit tests for the pdbtools module. It covers tests for
+    the Atom, AtomList, and AtomListCollection classes, as well as tests for higher-
+    level functions such as pdb2system, pdb2atomlist, sort_pdb, clean_pdb,
+    rename_chain_in_pdb, and rename_chain_and_histidines_in_pdb.
+
+Usage:
+    Run the tests with pytest:
+        pytest -v tests/test_pdbtools.py
+
+Requirements:
+    - Python 3.x
+    - pytest
+    - pdbfixer and OpenMM (for testing clean_pdb, optional)
+    
+Author: DY
+Date: 2025-02-27
+===============================================================================
+"""
+
 import os
 import tempfile
 import shutil
@@ -9,6 +32,7 @@ from reforge.pdbtools import *
 # ---------------------------------------------------------------------------
 
 def test_atom_from_pdb_line():
+    """Test parsing a PDB line into an Atom instance using from_pdb_line."""
     pdb_line = "ATOM      1  CA  ALA A   1      11.104  13.207  10.000  1.00 20.00           C  \n"
     atom = Atom.from_pdb_line(pdb_line)
     assert atom.record == "ATOM"
@@ -25,25 +49,23 @@ def test_atom_from_pdb_line():
     assert atom.element == "C"
 
 def test_atom_to_pdb_line():
-    # Create an Atom manually
+    """Test converting an Atom instance to a properly formatted PDB line."""
     atom = Atom("ATOM", 1, "CA", "", "ALA", "A", 1, "",
                 11.104, 13.207, 10.000, 1.00, 20.00, "SEG1", "C", "")
     pdb_line = atom.to_pdb_line()
-    # Check that key fields are present and correctly formatted.
     assert "CA" in pdb_line
     assert "ALA" in pdb_line
-    # Check coordinates formatting (3 decimals)
     assert "11.104" in pdb_line
     assert "13.207" in pdb_line
     assert "10.000" in pdb_line
 
 def test_atom_repr():
+    """Test the __repr__ method of the Atom class returns a meaningful string."""
     atom = Atom("ATOM", 1, "CA", "", "ALA", "A", 1, "",
                 11.104, 13.207, 10.000, 1.00, 20.00, "SEG1", "C", "")
     rep = repr(atom)
     assert "ATOM" in rep
     assert "ALA" in rep
-    # Expect chain and residue id to appear (e.g. "A1")
     assert "A1" in rep
 
 # ---------------------------------------------------------------------------
@@ -52,7 +74,7 @@ def test_atom_repr():
 
 @pytest.fixture
 def sample_atoms():
-    # Create two sample Atom objects
+    """Fixture that returns an AtomList containing two sample Atom instances."""
     atom1 = Atom("ATOM", 1, "CA", "", "ALA", "A", 1, "",
                  1.0, 2.0, 3.0, 1.0, 10.0, "SEG1", "C", "")
     atom2 = Atom("ATOM", 2, "CB", "", "ALA", "A", 1, "",
@@ -61,7 +83,7 @@ def sample_atoms():
 
 @pytest.fixture
 def sample_atomlist_collection():
-    # Create two separate AtomLists
+    """Fixture that returns an AtomListCollection made from two separate AtomLists."""
     atom1 = Atom("ATOM", 1, "CA", "", "ALA", "A", 1, "",
                  1.0, 2.0, 3.0, 1.0, 10.0, "SEG1", "C", "")
     atom2 = Atom("ATOM", 2, "CB", "", "ALA", "A", 1, "",
@@ -75,6 +97,7 @@ def sample_atomlist_collection():
 # ---------------------------------------------------------------------------
 
 def test_atomlist_add(sample_atoms):
+    """Test adding two AtomLists using the __add__ method."""
     atom3 = Atom("ATOM", 3, "CG", "", "ALA", "A", 1, "",
                  3.0, 4.0, 5.0, 1.0, 10.0, "SEG1", "C", "")
     list2 = AtomList([atom3])
@@ -83,7 +106,7 @@ def test_atomlist_add(sample_atoms):
     assert combined[-1].name == "CG"
 
 def test_atomlist_properties(sample_atoms):
-    # Verify property getters work as expected.
+    """Test that all property getters of AtomList return expected values."""
     assert sample_atoms.names == ["CA", "CB"]
     assert sample_atoms.atids == [1, 2]
     assert sample_atoms.alt_locs == ["", ""]
@@ -102,18 +125,16 @@ def test_atomlist_properties(sample_atoms):
     assert sample_atoms.vecs == [(1.0, 2.0, 3.0), (2.0, 3.0, 4.0)]
 
 def test_atomlist_setters(sample_atoms):
-    # Update names and verify change.
+    """Test that property setters of AtomList properly update the atoms."""
     sample_atoms.names = ["N", "CA"]
     assert sample_atoms.names == ["N", "CA"]
-    # Update x coordinates.
     sample_atoms.xs = [10.0, 20.0]
     assert sample_atoms.xs == [10.0, 20.0]
-    # Verify that the vector for each atom is updated.
     for atom, x_val in zip(sample_atoms, [10.0, 20.0]):
         assert atom.vec[0] == x_val
 
 def test_atomlist_sort():
-    # Create atoms in unsorted order
+    """Test sorting of an AtomList using the default key."""
     atom1 = Atom("ATOM", 3, "CA", "", "ALA", "B", 1, "",
                  1.0, 2.0, 3.0, 1.0, 10.0, "SEG1", "C", "")
     atom2 = Atom("ATOM", 1, "CB", "", "ALA", "A", 1, "",
@@ -122,30 +143,34 @@ def test_atomlist_sort():
                  3.0, 4.0, 5.0, 1.0, 10.0, "SEG1", "C", "")
     atoms = AtomList([atom1, atom2, atom3])
     atoms.sort()
-    # Expected order: atoms with chain A (with atid 1 then 2) then chain B (atid 3)
     sorted_ids = [atom.atid for atom in atoms]
     assert sorted_ids == [1, 2, 3]
 
 def test_atomlist_mask(sample_atoms):
+    """Test the mask method of AtomList to select atoms based on name."""
     masked = sample_atoms.mask("CA", mode="name")
     assert len(masked) == 1
     assert masked[0].name == "CA"
 
 def test_atomlist_mask_out(sample_atoms):
+    """Test the mask_out method of AtomList to filter out atoms by name."""
     masked_out = sample_atoms.mask_out("CA", mode="name")
     assert len(masked_out) == 1
     assert masked_out[0].name == "CB"
 
 def test_atomlist_renum():
+    """Test renumbering of atoms in an AtomList using renum method."""
     atom1 = Atom("ATOM", 10, "CA", "", "ALA", "A", 1, "",
                  1.0, 2.0, 3.0, 1.0, 10.0, "SEG1", "C", "")
     atom2 = Atom("ATOM", 20, "CB", "", "ALA", "A", 1, "",
                  2.0, 3.0, 4.0, 1.0, 10.0, "SEG1", "C", "")
     atoms = AtomList([atom1, atom2])
     atoms.renum()
+    # In this version, renum sets atids starting from 0.
     assert atoms.atids == [0, 1]
 
 def test_atomlist_remove_atoms():
+    """Test removal of specific atoms from an AtomList."""
     atom1 = Atom("ATOM", 1, "CA", "", "ALA", "A", 1, "",
                  1.0, 2.0, 3.0, 1.0, 10.0, "SEG1", "C", "")
     atom2 = Atom("ATOM", 2, "CB", "", "ALA", "A", 1, "",
@@ -156,6 +181,7 @@ def test_atomlist_remove_atoms():
     assert atoms[0].name == "CB"
 
 def test_atomlist_write_read(tmp_path):
+    """Test writing an AtomList to a file and reading it back."""
     file_path = tmp_path / "atoms_test.pdb"
     atom1 = Atom("ATOM", 1, "CA", "", "ALA", "A", 1, "",
                  1.0, 2.0, 3.0, 1.0, 10.0, "SEG1", "C", "")
@@ -169,6 +195,7 @@ def test_atomlist_write_read(tmp_path):
     assert new_atoms.names == atoms.names
 
 def test_atomlist_write_ndx(tmp_path):
+    """Test writing an NDX file from an AtomList."""
     file_path = tmp_path / "atoms_test.ndx"
     atom1 = Atom("ATOM", 1, "CA", "", "ALA", "A", 1, "",
                  1.0, 2.0, 3.0, 1.0, 10.0, "SEG1", "C", "")
@@ -187,49 +214,51 @@ def test_atomlist_write_ndx(tmp_path):
 # ---------------------------------------------------------------------------
 
 def test_collection_names(sample_atomlist_collection):
+    """Test that the names property of AtomListCollection returns a list of lists."""
     names = sample_atomlist_collection.names
-    # Expect a list of lists: first list with "CA", second with "CB"
     assert names == [["CA"], ["CB"]]
 
 def test_collection_atids(sample_atomlist_collection):
+    """Test that the atids property of AtomListCollection returns a list of lists."""
     atids = sample_atomlist_collection.atids
     assert atids == [[1], [2]]
 
 def test_collection_vecs(sample_atomlist_collection):
+    """Test that the vecs property of AtomListCollection returns a list of lists of vectors."""
     vecs = sample_atomlist_collection.vecs
     assert vecs == [[(1.0, 2.0, 3.0)], [(2.0, 3.0, 4.0)]]
 
 def test_collection_properties(sample_atomlist_collection):
+    """Test other properties of AtomListCollection (records, alt_locs, resnames, chids)."""
     coll = sample_atomlist_collection
-    # Check records: all should be "ATOM"
     for rec_list in coll.records:
         assert all(r == "ATOM" for r in rec_list)
-    # alt_locs should be empty strings.
     for alt_list in coll.alt_locs:
         assert all(alt == "" for alt in alt_list)
-    # resnames should be ["ALA"]
     for res_list in coll.resnames:
         assert res_list == ["ALA"]
-    # chids should be ["A"]
     for chid_list in coll.chids:
         assert chid_list == ["A"]
 
 # ---------------------------------------------------------------------------
-# End of Atom classes tests
+# Tests for higher-level pdbtools functions using dsRNA.pdb
 # ---------------------------------------------------------------------------
 
 TEST_PDB = "tests/dsRNA.pdb"
 
 def test_pdb2system():
+    """Test that pdb2system successfully parses a PDB file and returns a non-empty system."""
     system = pdb2system(TEST_PDB)
     atoms = system.atoms
     assert len(atoms) > 0, "pdb2system returned an empty atom list."
 
 def test_pdb2atomlist():
+    """Test that pdb2atomlist returns a non-empty AtomList."""
     atoms = pdb2atomlist(TEST_PDB)
     assert len(atoms) > 0, "pdb2atomlist returned an empty list."
 
 def test_save_system():
+    """Test writing a system to a PDB file."""
     test_out = "test_system.pdb"
     if os.path.exists(test_out):
         os.remove(test_out)
@@ -239,6 +268,7 @@ def test_save_system():
     os.remove(test_out)
 
 def test_save_atoms():
+    """Test writing atoms to a PDB file."""
     test_out = "test_atoms.pdb"
     if os.path.exists(test_out):
         os.remove(test_out)
@@ -249,15 +279,16 @@ def test_save_atoms():
     os.remove(test_out)
 
 def test_chain():
+    """Test that a chain can be correctly retrieved from a parsed system."""
     system = pdb2system(TEST_PDB)
     model = system.models[1]
     chids = list(model.chains.keys())
-    # Use the model's select_chains method to retrieve chains by id.
     chain = model.chains[chids[0]]
     chain_list = model.select_chains(chids)
     assert chain in chain_list, "Chain not found in selected chains."
 
 def test_vecs():
+    """Test that the vecs property of the system's atoms matches manually computed vectors."""
     system = pdb2system(TEST_PDB)
     model = system.models[1]
     all_atoms = []
@@ -268,23 +299,25 @@ def test_vecs():
     assert atoms_list.vecs == vecs, "Vector lists do not match."
 
 def test_segids():
+    """Test that setting segids equal to chain IDs works correctly."""
     system = pdb2system(TEST_PDB)
     atoms = system.atoms
-    # Set segids equal to chain IDs
     atoms.segids = atoms.chids
     segids = set(atom.segid for atom in atoms)
     chids = set(atoms.chids)
     assert segids == chids, "Segment IDs do not match chain IDs."
 
 def test_sort():
+    """Test that sorting the system's atoms results in the expected order."""
     system = pdb2system(TEST_PDB)
     atoms = system.atoms
-    atoms.sort()  # Sort in place using the default key
+    atoms.sort()  
     sorted_atids = sorted(atom.atid for atom in atoms)
     current_atids = [atom.atid for atom in atoms]
     assert current_atids == sorted_atids, "Atoms are not sorted correctly."
 
 def test_mask():
+    """Test that masking atoms by chain id returns only atoms with the specified id."""
     system = pdb2system(TEST_PDB)
     atoms = system.atoms
     chids = list(set(atoms.chids))
@@ -294,16 +327,17 @@ def test_mask():
     assert chid == test_chid, "Masked atoms do not have the expected chain id."
 
 def test_remove():
+    """Test that removing atoms using remove_atoms works as expected."""
     mask_vals = ["P", "C3'"]
     system = pdb2system(TEST_PDB)
     atoms = system.atoms
     initial_len = len(atoms)
     masked_atoms = atoms.mask(mask_vals)
     atoms.remove_atoms(masked_atoms)
-    # The number of atoms removed should equal the length of masked_atoms
     assert initial_len - len(atoms) == len(masked_atoms), "Atom removal did not work as expected."
 
 def test_sort_pdb():
+    """Test that sort_pdb creates a sorted output PDB file."""
     out_pdb = 'test_sort.pdb'
     if os.path.exists(out_pdb):
         os.remove(out_pdb)
@@ -312,6 +346,7 @@ def test_sort_pdb():
     os.remove(out_pdb)
 
 def test_write_ndx():
+    """Test that an NDX file can be written from the system's atoms."""
     out_ndx = 'test.ndx'
     if os.path.exists(out_ndx):
         os.remove(out_ndx)
@@ -322,19 +357,21 @@ def test_write_ndx():
     os.remove(out_ndx)
 
 def test_rename_chain_in_pdb():
-    # Create a temporary copy of TEST_PDB
+    """Test that rename_chain_in_pdb updates all chain identifiers to the specified value."""
     temp_pdb = "temp_rename.pdb"
     shutil.copy(TEST_PDB, temp_pdb)
     new_chain = "X"
     rename_chain_in_pdb(temp_pdb, new_chain)
-    from reforge.pdbtools import pdb2atomlist
     atoms = pdb2atomlist(temp_pdb)
     unique_chids = set(atoms.chids)
     assert unique_chids == {new_chain}, "Chain renaming failed."
     os.remove(temp_pdb)
 
 def test_rename_chain_and_histidines_in_pdb():
-    # Create a temporary pdb file with two atoms having residue names "HSD" and "HSE"
+    """
+    Test that rename_chain_and_histidines_in_pdb updates chain identifiers and
+    renames histidine residue names as specified.
+    """
     temp_pdb = "temp_rename_hist.pdb"
     with open(temp_pdb, "w") as f:
         f.write("ATOM      1  CA  HSD A   1      11.104  13.207  10.000  1.00 20.00           C  \n")
@@ -343,10 +380,8 @@ def test_rename_chain_and_histidines_in_pdb():
     new_chain = "Y"
     rename_chain_and_histidines_in_pdb(temp_pdb, new_chain)
     atoms = pdb2atomlist(temp_pdb)
-    # Check that all atoms have the new chain id
     unique_chids = set(atoms.chids)
     assert unique_chids == {new_chain}, "Chain renaming (with histidine update) failed."
-    # Check that HSD was changed to HIS and HSE to HIE` (as defined in the function)
     resnames = set(atoms.resnames)
     assert "HIS" in resnames, "HSD was not renamed to HIS."
     assert "HIE" in resnames, "HSE was not renamed to HIE`."
@@ -354,21 +389,23 @@ def test_rename_chain_and_histidines_in_pdb():
 
 # Optional: Test clean_pdb if pdbfixer is available.
 def test_clean_pdb():
-    tmp_path = 'tests/test'
+    """Test that clean_pdb creates a non-empty cleaned PDB file."""
+    tmp_dir = tempfile.mkdtemp()
     try:
-        from pdbfixer import pdbfixer  # noqa: F401
-    except ImportError:
-        import pytest
-        pytest.skip("pdbfixer not installed, skipping clean_pdb test")
-    # Create temporary input and output files using the provided tmp_path fixture
-    temp_in = tmp_path / "temp_in.pdb"
-    temp_out = tmp_path / "temp_out.pdb"
-    shutil.copy(TEST_PDB, temp_in)
-    clean_pdb(str(temp_in), str(temp_out), add_missing_atoms=False, add_hydrogens=False)
-    assert os.path.exists(str(temp_out)), "clean_pdb did not create the output file."
-    with open(str(temp_out), "r") as f:
-        contents = f.read()
-    assert len(contents) > 0, "clean_pdb output file is empty."
+        try:
+            from pdbfixer import pdbfixer  # noqa: F401
+        except ImportError:
+            pytest.skip("pdbfixer not installed, skipping clean_pdb test")
+        temp_in = os.path.join(tmp_dir, "temp_in.pdb")
+        temp_out = os.path.join(tmp_dir, "temp_out.pdb")
+        shutil.copy(TEST_PDB, temp_in)
+        clean_pdb(str(temp_in), str(temp_out), add_missing_atoms=False, add_hydrogens=False)
+        assert os.path.exists(str(temp_out)), "clean_pdb did not create the output file."
+        with open(str(temp_out), "r") as f:
+            contents = f.read()
+        assert len(contents) > 0, "clean_pdb output file is empty."
+    finally:
+        shutil.rmtree(tmp_dir)
 
 if __name__ == "__main__":
     pytest.main([os.path.abspath(__file__)])
