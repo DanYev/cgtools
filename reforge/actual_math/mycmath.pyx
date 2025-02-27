@@ -1,22 +1,36 @@
-# mycmath.pyx
-#
-# A Cython module for optimized mathematical calculations in the reForge project.
-#
-# This module provides functions to calculate position-position Hessian matrices and
-# perturbation matrices from coordinate and covariance data. The implementations
-# use Cython for performance, with custom decorators (timeit, memprofit) to track 
-# execution time and memory usage.
-#
-# Functions:
-#     _calculate_hessian      - Compute the Hessian matrix from separate coordinate arrays.
-#     _hessian                - Compute the Hessian matrix from a coordinate matrix.
-#     _perturbation_matrix_old- Compute a perturbation matrix (legacy method) from a covariance matrix.
-#     _perturbation_matrix    - Compute a normalized perturbation matrix from a covariance matrix.
-#     _td_perturbation_matrix - Compute a perturbation matrix using block-wise norms.
-#
-# Author: Your Name
-# Date: YYYY-MM-DD
-# License: MIT License
+"""
+File: mycmath.pyx
+Description:
+    This module contains internal routines for performing optimized mathematical 
+    operations. It includes functions for calculating position-position Hessian matrices 
+    and perturbation matrices derived from coordinate and covariance data. 
+    The computations are accelerated using Cython.
+
+    Note: This module is intended for internal use only within the reForge workflow.
+
+Usage Example:
+    >>> import numpy as np
+    >>> from mycmath import _calculate_hessian, _hessian, _perturbation_matrix, _td_perturbation_matrix
+    >>> # Generate random coordinate data for residues
+    >>> n = 10
+    >>> vecs = np.random.rand(n, 3)
+    >>> hessian2 = _hessian(vecs, cutoff=1.2, spring_constant=1000, dd=0)
+    >>> # Compute perturbation matrix from a covariance matrix
+    >>> cov_matrix = np.random.rand(3 * n, 3 * n)
+    >>> pert_matrix = _perturbation_matrix(cov_matrix)
+    >>> # Compute block-wise perturbation matrix with normalization
+    >>> td_pert_matrix = _td_perturbation_matrix(cov_matrix, normalize=True)
+
+Requirements:
+    - Python 3.x
+    - NumPy
+    - Cython
+    - reForge utilities (timeit, memprofit)
+
+Author: Your Name
+Date: YYYY-MM-DD
+"""
+
 
 import numpy as np
 cimport numpy as np

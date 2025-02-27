@@ -30,7 +30,7 @@ Requirements:
     - MDAnalysis (if required elsewhere)
 
 Author: DY
-Date: 2025-02-27
+Date: YYYY-MM-DD
 """
 
 import os
