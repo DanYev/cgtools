@@ -143,7 +143,7 @@ def test_atomlist_renum():
                  2.0, 3.0, 4.0, 1.0, 10.0, "SEG1", "C", "")
     atoms = AtomList([atom1, atom2])
     atoms.renum()
-    assert atoms.atids == [1, 2]
+    assert atoms.atids == [0, 1]
 
 def test_atomlist_remove_atoms():
     atom1 = Atom("ATOM", 1, "CA", "", "ALA", "A", 1, "",
