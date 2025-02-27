@@ -107,3 +107,4 @@ def test_make_system_ndx():
 
 if __name__ == '__main__':
     pytest.main([os.path.abspath(__file__)])
+    run('rm -rf tests/test/')
