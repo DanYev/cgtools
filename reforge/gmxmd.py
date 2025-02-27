@@ -183,10 +183,12 @@ class gmxSystem:
         with cd(self.root): 
             for file in files:
                 new_chain_id = file.split('chain_')[1][0]
-                cli.gmx('pdb2gmx', f=file, o=file, **kwargs)
+                self.gmx('pdb2gmx', f=file, o=file, **kwargs)
                 pdbtools.rename_chain_and_histidines_in_pdb(file, new_chain_id)  
             clean_dir(self.prodir)
             clean_dir(self.nucdir)
+        clean_dir(self.root, 'topol*')
+        clean_dir(self.root, 'posre*')
         
     def get_go_maps(self, append=False):
         """
@@ -313,8 +315,9 @@ class gmxSystem:
             except Exception as e:
                 sys.exit(f"Could not coarse-grain {in_pdb}: {e}")
             
-
-    def make_cgpdb_file(self, add_resolved_ions=False, **kwargs):
+    def make_solute_pdb(self, **kwargs):
+        kwargs.setdefault('d', 1.0)
+        kwargs.setdefault('bt', 'dodecahedron')
         logger.info("Merging CG PDBs")
         with cd(self.root):
             cg_pdb_files = os.listdir(self.cgdir)
@@ -324,14 +327,11 @@ class gmxSystem:
             for file in cg_pdb_files:
                 atoms = pdbtools.pdb2atomlist(file)
                 all_atoms.extend(atoms)
-            if add_resolved_ions:
-                ions = pdbtools.pdb2atomlist(self.ionpdb)
-                all_atoms.extend(ions)
             all_atoms.renumber()    
             all_atoms.write_pdb(self.solupdb)
-            cli.gmx('editconf', f=self.solupdb, o=self.solupdb, **kwargs)   
+            self.gmx('editconf', f=self.solupdb, o=self.solupdb, **kwargs)   
         
-    def make_martini_topology_file(self, add_resolved_ions=False, prefix='chain'):
+    def make_system_top(self, add_resolved_ions=False, prefix='chain'):
         logger.info("Writing CG Topology")
         itp_files = [f for f in os.listdir(self.topdir) if f.startswith(prefix) and f.endswith('.itp')] 
         itp_files = sort_upper_lower_digit(itp_files)
@@ -401,8 +401,9 @@ class gmxSystem:
             sp.run(command.split())   
         
     def solvate(self, **kwargs):
-        with cd(self.root):
-            cli.gmx_solvate(**kwargs)
+        kwargs.setdefault('cp', 'solute.pdb')
+        kwargs.setdefault('cs', 'water.gro')
+        self.gmx('solvate', p=self.systop, o=self.syspdb, **kwargs)
         
     def find_resolved_ions(self, mask=['MG', 'ZN', 'K']):
         mask_atoms(self.inpdb, 'ions.pdb', mask=mask)
@@ -417,16 +418,17 @@ class gmxSystem:
                         counts[current_ion] += 1
         return counts
         
-    def add_bulk_ions(self, conc=0.15, pname='NA', nname='CL'): 
-        with cd(self.root):
-            command = f'gmx_mpi grompp -f mdp/ions.mdp -c {self.syspdb} -p system.top -o ions.tpr'
-            sp.run(command.split())
-            command = f'gmx_mpi genion -s ions.tpr -p system.top -conc {conc} -neutral -pname {pname} -nname {nname} -o {self.syspdb}'
-            sp.run(command.split(), input='W\n', text=True)
-            cli.gmx_editconf(f=self.syspdb, o=self.sysgro)
-        clean_dir(self.root, pattern='ions.tpr')       
+    def add_bulk_ions(self, solvent='W', **kwargs): 
+        kwargs.setdefault('conc', 0.15)
+        kwargs.setdefault('pname', 'NA')
+        kwargs.setdefault('nname', 'CL')
+        kwargs.setdefault('neutral', '')
+        self.gmx('grompp', f='mdp/ions.mdp', c=self.syspdb, p=self.systop, o='ions.tpr')
+        self.gmx('genion', clinput='W\n', s='ions.tpr', p=self.systop, o=self.syspdb, **kwargs)
+        self.gmx('editconf', f=self.syspdb, o=self.sysgro)
+        clean_dir(self.root, 'ions.tpr')       
 
-    def make_sys_ndx(self, backbone_atoms=["CA", "P", "C1'"]): # ["BB", "BB1", "BB3"]
+    def make_system_ndx(self, backbone_atoms=["CA", "P", "C1'"]): # ["BB", "BB1", "BB3"]
         logger.info("Making Index File")
         system = pdbtools.pdb2atomlist(self.syspdb)
         solute = pdbtools.pdb2atomlist(self.solupdb)
@@ -436,8 +438,7 @@ class gmxSystem:
         solute.write_ndx(self.sysndx, header=f'[ Solute ]', append=True, wrap=15) 
         backbone.write_ndx(self.sysndx, header=f'[ Backbone ]', append=True, wrap=15) 
         solvent.write_ndx(self.sysndx, header=f'[ Solvent ]', append=True, wrap=15) 
-        # Chains
-        chids = sorted(set(solute.chids))
+        chids = sorted(set(solute.chids)) # Chains
         for chid in chids:
             chain = solute.mask(chid, mode='chid')
             chain.write_ndx(self.sysndx, header=f'[ chain_{chid} ]', append=True, wrap=15) 
