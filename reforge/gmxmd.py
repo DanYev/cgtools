@@ -66,7 +66,6 @@ class gmxSystem:
         self.datdir     = os.path.join(self.root, 'data')
         self.pngdir     = os.path.join(self.root, 'png')
 
-
     @property
     def chains(self):
         atoms = io.pdb2atomlist(self.inpdb)
@@ -74,6 +73,12 @@ class gmxSystem:
         return chains
 
     def gmx(self, command='-h', clinput=None, clean_wdir=True, **kwargs):
+        """
+        One of the most used methods of this class.
+        Runs 'gmx_mpi {command} ...' from the root directory
+        Can pass user's input to the command's stdin via 'clinput' keyword.
+        Cleans the junk from directory after the execution if desired
+        """
         with cd(self.root):
             cli.gmx(command, clinput=clinput, **kwargs)
             if clean_wdir:

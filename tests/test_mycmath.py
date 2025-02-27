@@ -1,13 +1,48 @@
+"""
+===============================================================================
+File: test_mycmath.py
+Description:
+    This file contains unit tests for the 'mycmath' module from the 
+    reforge.actual_math package. The tests compare the outputs of the new 
+    implementations with their legacy counterparts for various mathematical 
+    functions, including Hessian calculation and perturbation matrices.
+
+Usage:
+    Run the tests with pytest:
+        pytest -v tests/test_mycmath.py
+
+Requirements:
+    - NumPy
+    - pytest
+    - CuPy (for GPU tests; tests will be skipped if not installed)
+
+Author: DY
+Date: 2025-02-27
+===============================================================================
+"""
+
 import numpy as np
 import pytest
 from reforge.actual_math import mycmath, legacy
 
+# Set a fixed random seed for reproducibility of the tests.
 np.random.seed(42)
 
 
 def test_calculate_hessian():
     """
-    Compare the output of calculate_hessian between legacy and new implementation.
+    Test the calculation of the Hessian matrix.
+
+    This test compares the output of the '_calculate_hessian' function between
+    the legacy and the new implementation. It performs the following steps:
+      - Generates random arrays for x, y, and z coordinates.
+      - Sets test parameters including the number of residues (resnum), cutoff,
+        spring constant, and a flag (dd).
+      - Computes the Hessian using both the legacy and new implementations.
+      - Asserts that the results are almost identical within a tight tolerance.
+
+    Returns:
+        None
     """
     resnum = 50
     x = np.random.rand(resnum)
@@ -23,7 +58,16 @@ def test_calculate_hessian():
 
 def test_perturbation_matrix_old():
     """
-    Compare the _perturbation_matrix_old function outputs between legacy and new implementations.
+    Compare the legacy and new implementations of the old perturbation matrix function.
+
+    This test:
+      - Creates a symmetric covariance matrix from a random matrix.
+      - Computes the perturbation matrix using the '_perturbation_matrix_old'
+        function from both the legacy and new implementations.
+      - Asserts that the outputs are nearly identical within the specified tolerance.
+
+    Returns:
+        None
     """
     m = 50  # number of residues
     # Create a symmetric covariance matrix of shape (3*m, 3*m)
@@ -36,7 +80,16 @@ def test_perturbation_matrix_old():
 
 def test_perturbation_matrix():
     """
-    Compare the _perturbation_matrix_cpu function outputs between legacy and new implementations.
+    Compare the CPU-based perturbation matrix outputs between legacy and new implementations.
+
+    This test:
+      - Generates a symmetric covariance matrix.
+      - Computes the perturbation matrix using the legacy CPU function and the
+        new perturbation matrix function.
+      - Verifies that the results match within a tight numerical tolerance.
+
+    Returns:
+        None
     """
     m = 50
     A = np.random.rand(3 * m, 3 * m)
@@ -48,7 +101,16 @@ def test_perturbation_matrix():
 
 def test_td_perturbation_matrix():
     """
-    Compare the _td_perturbation_matrix_cpu outputs between legacy and new implementations.
+    Compare the time-dependent perturbation matrix outputs between legacy and new implementations.
+
+    This test:
+      - Constructs a symmetric covariance matrix.
+      - Computes the time-dependent perturbation matrix with normalization
+        using the legacy CPU function and the new implementation.
+      - Asserts that both results are almost identical within the specified tolerances.
+
+    Returns:
+        None
     """
     m = 50
     A = np.random.rand(3 * m, 3 * m)
@@ -60,7 +122,15 @@ def test_td_perturbation_matrix():
 
 def test_perturbation_matrix_old_new():
     """
-    Compare the _perturbation_matrix_cpu function outputs between legacy and new implementations.
+    Compare the two new implementations of the perturbation matrix.
+
+    This test compares the output of the old perturbation matrix function
+    (as implemented in the new module) with the new perturbation matrix function.
+    The test verifies that the two approaches yield nearly identical results
+    within a slightly relaxed tolerance.
+
+    Returns:
+        None
     """
     m = 50
     A = np.random.rand(3 * m, 3 * m)
@@ -72,3 +142,4 @@ def test_perturbation_matrix_old_new():
 
 if __name__ == '__main__':
     pytest.main([__file__])
+
