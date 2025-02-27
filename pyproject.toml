@@ -1,0 +1,54 @@
+[build-system]
+requires = [
+    "setuptools>=61.0", 
+    "versioningit~=2.0",
+    "wheel",
+    "Cython",
+    "numpy",   
+]
+build-backend = "setuptools.build_meta"
+requires-python = ">=3.12"
+
+# Self-descriptive entries which should always be present
+# https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+[project]
+name = "reforge"
+description = "MD pipeline"
+dynamic = ["version"]
+readme = "README.md"
+authors = [
+    { name = "DY", email = "dyangali@asu.edu" }
+]
+license = { text = "MIT" }
+
+# See https://pypi.org/classifiers/
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+
+# Declare any run-time dependencies that should be installed with the package.
+dependencies = [
+]
+#   "cython>=3.0.12",
+#    "cupy>=13.3.0",
+#    "memory_profiler>=0.61.0",
+#    "mdanalysis>=2.8.0",
+#    "numpy>=2.2.3",
+#    "openmm>=8.2.0",
+#    "vermouth>=0.13",
+#    "pandas>=2.2.3",
+#    "matplotlib>=3.10.0",
+
+# Update the urls once the hosting is set up.
+[project.urls]
+"Source" = "https://github.com/DanYev/reforge/"
+"Documentation" = "https://reforge.readthedocs.io/"
+
+[project.optional-dependencies]
+test = [
+]
+
+[tool.setuptools]
+packages = ["reforge"]
+

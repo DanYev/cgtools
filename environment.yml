@@ -1,0 +1,21 @@
+name: reforge
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - cython
+  - cupy
+  - mdanalysis
+  - matplotlib
+  - memory_profiler
+  - numpy 
+  - openmm
+  - requests
+  - setuptools
+  - selenium
+  - selenium-manager
+  - pandas
+  - packaging
+  - pytest
+  - vermouth
+  - webdriver-manager 
