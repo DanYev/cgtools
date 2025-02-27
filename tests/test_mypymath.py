@@ -27,8 +27,8 @@ def test_sfft_corr():
     Test that _sfft_corr returns a correlation function that
     matches the manually computed sliding average correlation.
     """
-    n_coords = 2
-    n_samples = 128
+    n_coords = 10
+    n_samples = 256
     ntmax = 64
     x = np.random.rand(n_coords, n_samples).astype(np.float64)
     y = np.random.rand(n_coords, n_samples).astype(np.float64)  
@@ -48,8 +48,8 @@ def test_pfft_corr():
     """
     Test that _pfft_corr returns same result as _sfft_corr
     """
-    n_coords = 2
-    n_samples = 128
+    n_coords = 10
+    n_samples = 256
     x = np.random.rand(n_coords, n_samples).astype(np.float64)
     y = np.random.rand(n_coords, n_samples).astype(np.float64)
     ntmax = 64
@@ -63,8 +63,8 @@ def test_ccf():
     Test that ccf returns a cross-correlation function that matches the 
     manually computed sliding average correlation.
     """
-    n_coords = 2
-    n_samples = 128
+    n_coords = 10
+    n_samples = 256
     n_seg = 4  # number of segments
     x = np.random.rand(n_coords, n_samples).astype(np.float64)
     y = np.random.rand(n_coords, n_samples).astype(np.float64)
@@ -86,10 +86,11 @@ def test_ccf():
             manual_corr_sum = manual_corr_seg
         else:
             manual_corr_sum += manual_corr_seg
-    manual_corr = manual_corr_sum / n_seg
-    corr_ccf = mypymath.ccf(x, y, ntmax=None, n=n_seg, mode='parallel', center=True, dtype=np.float32)
-    assert corr_ccf.shape == manual_corr.shape
-    np.testing.assert_allclose(corr_ccf, manual_corr.astype(np.float32), rtol=1e-6, atol=1e-6)
+    manual_ccf = manual_corr_sum / n_seg
+    par_ccf = mypymath.ccf(x, y, ntmax=None, n=n_seg, mode='parallel', center=True, dtype=np.float64)
+    ser_ccf = mypymath.ccf(x, y, ntmax=None, n=n_seg, mode='serial', center=True, dtype=np.float64)
+    np.testing.assert_allclose(manual_ccf, par_ccf, rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(manual_ccf, ser_ccf, rtol=1e-6, atol=1e-6)
 
 
 def test_inverse_sparse_matrix_cpu():
@@ -117,7 +118,7 @@ def test_gfft_corr():
     """
     Test that _gfft_corr returns same result as _sfft_corr
     """
-    n_coords = 2
+    n_coords = 10
     n_samples = 128
     x = np.random.rand(n_coords, n_samples).astype(np.float64)
     y = np.random.rand(n_coords, n_samples).astype(np.float64)
@@ -145,7 +146,7 @@ def test_inverse_sparse_matrix_gpu():
 @pytest.mark.skipif(cp is None, reason="CuPy is not installed")
 def test_inverse_matrix_gpu():
     # Create a 10x10 diagonal matrix.
-    N = 20
+    N = 200
     diag_vals = np.linspace(1, 10, N)
     matrix = np.diag(diag_vals)
     # Call the GPU inverse using cupy.linalg.eigh with k_singular=0 and n_modes=N.

@@ -12,6 +12,31 @@ from reforge.utils import timeit, memprofit
 
 @timeit
 @memprofit
+def calcperturbMat(invHrs, direct, resnum, Normalize=True):
+    """
+    Legavy perturbation matrix for dfi calculation. 
+    """
+    perturbMat = np.zeros((resnum, resnum))
+    for k in range(len(direct)):
+        peturbDir = direct[k, :]
+        for j in range(int(resnum)):
+            delforce = np.zeros(3 * resnum)
+            delforce[3 * j:3 * j + 3] = peturbDir
+            delXperbVex = np.dot(invHrs, delforce)
+            delXperbMat = delXperbVex.reshape((resnum, 3))
+            delRperbVec = np.sqrt(np.sum(delXperbMat * delXperbMat, axis=1))
+            perturbMat[:, j] += delRperbVec[:]
+    perturbMat /= 7
+    if (Normalize):
+        nrmlperturbMat = perturbMat / np.sum(perturbMat)
+    else:
+        print("WARNING: The perturbation matrix is not NORMALIZED")
+        nrmlperturbMat = perturbMat
+    return nrmlperturbMat
+
+
+@timeit
+@memprofit
 def _calculate_hessian(resnum, x, y, z, cutoff=12, spring_constant=1000, dd=0, dtype=np.float64):
     hessian = np.zeros((3 * resnum, 3 * resnum), dtype)
     for i in range(resnum):

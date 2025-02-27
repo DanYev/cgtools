@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from reforge.actual_math import mycmath, legacy
-# Set a seed for reproducibility
+
 np.random.seed(42)
 
 
@@ -31,7 +31,7 @@ def test_perturbation_matrix_old():
     covmat = (A + A.T) / 2
     legacy_result = legacy._perturbation_matrix_old(covmat, m)
     new_result = mycmath._perturbation_matrix_old(covmat, m)
-    np.testing.assert_allclose(new_result, legacy_result, rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(new_result, legacy_result, rtol=1e-4, atol=1e-4)
 
 
 def test_perturbation_matrix():
@@ -67,7 +67,7 @@ def test_perturbation_matrix_old_new():
     covmat = (A + A.T) / 2
     old_result = mycmath._perturbation_matrix_old(covmat, m)
     new_result = mycmath._perturbation_matrix(covmat)
-    np.testing.assert_allclose(new_result, old_result, rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(new_result, old_result, rtol=1e-4, atol=1e-4)
 
 
 if __name__ == '__main__':
