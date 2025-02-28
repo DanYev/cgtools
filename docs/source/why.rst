@@ -5,7 +5,9 @@ Need to simulate a large biomolecular complex? Or many?
 -------------------------------------------------------
 
 Then reForge is the right tool. Pain-free setup of Martini+CG Protein/RNA/Lipid complexes
-Kinda like here (https://www.nature.com/articles/s41467-024-53098-4)
+
+
+- Kinda like here (https://www.nature.com/articles/s41467-024-53098-4)
 
 Python-based
 ------------

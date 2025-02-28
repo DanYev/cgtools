@@ -1,0 +1,22 @@
+.wy-nav-content {
+    max-width: 100% !important;
+}
+
+div.sphx-glr-download a {
+  background-color: #ffc;
+  /*background-image: linear-gradient(to bottom, #FFC, #d5d57e);*/
+  border-radius: 4px;
+  border: 1px solid #c2c22d;
+  color: #000;
+  display: inline-block;
+  font-weight: bold;
+  padding: 1ex;
+  text-align: center;
+}
+
+.math {
+    text-align: left;
+}
+.eqno {
+    float: right;
+}
