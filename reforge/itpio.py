@@ -1,20 +1,20 @@
 """
 File: itpio.py
 Description:
-    This module provides functions for reading, parsing, formatting, and writing 
-    GROMACS ITP files. It includes utilities to extract and format different sections 
-    (such as bonds, angles, atoms, etc.) and higher-level functions tailored for 
+    This module provides functions for reading, parsing, formatting, and writing
+    GROMACS ITP files. It includes utilities to extract and format different sections
+    (such as bonds, angles, atoms, etc.) and higher-level functions tailored for
     Martini RNA and ion topologies.
 
 Usage:
     To read and process an ITP file:
-    
+
         from itpio import read_itp, format_header
         itp_data = read_itp("topology.itp")
-        header_lines = format_header(molname="MyMolecule", forcefield="MartiniRNA", 
+        header_lines = format_header(molname="MyMolecule", forcefield="MartiniRNA",
                                      version="3.0", arguments="--option value")
         # Further processing...
-    
+
 Requirements:
     - Python 3.x
     - Standard library modules: shutil, typing
@@ -24,13 +24,13 @@ Author: DY
 Date: 2025-02-27
 """
 
-
 import shutil as sh
 from typing import List, Tuple, Any
 
 ###################################
-## Generic functions ## 
+## Generic functions ##
 ###################################
+
 
 def read_itp(filename):
     """
@@ -54,13 +54,13 @@ def read_itp(filename):
     """
     itp_data = {}
     current_section = None
-    with open(filename, 'r') as file:
+    with open(filename, "r") as file:
         for line in file:
             # Skip comments and empty lines
-            if line.strip() == '' or line.strip().startswith(';'):
+            if line.strip() == "" or line.strip().startswith(";"):
                 continue
             # Detect section headers
-            if line.startswith('[') and line.endswith(']\n'):
+            if line.startswith("[") and line.endswith("]\n"):
                 tag = line.strip()[2:-2]
                 itp_data[tag] = []
             else:
@@ -91,22 +91,22 @@ def line2bond(line, tag):
     Example:
         >>> conn, params, comm = line2bond(" 1  2  1 0.153 345.0 ; Harmonic bond", "bonds")
     """
-    data, sep, comment = line.partition(';')
+    data, sep, comment = line.partition(";")
     data = data.split()
     comment = comment.strip()
-    if tag == 'bonds':
+    if tag == "bonds":
         connectivity = data[:2]
         parameters = data[2:]
-    elif tag == 'constraints':
+    elif tag == "constraints":
         connectivity = data[:2]
         parameters = data[2:]
-    elif tag == 'angles':
+    elif tag == "angles":
         connectivity = data[:3]
         parameters = data[3:]
-    elif tag == 'dihedrals':
+    elif tag == "dihedrals":
         connectivity = data[:4]
         parameters = data[4:]
-    elif tag == 'virtual_sites3':
+    elif tag == "virtual_sites3":
         connectivity = data[:4]
         parameters = data[4:]
     else:
@@ -120,7 +120,7 @@ def line2bond(line, tag):
     return connectivity, parameters, comment
 
 
-def bond2line(connectivity=None, parameters='', comment=''):
+def bond2line(connectivity=None, parameters="", comment=""):
     """
     Returns a formatted string for a bond entry in a Gromacs ITP file.
 
@@ -142,8 +142,8 @@ def bond2line(connectivity=None, parameters='', comment=''):
     """
     # Format each connectivity value as a 5-character wide integer.
     connectivity_str = "   ".join(f"{int(atom):5d}" for atom in connectivity)
-    type_str = ''
-    parameters_str = ''
+    type_str = ""
+    parameters_str = ""
     if parameters:
         # Format each type as a 2-character wide integer.
         type_str = f"{int(parameters[0]):2d}"
@@ -156,11 +156,13 @@ def bond2line(connectivity=None, parameters='', comment=''):
     return line
 
 
-def format_header(molname='molecule', forcefield='', version='', arguments='') -> List[str]:
+def format_header(
+    molname="molecule", forcefield="", version="", arguments=""
+) -> List[str]:
     """
     Formats the header of the topology file.
     """
-    lines = [f"; MARTINI ({forcefield}) Coarse Grained topology file for \"{molname}\"\n"]
+    lines = [f'; MARTINI ({forcefield}) Coarse Grained topology file for "{molname}"\n']
     lines.append(f"; Created using the following options:\n")
     lines.append(f"; {arguments}\n")
     lines.append("; " + "#" * 100 + "\n")
@@ -174,14 +176,14 @@ def format_sequence_section(sequence, secstruct) -> List[str]:
     """
     sequence_str = "".join(i for i in sequence)
     secstruct_str = "".join(i for i in secstruct)
-    lines = ['; Sequence:\n']
-    lines.append(f'; {sequence_str}\n' )
-    lines.append('; Secondary Structure:\n' )
-    lines.append(f'; {secstruct_str}\n' )
+    lines = ["; Sequence:\n"]
+    lines.append(f"; {sequence_str}\n")
+    lines.append("; Secondary Structure:\n")
+    lines.append(f"; {secstruct_str}\n")
     return lines
 
 
-def format_moleculetype_section(molname='molecule', nrexcl=1) -> List[str]:
+def format_moleculetype_section(molname="molecule", nrexcl=1) -> List[str]:
     """
     Formats the moleculetype section.
     """
@@ -202,14 +204,14 @@ def format_atoms_section(atoms: List[Tuple]) -> List[str]:
         List[str]: A list of formatted strings representing the atoms section.
     """
     lines = ["\n[ atoms ]\n"]
-    fs8 = '%5d %5s %5d %5s %5s %5d %7.4f ; %s'
-    fs9 = '%5d %5s %5d %5s %5s %5d %7.4f %7.4f ; %s'
+    fs8 = "%5d %5s %5d %5s %5s %5d %7.4f ; %s"
+    fs9 = "%5d %5s %5d %5s %5s %5d %7.4f %7.4f ; %s"
     for atom in atoms:
         atom = tuple(atom)
         # Choose format based on length of the atom tuple.
         line = fs9 % atom if len(atom) == 9 else fs8 % atom
         line += "\n"
-        lines.append(line) 
+        lines.append(line)
     return lines
 
 
@@ -225,111 +227,142 @@ def format_bonded_section(header: str, bonds: List[List]) -> List[str]:
     lines = [f"\n[ {header} ]\n"]
     for bond in bonds:
         line = bond2line(*bond)
-        lines.append(line) 
+        lines.append(line)
     return lines
 
 
-def format_posres_section(atoms: List[Tuple], posres_fc=1000, selection=['BB1', 'BB3', 'SC1']) -> List[str]:
+def format_posres_section(
+    atoms: List[Tuple], posres_fc=1000, selection=["BB1", "BB3", "SC1"]
+) -> List[str]:
     """
     Formats the position restraints section.
     atom is the tuple: (atid, type, resid, resname, name, chargegrp, charge, mass, comment)
     """
-    lines = ["\n#ifdef POSRES\n",
-                "#define POSRES_FC %.2f\n" % posres_fc,
-                " [ position_restraints ]\n"]
+    lines = [
+        "\n#ifdef POSRES\n",
+        "#define POSRES_FC %.2f\n" % posres_fc,
+        " [ position_restraints ]\n",
+    ]
     for atom in atoms:
         if atom[4] in selection:
-            lines.append('  %5d    1    POSRES_FC    POSRES_FC    POSRES_FC\n' % atom[0])
+            lines.append(
+                "  %5d    1    POSRES_FC    POSRES_FC    POSRES_FC\n" % atom[0]
+            )
     lines.append("#endif")
     return lines
 
 
 def write_itp(filename, lines):
-    with open(filename, 'w') as file:
+    with open(filename, "w") as file:
         for line in lines:
             file.write(line)
 
 
 ###################################
-## HL functions for martini_rna ## 
+## HL functions for martini_rna ##
 ###################################
 
 
 def make_in_terms(input_file, output_file, dict_of_names):
     tag = None
     pairs = []
-    
+
     def get_sigma(b1, b2):
-        list_of_pairs_1 = { 
-            ('TA4', 'TU3'), ('TA5', 'TU4'), 
-            ('TG3', 'TY2'), ('TG4', 'TY3'), ('TG5', 'TY4'),
+        list_of_pairs_1 = {
+            ("TA4", "TU3"),
+            ("TA5", "TU4"),
+            ("TG3", "TY2"),
+            ("TG4", "TY3"),
+            ("TG5", "TY4"),
         }
         list_of_pairs_2 = {
-            ('TA4', 'TU2'), ('TA4', 'TU4'), ('TA5', 'TU3'), 
-            ('TG3', 'TY3'), ('TG4', 'TY2'), ('TG4', 'TY4'), ('TG5', 'TY3'),
+            ("TA4", "TU2"),
+            ("TA4", "TU4"),
+            ("TA5", "TU3"),
+            ("TG3", "TY3"),
+            ("TG4", "TY2"),
+            ("TG4", "TY4"),
+            ("TG5", "TY3"),
         }
         list_of_pairs_3 = {
-            ('TA4', 'TY3'), ('TA5', 'TY4'), 
-            ('TA4', 'TY2'), ('TA4', 'TY4'), ('TA5', 'TY3'), 
-            ('TG3', 'TU2'), ('TG4', 'TU3'), ('TG5', 'TU4'),
-            ('TG3', 'TU3'), ('TG4', 'TU2'), ('TG4', 'TU4'), ('TG5', 'TU3'),
+            ("TA4", "TY3"),
+            ("TA5", "TY4"),
+            ("TA4", "TY2"),
+            ("TA4", "TY4"),
+            ("TA5", "TY3"),
+            ("TG3", "TU2"),
+            ("TG4", "TU3"),
+            ("TG5", "TU4"),
+            ("TG3", "TU3"),
+            ("TG4", "TU2"),
+            ("TG4", "TU4"),
+            ("TG5", "TU3"),
         }
         if (b1, b2) in list_of_pairs_1 or (b2, b1) in list_of_pairs_1:
             sigma = "2.75000e-01"
         elif (b1, b2) in list_of_pairs_2 or (b2, b1) in list_of_pairs_2:
-             sigma = "2.750000e-01"
+            sigma = "2.750000e-01"
         elif (b1, b2) in list_of_pairs_3 or (b2, b1) in list_of_pairs_3:
-             sigma = "2.750000e-01"
+            sigma = "2.750000e-01"
         else:
             sigma = "3.300000e-01"
         return sigma
 
-    with open(output_file, 'w') as file:
-        file.write('[ atomtypes ]' + '\n')
-        dict_of_vdw = {   
-            'TA1': ('3.250000e-01', '1.000000e-01'), 
-            'TA2': ('3.250000e-01', '1.000000e-01'),
-            'TA3': ('3.250000e-01', '1.000000e-01'), 
-            'TA4': ('2.800000e-01', '1.368000e-01'),
-            'TA5': ('2.800000e-01', '1.368000e-01'),
-            'TA6': ('3.250000e-01', '1.000000e-01'), 
-            'TY1': ('3.250000e-01', '1.000000e-01'),
-            'TY2': ('2.800000e-01', '1.000000e-01'),
-            'TY3': ('2.800000e-01', '1.000000e-01'),
-            'TY4': ('2.800000e-01', '1.000000e-01'),
-            'TY5': ('3.250000e-01', '1.000000e-01'),
-            'TG1': ('3.250000e-01', '1.000000e-01'), 
-            'TG2': ('3.250000e-01', '1.000000e-01'),
-            'TG3': ('2.800000e-01', '1.368000e-01'), 
-            'TG4': ('2.800000e-01', '1.368000e-01'),
-            'TG5': ('2.800000e-01', '1.368000e-01'), 
-            'TG6': ('3.250000e-01', '1.000000e-01'),
-            'TG7': ('0.400000e-01', '1.368000e-01'),
-            'TG8': ('3.250000e-01', '1.000000e-01'),
-            'TU1': ('3.250000e-01', '1.000000e-01'),
-            'TU2': ('2.800000e-01', '1.000000e-01'),
-            'TU3': ('2.800000e-01', '1.368000e-01'),
-            'TU4': ('2.800000e-01', '1.000000e-01'),
-            'TU5': ('3.250000e-01', '1.000000e-01'),
-            'TU6': ('0.400000e-01', '1.368000e-01'),
-            'TU7': ('3.250000e-01', '1.000000e-01'),
+    with open(output_file, "w") as file:
+        file.write("[ atomtypes ]" + "\n")
+        dict_of_vdw = {
+            "TA1": ("3.250000e-01", "1.000000e-01"),
+            "TA2": ("3.250000e-01", "1.000000e-01"),
+            "TA3": ("3.250000e-01", "1.000000e-01"),
+            "TA4": ("2.800000e-01", "1.368000e-01"),
+            "TA5": ("2.800000e-01", "1.368000e-01"),
+            "TA6": ("3.250000e-01", "1.000000e-01"),
+            "TY1": ("3.250000e-01", "1.000000e-01"),
+            "TY2": ("2.800000e-01", "1.000000e-01"),
+            "TY3": ("2.800000e-01", "1.000000e-01"),
+            "TY4": ("2.800000e-01", "1.000000e-01"),
+            "TY5": ("3.250000e-01", "1.000000e-01"),
+            "TG1": ("3.250000e-01", "1.000000e-01"),
+            "TG2": ("3.250000e-01", "1.000000e-01"),
+            "TG3": ("2.800000e-01", "1.368000e-01"),
+            "TG4": ("2.800000e-01", "1.368000e-01"),
+            "TG5": ("2.800000e-01", "1.368000e-01"),
+            "TG6": ("3.250000e-01", "1.000000e-01"),
+            "TG7": ("0.400000e-01", "1.368000e-01"),
+            "TG8": ("3.250000e-01", "1.000000e-01"),
+            "TU1": ("3.250000e-01", "1.000000e-01"),
+            "TU2": ("2.800000e-01", "1.000000e-01"),
+            "TU3": ("2.800000e-01", "1.368000e-01"),
+            "TU4": ("2.800000e-01", "1.000000e-01"),
+            "TU5": ("3.250000e-01", "1.000000e-01"),
+            "TU6": ("0.400000e-01", "1.368000e-01"),
+            "TU7": ("3.250000e-01", "1.000000e-01"),
         }
         for key in dict_of_names.keys():
-            file.write(f"{key}  45.000  0.000  A  {dict_of_vdw[key][0]}  {dict_of_vdw[key][1]}\n")
-        file.write('\n' + '[ nonbond_params ]' + '\n')
-                    
-    with open(input_file, 'r') as file:
+            file.write(
+                f"{key}  45.000  0.000  A  {dict_of_vdw[key][0]}  {dict_of_vdw[key][1]}\n"
+            )
+        file.write("\n" + "[ nonbond_params ]" + "\n")
+
+    with open(input_file, "r") as file:
         lines = file.readlines()
-    with open(output_file, 'a') as file:
+    with open(output_file, "a") as file:
         for line in lines:
-            if line.startswith(';') or len(line.split()) < 2:
+            if line.startswith(";") or len(line.split()) < 2:
                 continue
             parts = line.split()
             atom_name_1 = parts[0].strip()
             atom_name_2 = parts[1].strip()
-            if atom_name_1 in dict_of_names.values() and atom_name_2 in dict_of_names.values():
-                keys_1 = [key for key, value in dict_of_names.items() if value == atom_name_1]
-                keys_2 = [key for key, value in dict_of_names.items() if value == atom_name_2]
+            if (
+                atom_name_1 in dict_of_names.values()
+                and atom_name_2 in dict_of_names.values()
+            ):
+                keys_1 = [
+                    key for key, value in dict_of_names.items() if value == atom_name_1
+                ]
+                keys_2 = [
+                    key for key, value in dict_of_names.items() if value == atom_name_2
+                ]
                 for key_1 in keys_1:
                     for key_2 in keys_2:
                         if (key_1, key_2) in pairs or (key_2, key_1) in pairs:
@@ -338,18 +371,18 @@ def make_in_terms(input_file, output_file, dict_of_names):
                         parts[0] = key_1
                         parts[1] = key_2
                         parts[3] = get_sigma(key_1, key_2)
-                        file.write('  '.join(parts) + '\n')
-            
-            
+                        file.write("  ".join(parts) + "\n")
+
+
 def make_cross_terms(input_file, output_file, old_name, new_name):
     switch = False
-    with open(input_file, 'r') as file:
+    with open(input_file, "r") as file:
         lines = file.readlines()
-    with open(output_file, 'a') as file:
+    with open(output_file, "a") as file:
         for line in lines:
-            if line.startswith(';') or len(line.split()) < 2:
+            if line.startswith(";") or len(line.split()) < 2:
                 continue
-            if line.startswith('[ nonbond_params ]'):
+            if line.startswith("[ nonbond_params ]"):
                 switch = True
             if switch:
                 parts = line.split()
@@ -357,117 +390,134 @@ def make_cross_terms(input_file, output_file, old_name, new_name):
                 atom_name_2 = parts[1].strip()
                 if atom_name_1 == old_name:
                     parts[0] = new_name
-                    file.write('  '.join(parts) + '\n')
+                    file.write("  ".join(parts) + "\n")
                     continue
                 if atom_name_2 == old_name:
                     parts[1] = new_name
-                    file.write('  '.join(parts) + '\n')
+                    file.write("  ".join(parts) + "\n")
                     continue
 
             else:
                 continue
 
+
 def make_marnatini_itp():
     # data = read_itp('../itp/working/1RNA_A.itp')
     # write_itp('test.itp', data)
     # print(data)
-    dict_of_names = {   'TA0': 'TN1', 
-                        'TA1': 'TN3a',
-                        'TA2': 'TP1a', 
-                        'TA3': 'TP1d',
-                        'TA4': 'TP1a', 
-                        'TY0': 'SN2',
-                        'TY1': 'TP3a',
-                        'TY2': 'TP1a',
-                        'TY3': 'TP3d',
-                        'TG0': 'TP1', 
-                        'TG1': 'TN3a',
-                        'TG2': 'TP1d', 
-                        'TG3': 'TP1d',
-                        'TG4': 'TP2a', 
-                        'TG5': 'TP1a',
-                        'TU0': 'SN2',
-                        'TU1': 'TP2a',
-                        'TU2': 'TP1d',
-                        'TU3': 'TP1a',
+    dict_of_names = {
+        "TA0": "TN1",
+        "TA1": "TN3a",
+        "TA2": "TP1a",
+        "TA3": "TP1d",
+        "TA4": "TP1a",
+        "TY0": "SN2",
+        "TY1": "TP3a",
+        "TY2": "TP1a",
+        "TY3": "TP3d",
+        "TG0": "TP1",
+        "TG1": "TN3a",
+        "TG2": "TP1d",
+        "TG3": "TP1d",
+        "TG4": "TP2a",
+        "TG5": "TP1a",
+        "TU0": "SN2",
+        "TU1": "TP2a",
+        "TU2": "TP1d",
+        "TU3": "TP1a",
     }
-    dict_of_names = {   'TA1': 'SC5', 
-                        'TA2': 'TN1a',
-                        'TA3': 'TC6', 
-                        'TA4': 'TN4r',
-                        'TA5': 'TN4r',
-                        'TA6': 'TN1a', 
-                        'TY1': 'SC3',
-                        'TY2': 'TN3',
-                        'TY3': 'TN4',
-                        'TY4': 'TN3',
-                        'TY5':  None,
-                        'TG1': 'SC5', 
-                        'TG2': 'TN1a',
-                        'TG3': 'TN3r', 
-                        'TG4': 'TN4r',
-                        'TG5': 'TN4r', 
-                        'TG6': 'TN1a',
-                        'TG7':  None,
-                        'TG8':  None,
-                        'TU1': 'SC3',
-                        'TU2': 'TN3',
-                        'TU3': 'TN4',
-                        'TU4': 'TN3',
-                        'TU5':  None,
-                        'TU6':  None,
-                        'TU7':  None,
+    dict_of_names = {
+        "TA1": "SC5",
+        "TA2": "TN1a",
+        "TA3": "TC6",
+        "TA4": "TN4r",
+        "TA5": "TN4r",
+        "TA6": "TN1a",
+        "TY1": "SC3",
+        "TY2": "TN3",
+        "TY3": "TN4",
+        "TY4": "TN3",
+        "TY5": None,
+        "TG1": "SC5",
+        "TG2": "TN1a",
+        "TG3": "TN3r",
+        "TG4": "TN4r",
+        "TG5": "TN4r",
+        "TG6": "TN1a",
+        "TG7": None,
+        "TG8": None,
+        "TU1": "SC3",
+        "TU2": "TN3",
+        "TU3": "TN4",
+        "TU4": "TN3",
+        "TU5": None,
+        "TU6": None,
+        "TU7": None,
     }
-    out_file = 'reforge/itp/martini_RNA.itp'
-    
-    make_in_terms('reforge/itp/martini.itp', out_file, dict_of_names)
+    out_file = "reforge/itp/martini_RNA.itp"
+
+    make_in_terms("reforge/itp/martini.itp", out_file, dict_of_names)
     for new_name, old_name in dict_of_names.items():
-        make_cross_terms('reforge/itp/martini.itp', out_file, old_name, new_name)
-    sh.copy(out_file, '/scratch/dyangali/reforge/systems/dsRNA/topol/martini_v3.0.0_rna.itp')
-    sh.copy(out_file, '/scratch/dyangali/reforge/systems/ssRNA/topol/martini_v3.0.0_rna.itp')
-    sh.copy(out_file, '/scratch/dyangali/maRNAtini_sims/dimerization_pmf_us/topol/martini_RNA.itp')
-    sh.copy(out_file, '/scratch/dyangali/maRNAtini_sims/angled_dimerization_pmf_us/topol/martini_RNA.itp') # angled_dimerization_pmf_us
-       
-        
+        make_cross_terms("reforge/itp/martini.itp", out_file, old_name, new_name)
+    sh.copy(
+        out_file, "/scratch/dyangali/reforge/systems/dsRNA/topol/martini_v3.0.0_rna.itp"
+    )
+    sh.copy(
+        out_file, "/scratch/dyangali/reforge/systems/ssRNA/topol/martini_v3.0.0_rna.itp"
+    )
+    sh.copy(
+        out_file,
+        "/scratch/dyangali/maRNAtini_sims/dimerization_pmf_us/topol/martini_RNA.itp",
+    )
+    sh.copy(
+        out_file,
+        "/scratch/dyangali/maRNAtini_sims/angled_dimerization_pmf_us/topol/martini_RNA.itp",
+    )  # angled_dimerization_pmf_us
+
+
 def make_ions_itp():
     import pandas as pd
-    dict_of_names = {   'TMG': 'TD',
+
+    dict_of_names = {
+        "TMG": "TD",
     }
-    out_file = 'reforge/itp/ions.itp'
+    out_file = "reforge/itp/ions.itp"
     for new_name, old_name in dict_of_names.items():
-        make_cross_terms('reforge/itp/martini_v3.0.0.itp', out_file, old_name, new_name)
-    df = pd.read_csv(out_file, sep='\\s+', header=None)
+        make_cross_terms("reforge/itp/martini_v3.0.0.itp", out_file, old_name, new_name)
+    df = pd.read_csv(out_file, sep="\\s+", header=None)
     df[3] -= 0.08
-    tmp_file = 'reforge/itp/ions_tmp.itp'
-    df.to_csv(tmp_file, sep=' ', header=None, index=False, float_format='%.6e')
-    
-    out_file = 'reforge/itp/martini_ions.itp'
-    new_lines = ["[ atomtypes ]\n", 
-        "TMG  45.000  0.000  A  0.0  0.0\n\n", 
-        "[ nonbond_params ]\n", 
-        "TMG TMG 1 3.580000e-01 1.100000e+00\n"]
+    tmp_file = "reforge/itp/ions_tmp.itp"
+    df.to_csv(tmp_file, sep=" ", header=None, index=False, float_format="%.6e")
+
+    out_file = "reforge/itp/martini_ions.itp"
+    new_lines = [
+        "[ atomtypes ]\n",
+        "TMG  45.000  0.000  A  0.0  0.0\n\n",
+        "[ nonbond_params ]\n",
+        "TMG TMG 1 3.580000e-01 1.100000e+00\n",
+    ]
     with open(tmp_file, "r") as file:
         original_content = file.readlines()
     with open(out_file, "w+") as file:
         file.writelines(new_lines + original_content)
-        
+
 
 def count_itp_atoms(file_path):
     in_atoms_section = False
     atom_count = 0
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             for line in file:
                 # Strip whitespace and check if it's a comment or empty line
                 line = line.strip()
-                if not line or line.startswith(';'):
+                if not line or line.startswith(";"):
                     continue
                 # Detect the start of the [ atoms ] section
                 if line.startswith("[ atoms ]"):
                     in_atoms_section = True
                     continue
                 # Detect the start of a new section
-                if in_atoms_section and line.startswith('['):
+                if in_atoms_section and line.startswith("["):
                     break
                 # Count valid lines in the [ atoms ] section
                 if in_atoms_section:
@@ -478,9 +528,10 @@ def count_itp_atoms(file_path):
         return 0
     except Exception as e:
         print(f"An error occurred: {e}")
-        return 0        
-        
-if __name__ == '__main__':
+        return 0
+
+
+if __name__ == "__main__":
     pass
     # make_ions_itp()
     # make_marnatini_itp()

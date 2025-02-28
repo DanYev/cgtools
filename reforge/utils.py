@@ -1,23 +1,23 @@
 """
 File: utils.py
 Description:
-    This module provides utility functions and decorators for the reForge workflow. 
+    This module provides utility functions and decorators for the reForge workflow.
     It includes decorators for timing and memory profiling functions, a context manager
     for changing the working directory, and helper functions for cleaning directories and
     detecting CUDA availability.
 
 Usage Example:
     >>> from utils import timeit, memprofit, cd, clean_dir, cuda_info
-    >>> 
+    >>>
     >>> @timeit
     ... def my_function():
     ...     # Function implementation here
     ...     pass
-    >>> 
+    >>>
     >>> with cd("/tmp"):
     ...     # Perform operations in /tmp
     ...     pass
-    >>> 
+    >>>
     >>> cuda_info()
 
 Requirements:
@@ -40,15 +40,13 @@ from functools import wraps
 from pathlib import Path
 
 # Use an environment variable (DEBUG=1) to toggle debug logging
-DEBUG = os.environ.get('DEBUG', '0') == '1'
+DEBUG = os.environ.get("DEBUG", "0") == "1"
 log_level = logging.DEBUG if DEBUG else logging.INFO
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=log_level,
-    format='[%(levelname)s] %(message)s'
-)
+logging.basicConfig(level=log_level, format="[%(levelname)s] %(message)s")
 # logger.debug("Debug mode is enabled.")
 # logger.info("Logger is set up.")
+
 
 def timeit(func):
     """
@@ -64,15 +62,20 @@ def timeit(func):
     callable
         A wrapped version of the input function that logs its execution time.
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.perf_counter()  # Start timer
-        result = func(*args, **kwargs)      # Execute the function
-        end_time = time.perf_counter()      # End timer
+        result = func(*args, **kwargs)  # Execute the function
+        end_time = time.perf_counter()  # End timer
         execution_time = end_time - start_time
-        logger.debug(f"Function '{func.__module__}.{func.__name__}' executed in {execution_time:.6f} seconds.")
+        logger.debug(
+            f"Function '{func.__module__}.{func.__name__}' executed in {execution_time:.6f} seconds."
+        )
         return result
+
     return wrapper
+
 
 def memprofit(func):
     """
@@ -88,15 +91,22 @@ def memprofit(func):
     callable
         A wrapped version of the input function that logs its memory usage.
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         tracemalloc.start()  # Start memory tracking
         result = func(*args, **kwargs)  # Execute the function
-        current, peak = tracemalloc.get_traced_memory()  # Get current and peak memory usage
-        logger.debug(f"Memory usage after executing '{func.__module__}.{func.__name__}': {current/1024**2:.2f} MB, Peak: {peak/1024**2:.2f} MB")
+        current, peak = (
+            tracemalloc.get_traced_memory()
+        )  # Get current and peak memory usage
+        logger.debug(
+            f"Memory usage after executing '{func.__module__}.{func.__name__}': {current/1024**2:.2f} MB, Peak: {peak/1024**2:.2f} MB"
+        )
         tracemalloc.stop()  # Stop memory tracking
         return result
-    return wrapper 
+
+    return wrapper
+
 
 @contextmanager
 def cd(newdir):
@@ -121,6 +131,7 @@ def cd(newdir):
     finally:
         os.chdir(prevdir)
 
+
 def clean_dir(directory=".", pattern="#*"):
     """
     Remove files matching a specific pattern from a directory.
@@ -141,6 +152,7 @@ def clean_dir(directory=".", pattern="#*"):
         if file_path.is_file():
             file_path.unlink()
 
+
 def cuda_info():
     """
     Check CUDA availability and log CUDA device information if available.
@@ -158,6 +170,7 @@ def cuda_info():
     else:
         logger.info("CUDA is not available")
         return False
+
 
 def cuda_detected():
     """

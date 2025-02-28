@@ -31,7 +31,6 @@ Author: DY
 Date: YYYY-MM-DD
 """
 
-
 import os
 import subprocess as sp
 import shutil
@@ -42,6 +41,7 @@ from functools import wraps
 ##############################################################
 # Generic Functions
 ##############################################################
+
 
 def run(*args, **kwargs):
     """
@@ -60,12 +60,12 @@ def run(*args, **kwargs):
     -------
     None
     """
-    clinput = kwargs.pop('clinput', None)
-    cltext = kwargs.pop('cltext', True)
-    command = args_to_str(*args) + ' ' + kwargs_to_str(**kwargs)
+    clinput = kwargs.pop("clinput", None)
+    cltext = kwargs.pop("cltext", True)
+    command = args_to_str(*args) + " " + kwargs_to_str(**kwargs)
     sp.run(command.split(), input=clinput, text=cltext, check=False)
-    
-    
+
+
 def sbatch(script, *args, **kwargs):
     """
     Submit a shell script as a SLURM sbatch job.
@@ -89,26 +89,30 @@ def sbatch(script, *args, **kwargs):
     -------
     None
     """
-    kwargs.setdefault('t', '01:00:00')
-    kwargs.setdefault('q', 'public')
-    kwargs.setdefault('p', 'htc')
-    kwargs.setdefault('N', '1')
-    kwargs.setdefault('n', '1')
-    kwargs.setdefault('c', '1')
-    kwargs.setdefault('mem', '2G')
-    kwargs.setdefault('e', 'slurm_jobs/error.%A.err')
-    kwargs.setdefault('o', 'slurm_jobs/output.%A.out')
+    kwargs.setdefault("t", "01:00:00")
+    kwargs.setdefault("q", "public")
+    kwargs.setdefault("p", "htc")
+    kwargs.setdefault("N", "1")
+    kwargs.setdefault("n", "1")
+    kwargs.setdefault("c", "1")
+    kwargs.setdefault("mem", "2G")
+    kwargs.setdefault("e", "slurm_jobs/error.%A.err")
+    kwargs.setdefault("o", "slurm_jobs/output.%A.out")
     # Separate long and short options
     long_options = {key: value for key, value in kwargs.items() if len(key) > 1}
-    short_options = {key: value for key, value in kwargs.items() if len(key) == 1} 
+    short_options = {key: value for key, value in kwargs.items() if len(key) == 1}
     # Build the sbatch command string
-    sbatch_long_opts = ' '.join([f'--{key.replace("_", "-")}={value}' for key, value in long_options.items()])
-    sbatch_short_opts = kwargs_to_str(hyphen='-', **short_options)
-    command = ' '.join(['sbatch', sbatch_short_opts, sbatch_long_opts, str(script), args_to_str(*args)])
+    sbatch_long_opts = " ".join(
+        [f'--{key.replace("_", "-")}={value}' for key, value in long_options.items()]
+    )
+    sbatch_short_opts = kwargs_to_str(hyphen="-", **short_options)
+    command = " ".join(
+        ["sbatch", sbatch_short_opts, sbatch_long_opts, str(script), args_to_str(*args)]
+    )
     sp.run(command.split())
 
 
-def gmx(command, gmx_callable='gmx_mpi', **kwargs):
+def gmx(command, gmx_callable="gmx_mpi", **kwargs):
     """
     Execute a GROMACS command.
 
@@ -127,15 +131,16 @@ def gmx(command, gmx_callable='gmx_mpi', **kwargs):
     -------
     None
     """
-    clinput = kwargs.pop('clinput', None)
-    cltext = kwargs.pop('cltext', True)
-    command = gmx_callable + ' ' + command + ' ' + kwargs_to_str(**kwargs)
+    clinput = kwargs.pop("clinput", None)
+    cltext = kwargs.pop("cltext", True)
+    command = gmx_callable + " " + command + " " + kwargs_to_str(**kwargs)
     sp.run(command.split(), input=clinput, text=cltext)
 
 
 ##############################################################
 # Utility Functions
 ##############################################################
+
 
 @contextmanager
 def change_directory(new_dir):
@@ -158,8 +163,8 @@ def change_directory(new_dir):
         yield
     finally:
         os.chdir(prev_dir)
-        
-        
+
+
 def from_wdir(func):
     """
     Decorator to temporarily change the working directory before executing a function.
@@ -176,16 +181,19 @@ def from_wdir(func):
     callable
         The wrapped function that executes in the specified directory.
     """
+
     @wraps(func)
     def wrapper(wdir, *args, **kwargs):
         with change_directory(wdir):
             return func(wdir, *args, **kwargs)
+
     return wrapper
 
 
 ##############################################################
 # GROMACS Functions
-############################################################## 
+##############################################################
+
 
 def gmx_editconf(**kwargs):
     """
@@ -205,10 +213,10 @@ def gmx_editconf(**kwargs):
     -------
     None
     """
-    kwargs.setdefault('f', 'solute.pdb')
-    kwargs.setdefault('o', 'solute.pdb')
-    kwargs.setdefault('bt', 'triclinic')
-    gmx('editconf', **kwargs)
+    kwargs.setdefault("f", "solute.pdb")
+    kwargs.setdefault("o", "solute.pdb")
+    kwargs.setdefault("bt", "triclinic")
+    gmx("editconf", **kwargs)
 
 
 def gmx_solvate(**kwargs):
@@ -231,12 +239,12 @@ def gmx_solvate(**kwargs):
     -------
     None
     """
-    kwargs.setdefault('cp', 'solute.pdb')
-    kwargs.setdefault('cs', 'water.gro')
-    kwargs.setdefault('p', 'system.top')
-    kwargs.setdefault('o', 'system.pdb')
-    kwargs.setdefault('radius', '0.23')
-    gmx('solvate', **kwargs)
+    kwargs.setdefault("cp", "solute.pdb")
+    kwargs.setdefault("cs", "water.gro")
+    kwargs.setdefault("p", "system.top")
+    kwargs.setdefault("o", "system.pdb")
+    kwargs.setdefault("radius", "0.23")
+    gmx("solvate", **kwargs)
 
 
 def gmx_make_ndx(clinput=None, **kwargs):
@@ -256,9 +264,9 @@ def gmx_make_ndx(clinput=None, **kwargs):
     -------
     None
     """
-    kwargs.setdefault('f', 'system.pdb')
-    kwargs.setdefault('o', 'index.ndx')
-    gmx('make_ndx', clinput=clinput, cltext=True, **kwargs)
+    kwargs.setdefault("f", "system.pdb")
+    kwargs.setdefault("o", "index.ndx")
+    gmx("make_ndx", clinput=clinput, cltext=True, **kwargs)
 
 
 def gmx_grompp(**kwargs):
@@ -280,9 +288,9 @@ def gmx_grompp(**kwargs):
     -------
     None
     """
-    kwargs.setdefault('maxwarn', '1')
-    gmx('grompp', **kwargs)  
-    
+    kwargs.setdefault("maxwarn", "1")
+    gmx("grompp", **kwargs)
+
 
 def gmx_mdrun(**kwargs):
     """
@@ -300,28 +308,28 @@ def gmx_mdrun(**kwargs):
     -------
     None
     """
-    kwargs.setdefault('ntomp', '8')
-    kwargs.setdefault('pin', 'on')
-    kwargs.setdefault('pinstride', '1')
-    gmx('mdrun', **kwargs)
+    kwargs.setdefault("ntomp", "8")
+    kwargs.setdefault("pin", "on")
+    kwargs.setdefault("pinstride", "1")
+    gmx("mdrun", **kwargs)
 
 
-def gmx_trjconv(clinput='1\n1\n', **kwargs):
+def gmx_trjconv(clinput="1\n1\n", **kwargs):
     r"""
     Execute the GROMACS 'trjconv' command to convert trajectory files.
-    
+
     Parameters
     ----------
     clinput : str, optional
         Input string for trajectory frame selection (default '1\n1\n').
     **kwargs : dict
         Additional options for 'trjconv'.
-    
+
     Returns
     -------
     None
     """
-    gmx('trjconv', clinput=clinput, cltext=True, **kwargs)
+    gmx("trjconv", clinput=clinput, cltext=True, **kwargs)
 
 
 def gmx_rmsf(clinput=None, **kwargs):
@@ -347,13 +355,13 @@ def gmx_rmsf(clinput=None, **kwargs):
     -------
     None
     """
-    kwargs.setdefault('s', 'md.tpr')
-    kwargs.setdefault('f', 'mdc.xtc')
-    kwargs.setdefault('o', 'rms_analysis/rmsf.xvg')
-    kwargs.setdefault('b', '0')
-    kwargs.setdefault('xvg', 'none')
-    kwargs.setdefault('res', 'yes')
-    gmx('rmsf', clinput=clinput, cltext=True, **kwargs)
+    kwargs.setdefault("s", "md.tpr")
+    kwargs.setdefault("f", "mdc.xtc")
+    kwargs.setdefault("o", "rms_analysis/rmsf.xvg")
+    kwargs.setdefault("b", "0")
+    kwargs.setdefault("xvg", "none")
+    kwargs.setdefault("res", "yes")
+    gmx("rmsf", clinput=clinput, cltext=True, **kwargs)
 
 
 def gmx_rms(clinput=None, **kwargs):
@@ -379,13 +387,13 @@ def gmx_rms(clinput=None, **kwargs):
     -------
     None
     """
-    kwargs.setdefault('s', 'md.tpr')
-    kwargs.setdefault('f', 'mdc.xtc')
-    kwargs.setdefault('o', 'rms_analysis/rmsd.xvg')
-    kwargs.setdefault('b', '0')
-    kwargs.setdefault('xvg', 'none')
-    kwargs.setdefault('fit', 'rot+trans')
-    gmx('rms', clinput=clinput, cltext=True, **kwargs)
+    kwargs.setdefault("s", "md.tpr")
+    kwargs.setdefault("f", "mdc.xtc")
+    kwargs.setdefault("o", "rms_analysis/rmsd.xvg")
+    kwargs.setdefault("b", "0")
+    kwargs.setdefault("xvg", "none")
+    kwargs.setdefault("fit", "rot+trans")
+    gmx("rms", clinput=clinput, cltext=True, **kwargs)
 
 
 def gmx_rdf(clinput=None, **kwargs):
@@ -410,12 +418,12 @@ def gmx_rdf(clinput=None, **kwargs):
     -------
     None
     """
-    kwargs.setdefault('s', 'md.tpr')
-    kwargs.setdefault('f', 'mdc.xtc')
-    kwargs.setdefault('o', 'rms_analysis/rdf.xvg')
-    kwargs.setdefault('b', '0')
-    kwargs.setdefault('xvg', 'none')
-    gmx('rdf', clinput=clinput, cltext=True, **kwargs)
+    kwargs.setdefault("s", "md.tpr")
+    kwargs.setdefault("f", "mdc.xtc")
+    kwargs.setdefault("o", "rms_analysis/rdf.xvg")
+    kwargs.setdefault("b", "0")
+    kwargs.setdefault("xvg", "none")
+    gmx("rdf", clinput=clinput, cltext=True, **kwargs)
 
 
 def gmx_cluster(clinput=None, **kwargs):
@@ -433,9 +441,9 @@ def gmx_cluster(clinput=None, **kwargs):
     -------
     None
     """
-    gmx('cluster', clinput=clinput, cltext=True, **kwargs)
-    
-    
+    gmx("cluster", clinput=clinput, cltext=True, **kwargs)
+
+
 def gmx_extract_cluster(clinput=None, **kwargs):
     """
     Execute the GROMACS 'extract-cluster' command to extract clustered structures.
@@ -451,7 +459,7 @@ def gmx_extract_cluster(clinput=None, **kwargs):
     -------
     None
     """
-    gmx('extract-cluster', clinput=clinput, cltext=True, **kwargs)    
+    gmx("extract-cluster", clinput=clinput, cltext=True, **kwargs)
 
 
 def gmx_covar(clinput=None, **kwargs):
@@ -469,8 +477,8 @@ def gmx_covar(clinput=None, **kwargs):
     -------
     None
     """
-    gmx('covar', clinput=clinput, cltext=True, **kwargs)
- 
+    gmx("covar", clinput=clinput, cltext=True, **kwargs)
+
 
 def gmx_anaeig(clinput=None, **kwargs):
     """
@@ -488,10 +496,10 @@ def gmx_anaeig(clinput=None, **kwargs):
     -------
     None
     """
-    kwargs.setdefault('v', 'eigenvec.trr')
-    gmx('anaeig', clinput=clinput, cltext=True, **kwargs)    
-    
-    
+    kwargs.setdefault("v", "eigenvec.trr")
+    gmx("anaeig", clinput=clinput, cltext=True, **kwargs)
+
+
 def gmx_make_edi(clinput=None, **kwargs):
     """
     Execute the GROMACS 'make_edi' command to generate essential dynamics (ED) information.
@@ -508,14 +516,15 @@ def gmx_make_edi(clinput=None, **kwargs):
     -------
     None
     """
-    kwargs.setdefault('f', 'eigenvec.trr')
-    gmx('make_edi', clinput=clinput, cltext=True, **kwargs)        
+    kwargs.setdefault("f", "eigenvec.trr")
+    gmx("make_edi", clinput=clinput, cltext=True, **kwargs)
 
 
 ##############################################################
 # Helper Functions
 ##############################################################
-    
+
+
 def args_to_str(*args):
     """
     Convert positional arguments to a space-separated string.
@@ -530,10 +539,10 @@ def args_to_str(*args):
     str
         A space-separated string representation of the arguments.
     """
-    return ' '.join([str(arg) for arg in args])
+    return " ".join([str(arg) for arg in args])
 
 
-def kwargs_to_str(hyphen='-', **kwargs):
+def kwargs_to_str(hyphen="-", **kwargs):
     """
     Convert keyword arguments to a formatted string with a given hyphen prefix.
 
@@ -549,4 +558,4 @@ def kwargs_to_str(hyphen='-', **kwargs):
     str
         A formatted string of the keyword arguments.
     """
-    return ' '.join([f'{hyphen}{key} {value}' for key, value in kwargs.items()])
+    return " ".join([f"{hyphen}{key} {value}" for key, value in kwargs.items()])

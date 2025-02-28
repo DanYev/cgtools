@@ -2,23 +2,23 @@
 """
 File: mdm.py
 Description:
-    This module provides a unified interface for molecular dynamics (MD) and 
-    structural analysis routines within the reForge package. It wraps a variety 
-    of operations including FFT-based cross-correlation, covariance matrix 
-    computation, perturbation matrix calculations (for DFI/DCI metrics), and 
-    elastic network model (ENM) Hessian evaluations. Both CPU and GPU implementations 
+    This module provides a unified interface for molecular dynamics (MD) and
+    structural analysis routines within the reForge package. It wraps a variety
+    of operations including FFT-based cross-correlation, covariance matrix
+    computation, perturbation matrix calculations (for DFI/DCI metrics), and
+    elastic network model (ENM) Hessian evaluations. Both CPU and GPU implementations
     are supported, with fallbacks to CPU methods if CUDA is not available.
 
 Usage Example:
     >>> import numpy as np
     >>> from mdm import fft_ccf, calc_and_save_covmats, inverse_matrix
-    >>> 
+    >>>
     >>> # Compute FFT-based cross-correlation function in serial mode
     >>> ccf = fft_ccf(signal1, signal2, mode='serial')
-    >>> 
+    >>>
     >>> # Calculate and save covariance matrices from trajectory positions
     >>> calc_and_save_covmats(positions, outdir='./covmats', n=5)
-    >>> 
+    >>>
     >>> # Compute the inverse of a matrix using the unified inversion wrapper
     >>> inv_mat = inverse_matrix(matrix, device='cpu_sparse')
 
@@ -45,11 +45,11 @@ from reforge.utils import timeit, memprofit, logger, cuda_detected
 from reforge.actual_math import mycmath, mypymath
 
 
-def fft_ccf(*args, mode='serial', **kwargs):
+def fft_ccf(*args, mode="serial", **kwargs):
     """
     Unified wrapper for FFT-based correlation functions.
 
-    This function dispatches to one of the internal FFT correlation routines 
+    This function dispatches to one of the internal FFT correlation routines
     based on the specified mode:
       - 'serial' for _sfft_ccf,
       - 'parallel' for _pfft_ccf, or
@@ -57,7 +57,7 @@ def fft_ccf(*args, mode='serial', **kwargs):
 
     Parameters
     ----------
-    *args : 
+    *args :
         Positional arguments for the chosen correlation function.
     mode : str, optional
         Mode to use ('serial', 'parallel', or 'gpu'). Default is 'serial'.
@@ -74,11 +74,11 @@ def fft_ccf(*args, mode='serial', **kwargs):
     ValueError
         If an unsupported mode is specified.
     """
-    if mode == 'serial':
+    if mode == "serial":
         return mypymath._sfft_ccf(*args, **kwargs)
-    if mode == 'parallel':
+    if mode == "parallel":
         return mypymath._pfft_ccf(*args, **kwargs)
-    if mode == 'gpu':
+    if mode == "gpu":
         return mypymath._gfft_ccf(*args, **kwargs).get()
     raise ValueError("Mode must be 'serial', 'parallel' or 'gpu'.")
 
@@ -102,13 +102,13 @@ def covariance_matrix(positions, dtype=np.float64):
         The computed covariance matrix.
     """
     return mypymath._covariance_matrix(positions, dtype=dtype)
-    
 
-def calc_and_save_covmats(positions, outdir, n=1, outtag='covmat', dtype=np.float32):
+
+def calc_and_save_covmats(positions, outdir, n=1, outtag="covmat", dtype=np.float32):
     """
     Calculate and save covariance matrices by splitting a trajectory into segments.
 
-    The trajectory positions are split into 'n' segments along the frame axis. For each 
+    The trajectory positions are split into 'n' segments along the frame axis. For each
     segment, the position-position covariance matrix is computed and saved as a .npy file.
 
     Parameters
@@ -128,18 +128,21 @@ def calc_and_save_covmats(positions, outdir, n=1, outtag='covmat', dtype=np.floa
     -------
     None
     """
-    trajs = np.array_split(positions, n, axis=-1)  # Split into n segments along the frame axis
+    trajs = np.array_split(
+        positions, n, axis=-1
+    )  # Split into n segments along the frame axis
     for idx, traj in enumerate(trajs, start=1):
         logger.info(f"Processing covariance matrix {idx}")
         covmat = covariance_matrix(traj, dtype=dtype)
-        outfile = os.path.join(outdir, f'{outtag}_{idx}.npy')
+        outfile = os.path.join(outdir, f"{outtag}_{idx}.npy")
         np.save(outfile, covmat)
         logger.info(f"Saved covariance matrix to {outfile}")
-        
+
 
 ##############################################################
 ## DFI / DCI Calculations
 ##############################################################
+
 
 def perturbation_matrix(covariance_matrix, dtype=np.float64):
     """
@@ -188,14 +191,14 @@ def td_perturbation_matrix(covariance_matrix, dtype=np.float64):
     covariance_matrix = covariance_matrix.astype(np.float64)
     if dtype == np.float64:
         pertmat = mycmath._td_perturbation_matrix(covariance_matrix)
-    return pertmat    
+    return pertmat
 
 
 def dfi(perturbation_matrix):
     """
     Calculate the Dynamic Flexibility Index (DFI) from a perturbation matrix.
 
-    The DFI is computed by summing the rows of the perturbation matrix and then 
+    The DFI is computed by summing the rows of the perturbation matrix and then
     normalizing such that the total sum equals the number of residues.
 
     Parameters
@@ -211,14 +214,14 @@ def dfi(perturbation_matrix):
     dfi_val = np.sum(perturbation_matrix, axis=-1)
     dfi_val *= len(dfi_val)
     return dfi_val
-    
+
 
 def dci(perturbation_matrix, asym=False):
     """
     Calculate the Dynamic Coupling Index (DCI) from a perturbation matrix.
 
-    The DCI is computed by scaling the perturbation matrix such that the total sum of its 
-    elements equals the number of residues. Optionally, an asymmetric DCI (difference between 
+    The DCI is computed by scaling the perturbation matrix such that the total sum of its
+    elements equals the number of residues. Optionally, an asymmetric DCI (difference between
     DCI and its transpose) can be returned.
 
     Parameters
@@ -233,17 +236,21 @@ def dci(perturbation_matrix, asym=False):
     np.ndarray
         The DCI matrix.
     """
-    dci_val = perturbation_matrix * perturbation_matrix.shape[0] / np.sum(perturbation_matrix, axis=-1, keepdims=True)
+    dci_val = (
+        perturbation_matrix
+        * perturbation_matrix.shape[0]
+        / np.sum(perturbation_matrix, axis=-1, keepdims=True)
+    )
     if asym:
         dci_val = dci_val - dci_val.T
-    return dci_val    
-    
+    return dci_val
+
 
 def group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
     """
     Calculate the DCI between groups of atoms and the remainder of the molecule.
 
-    For each group in 'groups', the DCI is computed by summing the coupling values between 
+    For each group in 'groups', the DCI is computed by summing the coupling values between
     the group and all residues, then normalizing by the number of atoms in the group.
 
     Parameters
@@ -269,14 +276,14 @@ def group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
         bot = len(ids)
         dci_val = top / bot
         dcis.append(dci_val)
-    return dcis 
-    
-    
+    return dcis
+
+
 def group_group_dci(perturbation_matrix, groups=[[]], asym=False):
     """
     Calculate the inter-group DCI matrix.
 
-    For each pair of groups specified in 'groups', compute the average DCI between atoms 
+    For each pair of groups specified in 'groups', compute the average DCI between atoms
     in the first group and atoms in the second group. Optionally, an asymmetric DCI can be computed.
 
     Parameters
@@ -300,17 +307,19 @@ def group_group_dci(perturbation_matrix, groups=[[]], asym=False):
     for ids1 in groups:
         temp = []
         for ids2 in groups:
-            idx1, idx2 = np.meshgrid(ids1, ids2, indexing='ij')
+            idx1, idx2 = np.meshgrid(ids1, ids2, indexing="ij")
             top = np.sum(dci_tot[idx1, idx2]) * perturbation_matrix.shape[0]
             bot = len(ids1) * len(ids2)
             dci_val = top / bot
             temp.append(dci_val)
         dcis.append(temp)
-    return dcis 
-    
+    return dcis
+
+
 ##############################################################
 ## Elastic Network Model (ENM)
 ##############################################################
+
 
 def hessian(vecs, cutoff, spring_constant, dd):
     """
@@ -338,12 +347,14 @@ def hessian(vecs, cutoff, spring_constant, dd):
     return mycmath._hessian(vecs, cutoff, spring_constant, dd)
 
 
-def inverse_matrix(matrix, device='cpu_sparse', k_singular=6, n_modes=100, dtype=None, **kwargs):
+def inverse_matrix(
+    matrix, device="cpu_sparse", k_singular=6, n_modes=100, dtype=None, **kwargs
+):
     """
     Unified wrapper for computing the inverse of a matrix via eigen-decomposition.
 
     Depending on the 'device' parameter, the function selects an appropriate routine:
-    
+
       - 'cpu_sparse' (default): Uses a sparse eigensolver on the CPU.
       - 'cpu_dense': Uses a dense CPU eigen-decomposition.
       - 'gpu_sparse': Uses a sparse eigensolver on the GPU.
@@ -371,38 +382,66 @@ def inverse_matrix(matrix, device='cpu_sparse', k_singular=6, n_modes=100, dtype
     Returns
     -------
     np.ndarray or cp.ndarray
-        The computed inverse matrix. A NumPy array is returned for CPU routines and a 
+        The computed inverse matrix. A NumPy array is returned for CPU routines and a
         CuPy array for GPU routines.
     """
     if dtype is None:
         dtype = matrix.dtype
 
-    if device.lower().startswith('gpu'):
+    if device.lower().startswith("gpu"):
         try:
             import cupy as cp
+
             if not cp.cuda.is_available():
                 raise RuntimeError("CUDA not available.")
-            if device.lower() == 'gpu_sparse':
-                return _inverse_sparse_matrix_gpu(matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs)
-            elif device.lower() == 'gpu_dense':
-                return _inverse_matrix_gpu(matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs)
+            if device.lower() == "gpu_sparse":
+                return _inverse_sparse_matrix_gpu(
+                    matrix,
+                    k_singular=k_singular,
+                    n_modes=n_modes,
+                    dtype=dtype,
+                    **kwargs,
+                )
+            elif device.lower() == "gpu_dense":
+                return _inverse_matrix_gpu(
+                    matrix,
+                    k_singular=k_singular,
+                    n_modes=n_modes,
+                    dtype=dtype,
+                    **kwargs,
+                )
             else:
                 logger.info("Unknown GPU method; falling back to CPU sparse inversion.")
-                return _inverse_sparse_matrix_cpu(matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs)
+                return _inverse_sparse_matrix_cpu(
+                    matrix,
+                    k_singular=k_singular,
+                    n_modes=n_modes,
+                    dtype=dtype,
+                    **kwargs,
+                )
         except Exception as e:
-            logger.info(f"GPU inversion failed with error '{e}'. Falling back to CPU sparse inversion.")
-            return _inverse_sparse_matrix_cpu(matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs)
+            logger.info(
+                f"GPU inversion failed with error '{e}'. Falling back to CPU sparse inversion."
+            )
+            return _inverse_sparse_matrix_cpu(
+                matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs
+            )
 
-    elif device.lower() == 'cpu_dense':
-        return _inverse_matrix_cpu(matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs)
-    
+    elif device.lower() == "cpu_dense":
+        return _inverse_matrix_cpu(
+            matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs
+        )
+
     else:
-        return _inverse_sparse_matrix_cpu(matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs)
+        return _inverse_sparse_matrix_cpu(
+            matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs
+        )
 
 
 ##############################################################
 ## Miscellaneous Functions
 ##############################################################
+
 
 def percentile(x):
     """
@@ -424,7 +463,7 @@ def percentile(x):
         # Find the rank (as a fraction)
         px[n] = np.where(sorted_idx == n)[0][0] / len(x)
     return px
-    
-    
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     pass

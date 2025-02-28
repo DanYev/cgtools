@@ -29,7 +29,6 @@ Author: DY
 Date: 2025-02-27
 """
 
-
 import os
 import sys
 import logging
@@ -49,16 +48,31 @@ from reforge.utils import cd, clean_dir, logger
 # GMX system class
 ################################################################################
 
+
 class gmxSystem:
     """
     Class to set up and analyze protein-nucleotide-lipid systems for MD simulations
     using GROMACS. Most attributes are paths to files and directories needed to
     set up and run the MD simulation.
     """
+
     MDATDIR = importlib.resources.files("reforge") / "martini" / "data"
     MMDPDIR = importlib.resources.files("reforge") / "martini" / "data" / "mdp"
     MITPDIR = importlib.resources.files("reforge") / "martini" / "itp"
-    NUC_RESNAMES = ['A', 'C', 'G', 'U', 'RA3', 'RA5', 'RC3', 'RC5', 'RG3', 'RG5', 'RU3', 'RU5']
+    NUC_RESNAMES = [
+        "A",
+        "C",
+        "G",
+        "U",
+        "RA3",
+        "RA5",
+        "RC3",
+        "RC5",
+        "RG3",
+        "RG5",
+        "RU3",
+        "RU5",
+    ]
 
     def __init__(self, sysdir, sysname, **kwargs):
         """
@@ -74,29 +88,29 @@ class gmxSystem:
         self.sysname = sysname
         self.sysdir = os.path.abspath(sysdir)
         self.root = os.path.join(self.sysdir, sysname)
-        self.inpdb = os.path.join(self.root, 'inpdb.pdb')
-        self.solupdb = os.path.join(self.root, 'solute.pdb')
-        self.syspdb = os.path.join(self.root, 'system.pdb')
-        self.sysgro = os.path.join(self.root, 'system.gro')
-        self.systop = os.path.join(self.root, 'system.top')
-        self.sysndx = os.path.join(self.root, 'system.ndx')
-        self.mdcpdb = os.path.join(self.root, 'mdc.pdb')
-        self.mdcndx = os.path.join(self.root, 'mdc.ndx')
-        self.bbndx = os.path.join(self.root, 'bb.ndx')
-        self.trjpdb = os.path.join(self.root, 'traj.pdb')
-        self.trjndx = os.path.join(self.root, 'traj.ndx')
-        self.prodir = os.path.join(self.root, 'proteins')
-        self.nucdir = os.path.join(self.root, 'nucleotides')
-        self.iondir = os.path.join(self.root, 'ions')
-        self.ionpdb = os.path.join(self.iondir, 'ions.pdb')
-        self.topdir = os.path.join(self.root, 'topol')
-        self.mapdir = os.path.join(self.root, 'map')
-        self.mdpdir = os.path.join(self.root, 'mdp')
-        self.cgdir = os.path.join(self.root, 'cgpdb')
-        self.grodir = os.path.join(self.root, 'gro')
-        self.mddir = os.path.join(self.root, 'mdruns')
-        self.datdir = os.path.join(self.root, 'data')
-        self.pngdir = os.path.join(self.root, 'png')
+        self.inpdb = os.path.join(self.root, "inpdb.pdb")
+        self.solupdb = os.path.join(self.root, "solute.pdb")
+        self.syspdb = os.path.join(self.root, "system.pdb")
+        self.sysgro = os.path.join(self.root, "system.gro")
+        self.systop = os.path.join(self.root, "system.top")
+        self.sysndx = os.path.join(self.root, "system.ndx")
+        self.mdcpdb = os.path.join(self.root, "mdc.pdb")
+        self.mdcndx = os.path.join(self.root, "mdc.ndx")
+        self.bbndx = os.path.join(self.root, "bb.ndx")
+        self.trjpdb = os.path.join(self.root, "traj.pdb")
+        self.trjndx = os.path.join(self.root, "traj.ndx")
+        self.prodir = os.path.join(self.root, "proteins")
+        self.nucdir = os.path.join(self.root, "nucleotides")
+        self.iondir = os.path.join(self.root, "ions")
+        self.ionpdb = os.path.join(self.iondir, "ions.pdb")
+        self.topdir = os.path.join(self.root, "topol")
+        self.mapdir = os.path.join(self.root, "map")
+        self.mdpdir = os.path.join(self.root, "mdp")
+        self.cgdir = os.path.join(self.root, "cgpdb")
+        self.grodir = os.path.join(self.root, "gro")
+        self.mddir = os.path.join(self.root, "mdruns")
+        self.datdir = os.path.join(self.root, "data")
+        self.pngdir = os.path.join(self.root, "png")
 
     @property
     def chains(self):
@@ -110,7 +124,7 @@ class gmxSystem:
         chains = sort_upper_lower_digit(set(atoms.chids))
         return chains
 
-    def gmx(self, command='-h', clinput=None, clean_wdir=True, **kwargs):
+    def gmx(self, command="-h", clinput=None, clean_wdir=True, **kwargs):
         """
         Executes a GROMACS command using the reforge CLI.
 
@@ -149,14 +163,14 @@ class gmxSystem:
         os.makedirs(self.datdir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
         for file in os.listdir(self.MMDPDIR):
-            if file.endswith('.mdp'):
+            if file.endswith(".mdp"):
                 fpath = os.path.join(self.MMDPDIR, file)
                 outpath = os.path.join(self.mdpdir, file)
                 shutil.copy(fpath, outpath)
-        shutil.copy(os.path.join(self.MDATDIR, 'water.gro'), self.root)
-        shutil.copy(os.path.join(self.MDATDIR, 'atommass.dat'), self.root)
+        shutil.copy(os.path.join(self.MDATDIR, "water.gro"), self.root)
+        shutil.copy(os.path.join(self.MDATDIR, "atommass.dat"), self.root)
         for file in os.listdir(self.MITPDIR):
-            if file.endswith('.itp'):
+            if file.endswith(".itp"):
                 fpath = os.path.join(self.MITPDIR, file)
                 outpath = os.path.join(self.topdir, file)
                 shutil.copy(fpath, outpath)
@@ -200,9 +214,9 @@ class gmxSystem:
         logger.info("Cleaning the PDB using GROMACS pdb2gmx...")
         if not in_pdb:
             in_pdb = self.inpdb
-        self.gmx('pdb2gmx', f=in_pdb, o=in_pdb, **kwargs)
-        clean_dir(self.root, 'topol*')
-        clean_dir(self.root, 'posre*')
+        self.gmx("pdb2gmx", f=in_pdb, o=in_pdb, **kwargs)
+        clean_dir(self.root, "topol*")
+        clean_dir(self.root, "posre*")
 
     def split_chains(self):
         """
@@ -211,6 +225,7 @@ class gmxSystem:
         Nucleotide chains are saved to self.nucdir, while protein chains are saved
         to self.prodir. The determination is based on the residue names.
         """
+
         def it_is_nucleotide(atoms):
             # Check if the chain is nucleotide based on residue name.
             return atoms.resnames[0] in self.NUC_RESNAMES
@@ -220,9 +235,9 @@ class gmxSystem:
         for chain in system.chains():
             atoms = chain.atoms
             if it_is_nucleotide(atoms):
-                out_pdb = os.path.join(self.nucdir, f'chain_{chain.chid}.pdb')
+                out_pdb = os.path.join(self.nucdir, f"chain_{chain.chid}.pdb")
             else:
-                out_pdb = os.path.join(self.prodir, f'chain_{chain.chid}.pdb')
+                out_pdb = os.path.join(self.prodir, f"chain_{chain.chid}.pdb")
             atoms.write_pdb(out_pdb)
 
     def clean_chains_mm(self, **kwargs):
@@ -232,16 +247,16 @@ class gmxSystem:
         Kwargs are passed to pdbtools.clean_pdb. Also renames chain IDs based on the
         file name.
         """
-        kwargs.setdefault('add_missing_atoms', True)
-        kwargs.setdefault('add_hydrogens', True)
-        kwargs.setdefault('pH', 7.0)
+        kwargs.setdefault("add_missing_atoms", True)
+        kwargs.setdefault("add_hydrogens", True)
+        kwargs.setdefault("pH", 7.0)
         logger.info("Cleaning chain PDBs using OpenMM...")
         files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir)]
         files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir)]
         files = sorted(files)
         for file in files:
             pdbtools.clean_pdb(file, file, **kwargs)
-            new_chain_id = file.split('chain_')[1][0]
+            new_chain_id = file.split("chain_")[1][0]
             pdbtools.rename_chain_in_pdb(file, new_chain_id)
 
     def clean_chains_gmx(self, **kwargs):
@@ -255,18 +270,26 @@ class gmxSystem:
         and cleaning temporary files afterward.
         """
         logger.info("Cleaning chain PDBs using GROMACS pdb2gmx...")
-        files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir) if not f.startswith('#')]
-        files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir) if not f.startswith('#')]
+        files = [
+            os.path.join(self.prodir, f)
+            for f in os.listdir(self.prodir)
+            if not f.startswith("#")
+        ]
+        files += [
+            os.path.join(self.nucdir, f)
+            for f in os.listdir(self.nucdir)
+            if not f.startswith("#")
+        ]
         files = sorted(files)
         with cd(self.root):
             for file in files:
-                new_chain_id = file.split('chain_')[1][0]
-                self.gmx('pdb2gmx', f=file, o=file, **kwargs)
+                new_chain_id = file.split("chain_")[1][0]
+                self.gmx("pdb2gmx", f=file, o=file, **kwargs)
                 pdbtools.rename_chain_and_histidines_in_pdb(file, new_chain_id)
             clean_dir(self.prodir)
             clean_dir(self.nucdir)
-        clean_dir(self.root, 'topol*')
-        clean_dir(self.root, 'posre*')
+        clean_dir(self.root, "topol*")
+        clean_dir(self.root, "posre*")
 
     def get_go_maps(self, append=False):
         """
@@ -276,23 +299,30 @@ class gmxSystem:
         Args:
             append (bool, optional): If True, filters out maps that already exist in self.mapdir.
         """
-        print('Getting GO-maps', file=sys.stderr)
+        print("Getting GO-maps", file=sys.stderr)
         from reforge.martini import getgo
-        pdbs = sorted([os.path.join(self.prodir, file) for file in os.listdir(self.prodir)])
-        map_names = [f.replace('pdb', 'map') for f in os.listdir(self.prodir)]
+
+        pdbs = sorted(
+            [os.path.join(self.prodir, file) for file in os.listdir(self.prodir)]
+        )
+        map_names = [f.replace("pdb", "map") for f in os.listdir(self.prodir)]
         if append:
-            pdbs = [pdb for pdb, amap in zip(pdbs, map_names) if amap not in os.listdir(self.mapdir)]
+            pdbs = [
+                pdb
+                for pdb, amap in zip(pdbs, map_names)
+                if amap not in os.listdir(self.mapdir)
+            ]
         if pdbs:
             getgo.get_go(self.mapdir, pdbs)
         else:
-            print('Maps already there', file=sys.stderr)
+            print("Maps already there", file=sys.stderr)
 
     def martinize_proteins_go(self, append=False, **kwargs):
         """
         Performs virtual site-based GoMartini coarse-graining on protein PDBs.
         Uses Martinize2 from https://github.com/marrink-lab/vermouth-martinize
-        All **kwargs go directly to Martinize2. 
-        Run 'martinize2 -h' to see the full list of parameters 
+        All **kwargs go directly to Martinize2.
+        Run 'martinize2 -h' to see the full list of parameters
 
         Args:
             append (bool, optional): If True, only processes proteins for which
@@ -303,37 +333,42 @@ class gmxSystem:
         """
         logger.info("Working on proteins (GoMartini)...")
         from reforge.martini.martini_tools import martinize_go
+
         pdbs = sorted(os.listdir(self.prodir))
-        itps = [f.replace('pdb', 'itp') for f in pdbs]
+        itps = [f.replace("pdb", "itp") for f in pdbs]
         if append:
-            pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
+            pdbs = [
+                pdb
+                for pdb, itp in zip(pdbs, itps)
+                if itp not in os.listdir(self.topdir)
+            ]
         else:
-            clean_dir(self.topdir, 'go_*.itp')
+            clean_dir(self.topdir, "go_*.itp")
         # Create files for virtual CA parameters if they don't exist.
-        file = os.path.join(self.topdir, 'go_atomtypes.itp')
+        file = os.path.join(self.topdir, "go_atomtypes.itp")
         if not os.path.isfile(file):
-            with open(file, 'w') as f:
-                f.write(f'[ atomtypes ]\n')
-        file = os.path.join(self.topdir, 'go_nbparams.itp')
+            with open(file, "w") as f:
+                f.write(f"[ atomtypes ]\n")
+        file = os.path.join(self.topdir, "go_nbparams.itp")
         if not os.path.isfile(file):
-            with open(file, 'w') as f:
-                f.write(f'[ nonbond_params ]\n')
+            with open(file, "w") as f:
+                f.write(f"[ nonbond_params ]\n")
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
-            name = file.split('.')[0]
-            go_map = os.path.join(self.mapdir, f'{name}.map')
+            name = file.split(".")[0]
+            go_map = os.path.join(self.mapdir, f"{name}.map")
             martinize_go(self.root, self.topdir, in_pdb, cg_pdb, name=name, **kwargs)
         clean_dir(self.cgdir)
         clean_dir(self.root)
-        clean_dir(self.root, '*.itp')
+        clean_dir(self.root, "*.itp")
 
     def martinize_proteins_en(self, append=False, **kwargs):
         """
         Generates an elastic network for proteins using the Martini elastic network model.
         Uses Martinize2 from https://github.com/marrink-lab/vermouth-martinize
-        All **kwargs go directly to Martinize2. 
-        Run 'martinize2 -h' to see the full list of parameters 
+        All **kwargs go directly to Martinize2.
+        Run 'martinize2 -h' to see the full list of parameters
 
         Args:
             append (bool, optional): If True, processes only proteins that do not already
@@ -345,21 +380,26 @@ class gmxSystem:
         """
         logger.info("Working on proteins (Elastic Network)...")
         from .martini.martini_tools import martinize_en
+
         pdbs = sorted(os.listdir(self.prodir))
-        itps = [f.replace('pdb', 'itp') for f in pdbs]
+        itps = [f.replace("pdb", "itp") for f in pdbs]
         if append:
-            pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
+            pdbs = [
+                pdb
+                for pdb, itp in zip(pdbs, itps)
+                if itp not in os.listdir(self.topdir)
+            ]
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
-            new_itp = os.path.join(self.root, 'molecule_0.itp')
-            updated_itp = os.path.join(self.topdir, file.replace('pdb', 'itp'))
-            new_top = os.path.join(self.root, 'protein.top')
+            new_itp = os.path.join(self.root, "molecule_0.itp")
+            updated_itp = os.path.join(self.topdir, file.replace("pdb", "itp"))
+            new_top = os.path.join(self.root, "protein.top")
             martinize_en(self.root, self.topdir, in_pdb, cg_pdb, **kwargs)
             # Replace 'molecule_0' with the actual molecule name in the ITP.
             with open(new_itp, "r", encoding="utf-8") as f:
                 content = f.read()
-            updated_content = content.replace('molecule_0', f'{file[:-4]}', 1)
+            updated_content = content.replace("molecule_0", f"{file[:-4]}", 1)
             with open(updated_itp, "w", encoding="utf-8") as f:
                 f.write(updated_content)
             os.remove(new_top)
@@ -378,18 +418,21 @@ class gmxSystem:
         """
         logger.info("Working on nucleotides...")
         from .martini.martini_tools import martinize_nucleotide
+
         for file in os.listdir(self.nucdir):
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
             martinize_nucleotide(self.root, in_pdb, cg_pdb, **kwargs)
         bdir = os.getcwd()
-        nfiles = [f for f in os.listdir(self.root) if f.startswith('Nucleic')]
+        nfiles = [f for f in os.listdir(self.root) if f.startswith("Nucleic")]
         for f in nfiles:
             file = os.path.join(self.root, f)
-            command = f'sed -i s/Nucleic_/chain_/g {file}'
+            command = f"sed -i s/Nucleic_/chain_/g {file}"
             sp.run(command.split())
-            outfile = f.replace('Nucleic', 'chain')
-            shutil.move(os.path.join(self.root, file), os.path.join(self.topdir, outfile))
+            outfile = f.replace("Nucleic", "chain")
+            shutil.move(
+                os.path.join(self.root, file), os.path.join(self.topdir, outfile)
+            )
         clean_dir(self.cgdir)
         clean_dir(self.root)
 
@@ -405,13 +448,16 @@ class gmxSystem:
         """
         logger.info("Working on RNA molecules...")
         from reforge.martini.martini_tools import martinize_rna
+
         for file in os.listdir(self.nucdir):
-            molname = file.split('.')[0]
+            molname = file.split(".")[0]
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
-            cg_itp = os.path.join(self.topdir, molname + '.itp')
+            cg_itp = os.path.join(self.topdir, molname + ".itp")
             try:
-                martinize_rna(self.root, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
+                martinize_rna(
+                    self.root, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs
+                )
             except Exception as e:
                 sys.exit(f"Could not coarse-grain {in_pdb}: {e}")
 
@@ -427,8 +473,8 @@ class gmxSystem:
         Uses the AtomList from pdbtools to merge and renumber atoms, then calls the
         GROMACS 'editconf' command to finalize the solute PDB.
         """
-        kwargs.setdefault('d', 1.0)
-        kwargs.setdefault('bt', 'dodecahedron')
+        kwargs.setdefault("d", 1.0)
+        kwargs.setdefault("bt", "dodecahedron")
         logger.info("Merging CG PDB files into a single solute PDB...")
         with cd(self.root):
             cg_pdb_files = os.listdir(self.cgdir)
@@ -440,9 +486,9 @@ class gmxSystem:
                 all_atoms.extend(atoms)
             all_atoms.renumber()
             all_atoms.write_pdb(self.solupdb)
-            self.gmx('editconf', f=self.solupdb, o=self.solupdb, **kwargs)
+            self.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
 
-    def make_system_top(self, add_resolved_ions=False, prefix='chain'):
+    def make_system_top(self, add_resolved_ions=False, prefix="chain"):
         """
         Creates the system topology file by including all relevant ITP files and
         defining the system and molecule sections.
@@ -454,40 +500,44 @@ class gmxSystem:
         Writes the topology file (self.systop) with include directives and molecule counts.
         """
         logger.info("Writing system topology...")
-        itp_files = [f for f in os.listdir(self.topdir) if f.startswith(prefix) and f.endswith('.itp')]
+        itp_files = [
+            f
+            for f in os.listdir(self.topdir)
+            if f.startswith(prefix) and f.endswith(".itp")
+        ]
         itp_files = sort_upper_lower_digit(itp_files)
-        with open(self.systop, 'w') as f:
+        with open(self.systop, "w") as f:
             # Include section
             f.write(f'#define GO_VIRT"\n')
-            f.write(f'#define RUBBER_BANDS\n')
+            f.write(f"#define RUBBER_BANDS\n")
             f.write(f'#include "topol/martini_v3.0.0.itp"\n')
             f.write(f'#include "topol/martini_v3.0.0_rna.itp"\n')
             f.write(f'#include "topol/martini_ions.itp"\n')
-            if 'go_atomtypes.itp' in os.listdir(self.topdir):
+            if "go_atomtypes.itp" in os.listdir(self.topdir):
                 f.write(f'#include "topol/go_atomtypes.itp"\n')
                 f.write(f'#include "topol/go_nbparams.itp"\n')
             f.write(f'#include "topol/martini_v3.0.0_solvents_v1.itp"\n')
             f.write(f'#include "topol/martini_v3.0.0_phospholipids_v1.itp"\n')
             f.write(f'#include "topol/martini_v3.0.0_ions_v1.itp"\n')
-            f.write(f'\n')
+            f.write(f"\n")
             for filename in itp_files:
                 f.write(f'#include "topol/{filename}"\n')
             # System name and molecule count
-            f.write(f'\n[ system ]\n')
-            f.write(f'Martini system for {self.sysname}\n')
-            f.write('\n[molecules]\n')
-            f.write('; name\t\tnumber\n')
+            f.write(f"\n[ system ]\n")
+            f.write(f"Martini system for {self.sysname}\n")
+            f.write("\n[molecules]\n")
+            f.write("; name\t\tnumber\n")
             for filename in itp_files:
                 molecule_name = os.path.splitext(filename)[0]
-                f.write(f'{molecule_name}\t\t1\n')
+                f.write(f"{molecule_name}\t\t1\n")
             # Add resolved ions if requested.
             if add_resolved_ions:
                 ions = self.count_resolved_ions()
                 for ion, count in ions.items():
                     if count > 0:
-                        f.write(f'{ion}    {count}\n')
+                        f.write(f"{ion}    {count}\n")
 
-    def make_gro_file(self, d=1.25, bt='dodecahedron'):
+    def make_gro_file(self, d=1.25, bt="dodecahedron"):
         """
         Generates the final GROMACS GRO file from coarse-grained PDB files.
 
@@ -501,10 +551,10 @@ class gmxSystem:
             cg_pdb_files = os.listdir(self.cgdir)
             cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
             for file in cg_pdb_files:
-                if file.endswith('.pdb'):
+                if file.endswith(".pdb"):
                     pdb_file = os.path.join(self.cgdir, file)
-                    gro_file = pdb_file.replace('.pdb', '.gro').replace('cgpdb', 'gro')
-                    command = f'gmx_mpi editconf -f {pdb_file} -o {gro_file}'
+                    gro_file = pdb_file.replace(".pdb", ".gro").replace("cgpdb", "gro")
+                    command = f"gmx_mpi editconf -f {pdb_file} -o {gro_file}"
                     sp.run(command.split())
             # Merge all .gro files.
             gro_files = sorted(os.listdir(self.grodir))
@@ -512,21 +562,23 @@ class gmxSystem:
             for filename in gro_files:
                 if filename.endswith(".gro"):
                     filepath = os.path.join(self.grodir, filename)
-                    with open(filepath, 'r') as in_f:
+                    with open(filepath, "r") as in_f:
                         atom_count = int(in_f.readlines()[1].strip())
                         total_count += atom_count
-            with open(self.sysgro, 'w') as out_f:
+            with open(self.sysgro, "w") as out_f:
                 out_f.write(f"{self.sysname} \n")
                 out_f.write(f"  {total_count}\n")
                 for filename in gro_files:
                     if filename.endswith(".gro"):
                         filepath = os.path.join(self.grodir, filename)
-                        with open(filepath, 'r') as in_f:
+                        with open(filepath, "r") as in_f:
                             lines = in_f.readlines()[2:-1]
                             for line in lines:
                                 out_f.write(line)
                 out_f.write("10.00000   10.00000   10.00000\n")
-            command = f'gmx_mpi editconf -f {self.sysgro} -d {d} -bt {bt}  -o {self.sysgro}'
+            command = (
+                f"gmx_mpi editconf -f {self.sysgro} -d {d} -bt {bt}  -o {self.sysgro}"
+            )
             sp.run(command.split())
 
     def solvate(self, **kwargs):
@@ -538,20 +590,20 @@ class gmxSystem:
                     - cp: 'solute.pdb'
                     - cs: 'water.gro'
         """
-        kwargs.setdefault('cp', 'solute.pdb')
-        kwargs.setdefault('cs', 'water.gro')
-        self.gmx('solvate', p=self.systop, o=self.syspdb, **kwargs)
+        kwargs.setdefault("cp", "solute.pdb")
+        kwargs.setdefault("cs", "water.gro")
+        self.gmx("solvate", p=self.systop, o=self.syspdb, **kwargs)
 
-    def find_resolved_ions(self, mask=['MG', 'ZN', 'K']):
+    def find_resolved_ions(self, mask=["MG", "ZN", "K"]):
         """
         Identifies resolved ions in the input PDB file and writes them to 'ions.pdb'.
 
         Args:
             mask (list, optional): List of ion identifiers to look for (default: ['MG', 'ZN', 'K']).
         """
-        mask_atoms(self.inpdb, 'ions.pdb', mask=mask)
+        mask_atoms(self.inpdb, "ions.pdb", mask=mask)
 
-    def count_resolved_ions(self, ions=['MG', 'ZN', 'K']):
+    def count_resolved_ions(self, ions=["MG", "ZN", "K"]):
         """
         Counts the number of resolved ions in the system PDB file.
 
@@ -562,7 +614,7 @@ class gmxSystem:
             dict: A dictionary mapping ion names to their counts.
         """
         counts = {ion: 0 for ion in ions}
-        with open(self.syspdb, 'r') as file:
+        with open(self.syspdb, "r") as file:
             for line in file:
                 if line.startswith("ATOM") or line.startswith("HETATM"):
                     current_ion = line[12:16].strip()
@@ -570,7 +622,7 @@ class gmxSystem:
                         counts[current_ion] += 1
         return counts
 
-    def add_bulk_ions(self, solvent='W', **kwargs):
+    def add_bulk_ions(self, solvent="W", **kwargs):
         """
         Adds bulk ions to neutralize the system using GROMACS genion.
 
@@ -582,14 +634,21 @@ class gmxSystem:
                     - nname: 'CL'
                     - neutral: ''
         """
-        kwargs.setdefault('conc', 0.15)
-        kwargs.setdefault('pname', 'NA')
-        kwargs.setdefault('nname', 'CL')
-        kwargs.setdefault('neutral', '')
-        self.gmx('grompp', f='mdp/ions.mdp', c=self.syspdb, p=self.systop, o='ions.tpr')
-        self.gmx('genion', clinput='W\n', s='ions.tpr', p=self.systop, o=self.syspdb, **kwargs)
-        self.gmx('editconf', f=self.syspdb, o=self.sysgro)
-        clean_dir(self.root, 'ions.tpr')
+        kwargs.setdefault("conc", 0.15)
+        kwargs.setdefault("pname", "NA")
+        kwargs.setdefault("nname", "CL")
+        kwargs.setdefault("neutral", "")
+        self.gmx("grompp", f="mdp/ions.mdp", c=self.syspdb, p=self.systop, o="ions.tpr")
+        self.gmx(
+            "genion",
+            clinput="W\n",
+            s="ions.tpr",
+            p=self.systop,
+            o=self.syspdb,
+            **kwargs,
+        )
+        self.gmx("editconf", f=self.syspdb, o=self.sysgro)
+        clean_dir(self.root, "ions.tpr")
 
     def make_system_ndx(self, backbone_atoms=["CA", "P", "C1'"]):
         """
@@ -602,19 +661,21 @@ class gmxSystem:
         logger.info("Making index file...")
         system = pdbtools.pdb2atomlist(self.syspdb)
         solute = pdbtools.pdb2atomlist(self.solupdb)
-        solvent = AtomList(system[len(solute):])
-        backbone = solute.mask(backbone_atoms, mode='name')
-        system.write_ndx(self.sysndx, header=f'[ System ]', append=False, wrap=15)
-        solute.write_ndx(self.sysndx, header=f'[ Solute ]', append=True, wrap=15)
-        backbone.write_ndx(self.sysndx, header=f'[ Backbone ]', append=True, wrap=15)
-        solvent.write_ndx(self.sysndx, header=f'[ Solvent ]', append=True, wrap=15)
+        solvent = AtomList(system[len(solute) :])
+        backbone = solute.mask(backbone_atoms, mode="name")
+        system.write_ndx(self.sysndx, header=f"[ System ]", append=False, wrap=15)
+        solute.write_ndx(self.sysndx, header=f"[ Solute ]", append=True, wrap=15)
+        backbone.write_ndx(self.sysndx, header=f"[ Backbone ]", append=True, wrap=15)
+        solvent.write_ndx(self.sysndx, header=f"[ Solvent ]", append=True, wrap=15)
         chids = sorted(set(solute.chids))
         for chid in chids:
-            chain = solute.mask(chid, mode='chid')
-            chain.write_ndx(self.sysndx, header=f'[ chain_{chid} ]', append=True, wrap=15)
+            chain = solute.mask(chid, mode="chid")
+            chain.write_ndx(
+                self.sysndx, header=f"[ chain_{chid} ]", append=True, wrap=15
+            )
         logger.info(f"Written index to {self.sysndx}")
 
-    def get_mean_sem(self, pattern='dfi*.npy'):
+    def get_mean_sem(self, pattern="dfi*.npy"):
         """
         Calculates the mean and standard error of the mean (SEM) from numpy files.
 
@@ -628,8 +689,8 @@ class gmxSystem:
         datas = [np.load(file) for file in files]
         mean = np.average(datas, axis=0)
         sem = np.std(datas, axis=0) / np.sqrt(len(datas))
-        file_mean = os.path.join(self.datdir, pattern.split('*')[0] + '_av.npy')
-        file_err = os.path.join(self.datdir, pattern.split('*')[0] + '_err.npy')
+        file_mean = os.path.join(self.datdir, pattern.split("*")[0] + "_av.npy")
+        file_err = os.path.join(self.datdir, pattern.split("*")[0] + "_err.npy")
         np.save(file_mean, mean)
         np.save(file_err, sem)
 
@@ -644,13 +705,13 @@ class gmxSystem:
         Returns:
             numpy.ndarray: The time-dependent average.
         """
-        logger.info('Getting time-dependent averages')
+        logger.info("Getting time-dependent averages")
         files = io.pull_files(self.mddir, fname)
         if loop:
-            logger.info(f'Processing {files[0]}')
+            logger.info(f"Processing {files[0]}")
             average = np.load(files[0])
             for f in files[1:]:
-                logger.info(f'Processing {f}')
+                logger.info(f"Processing {f}")
                 arr = np.load(f)
                 average += arr
             average /= len(files)
@@ -658,7 +719,7 @@ class gmxSystem:
             arrays = [np.load(f) for f in files]
             average = np.average(arrays, axis=0)
         np.save(os.path.join(self.datdir, fname), average)
-        logger.info('Done!')
+        logger.info("Done!")
         return average
 
     def get_averages(self, rmsf=False, dfi=True, dci=True):
@@ -672,22 +733,26 @@ class gmxSystem:
         """
         all_files = io.pull_all_files(self.mddir)
         if rmsf:
-            files = io.filter_files(all_files, sw='rmsf.', ew='.xvg')
-            self.get_mean_sem(files, f'rmsf.csv', col=1)
+            files = io.filter_files(all_files, sw="rmsf.", ew=".xvg")
+            self.get_mean_sem(files, f"rmsf.csv", col=1)
             for chain in self.chains:
-                sw = f'rmsf_{chain}'
-                files = io.filter_files(all_files, sw=sw, ew='.xvg')
-                self.get_mean_sem(files, f'{sw}.csv', col=1)
+                sw = f"rmsf_{chain}"
+                files = io.filter_files(all_files, sw=sw, ew=".xvg")
+                self.get_mean_sem(files, f"{sw}.csv", col=1)
         if dfi:
-            print(f'Processing DFI', file=sys.stderr)
-            files = io.filter_files(all_files, sw='dfi', ew='.xvg')
-            self.get_mean_sem(files, f'dfi.csv', col=1)
+            print(f"Processing DFI", file=sys.stderr)
+            files = io.filter_files(all_files, sw="dfi", ew=".xvg")
+            self.get_mean_sem(files, f"dfi.csv", col=1)
         if dci:
-            print(f'Processing DCI', file=sys.stderr)
-            files = io.filter_files(all_files, sw='dci', ew='.xvg')
-            self.get_mean_sem_2d(files, out_fname=f'dci.csv', out_errname=f'dci_err.csv')
-            files = io.filter_files(all_files, sw='asym', ew='.xvg')
-            self.get_mean_sem_2d(files, out_fname=f'dci.csv', out_errname=f'dci_err.csv')
+            print(f"Processing DCI", file=sys.stderr)
+            files = io.filter_files(all_files, sw="dci", ew=".xvg")
+            self.get_mean_sem_2d(
+                files, out_fname=f"dci.csv", out_errname=f"dci_err.csv"
+            )
+            files = io.filter_files(all_files, sw="asym", ew=".xvg")
+            self.get_mean_sem_2d(
+                files, out_fname=f"dci.csv", out_errname=f"dci_err.csv"
+            )
 
     def initmd(self, runname):
         """
@@ -721,13 +786,13 @@ class MDRun(gmxSystem):
         super().__init__(sysdir, sysname)
         self.runname = runname
         self.rundir = os.path.join(self.mddir, self.runname)
-        self.rmsdir = os.path.join(self.rundir, 'rms_analysis')
-        self.covdir = os.path.join(self.rundir, 'cov_analysis')
-        self.lrtdir = os.path.join(self.rundir, 'lrt_analysis')
-        self.cludir = os.path.join(self.rundir, 'clusters')
-        self.pngdir = os.path.join(self.rundir, 'png')
-        self.str = os.path.join(self.rundir, 'mdc.pdb')  # Structure file
-        self.trj = os.path.join(self.rundir, 'mdc.trr')  # Trajectory file
+        self.rmsdir = os.path.join(self.rundir, "rms_analysis")
+        self.covdir = os.path.join(self.rundir, "cov_analysis")
+        self.lrtdir = os.path.join(self.rundir, "lrt_analysis")
+        self.cludir = os.path.join(self.rundir, "clusters")
+        self.pngdir = os.path.join(self.rundir, "png")
+        self.str = os.path.join(self.rundir, "mdc.pdb")  # Structure file
+        self.trj = os.path.join(self.rundir, "mdc.trr")  # Trajectory file
 
     def prepare_files(self):
         """
@@ -739,7 +804,7 @@ class MDRun(gmxSystem):
         os.makedirs(self.covdir, exist_ok=True)
         os.makedirs(self.lrtdir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
-        shutil.copy('atommass.dat', os.path.join(self.rundir, 'atommass.dat'))
+        shutil.copy("atommass.dat", os.path.join(self.rundir, "atommass.dat"))
 
     def empp(self, **kwargs):
         """
@@ -754,12 +819,12 @@ class MDRun(gmxSystem):
                     - n: Index file.
                     - o: Output TPR file ('em.tpr').
         """
-        kwargs.setdefault('f', os.path.join(self.mdpdir, 'em.mdp'))
-        kwargs.setdefault('c', self.sysgro)
-        kwargs.setdefault('r', self.sysgro)
-        kwargs.setdefault('p', self.systop)
-        kwargs.setdefault('n', self.sysndx)
-        kwargs.setdefault('o', 'em.tpr')
+        kwargs.setdefault("f", os.path.join(self.mdpdir, "em.mdp"))
+        kwargs.setdefault("c", self.sysgro)
+        kwargs.setdefault("r", self.sysgro)
+        kwargs.setdefault("p", self.systop)
+        kwargs.setdefault("n", self.sysndx)
+        kwargs.setdefault("o", "em.tpr")
         with cd(self.rundir):
             cli.gmx_grompp(**kwargs)
 
@@ -776,12 +841,12 @@ class MDRun(gmxSystem):
                     - n: Index file.
                     - o: Output TPR file ('hu.tpr').
         """
-        kwargs.setdefault('f', os.path.join(self.mdpdir, 'hu.mdp'))
-        kwargs.setdefault('c', 'em.gro')
-        kwargs.setdefault('r', 'em.gro')
-        kwargs.setdefault('p', self.systop)
-        kwargs.setdefault('n', self.sysndx)
-        kwargs.setdefault('o', 'hu.tpr')
+        kwargs.setdefault("f", os.path.join(self.mdpdir, "hu.mdp"))
+        kwargs.setdefault("c", "em.gro")
+        kwargs.setdefault("r", "em.gro")
+        kwargs.setdefault("p", self.systop)
+        kwargs.setdefault("n", self.sysndx)
+        kwargs.setdefault("o", "hu.tpr")
         with cd(self.rundir):
             cli.gmx_grompp(**kwargs)
 
@@ -798,12 +863,12 @@ class MDRun(gmxSystem):
                     - n: Index file.
                     - o: Output TPR file ('eq.tpr').
         """
-        kwargs.setdefault('f', os.path.join(self.mdpdir, 'eq.mdp'))
-        kwargs.setdefault('c', 'hu.gro')
-        kwargs.setdefault('r', 'hu.gro')
-        kwargs.setdefault('p', self.systop)
-        kwargs.setdefault('n', self.sysndx)
-        kwargs.setdefault('o', 'eq.tpr')
+        kwargs.setdefault("f", os.path.join(self.mdpdir, "eq.mdp"))
+        kwargs.setdefault("c", "hu.gro")
+        kwargs.setdefault("r", "hu.gro")
+        kwargs.setdefault("p", self.systop)
+        kwargs.setdefault("n", self.sysndx)
+        kwargs.setdefault("o", "eq.tpr")
         with cd(self.rundir):
             cli.gmx_grompp(**kwargs)
 
@@ -821,12 +886,12 @@ class MDRun(gmxSystem):
                     - n: Index file.
                     - o: Output TPR file ('md.tpr').
         """
-        kwargs.setdefault('f', os.path.join(self.mdpdir, 'md.mdp'))
-        kwargs.setdefault('c', 'eq.gro')
-        kwargs.setdefault('r', 'eq.gro')
-        kwargs.setdefault('p', self.systop)
-        kwargs.setdefault('n', self.sysndx)
-        kwargs.setdefault('o', 'md.tpr')
+        kwargs.setdefault("f", os.path.join(self.mdpdir, "md.mdp"))
+        kwargs.setdefault("c", "eq.gro")
+        kwargs.setdefault("r", "eq.gro")
+        kwargs.setdefault("p", self.systop)
+        kwargs.setdefault("n", self.sysndx)
+        kwargs.setdefault("o", "md.tpr")
         with cd(self.rundir):
             cli.gmx_grompp(**kwargs)
 
@@ -840,9 +905,9 @@ class MDRun(gmxSystem):
                     - nsteps: '-2'
                     - ntomp: '8'
         """
-        kwargs.setdefault('deffnm', 'md')
-        kwargs.setdefault('nsteps', '-2')
-        kwargs.setdefault('ntomp', '8')
+        kwargs.setdefault("deffnm", "md")
+        kwargs.setdefault("nsteps", "-2")
+        kwargs.setdefault("ntomp", "8")
         with cd(self.rundir):
             cli.gmx_mdrun(**kwargs)
 
@@ -868,11 +933,11 @@ class MDRun(gmxSystem):
                     - f: Trajectory file.
                     - o: Output xvg file.
         """
-        xvg_file = os.path.join(self.rmsdir, 'rmsf.xvg')
-        npy_file = os.path.join(self.rmsdir, 'rmsf.npy')
-        kwargs.setdefault('s', self.str)
-        kwargs.setdefault('f', self.trj)
-        kwargs.setdefault('o', xvg_file)
+        xvg_file = os.path.join(self.rmsdir, "rmsf.xvg")
+        npy_file = os.path.join(self.rmsdir, "rmsf.npy")
+        kwargs.setdefault("s", self.str)
+        kwargs.setdefault("f", self.trj)
+        kwargs.setdefault("o", xvg_file)
         with cd(self.rmsdir):
             cli.gmx_rmsf(clinput=clinput, **kwargs)
             io.xvg2npy(xvg_file, npy_file, usecols=[1])
@@ -888,11 +953,11 @@ class MDRun(gmxSystem):
                     - f: Trajectory file.
                     - o: Output xvg file.
         """
-        xvg_file = os.path.join(self.rmsdir, 'rmsd.xvg')
-        npy_file = os.path.join(self.rmsdir, 'rmsd.npy')
-        kwargs.setdefault('s', self.str)
-        kwargs.setdefault('f', self.trj)
-        kwargs.setdefault('o', xvg_file)
+        xvg_file = os.path.join(self.rmsdir, "rmsd.xvg")
+        npy_file = os.path.join(self.rmsdir, "rmsd.npy")
+        kwargs.setdefault("s", self.str)
+        kwargs.setdefault("f", self.trj)
+        kwargs.setdefault("o", xvg_file)
         with cd(self.rmsdir):
             cli.gmx_rms(clinput=clinput, **kwargs)
             io.xvg2npy(xvg_file, npy_file, usecols=[0, 1])
@@ -908,9 +973,9 @@ class MDRun(gmxSystem):
                     - s: Structure file.
                     - n: Index file.
         """
-        kwargs.setdefault('f', 'mdc.xtc')
-        kwargs.setdefault('s', 'mdc.pdb')
-        kwargs.setdefault('n', self.mdcndx)
+        kwargs.setdefault("f", "mdc.xtc")
+        kwargs.setdefault("s", "mdc.pdb")
+        kwargs.setdefault("n", self.mdcndx)
         with cd(self.rmsdir):
             cli.gmx_rdf(clinput=clinput, **kwargs)
 
@@ -922,8 +987,8 @@ class MDRun(gmxSystem):
             clinput (str, optional): Input for the clustering command.
             kwargs: Additional parameters for cluster.
         """
-        kwargs.setdefault('s', self.str)
-        kwargs.setdefault('f', self.trj)
+        kwargs.setdefault("s", self.str)
+        kwargs.setdefault("f", self.trj)
         with cd(self.cludir):
             cli.gmx_cluster(clinput=clinput, **kwargs)
 
@@ -936,8 +1001,8 @@ class MDRun(gmxSystem):
             kwargs: Additional parameters for extract-cluster. Defaults include:
                     - clusters: 'cluster.ndx'
         """
-        kwargs.setdefault('f', self.trj)
-        kwargs.setdefault('clusters', 'cluster.ndx')
+        kwargs.setdefault("f", self.trj)
+        kwargs.setdefault("clusters", "cluster.ndx")
         with cd(self.cludir):
             cli.gmx_extract_cluster(clinput=clinput, **kwargs)
 
@@ -952,9 +1017,9 @@ class MDRun(gmxSystem):
                     - s: Structure file.
                     - n: Index file.
         """
-        kwargs.setdefault('f', '../traj.xtc')
-        kwargs.setdefault('s', '../traj.pdb')
-        kwargs.setdefault('n', self.trjndx)
+        kwargs.setdefault("f", "../traj.xtc")
+        kwargs.setdefault("s", "../traj.pdb")
+        kwargs.setdefault("n", self.trjndx)
         with cd(self.covdir):
             cli.gmx_covar(self.covdir, clinput=clinput, **kwargs)
 
@@ -969,9 +1034,9 @@ class MDRun(gmxSystem):
                     - s: Structure file.
                     - v: Output eigenvector file.
         """
-        kwargs.setdefault('f', '../traj.xtc')
-        kwargs.setdefault('s', '../traj.pdb')
-        kwargs.setdefault('v', 'eigenvec.trr')
+        kwargs.setdefault("f", "../traj.xtc")
+        kwargs.setdefault("s", "../traj.pdb")
+        kwargs.setdefault("v", "eigenvec.trr")
         cli.gmx_anaeig(self.covdir, clinput=clinput, **kwargs)
 
     def make_edi(self, clinput=None, **kwargs):
@@ -984,11 +1049,13 @@ class MDRun(gmxSystem):
                     - f: Eigenvector file.
                     - s: Structure file.
         """
-        kwargs.setdefault('f', 'eigenvec.trr')
-        kwargs.setdefault('s', '../traj.pdb')
+        kwargs.setdefault("f", "eigenvec.trr")
+        kwargs.setdefault("s", "../traj.pdb")
         cli.gmx_make_edi(self.covdir, clinput=clinput, **kwargs)
 
-    def get_covmats(self, u=None, ag=None, sample_rate=1, b=50000, e=1000000, n=10, outtag='covmat'):
+    def get_covmats(
+        self, u=None, ag=None, sample_rate=1, b=50000, e=1000000, n=10, outtag="covmat"
+    ):
         """
         Calculates covariance matrices by splitting the trajectory into chunks.
 
@@ -1001,7 +1068,7 @@ class MDRun(gmxSystem):
             n (int, optional): Number of covariance matrices to calculate.
             outtag (str, optional): Tag prefix for output files.
         """
-        logger.info('Calculating covariance matrices...')
+        logger.info("Calculating covariance matrices...")
         if not u:
             u = mda.Universe(self.str, self.trj, in_memory=True)
         if not ag:
@@ -1010,9 +1077,9 @@ class MDRun(gmxSystem):
                 ag = u.atoms.select_atoms("name CA or name P or name C1'")
         positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e)
         mdm.calc_and_save_covmats(positions, outdir=self.covdir, n=n, outtag=outtag)
-        logger.info('Finished calculating covariance matrices!')
+        logger.info("Finished calculating covariance matrices!")
 
-    def get_pertmats(self, intag='covmat', outtag='pertmat', **kwargs):
+    def get_pertmats(self, intag="covmat", outtag="pertmat", **kwargs):
         """
         Calculates perturbation matrices from the covariance matrices.
 
@@ -1024,16 +1091,16 @@ class MDRun(gmxSystem):
         with cd(self.covdir):
             cov_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
             for cov_file in cov_files:
-                logger.info(f'  Processing covariance matrix {cov_file}')
+                logger.info(f"  Processing covariance matrix {cov_file}")
                 covmat = np.load(cov_file)
-                logger.info('  Calculating perturbation matrix')
+                logger.info("  Calculating perturbation matrix")
                 pertmat = mdm.perturbation_matrix(covmat)
                 pert_file = cov_file.replace(intag, outtag)
-                logger.info(f'  Saving perturbation matrix at {pert_file}')
+                logger.info(f"  Saving perturbation matrix at {pert_file}")
                 np.save(pert_file, pertmat)
-        logger.info('Finished calculating perturbation matrices!')
+        logger.info("Finished calculating perturbation matrices!")
 
-    def get_dfi(self, intag='pertmat', outtag='dfi', **kwargs):
+    def get_dfi(self, intag="pertmat", outtag="dfi", **kwargs):
         """
         Calculates Dynamic Flexibility Index (DFI) from perturbation matrices.
 
@@ -1045,17 +1112,17 @@ class MDRun(gmxSystem):
         with cd(self.covdir):
             pert_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
             for pert_file in pert_files:
-                logger.info(f'  Processing perturbation matrix {pert_file}')
+                logger.info(f"  Processing perturbation matrix {pert_file}")
                 pertmat = np.load(pert_file)
-                logger.info('  Calculating DFI')
+                logger.info("  Calculating DFI")
                 dfi = mdm.dfi(pertmat)
                 dfi_file = pert_file.replace(intag, outtag)
                 dfi_file = os.path.join(self.covdir, dfi_file)
                 np.save(dfi_file, dfi)
-                logger.info(f'  Saved DFI at {dfi_file}')
-        logger.info('Finished calculating DFIs!')
+                logger.info(f"  Saved DFI at {dfi_file}")
+        logger.info("Finished calculating DFIs!")
 
-    def get_dci(self, intag='pertmat', outtag='dci', asym=False):
+    def get_dci(self, intag="pertmat", outtag="dci", asym=False):
         """
         Calculates the Dynamic Coupling Index (DCI) from perturbation matrices.
 
@@ -1067,15 +1134,15 @@ class MDRun(gmxSystem):
         with cd(self.covdir):
             pert_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
             for pert_file in pert_files:
-                logger.info(f'  Processing perturbation matrix {pert_file}')
+                logger.info(f"  Processing perturbation matrix {pert_file}")
                 pertmat = np.load(pert_file)
-                logger.info('  Calculating DCI')
+                logger.info("  Calculating DCI")
                 dci_file = pert_file.replace(intag, outtag)
                 dci_file = os.path.join(self.covdir, dci_file)
                 dci = mdm.dci(pertmat, asym=asym)
                 np.save(dci_file, dci)
-                logger.info(f'  Saved DCI at {dci_file}')
-        logger.info('Finished calculating DCIs!')
+                logger.info(f"  Saved DCI at {dci_file}")
+        logger.info("Finished calculating DCIs!")
 
     def get_group_dci(self, groups=[], labels=[], asym=False):
         """
@@ -1088,24 +1155,24 @@ class MDRun(gmxSystem):
         """
         bdir = os.getcwd()
         os.chdir(self.covdir)
-        logger.info(f'Working dir: {self.covdir}')
-        pert_files = [f for f in sorted(os.listdir()) if f.startswith('pertmat')]
+        logger.info(f"Working dir: {self.covdir}")
+        pert_files = [f for f in sorted(os.listdir()) if f.startswith("pertmat")]
         for pert_file in pert_files:
-            logger.info(f'  Processing perturbation matrix {pert_file}')
+            logger.info(f"  Processing perturbation matrix {pert_file}")
             pertmat = np.load(pert_file)
-            logger.info('  Calculating group DCI')
+            logger.info("  Calculating group DCI")
             dcis = mdm.group_molecule_dci(pertmat, groups=groups, asym=asym)
             for dci, group, group_id in zip(dcis, groups, labels):
-                dci_file = pert_file.replace('pertmat', f'gdci_{group_id}')
+                dci_file = pert_file.replace("pertmat", f"gdci_{group_id}")
                 dci_file = os.path.join(self.covdir, dci_file)
                 np.save(dci_file, dci)
-                logger.info(f'  Saved group DCI at {dci_file}')
-            ch_dci_file = pert_file.replace('pertmat', f'ggdci')
+                logger.info(f"  Saved group DCI at {dci_file}")
+            ch_dci_file = pert_file.replace("pertmat", f"ggdci")
             ch_dci_file = os.path.join(self.covdir, ch_dci_file)
             ch_dci = mdm.group_group_dci(pertmat, groups=groups, asym=asym)
             np.save(ch_dci_file, ch_dci)
-            logger.info(f'  Saved group-group DCI at {ch_dci_file}')
-        logger.info('Finished calculating group DCIs!')
+            logger.info(f"  Saved group-group DCI at {ch_dci_file}")
+        logger.info("Finished calculating group DCIs!")
         os.chdir(bdir)
 
     def get_rmsf_by_chain(self, **kwargs):
@@ -1120,15 +1187,19 @@ class MDRun(gmxSystem):
                     - res: Whether to output per-residue RMSF (default: 'no').
                     - fit: Whether to fit the trajectory (default: 'yes').
         """
-        kwargs.setdefault('f', 'traj.xtc')
-        kwargs.setdefault('s', 'traj.pdb')
-        kwargs.setdefault('n', self.trjndx)
-        kwargs.setdefault('res', 'no')
-        kwargs.setdefault('fit', 'yes')
+        kwargs.setdefault("f", "traj.xtc")
+        kwargs.setdefault("s", "traj.pdb")
+        kwargs.setdefault("n", self.trjndx)
+        kwargs.setdefault("res", "no")
+        kwargs.setdefault("fit", "yes")
         for idx, chain in enumerate(self.chains):
             idx = idx + 1
-            cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n{idx}\n',
-                           o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
+            cli.gmx_rmsf(
+                self.rundir,
+                clinput=f"{idx}\n{idx}\n",
+                o=os.path.join(self.rmsdir, f"rmsf_{chain}.xvg"),
+                **kwargs,
+            )
 
     def get_rmsd_by_chain(self, **kwargs):
         """
@@ -1140,13 +1211,17 @@ class MDRun(gmxSystem):
                     - s: Structure file.
                     - n: Index file.
         """
-        kwargs.setdefault('f', 'traj.xtc')
-        kwargs.setdefault('s', 'traj.pdb')
-        kwargs.setdefault('n', self.trjndx)
+        kwargs.setdefault("f", "traj.xtc")
+        kwargs.setdefault("s", "traj.pdb")
+        kwargs.setdefault("n", self.trjndx)
         for idx, chain in enumerate(self.chains):
             idx = idx + 1
-            cli.gmx_rmsf(self.rundir, clinput=f'{idx}\n',
-                           o=os.path.join(self.rmsdir, f'rmsf_{chain}.xvg'), **kwargs)
+            cli.gmx_rmsf(
+                self.rundir,
+                clinput=f"{idx}\n",
+                o=os.path.join(self.rmsdir, f"rmsf_{chain}.xvg"),
+                **kwargs,
+            )
 
     def get_power_spectrum_xv(self, resp_ids=[], pert_ids=[], **kwargs):
         """
@@ -1157,19 +1232,20 @@ class MDRun(gmxSystem):
             pert_ids (list, optional): List of perturbation IDs.
             kwargs: Additional parameters for the power spectrum calculation.
         """
-        kwargs.setdefault('f', '../traj.trr')
-        kwargs.setdefault('s', '../traj.pdb')
+        kwargs.setdefault("f", "../traj.trr")
+        kwargs.setdefault("s", "../traj.pdb")
         bdir = os.getcwd()
         os.chdir(self.covdir)
-        print(f'Working dir: {self.covdir}', file=sys.stderr)
+        print(f"Working dir: {self.covdir}", file=sys.stderr)
         mdm.calc_power_spectrum_xv(resp_ids, pert_ids, **kwargs)
-        print('Finished calculating', file=sys.stderr)
+        print("Finished calculating", file=sys.stderr)
         os.chdir(bdir)
 
 
 ################################################################################
 # Utils
 ################################################################################
+
 
 def sort_upper_lower_digit(alist):
     """

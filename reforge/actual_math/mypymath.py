@@ -1,11 +1,11 @@
 """
 File: mypymath.py
 Description:
-    This module contains internal routines for performing various mathematical 
-    and signal processing operations required in our workflow. It includes FFT‐based 
-    correlation computations (serial, parallel, and GPU versions), covariance matrix 
-    calculation, dynamic coupling and flexibility index evaluations, sparse matrix 
-    inversion on both CPU and GPU, and additional helper functions such as percentile 
+    This module contains internal routines for performing various mathematical
+    and signal processing operations required in our workflow. It includes FFT‐based
+    correlation computations (serial, parallel, and GPU versions), covariance matrix
+    calculation, dynamic coupling and flexibility index evaluations, sparse matrix
+    inversion on both CPU and GPU, and additional helper functions such as percentile
     computation and FFT-based convolution.
 
     Note: This module is intended for internal use only.
@@ -46,6 +46,7 @@ from reforge.utils import timeit, memprofit, logger
 ## For time dependent analysis ##
 ##############################################################
 
+
 @memprofit
 @timeit
 def _sfft_ccf(x, y, ntmax=None, center=False, loop=True, dtype=None):
@@ -53,8 +54,8 @@ def _sfft_ccf(x, y, ntmax=None, center=False, loop=True, dtype=None):
     Compute the correlation function between two signals using a serial FFT-based method.
 
     This internal function calculates the correlation function <x(t)y(0)> by applying
-    the Fast Fourier Transform (FFT) to the input signals. It optionally mean-centers the 
-    signals and computes the inverse FFT of their product. When loop=True, it iterates over 
+    the Fast Fourier Transform (FFT) to the input signals. It optionally mean-centers the
+    signals and computes the inverse FFT of their product. When loop=True, it iterates over
     coordinate pairs for improved memory efficiency on large arrays.
 
     Parameters:
@@ -71,30 +72,33 @@ def _sfft_ccf(x, y, ntmax=None, center=False, loop=True, dtype=None):
     logger.info("Computing CCFs serially.")
     if not dtype:
         dtype = x.dtype
+
     def compute_correlation(*args):
         i, j, x_f, y_f, ntmax, counts = args
         corr = ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real
         return corr * counts
+
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
-    if not ntmax or ntmax > (nt+1)//2:
-        ntmax = (nt+1)//2   
+    if not ntmax or ntmax > (nt + 1) // 2:
+        ntmax = (nt + 1) // 2
     if center:
         x = x - np.mean(x, axis=-1, keepdims=True)
         y = y - np.mean(y, axis=-1, keepdims=True)
-    x_f = fft(x, n=2*nt, axis=-1)
-    y_f = fft(y, n=2*nt, axis=-1)
-    counts = np.arange(nt, nt-ntmax, -1).astype(dtype)**-1
+    x_f = fft(x, n=2 * nt, axis=-1)
+    y_f = fft(y, n=2 * nt, axis=-1)
+    counts = np.arange(nt, nt - ntmax, -1).astype(dtype) ** -1
     if loop:
         corr = np.zeros((nx, ny, ntmax), dtype=dtype)
         for i in range(nx):
             for j in range(ny):
                 corr[i, j] = compute_correlation(i, j, x_f, y_f, ntmax, counts)
     else:
-        corr = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
+        corr = np.einsum("it,jt->ijt", x_f, np.conj(y_f))
         corr = ifft(corr, axis=-1).real / nt
     return corr
+
 
 @memprofit
 @timeit
@@ -118,30 +122,35 @@ def _pfft_ccf(x, y, ntmax=None, center=False, dtype=None):
     logger.info("Computing CCFs in parallel.")
     if not dtype:
         dtype = x.dtype
+
     def compute_correlation(*args):
         i, j, x_f, y_f, ntmax, counts = args
         corr = ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real
         return corr * counts
+
     def parallel_fft_correlation(x_f, y_f, ntmax, nt, n_jobs=-1):
         nx, ny = x_f.shape[0], y_f.shape[0]
         results = Parallel(n_jobs=n_jobs)(
-            delayed(compute_correlation)(i, j, x_f, y_f, ntmax, nt) 
-            for i in range(nx) for j in range(ny)
+            delayed(compute_correlation)(i, j, x_f, y_f, ntmax, nt)
+            for i in range(nx)
+            for j in range(ny)
         )
-        return np.array(results).reshape(nx, ny, ntmax)   
+        return np.array(results).reshape(nx, ny, ntmax)
+
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
-    if not ntmax or ntmax > (nt+1)//2:
-        ntmax = (nt+1)//2   
+    if not ntmax or ntmax > (nt + 1) // 2:
+        ntmax = (nt + 1) // 2
     if center:
         x = x - np.mean(x, axis=-1, keepdims=True)
         y = y - np.mean(y, axis=-1, keepdims=True)
-    x_f = fft(x, n=2*nt, axis=-1)
-    y_f = fft(y, n=2*nt, axis=-1)
-    counts = np.arange(nt, nt-ntmax, -1).astype(dtype)**-1
+    x_f = fft(x, n=2 * nt, axis=-1)
+    y_f = fft(y, n=2 * nt, axis=-1)
+    counts = np.arange(nt, nt - ntmax, -1).astype(dtype) ** -1
     corr = parallel_fft_correlation(x_f, y_f, ntmax, counts)
     return corr
+
 
 @memprofit
 @timeit
@@ -149,8 +158,8 @@ def _gfft_ccf(x, y, ntmax=None, center=True, dtype=None):
     """
     Compute the correlation function on the GPU using FFT.
 
-    This function leverages CuPy to compute the FFT-based correlation of the input 
-    signals on the GPU. It converts the input arrays to CuPy arrays, performs zero-padding 
+    This function leverages CuPy to compute the FFT-based correlation of the input
+    signals on the GPU. It converts the input arrays to CuPy arrays, performs zero-padding
     to avoid circular effects, and returns the real component of the computed inverse FFT.
 
     Parameters:
@@ -169,29 +178,33 @@ def _gfft_ccf(x, y, ntmax=None, center=True, dtype=None):
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
-    if not ntmax or ntmax > (nt+1)//2:
-        ntmax = (nt+1)//2   
+    if not ntmax or ntmax > (nt + 1) // 2:
+        ntmax = (nt + 1) // 2
     if center:
         x = x - np.mean(x, axis=-1, keepdims=True)
         y = y - np.mean(y, axis=-1, keepdims=True)
     x = cp.asarray(x, dtype=dtype)
     y = cp.asarray(y, dtype=dtype)
-    x_f = cp.fft.fft(x, n=2*nt, axis=-1)
-    y_f = cp.fft.fft(y, n=2*nt, axis=-1)
-    counts = cp.arange(nt, nt-ntmax, -1, dtype=dtype)**-1
+    x_f = cp.fft.fft(x, n=2 * nt, axis=-1)
+    y_f = cp.fft.fft(y, n=2 * nt, axis=-1)
+    counts = cp.arange(nt, nt - ntmax, -1, dtype=dtype) ** -1
     counts = counts[None, :]
     corr = cp.zeros((nx, ny, ntmax), dtype=dtype)
     for i in range(nx):
-        corr_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax] * counts
+        corr_row = (
+            cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :ntmax]
+            * counts
+        )
         corr[i, :, :] = corr_row
     return corr
 
-def _fft_ccf(*args, mode='serial', **kwargs):
+
+def _fft_ccf(*args, mode="serial", **kwargs):
     """
     Unified wrapper for FFT-based correlation functions.
 
-    This function dispatches to one of the internal FFT correlation routines based on 
-    the specified 'mode': 'serial' for _sfft_ccf, 'parallel' for _pfft_ccf, or 'gpu' 
+    This function dispatches to one of the internal FFT correlation routines based on
+    the specified 'mode': 'serial' for _sfft_ccf, 'parallel' for _pfft_ccf, or 'gpu'
     for _gfft_ccf.
 
     Parameters:
@@ -205,22 +218,23 @@ def _fft_ccf(*args, mode='serial', **kwargs):
     Raises:
         ValueError: If an unsupported mode is specified.
     """
-    if mode == 'serial':
+    if mode == "serial":
         return _sfft_ccf(*args, **kwargs)
-    if mode == 'parallel':
+    if mode == "parallel":
         return _pfft_ccf(*args, **kwargs)
-    if mode == 'gpu':
+    if mode == "gpu":
         return _gfft_ccf(*args, **kwargs).get()
     raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
 
+
 @memprofit
 @timeit
-def _ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=None):
+def _ccf(xs, ys, ntmax=None, n=1, mode="parallel", center=True, dtype=None):
     """
     Compute the average cross-correlation function of two signals by segmenting them.
 
-    The function splits the input signals into 'n' segments, computes the correlation 
-    for each segment using the specified mode ('parallel', 'serial', or 'gpu'), and 
+    The function splits the input signals into 'n' segments, computes the correlation
+    for each segment using the specified mode ('parallel', 'serial', or 'gpu'), and
     returns their average.
 
     Parameters:
@@ -243,9 +257,9 @@ def _ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=None):
     nx = xs[0].shape[0]
     ny = ys[0].shape[0]
     nt = xs[-1].shape[1]
-    logger.info(f'Splitting trajectory into {n} parts')
-    if not ntmax or ntmax > (nt+1)//2:
-        ntmax = (nt+1)//2   
+    logger.info(f"Splitting trajectory into {n} parts")
+    if not ntmax or ntmax > (nt + 1) // 2:
+        ntmax = (nt + 1) // 2
     corr = np.zeros((nx, ny, ntmax), dtype=dtype)
     for x, y in zip(xs, ys):
         corr_n = _fft_ccf(x, y, ntmax=ntmax, mode=mode, center=center, dtype=dtype)
@@ -255,6 +269,7 @@ def _ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=None):
     logger.debug(np.sqrt(np.average(corr**2)))
     logger.info(f"Finished calculating cross-correlation.")
     return corr
+
 
 @memprofit
 @timeit
@@ -283,14 +298,17 @@ def _gfft_conv(x, y, loop=False, dtype=None):
     ny = x.shape[1]
     x = cp.asarray(x, dtype=dtype)
     y = cp.asarray(y, dtype=dtype)
-    x_f = cp.fft.fft(x, n=2*nt, axis=-1)
-    y_f = cp.fft.fft(y, n=2*nt, axis=-1)
-    counts = cp.arange(nt, 0, -1, dtype=dtype)**-1
+    x_f = cp.fft.fft(x, n=2 * nt, axis=-1)
+    y_f = cp.fft.fft(y, n=2 * nt, axis=-1)
+    counts = cp.arange(nt, 0, -1, dtype=dtype) ** -1
     if loop:
         conv = np.zeros((nx, ny, nt), dtype=dtype)
         counts = counts[None, :]
         for i in range(nx):
-            conv_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :nt] * counts
+            conv_row = (
+                cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :nt]
+                * counts
+            )
             conv[i, :, :] = conv_row.get()
     else:
         counts = counts[None, None, :]
@@ -298,14 +316,15 @@ def _gfft_conv(x, y, loop=False, dtype=None):
         conv = conv.get()
     return conv
 
+
 @memprofit
 @timeit
 def _sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     """
     Compute the Cross-Power Spectral Density (CPSD) between two signals using FFT.
 
-    This function calculates the CPSD by applying FFT to the input signals and then 
-    computing the product of one FFT with the complex conjugate of the other. Depending 
+    This function calculates the CPSD by applying FFT to the input signals and then
+    computing the product of one FFT with the complex conjugate of the other. Depending
     on the 'loop' parameter, the computation can be done iteratively or in a vectorized manner.
 
     Parameters:
@@ -319,12 +338,14 @@ def _sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     Returns:
         np.ndarray: The computed CPSD.
     """
+
     def compute_cpsd(*args):
         i, j, x_f, y_f, ntmax, nt = args
         cpsd_ij = x_f[i] * np.conj(y_f[j])
         cpsd_ij = np.abs(cpsd_ij) / nt
         cpsd_ij = np.average(cpsd_ij)
         return cpsd_ij
+
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
@@ -340,10 +361,11 @@ def _sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
             for j in range(ny):
                 cpsd[i, j] = compute_cpsd(i, j, x_f, y_f, ntmax, nt)
     else:
-        cpsd = np.einsum('it,jt->ijt', x_f, np.conj(y_f))
-        cpsd = cpsd[:, :, :ntmax]    
-    cpsd = np.abs(cpsd) 
+        cpsd = np.einsum("it,jt->ijt", x_f, np.conj(y_f))
+        cpsd = cpsd[:, :, :ntmax]
+    cpsd = np.abs(cpsd)
     return cpsd
+
 
 @memprofit
 @timeit
@@ -351,7 +373,7 @@ def _covariance_matrix(positions, dtype=np.float32):
     """
     Calculate the position-position covariance matrix from a set of positions.
 
-    The function centers the input positions by subtracting their mean and then 
+    The function centers the input positions by subtracting their mean and then
     computes the covariance matrix using NumPy's covariance function.
 
     Parameters:
@@ -366,9 +388,11 @@ def _covariance_matrix(positions, dtype=np.float32):
     covmat = np.cov(centered_positions, rowvar=True, dtype=dtype)
     return np.array(covmat)
 
+
 ##############################################################
 ## DCI and DFI Calculations ##
 ##############################################################
+
 
 def _dci(perturbation_matrix, asym=False):
     """
@@ -384,16 +408,21 @@ def _dci(perturbation_matrix, asym=False):
     Returns:
         np.ndarray: The computed DCI matrix.
     """
-    dci_val = perturbation_matrix * perturbation_matrix.shape[0] / np.sum(perturbation_matrix, axis=-1, keepdims=True)
+    dci_val = (
+        perturbation_matrix
+        * perturbation_matrix.shape[0]
+        / np.sum(perturbation_matrix, axis=-1, keepdims=True)
+    )
     if asym:
         dci_val = dci_val - dci_val.T
     return dci_val
+
 
 def _group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
     """
     Compute the DCI for specified groups of atoms relative to the entire molecule.
 
-    For each group in 'groups', the function computes a DCI value by averaging the normalized 
+    For each group in 'groups', the function computes a DCI value by averaging the normalized
     entries in the perturbation matrix corresponding to that group.
 
     Parameters:
@@ -415,11 +444,12 @@ def _group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
         dcis.append(dci_val)
     return dcis
 
+
 def _group_group_dci(perturbation_matrix, groups=[[]], asym=False):
     """
     Calculate the DCI matrix between different groups of atoms.
 
-    For each pair of groups, the function computes the average normalized perturbation 
+    For each pair of groups, the function computes the average normalized perturbation
     over all atom pairs between the groups.
 
     Parameters:
@@ -437,7 +467,7 @@ def _group_group_dci(perturbation_matrix, groups=[[]], asym=False):
     for ids1 in groups:
         temp = []
         for ids2 in groups:
-            idx1, idx2 = np.meshgrid(ids1, ids2, indexing='ij')
+            idx1, idx2 = np.meshgrid(ids1, ids2, indexing="ij")
             top = np.sum(dci_tot[idx1, idx2]) * perturbation_matrix.shape[0]
             bot = len(ids1) * len(ids2)
             dci_val = top / bot
@@ -445,9 +475,11 @@ def _group_group_dci(perturbation_matrix, groups=[[]], asym=False):
         dcis.append(temp)
     return dcis
 
+
 ##############################################################
 ## Elastic Network Model (ENM) Functions ##
 ##############################################################
+
 
 @timeit
 @memprofit
@@ -455,8 +487,8 @@ def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, dtype=None, **k
     """
     Compute the inverse of a sparse matrix on the CPU using eigen-decomposition.
 
-    This function computes a truncated inverse of the input matrix by calculating its 
-    eigenvalues and eigenvectors, inverting the eigenvalues (with the smallest 'k_singular' 
+    This function computes a truncated inverse of the input matrix by calculating its
+    eigenvalues and eigenvectors, inverting the eigenvalues (with the smallest 'k_singular'
     set to zero), and reconstructing the inverse matrix.
 
     Parameters:
@@ -469,19 +501,20 @@ def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, dtype=None, **k
     Returns:
         np.ndarray: The computed inverse matrix.
     """
-    kwargs.setdefault('k', n_modes)
-    kwargs.setdefault('which', 'SA')
-    kwargs.setdefault('tol', 0)
-    kwargs.setdefault('maxiter', None)
+    kwargs.setdefault("k", n_modes)
+    kwargs.setdefault("which", "SA")
+    kwargs.setdefault("tol", 0)
+    kwargs.setdefault("maxiter", None)
     if dtype == None:
         dtype = matrix.dtype
     matrix = np.asarray(matrix, dtype=dtype)
     evals, evecs = scipy.sparse.linalg.eigsh(matrix, **kwargs)
     inv_evals = evals**-1
-    inv_evals[:k_singular] = 0.0 
+    inv_evals[:k_singular] = 0.0
     logger.info(evals[:20])
     inv_matrix = np.matmul(evecs, np.matmul(np.diag(inv_evals), evecs.T))
     return inv_matrix
+
 
 @timeit
 @memprofit
@@ -489,7 +522,7 @@ def _inverse_matrix_cpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs)
     """
     Compute the inverse of a matrix on the CPU using dense eigen-decomposition.
 
-    This function uses NumPy's dense eigenvalue solver to compute the eigen-decomposition 
+    This function uses NumPy's dense eigenvalue solver to compute the eigen-decomposition
     of the input matrix, then inverts the eigenvalues (with the smallest 'k_singular' set to zero)
     and reconstructs the inverse matrix.
 
@@ -517,14 +550,15 @@ def _inverse_matrix_cpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs)
     inv_matrix = np.matmul(evecs, np.matmul(np.diag(inv_evals), evecs.T))
     return inv_matrix
 
+
 @timeit
 @memprofit
 def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, dtype=None, **kwargs):
     """
     Compute the inverse of a sparse matrix on the GPU using eigen-decomposition.
 
-    The input matrix is transferred to the GPU and decomposed using CuPy's sparse 
-    eigensolver. The eigenvalues are inverted (with the smallest 'k_singular' set to zero) 
+    The input matrix is transferred to the GPU and decomposed using CuPy's sparse
+    eigensolver. The eigenvalues are inverted (with the smallest 'k_singular' set to zero)
     and the inverse matrix is reconstructed.
 
     Parameters:
@@ -537,27 +571,30 @@ def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, dtype=None, **k
     Returns:
         cp.ndarray: The inverse matrix computed on the GPU.
     """
-    kwargs.setdefault('k', n_modes)
-    kwargs.setdefault('which', 'SA')
-    kwargs.setdefault('tol', 0)
-    kwargs.setdefault('maxiter', None)
+    kwargs.setdefault("k", n_modes)
+    kwargs.setdefault("which", "SA")
+    kwargs.setdefault("tol", 0)
+    kwargs.setdefault("maxiter", None)
     if dtype == None:
         dtype = matrix.dtype
     matrix_gpu = cp.asarray(matrix, dtype)
     evals_gpu, evecs_gpu = cupyx.scipy.sparse.linalg.eigsh(matrix_gpu, **kwargs)
     inv_evals_gpu = evals_gpu**-1
-    inv_evals_gpu[:k_singular] = 0.0  
+    inv_evals_gpu[:k_singular] = 0.0
     logger.info(evals_gpu[:20])
-    inv_matrix_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
+    inv_matrix_gpu = cp.matmul(
+        evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T)
+    )
     return inv_matrix_gpu
 
+
 @timeit
-@memprofit   
+@memprofit
 def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs):
     """
     Compute the inverse of a matrix on the GPU using dense eigen-decomposition.
 
-    This function uses CuPy's dense eigenvalue solver to compute the eigen-decomposition 
+    This function uses CuPy's dense eigenvalue solver to compute the eigen-decomposition
     of the input matrix, then inverts the eigenvalues (with the smallest 'k_singular' set to zero)
     and reconstructs the inverse matrix.
 
@@ -576,22 +613,26 @@ def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs)
     matrix_gpu = cp.asarray(matrix, dtype)
     evals_gpu, evecs_gpu = cp.linalg.eigh(matrix_gpu, **kwargs)
     evals_gpu = evals_gpu[:n_modes]
-    evecs_gpu = evecs_gpu[:,:n_modes]
+    evecs_gpu = evecs_gpu[:, :n_modes]
     inv_evals_gpu = evals_gpu**-1
-    inv_evals_gpu[:k_singular] = 0.0   
+    inv_evals_gpu[:k_singular] = 0.0
     logger.info(evals_gpu[:20])
-    inv_matrix_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
+    inv_matrix_gpu = cp.matmul(
+        evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T)
+    )
     return inv_matrix_gpu
+
 
 ##############################################################
 ## Miscellaneous Functions ##
 ##############################################################
 
+
 def percentile(x):
     """
     Compute the empirical percentile rank for each element in an array.
 
-    The function returns an array where each element is replaced by its percentile 
+    The function returns an array where each element is replaced by its percentile
     rank based on the sorted order of the input.
 
     Parameters:
@@ -605,7 +646,7 @@ def percentile(x):
     for n in range(len(x)):
         px[n] = np.where(sorted_x == n)[0][0] / len(x)
     return px
-    
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     pass

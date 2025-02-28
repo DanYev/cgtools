@@ -1,9 +1,9 @@
 """
 File: mycmath_cuda.py
 Description:
-    This module contains CUDA kernel versions of internal routines for performing optimized mathematical 
-    operations. It includes functions for calculating position-position Hessian matrices and perturbation 
-    matrices derived from coordinate and covariance data, accelerated using CUDA. The computations are 
+    This module contains CUDA kernel versions of internal routines for performing optimized mathematical
+    operations. It includes functions for calculating position-position Hessian matrices and perturbation
+    matrices derived from coordinate and covariance data, accelerated using CUDA. The computations are
     implemented as CUDA kernels and are intended for internal use within the reForge workflow.
 
 Usage Example:
@@ -41,7 +41,6 @@ Date: YYYY-MM-DD
 import cupy as cp
 import numpy as np
 from math import ceil
-
 
 
 # ---------------------------------------------------------------------
@@ -89,10 +88,11 @@ void hessian_kernel(const int n, const double cutoff, const double spring_consta
 """
 hessian_kernel = cp.RawKernel(hessian_kernel_code, "hessian_kernel")
 
+
 def hessian_cuda(vec, cutoff=1.2, spring_constant=1000.0, dd=0):
     """
     CUDA version of _hessian.
-    
+
     Parameters
     ----------
     vec : cupy.ndarray
@@ -103,7 +103,7 @@ def hessian_cuda(vec, cutoff=1.2, spring_constant=1000.0, dd=0):
         Base spring constant.
     dd : int, optional
         Exponent modifier.
-    
+
     Returns
     -------
     cupy.ndarray
@@ -116,9 +116,11 @@ def hessian_cuda(vec, cutoff=1.2, spring_constant=1000.0, dd=0):
     grid_x = int(ceil(n / block[0]))
     grid_y = int(ceil(n / block[1]))
     grid = (grid_x, grid_y)
-    hessian_kernel(grid, block,
-                   (n, cutoff, spring_constant, dd, vec, hess, hessian_size))
+    hessian_kernel(
+        grid, block, (n, cutoff, spring_constant, dd, vec, hess, hessian_size)
+    )
     return hess
+
 
 # ---------------------------------------------------------------------
 # CUDA Kernel for computing a perturbation matrix from a covariance matrix.
@@ -168,17 +170,20 @@ void perturbation_matrix_kernel(const int m, const int n, const double *covar, d
     }
 }
 """
-perturbation_matrix_kernel = cp.RawKernel(perturbation_matrix_kernel_code, "perturbation_matrix_kernel")
+perturbation_matrix_kernel = cp.RawKernel(
+    perturbation_matrix_kernel_code, "perturbation_matrix_kernel"
+)
+
 
 def perturbation_matrix_cuda(covar):
     """
     CUDA version of _perturbation_matrix.
-    
+
     Parameters
     ----------
     covar : cupy.ndarray
         Covariance matrix of shape (3*m, 3*n) with type float64.
-    
+
     Returns
     -------
     cupy.ndarray
@@ -194,6 +199,7 @@ def perturbation_matrix_cuda(covar):
     grid = (grid_x, grid_y)
     perturbation_matrix_kernel(grid, block, (m, n, covar, pert, M))
     return pert
+
 
 # ---------------------------------------------------------------------
 # CUDA Kernel for computing block-wise perturbation matrix (td version).
@@ -219,12 +225,15 @@ void td_perturbation_matrix_kernel(const int m, const int n, const double *ccf, 
     }
 }
 """
-td_perturbation_matrix_kernel = cp.RawKernel(td_perturbation_matrix_kernel_code, "td_perturbation_matrix_kernel")
+td_perturbation_matrix_kernel = cp.RawKernel(
+    td_perturbation_matrix_kernel_code, "td_perturbation_matrix_kernel"
+)
+
 
 def td_perturbation_matrix_cuda(ccf, normalize=True):
     """
     CUDA version of _td_perturbation_matrix.
-    
+
     Parameters
     ----------
     ccf : cupy.ndarray
@@ -232,7 +241,7 @@ def td_perturbation_matrix_cuda(ccf, normalize=True):
     normalize : bool, optional
         If True, the output matrix is normalized so that the total sum equals 1.
         (Normalization is performed on the CPU after kernel execution.)
-    
+
     Returns
     -------
     cupy.ndarray
