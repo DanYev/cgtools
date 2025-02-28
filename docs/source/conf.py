@@ -25,6 +25,7 @@ extensions = [
 ]
 
 autosummary_generate = True
+autodoc_member_order = 'bysource'
 # This skips generating an autodoc of the test module
 # when using the autosummary directive that is included
 # by default in api.rst
@@ -72,3 +73,8 @@ pygments_style = "default"
 # html_theme = 'alabaster'
 html_theme = "sphinx_rtd_theme"
 html_static_path = ['_static']
+html_css_files = [
+    'custom.css',
+]
+
+autodoc_member_order = 'bysource'

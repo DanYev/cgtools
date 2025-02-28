@@ -6,10 +6,9 @@ Description:
     classes include:
 
       - GmxSystem: Provides methods to prepare simulation files, process PDB
-                   files, run GROMACS commands, and perform various analyses on
-                   MD data.
+        files, run GROMACS commands, and perform various analyses on MD data.
       - MDRun: A subclass of GmxSystem dedicated to executing MD simulations and
-               performing post-processing tasks (e.g., RMSF, RMSD, covariance analysis).
+        performing post-processing tasks (e.g., RMSF, RMSD, covariance analysis).
 
     Additionally, utility functions (e.g., sort_upper_lower_digit) are included
     to assist in organizing GROMACS multichain files.
@@ -46,7 +45,6 @@ from reforge.utils import cd, clean_dir, logger
 # GMX system class
 ################################################################################
 
-
 class GmxSystem:
     """Class to set up and analyze protein-nucleotide-lipid systems for MD
     simulations using GROMACS.
@@ -76,10 +74,10 @@ class GmxSystem:
     def __init__(self, sysdir, sysname):
         """Initializes the MD system with required directories and file paths.
 
-        Args:
+        Parameters
+        ----------
             sysdir (str): Base directory for the system files.
             sysname (str): Name of the MD system.
-            kwargs: Additional keyword arguments (currently unused).
 
         Sets up paths for various files required for coarse-grained MD simulation.
         """
@@ -125,8 +123,9 @@ class GmxSystem:
     def gmx(self, command="-h", clinput=None, clean_wdir=True, **kwargs):
         """Executes a GROMACS command using the reforge CLI.
 
-        Args:
-            command (str): The GROMACS command to run (default: '-h').
+        Parameters
+        ----------
+            command (str): The GROMACS command to run (default: "-h").
             clinput (str, optional): Input to pass to the command's stdin.
             clean_wdir (bool, optional): If True, cleans the working directory after execution.
             kwargs: Additional keyword arguments to pass to the CLI.
@@ -139,8 +138,7 @@ class GmxSystem:
                 clean_dir()
 
     def prepare_files(self):
-        """Prepares the simulation by creating necessary directories and
-        copying input files.
+        """Prepares the simulation by creating necessary directories and copying input files.
 
         The method:
           - Creates directories for proteins, nucleotides, topologies, maps, mdp files,
@@ -175,11 +173,11 @@ class GmxSystem:
     def sort_input_pdb(self, in_pdb="inpdb.pdb"):
         """Sorts and renames atoms and chains in the input PDB file.
 
-        Args:
-            in_pdb (str): Path to the input PDB file (default: 'inpdb.pdb').
+        Parameters
+        ----------
+            in_pdb (str): Path to the input PDB file (default: "inpdb.pdb").
 
-        Uses pdbtools to perform sorting and renaming, saving the result to the
-        designated input PDB path.
+        Uses pdbtools to perform sorting and renaming, saving the result to the designated input PDB path.
         """
         with cd(self.root):
             pdbtools.sort_pdb(in_pdb, self.inpdb)
@@ -187,7 +185,8 @@ class GmxSystem:
     def clean_pdb_mm(self, in_pdb=None, **kwargs):
         """Cleans the starting PDB file using PDBfixer (via OpenMM).
 
-        Args:
+        Parameters
+        ----------
             in_pdb (str, optional): Input PDB file to clean. If None, uses self.inpdb.
             kwargs: Additional keyword arguments for pdbtools.clean_pdb.
         """
@@ -199,11 +198,12 @@ class GmxSystem:
     def clean_pdb_gmx(self, in_pdb=None, **kwargs):
         """Cleans the PDB file using GROMACS pdb2gmx tool.
 
-        Args:
+        Parameters
+        ----------
             in_pdb (str, optional): Input PDB file to clean. If None, uses self.inpdb.
             kwargs: Additional keyword arguments for the GROMACS command.
 
-        After running pdb2gmx, cleans up temporary files (e.g., 'topol*' and 'posre*').
+        After running pdb2gmx, cleans up temporary files (e.g., "topol*" and "posre*").
         """
         logger.info("Cleaning the PDB using GROMACS pdb2gmx...")
         if not in_pdb:
@@ -215,11 +215,9 @@ class GmxSystem:
     def split_chains(self):
         """Splits the input PDB file into separate files for each chain.
 
-        Nucleotide chains are saved to self.nucdir, while protein chains
-        are saved to self.prodir. The determination is based on the
-        residue names.
+        Nucleotide chains are saved to self.nucdir, while protein chains are saved to self.prodir.
+        The determination is based on the residue names.
         """
-
         def it_is_nucleotide(atoms):
             # Check if the chain is nucleotide based on residue name.
             return atoms.resnames[0] in self.NUC_RESNAMES
@@ -237,8 +235,7 @@ class GmxSystem:
     def clean_chains_mm(self, **kwargs):
         """Cleans chain-specific PDB files using PDBfixer (OpenMM).
 
-        Kwargs are passed to pdbtools.clean_pdb. Also renames chain IDs
-        based on the file name.
+        Kwargs are passed to pdbtools.clean_pdb. Also renames chain IDs based on the file name.
         """
         kwargs.setdefault("add_missing_atoms", True)
         kwargs.setdefault("add_hydrogens", True)
@@ -255,23 +252,16 @@ class GmxSystem:
     def clean_chains_gmx(self, **kwargs):
         """Cleans chain-specific PDB files using GROMACS pdb2gmx tool.
 
-        Args:
+        Parameters
+        ----------
             kwargs: Additional keyword arguments for the GROMACS command.
 
         Processes all files in the protein and nucleotide directories, renaming chains
         and cleaning temporary files afterward.
         """
         logger.info("Cleaning chain PDBs using GROMACS pdb2gmx...")
-        files = [
-            os.path.join(self.prodir, f)
-            for f in os.listdir(self.prodir)
-            if not f.startswith("#")
-        ]
-        files += [
-            os.path.join(self.nucdir, f)
-            for f in os.listdir(self.nucdir)
-            if not f.startswith("#")
-        ]
+        files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir) if not f.startswith("#")]
+        files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir) if not f.startswith("#")]
         files = sorted(files)
         with cd(self.root):
             for file in files:
@@ -284,103 +274,85 @@ class GmxSystem:
         clean_dir(self.root, "posre*")
 
     def get_go_maps(self, append=False):
-        """
-        Retrieves GO contact maps for proteins using the RCSU server.
+        """Retrieves GO contact maps for proteins using the RCSU server.
+        
         http://info.ifpan.edu.pl/~rcsu/rcsu/index.html
 
-        Args:
+        Parameters
+        ----------
             append (bool, optional): If True, filters out maps that already exist in self.mapdir.
         """
         print("Getting GO-maps", file=sys.stderr)
         from reforge.martini import getgo
-
-        pdbs = sorted(
-            [os.path.join(self.prodir, file) for file in os.listdir(self.prodir)]
-        )
+        pdbs = sorted([os.path.join(self.prodir, file) for file in os.listdir(self.prodir)])
         map_names = [f.replace("pdb", "map") for f in os.listdir(self.prodir)]
         if append:
-            pdbs = [
-                pdb
-                for pdb, amap in zip(pdbs, map_names)
-                if amap not in os.listdir(self.mapdir)
-            ]
+            pdbs = [pdb for pdb, amap in zip(pdbs, map_names) if amap not in os.listdir(self.mapdir)]
         if pdbs:
             getgo.get_go(self.mapdir, pdbs)
         else:
             print("Maps already there", file=sys.stderr)
 
     def martinize_proteins_go(self, append=False, **kwargs):
-        """
-        Performs virtual site-based GoMartini coarse-graining on protein PDBs.
-        Uses Martinize2 from https://github.com/marrink-lab/vermouth-martinize
-        All **kwargs go directly to Martinize2.
-        Run 'martinize2 -h' to see the full list of parameters
+        """Performs virtual site-based GoMartini coarse-graining on protein PDBs.
 
-        Args:
-            append (bool, optional): If True, only processes proteins for which
-                                     corresponding topology files do not already exist.
+        Uses Martinize2 from https://github.com/marrink-lab/vermouth-martinize.
+        All keyword arguments are passed directly to Martinize2. Run `martinize2 -h` to see the full list of parameters.
+
+        Parameters
+        ----------
+            append (bool, optional): If True, only processes proteins for which corresponding topology files do not already exist.
             kwargs: Additional parameters for the martinize_go function.
 
         Generates .itp files and cleans temporary directories after processing.
         """
         logger.info("Working on proteins (GoMartini)...")
         from reforge.martini.martini_tools import martinize_go
-
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace("pdb", "itp") for f in pdbs]
         if append:
-            pdbs = [
-                pdb
-                for pdb, itp in zip(pdbs, itps)
-                if itp not in os.listdir(self.topdir)
-            ]
+            pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
         else:
             clean_dir(self.topdir, "go_*.itp")
         # Create files for virtual CA parameters if they don't exist.
-        file = os.path.join(self.topdir, "go_atomtypes.itp")
-        if not os.path.isfile(file):
-            with open(file, "w") as f:
+        file_path = os.path.join(self.topdir, "go_atomtypes.itp")
+        if not os.path.isfile(file_path):
+            with open(file_path, "w") as f:
                 f.write("[ atomtypes ]\n")
-        file = os.path.join(self.topdir, "go_nbparams.itp")
-        if not os.path.isfile(file):
-            with open(file, "w") as f:
+        file_path = os.path.join(self.topdir, "go_nbparams.itp")
+        if not os.path.isfile(file_path):
+            with open(file_path, "w") as f:
                 f.write("[ nonbond_params ]\n")
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
             name = file.split(".")[0]
-            go_map = os.path.join(self.mapdir, "{name}.map")
+            # Note: Use f-string formatting correctly.
+            go_map = os.path.join(self.mapdir, f"{name}.map")
             martinize_go(self.root, self.topdir, in_pdb, cg_pdb, name=name, **kwargs)
         clean_dir(self.cgdir)
         clean_dir(self.root)
         clean_dir(self.root, "*.itp")
 
     def martinize_proteins_en(self, append=False, **kwargs):
-        """
-        Generates an elastic network for proteins using the Martini elastic network model.
-        Uses Martinize2 from https://github.com/marrink-lab/vermouth-martinize
-        All **kwargs go directly to Martinize2.
-        Run 'martinize2 -h' to see the full list of parameters
+        """Generates an elastic network for proteins using the Martini elastic network model.
 
-        Args:
-            append (bool, optional): If True, processes only proteins that do not already
-                                     have corresponding topology files.
+        Uses Martinize2 from https://github.com/marrink-lab/vermouth-martinize.
+        All keyword arguments are passed directly to Martinize2. Run `martinize2 -h` to see the full list of parameters.
+
+        Parameters
+        ----------
+            append (bool, optional): If True, processes only proteins that do not already have corresponding topology files.
             kwargs: Elastic network parameters (e.g., elastic bond force constants, cutoffs).
 
-        Modifies the generated ITP files by replacing default molecule names with the actual
-        protein names and cleans temporary files.
+        Modifies the generated ITP files by replacing the default molecule name with the actual protein name and cleans temporary files.
         """
         logger.info("Working on proteins (Elastic Network)...")
         from .martini.martini_tools import martinize_en
-
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace("pdb", "itp") for f in pdbs]
         if append:
-            pdbs = [
-                pdb
-                for pdb, itp in zip(pdbs, itps)
-                if itp not in os.listdir(self.topdir)
-            ]
+            pdbs = [pdb for pdb, itp in zip(pdbs, itps) if itp not in os.listdir(self.topdir)]
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
@@ -391,7 +363,7 @@ class GmxSystem:
             # Replace 'molecule_0' with the actual molecule name in the ITP.
             with open(new_itp, "r", encoding="utf-8") as f:
                 content = f.read()
-            updated_content = content.replace("molecule_0", f"{file[:-4]}", 1)
+            updated_content = content.replace("molecule_0", file[:-4], 1)
             with open(updated_itp, "w", encoding="utf-8") as f:
                 f.write(updated_content)
             os.remove(new_top)
@@ -399,10 +371,10 @@ class GmxSystem:
         clean_dir(self.root)
 
     def martinize_nucleotides(self, **kwargs):
-        """Performs coarse-graining on nucleotide PDBs using the
-        martinize_nucleotide tool.
+        """Performs coarse-graining on nucleotide PDBs using the martinize_nucleotide tool.
 
-        Args:
+        Parameters
+        ----------
             append (bool, optional): If True, skips already existing topologies.
             kwargs: Additional parameters for the martinize_nucleotide function.
 
@@ -410,27 +382,25 @@ class GmxSystem:
         """
         logger.info("Working on nucleotides...")
         from .martini.martini_tools import martinize_nucleotide
-
         for file in os.listdir(self.nucdir):
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
             martinize_nucleotide(self.root, in_pdb, cg_pdb, **kwargs)
         nfiles = [f for f in os.listdir(self.root) if f.startswith("Nucleic")]
         for f in nfiles:
-            file = os.path.join(self.root, f)
-            command = f"sed -i s/Nucleic_/chain_/g {file}"
+            file_path = os.path.join(self.root, f)
+            command = f"sed -i s/Nucleic_/chain_/g {file_path}"
             sp.run(command.split())
             outfile = f.replace("Nucleic", "chain")
-            shutil.move(
-                os.path.join(self.root, file), os.path.join(self.topdir, outfile)
-            )
+            shutil.move(file_path, os.path.join(self.topdir, outfile))
         clean_dir(self.cgdir)
         clean_dir(self.root)
 
     def martinize_rna(self, append=False, **kwargs):
         """Coarse-grains RNA molecules using the martinize_rna tool.
 
-        Args:
+        Parameters
+        ----------
             append (bool, optional): If True, processes only RNA files without existing topologies.
             kwargs: Additional parameters for the martinize_rna function.
 
@@ -440,26 +410,25 @@ class GmxSystem:
         from reforge.martini.martini_tools import martinize_rna
         files = os.listdir(self.nucdir)
         if append:
-            files = [f for f in files if f.replace('pdb', 'itp') not in self.topdir]
+            files = [f for f in files if f.replace("pdb", "itp") not in self.topdir]
         for file in files:
             molname = file.split(".")[0]
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
             cg_itp = os.path.join(self.topdir, molname + ".itp")
             try:
-                martinize_rna(
-                    self.root, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs
-                )
+                martinize_rna(self.root, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
             except Exception as e:
                 sys.exit(f"Could not coarse-grain {in_pdb}: {e}")
 
     def make_solute_pdb(self, **kwargs):
         """Merges coarse-grained PDB files into a single solute PDB file.
 
-        Args:
+        Parameters
+        ----------
             kwargs: Additional keyword arguments for the GROMACS editconf command. Defaults:
                 - d: Distance parameter (default: 1.0)
-                - bt: Box type (default: 'dodecahedron')
+                - bt: Box type (default: "dodecahedron").
 
         Uses the AtomList from pdbtools to merge and renumber atoms, then calls the
         GROMACS 'editconf' command to finalize the solute PDB.
@@ -480,21 +449,18 @@ class GmxSystem:
             self.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
 
     def make_system_top(self, add_resolved_ions=False, prefix="chain"):
-        """Creates the system topology file by including all relevant ITP files
-        and defining the system and molecule sections.
+        """Creates the system topology file by including all relevant ITP files and
+        defining the system and molecule sections.
 
-        Args:
+        Parameters
+        ----------
             add_resolved_ions (bool, optional): If True, counts and includes resolved ions.
-            prefix (str, optional): Prefix for ITP files to include (default: 'chain').
+            prefix (str, optional): Prefix for ITP files to include (default: "chain").
 
         Writes the topology file (self.systop) with include directives and molecule counts.
         """
         logger.info("Writing system topology...")
-        itp_files = [
-            f
-            for f in os.listdir(self.topdir)
-            if f.startswith(prefix) and f.endswith(".itp")
-        ]
+        itp_files = [f for f in os.listdir(self.topdir) if f.startswith(prefix) and f.endswith(".itp")]
         itp_files = sort_upper_lower_digit(itp_files)
         with open(self.systop, "w") as f:
             # Include section
@@ -511,15 +477,15 @@ class GmxSystem:
             f.write('#include "topol/martini_v3.0.0_ions_v1.itp"\n')
             f.write("\n")
             for filename in itp_files:
-                f.write('#include "topol/{filename}"\n')
+                f.write(f'#include "topol/{filename}"\n')
             # System name and molecule count
             f.write("\n[ system ]\n")
-            f.write("Martini system for {self.sysname}\n")
+            f.write(f"Martini system for {self.sysname}\n")
             f.write("\n[molecules]\n")
             f.write("; name\t\tnumber\n")
             for filename in itp_files:
                 molecule_name = os.path.splitext(filename)[0]
-                f.write("{molecule_name}\t\t1\n")
+                f.write(f"{molecule_name}\t\t1\n")
             # Add resolved ions if requested.
             if add_resolved_ions:
                 ions = self.count_resolved_ions()
@@ -530,9 +496,10 @@ class GmxSystem:
     def make_gro_file(self, d=1.25, bt="dodecahedron"):
         """Generates the final GROMACS GRO file from coarse-grained PDB files.
 
-        Args:
+        Parameters
+        ----------
             d (float, optional): Distance parameter for the editconf command (default: 1.25).
-            bt (str, optional): Box type for the editconf command (default: 'dodecahedron').
+            bt (str, optional): Box type for the editconf command (default: "dodecahedron").
 
         Converts PDB files to GRO files, merges them, and adjusts the system box.
         """
@@ -565,40 +532,43 @@ class GmxSystem:
                             for line in lines:
                                 out_f.write(line)
                 out_f.write("10.00000   10.00000   10.00000\n")
-            command = (
-                f"gmx_mpi editconf -f {self.sysgro} -d {d} -bt {bt}  -o {self.sysgro}"
-            )
+            command = f"gmx_mpi editconf -f {self.sysgro} -d {d} -bt {bt}  -o {self.sysgro}"
             sp.run(command.split())
 
     def solvate(self, **kwargs):
         """Solvates the system using GROMACS solvate command.
 
-        Args:
+        Parameters
+        ----------
             kwargs: Additional parameters for the solvate command. Defaults:
-                    - cp: 'solute.pdb'
-                    - cs: 'water.gro'
+                - cp: "solute.pdb"
+                - cs: "water.gro"
         """
         kwargs.setdefault("cp", "solute.pdb")
         kwargs.setdefault("cs", "water.gro")
         self.gmx("solvate", p=self.systop, o=self.syspdb, **kwargs)
 
     def find_resolved_ions(self, mask=["MG", "ZN", "K"]):
-        """Identifies resolved ions in the input PDB file and writes them to
-        'ions.pdb'.
+        """Identifies resolved ions in the input PDB file and writes them to "ions.pdb".
 
-        Args:
-            mask (list, optional): List of ion identifiers to look for (default: ['MG', 'ZN', 'K']).
+        Parameters
+        ----------
+            mask (list, optional): List of ion identifiers to look for (default: ["MG", "ZN", "K"]).
         """
         mask_atoms(self.inpdb, "ions.pdb", mask=mask)
 
     def count_resolved_ions(self, ions=["MG", "ZN", "K"]):
         """Counts the number of resolved ions in the system PDB file.
 
-        Args:
-            ions (list, optional): List of ion names to count (default: ['MG', 'ZN', 'K']).
+        Parameters
+        ----------
+        ions (list, optional): 
+            List of ion names to count (default: ["MG", "ZN", "K"]).
 
-        Returns:
-            dict: A dictionary mapping ion names to their counts.
+        Returns
+        -------  
+        dict: 
+            A dictionary mapping ion names to their counts.
         """
         counts = {ion: 0 for ion in ions}
         with open(self.syspdb, "r") as file:
@@ -610,62 +580,57 @@ class GmxSystem:
         return counts
 
     def add_bulk_ions(self, solvent="W", **kwargs):
-        """Adds bulk ions to neutralize the system using GROMACS genion.
+        """ Adds bulk ions to neutralize the system using GROMACS genion.
 
-        Args:
-            solvent (str, optional): Solvent residue name (default: 'W').
-            kwargs: Additional parameters for genion. Defaults include:
-                - conc: 0.15
-                - pname: 'NA'
-                - nname: 'CL'
-                - neutral: ''
+        Parameters
+        ----------
+        solvent (str, optional): 
+            Solvent residue name (default: "W").
+        kwargs (dict):
+            Additional parameters for genion. Defaults include:
+            - conc: 0.15
+            - pname: "NA"
+            - nname: "CL"
+            - neutral: ""
         """
         kwargs.setdefault("conc", 0.15)
         kwargs.setdefault("pname", "NA")
         kwargs.setdefault("nname", "CL")
         kwargs.setdefault("neutral", "")
         self.gmx("grompp", f="mdp/ions.mdp", c=self.syspdb, p=self.systop, o="ions.tpr")
-        self.gmx(
-            "genion",
-            clinput="W\n",
-            s="ions.tpr",
-            p=self.systop,
-            o=self.syspdb,
-            **kwargs,
-        )
+        self.gmx("genion", clinput="W\n", s="ions.tpr", p=self.systop, o=self.syspdb, **kwargs)
         self.gmx("editconf", f=self.syspdb, o=self.sysgro)
         clean_dir(self.root, "ions.tpr")
 
     def make_system_ndx(self, backbone_atoms=["CA", "P", "C1'"]):
-        """Creates an index (NDX) file for the system, separating solute,
-        backbone, solvent, and individual chains.
+        """Creates an index (NDX) file for the system, separating solute, backbone, solvent, and individual chains.
 
-        Args:
-            backbone_atoms (list, optional): List of atom names to include in the backbone (default: ["CA", "P", "C1'"]).
+        Parameters
+        ----------
+            backbone_atoms : list, optional
+                List of atom names to include in the backbone (default: ["CA", "P", "C1'"]).
         """
         logger.info("Making index file...")
         system = pdbtools.pdb2atomlist(self.syspdb)
         solute = pdbtools.pdb2atomlist(self.solupdb)
-        solvent = AtomList(system[len(solute) :])
+        solvent = AtomList(system[len(solute):])
         backbone = solute.mask(backbone_atoms, mode="name")
-        system.write_ndx(self.sysndx, header=f"[ System ]", append=False, wrap=15)
-        solute.write_ndx(self.sysndx, header=f"[ Solute ]", append=True, wrap=15)
-        backbone.write_ndx(self.sysndx, header=f"[ Backbone ]", append=True, wrap=15)
-        solvent.write_ndx(self.sysndx, header=f"[ Solvent ]", append=True, wrap=15)
+        system.write_ndx(self.sysndx, header="[ System ]", append=False, wrap=15)
+        solute.write_ndx(self.sysndx, header="[ Solute ]", append=True, wrap=15)
+        backbone.write_ndx(self.sysndx, header="[ Backbone ]", append=True, wrap=15)
+        solvent.write_ndx(self.sysndx, header="[ Solvent ]", append=True, wrap=15)
         chids = sorted(set(solute.chids))
         for chid in chids:
             chain = solute.mask(chid, mode="chid")
-            chain.write_ndx(
-                self.sysndx, header=f"[ chain_{chid} ]", append=True, wrap=15
-            )
+            chain.write_ndx(self.sysndx, header=f"[ chain_{chid} ]", append=True, wrap=15)
         logger.info(f"Written index to {self.sysndx}")
 
     def get_mean_sem(self, pattern="dfi*.npy"):
-        """Calculates the mean and standard error of the mean (SEM) from numpy
-        files.
+        """Calculates the mean and standard error of the mean (SEM) from numpy files.
 
-        Args:
-            pattern (str, optional): Filename pattern to search for (default: 'dfi*.npy').
+        Parameters
+        ----------
+            pattern (str, optional): Filename pattern to search for (default: "dfi*.npy").
 
         Saves the calculated averages and errors as numpy files in the data directory.
         """
@@ -682,7 +647,8 @@ class GmxSystem:
     def get_td_averages(self, fname, loop=True):
         """Calculates time-dependent averages from a set of numpy files.
 
-        Args:
+        Parameters
+        ----------
             fname (str): Filename pattern to pull files from the MD runs directory.
             loop (bool, optional): If True, processes files sequentially (default: True).
 
@@ -707,10 +673,10 @@ class GmxSystem:
         return average
 
     def get_averages(self, rmsf=False, dfi=True, dci=True):
-        """Computes averages for various analyses (RMSF, DFI, DCI) based on MD
-        run data.
+        """Computes averages for various analyses (RMSF, DFI, DCI) based on MD run data.
 
-        Args:
+        Parameters
+        ----------
             rmsf (bool, optional): If True, computes RMSF averages.
             dfi (bool, optional): If True, computes DFI averages.
             dci (bool, optional): If True, computes DCI averages.
@@ -718,30 +684,27 @@ class GmxSystem:
         all_files = io.pull_all_files(self.mddir)
         if rmsf:
             files = io.filter_files(all_files, sw="rmsf.", ew=".xvg")
-            self.get_mean_sem(files, f"rmsf.csv", col=1)
+            self.get_mean_sem(files, "rmsf.csv", col=1)
             for chain in self.chains:
                 sw = f"rmsf_{chain}"
                 files = io.filter_files(all_files, sw=sw, ew=".xvg")
                 self.get_mean_sem(files, f"{sw}.csv", col=1)
         if dfi:
-            print(f"Processing DFI", file=sys.stderr)
+            print("Processing DFI", file=sys.stderr)
             files = io.filter_files(all_files, sw="dfi", ew=".xvg")
-            self.get_mean_sem(files, f"dfi.csv", col=1)
+            self.get_mean_sem(files, "dfi.csv", col=1)
         if dci:
-            print(f"Processing DCI", file=sys.stderr)
+            print("Processing DCI", file=sys.stderr)
             files = io.filter_files(all_files, sw="dci", ew=".xvg")
-            self.get_mean_sem_2d(
-                files, out_fname=f"dci.csv", out_errname=f"dci_err.csv"
-            )
+            self.get_mean_sem_2d(files, out_fname="dci.csv", out_errname="dci_err.csv")
             files = io.filter_files(all_files, sw="asym", ew=".xvg")
-            self.get_mean_sem_2d(
-                files, out_fname=f"dci.csv", out_errname=f"dci_err.csv"
-            )
+            self.get_mean_sem_2d(files, out_fname="dci.csv", out_errname="dci_err.csv")
 
     def initmd(self, runname):
         """Initializes a new MD run.
 
-        Args:
+        Parameters
+        ----------
             runname (str): Name for the MD run.
 
         Returns:
@@ -753,13 +716,14 @@ class GmxSystem:
 
 class MDRun(GmxSystem):
     """Subclass of GmxSystem for executing molecular dynamics (MD) simulations
-    and performing post-processing analyses."""
+    and performing post-processing analyses.
+    """
 
     def __init__(self, sysdir, sysname, runname):
-        """Initializes the MD run environment with additional directories for
-        analysis.
+        """Initializes the MD run environment with additional directories for analysis.
 
-        Args:
+        Parameters
+        ----------
             sysdir (str): Base directory for the system.
             sysname (str): Name of the MD system.
             runname (str): Name for the MD run.
@@ -776,8 +740,7 @@ class MDRun(GmxSystem):
         self.trj = os.path.join(self.rundir, "mdc.trr")  # Trajectory file
 
     def prepare_files(self):
-        """Creates necessary directories for the MD run and copies essential
-        files."""
+        """Creates necessary directories for the MD run and copies essential files."""
         os.makedirs(self.rundir, exist_ok=True)
         os.makedirs(self.rmsdir, exist_ok=True)
         os.makedirs(self.cludir, exist_ok=True)
@@ -789,14 +752,15 @@ class MDRun(GmxSystem):
     def empp(self, **kwargs):
         """Prepares the energy minimization run using GROMACS grompp.
 
-        Args:
+        Parameters
+        ----------
             kwargs: Additional parameters for grompp. Defaults include:
-                    - f: Path to 'em.mdp' file.
-                    - c: Structure file.
-                    - r: Reference structure.
-                    - p: Topology file.
-                    - n: Index file.
-                    - o: Output TPR file ('em.tpr').
+                - f: Path to "em.mdp" file.
+                - c: Structure file.
+                - r: Reference structure.
+                - p: Topology file.
+                - n: Index file.
+                - o: Output TPR file ("em.tpr").
         """
         kwargs.setdefault("f", os.path.join(self.mdpdir, "em.mdp"))
         kwargs.setdefault("c", self.sysgro)
@@ -810,14 +774,15 @@ class MDRun(GmxSystem):
     def hupp(self, **kwargs):
         """Prepares the heat-up phase using GROMACS grompp.
 
-        Args:
+        Parameters
+        ----------
             kwargs: Additional parameters for grompp. Defaults include:
-                    - f: Path to 'hu.mdp'.
-                    - c: Starting structure ('em.gro').
-                    - r: Reference structure ('em.gro').
-                    - p: Topology file.
-                    - n: Index file.
-                    - o: Output TPR file ('hu.tpr').
+                - f: Path to "hu.mdp".
+                - c: Starting structure ("em.gro").
+                - r: Reference structure ("em.gro").
+                - p: Topology file.
+                - n: Index file.
+                - o: Output TPR file ("hu.tpr").
         """
         kwargs.setdefault("f", os.path.join(self.mdpdir, "hu.mdp"))
         kwargs.setdefault("c", "em.gro")
@@ -831,14 +796,15 @@ class MDRun(GmxSystem):
     def eqpp(self, **kwargs):
         """Prepares the equilibration phase using GROMACS grompp.
 
-        Args:
+        Parameters
+        ----------
             kwargs: Additional parameters for grompp. Defaults include:
-                    - f: Path to 'eq.mdp'.
-                    - c: Starting structure ('hu.gro').
-                    - r: Reference structure ('hu.gro').
-                    - p: Topology file.
-                    - n: Index file.
-                    - o: Output TPR file ('eq.tpr').
+                - f: Path to "eq.mdp".
+                - c: Starting structure ("hu.gro").
+                - r: Reference structure ("hu.gro").
+                - p: Topology file.
+                - n: Index file.
+                - o: Output TPR file ("eq.tpr").
         """
         kwargs.setdefault("f", os.path.join(self.mdpdir, "eq.mdp"))
         kwargs.setdefault("c", "hu.gro")
@@ -852,15 +818,17 @@ class MDRun(GmxSystem):
     def mdpp(self, grompp=True, **kwargs):
         """Prepares the production MD run using GROMACS grompp.
 
-        Args:
+        Parameters
+        ----------
             grompp (bool, optional): Whether to run grompp (default: True).
+
             kwargs: Additional parameters for grompp. Defaults include:
-                    - f: Path to 'md.mdp'.
-                    - c: Starting structure ('eq.gro').
-                    - r: Reference structure ('eq.gro').
-                    - p: Topology file.
-                    - n: Index file.
-                    - o: Output TPR file ('md.tpr').
+                - f: Path to "md.mdp".
+                - c: Starting structure ("eq.gro").
+                - r: Reference structure ("eq.gro").
+                - p: Topology file.
+                - n: Index file.
+                - o: Output TPR file ("md.tpr").
         """
         kwargs.setdefault("f", os.path.join(self.mdpdir, "md.mdp"))
         kwargs.setdefault("c", "eq.gro")
@@ -874,11 +842,12 @@ class MDRun(GmxSystem):
     def mdrun(self, **kwargs):
         """Executes the production MD run using GROMACS mdrun.
 
-        Args:
+        Parameters
+        ----------
             kwargs: Additional parameters for mdrun. Defaults include:
-                    - deffnm: 'md'
-                    - nsteps: '-2'
-                    - ntomp: '8'
+                - deffnm: "md"
+                - nsteps: "-2"
+                - ntomp: "8"
         """
         kwargs.setdefault("deffnm", "md")
         kwargs.setdefault("nsteps", "-2")
@@ -889,7 +858,8 @@ class MDRun(GmxSystem):
     def trjconv(self, clinput=None, **kwargs):
         """Converts trajectories using GROMACS trjconv.
 
-        Args:
+        Parameters
+        ----------
             clinput (str, optional): Input to be passed to trjconv.
             kwargs: Additional parameters for trjconv.
         """
@@ -899,12 +869,13 @@ class MDRun(GmxSystem):
     def rmsf(self, clinput=None, **kwargs):
         """Calculates RMSF using GROMACS rmsf.
 
-        Args:
+        Parameters
+        ----------
             clinput (str, optional): Input for the rmsf command.
             kwargs: Additional parameters for rmsf. Defaults include:
-                    - s: Structure file.
-                    - f: Trajectory file.
-                    - o: Output xvg file.
+                - s: Structure file.
+                - f: Trajectory file.
+                - o: Output xvg file.
         """
         xvg_file = os.path.join(self.rmsdir, "rmsf.xvg")
         npy_file = os.path.join(self.rmsdir, "rmsf.npy")
@@ -918,12 +889,13 @@ class MDRun(GmxSystem):
     def rmsd(self, clinput=None, **kwargs):
         """Calculates RMSD using GROMACS rms.
 
-        Args:
+        Parameters
+        ----------
             clinput (str, optional): Input for the rms command.
             kwargs: Additional parameters for rms. Defaults include:
-                    - s: Structure file.
-                    - f: Trajectory file.
-                    - o: Output xvg file.
+                - s: Structure file.
+                - f: Trajectory file.
+                - o: Output xvg file.
         """
         xvg_file = os.path.join(self.rmsdir, "rmsd.xvg")
         npy_file = os.path.join(self.rmsdir, "rmsd.npy")
@@ -937,12 +909,13 @@ class MDRun(GmxSystem):
     def rdf(self, clinput=None, **kwargs):
         """Calculates the radial distribution function using GROMACS rdf.
 
-        Args:
+        Parameters
+        ----------
             clinput (str, optional): Input for the rdf command.
             kwargs: Additional parameters for rdf. Defaults include:
-                    - f: Trajectory file.
-                    - s: Structure file.
-                    - n: Index file.
+                - f: Trajectory file.
+                - s: Structure file.
+                - n: Index file.
         """
         kwargs.setdefault("f", "mdc.xtc")
         kwargs.setdefault("s", "mdc.pdb")
@@ -953,7 +926,8 @@ class MDRun(GmxSystem):
     def cluster(self, clinput=None, **kwargs):
         """Performs clustering using GROMACS cluster.
 
-        Args:
+        Parameters
+        ----------
             clinput (str, optional): Input for the clustering command.
             kwargs: Additional parameters for cluster.
         """
@@ -963,13 +937,13 @@ class MDRun(GmxSystem):
             cli.gmx_cluster(clinput=clinput, **kwargs)
 
     def extract_cluster(self, clinput=None, **kwargs):
-        """Extracts frames belonging to a cluster using GROMACS extract-
-        cluster.
+        """Extracts frames belonging to a cluster using GROMACS extract-cluster.
 
-        Args:
+        Parameters
+        ----------
             clinput (str, optional): Input for the extract-cluster command.
             kwargs: Additional parameters for extract-cluster. Defaults include:
-                    - clusters: 'cluster.ndx'
+            - clusters: "cluster.ndx"
         """
         kwargs.setdefault("f", self.trj)
         kwargs.setdefault("clusters", "cluster.ndx")
@@ -977,15 +951,15 @@ class MDRun(GmxSystem):
             cli.gmx_extract_cluster(clinput=clinput, **kwargs)
 
     def covar(self, clinput=None, **kwargs):
-        """Calculates and diagonalizes the covariance matrix using GROMACS
-        covar.
+        """Calculates and diagonalizes the covariance matrix using GROMACS covar.
 
-        Args:
+        Parameters
+        ----------
             clinput (str, optional): Input for the covar command.
             kwargs: Additional parameters for covar. Defaults include:
-                    - f: Trajectory file.
-                    - s: Structure file.
-                    - n: Index file.
+            - f: Trajectory file.
+            - s: Structure file.
+            - n: Index file.
         """
         kwargs.setdefault("f", "../traj.xtc")
         kwargs.setdefault("s", "../traj.pdb")
@@ -996,12 +970,13 @@ class MDRun(GmxSystem):
     def anaeig(self, clinput=None, **kwargs):
         r"""Analyzes eigenvectors using GROMACS anaeig.
 
-        Args:
+        Parameters
+        ----------
             clinput (str, optional): Input for the anaeig command.
             kwargs: Additional parameters for anaeig. Defaults include:
-                    - f: Trajectory file.
-                    - s: Structure file.
-                    - v: Output eigenvector file.
+            - f: Trajectory file.
+            - s: Structure file.
+            - v: Output eigenvector file.
         """
         kwargs.setdefault("f", "../traj.xtc")
         kwargs.setdefault("s", "../traj.pdb")
@@ -1009,26 +984,24 @@ class MDRun(GmxSystem):
         cli.gmx_anaeig(self.covdir, clinput=clinput, **kwargs)
 
     def make_edi(self, clinput=None, **kwargs):
-        """Prepares files for essential dynamics analysis using GROMACS make-
-        edi.
+        """Prepares files for essential dynamics analysis using GROMACS make-edi.
 
-        Args:
+        Parameters
+        ----------
             clinput (str, optional): Input for the make-edi command.
             kwargs: Additional parameters for make-edi. Defaults include:
-                    - f: Eigenvector file.
-                    - s: Structure file.
+            - f: Eigenvector file.
+            - s: Structure file.
         """
         kwargs.setdefault("f", "eigenvec.trr")
         kwargs.setdefault("s", "../traj.pdb")
         cli.gmx_make_edi(self.covdir, clinput=clinput, **kwargs)
 
-    def get_covmats(
-        self, u=None, ag=None, sample_rate=1, b=50000, e=1000000, n=10, outtag="covmat"
-    ):
-        """Calculates covariance matrices by splitting the trajectory into
-        chunks.
+    def get_covmats(self, u=None, ag=None, sample_rate=1, b=50000, e=1000000, n=10, outtag="covmat"):
+        """Calculates covariance matrices by splitting the trajectory into chunks.
 
-        Args:
+        Parameters
+        ----------
             u (MDAnalysis.Universe, optional): Pre-loaded MDAnalysis Universe; if None, creates one.
             ag (AtomGroup, optional): Atom selection; if None, selects backbone atoms.
             sample_rate (int, optional): Sampling rate for positions.
@@ -1051,7 +1024,8 @@ class MDRun(GmxSystem):
     def get_pertmats(self, intag="covmat", outtag="pertmat", **kwargs):
         """Calculates perturbation matrices from the covariance matrices.
 
-        Args:
+        Parameters
+        ----------
             intag (str, optional): Input file tag for covariance matrices.
             outtag (str, optional): Output file tag for perturbation matrices.
             kwargs: Additional parameters for perturbation matrix calculation.
@@ -1069,10 +1043,10 @@ class MDRun(GmxSystem):
         logger.info("Finished calculating perturbation matrices!")
 
     def get_dfi(self, intag="pertmat", outtag="dfi", **kwargs):
-        """Calculates Dynamic Flexibility Index (DFI) from perturbation
-        matrices.
+        """Calculates Dynamic Flexibility Index (DFI) from perturbation matrices.
 
-        Args:
+        Parameters
+        ----------
             intag (str, optional): Input file tag for perturbation matrices.
             outtag (str, optional): Output file tag for DFI values.
             kwargs: Additional parameters for DFI calculation.
@@ -1083,18 +1057,18 @@ class MDRun(GmxSystem):
                 logger.info(f"  Processing perturbation matrix {pert_file}")
                 pertmat = np.load(pert_file)
                 logger.info("  Calculating DFI")
-                dfi = mdm.dfi(pertmat)
+                dfi_val = mdm.dfi(pertmat)
                 dfi_file = pert_file.replace(intag, outtag)
                 dfi_file = os.path.join(self.covdir, dfi_file)
-                np.save(dfi_file, dfi)
+                np.save(dfi_file, dfi_val)
                 logger.info(f"  Saved DFI at {dfi_file}")
         logger.info("Finished calculating DFIs!")
 
     def get_dci(self, intag="pertmat", outtag="dci", asym=False):
-        """Calculates the Dynamic Coupling Index (DCI) from perturbation
-        matrices.
+        """Calculates the Dynamic Coupling Index (DCI) from perturbation matrices.
 
-        Args:
+        Parameters
+        ----------
             intag (str, optional): Input file tag for perturbation matrices.
             outtag (str, optional): Output file tag for DCI values.
             asym (bool, optional): If True, calculates asymmetric DCI.
@@ -1107,16 +1081,16 @@ class MDRun(GmxSystem):
                 logger.info("  Calculating DCI")
                 dci_file = pert_file.replace(intag, outtag)
                 dci_file = os.path.join(self.covdir, dci_file)
-                dci = mdm.dci(pertmat, asym=asym)
-                np.save(dci_file, dci)
+                dci_val = mdm.dci(pertmat, asym=asym)
+                np.save(dci_file, dci_val)
                 logger.info(f"  Saved DCI at {dci_file}")
         logger.info("Finished calculating DCIs!")
 
     def get_group_dci(self, groups=[], labels=[], asym=False):
-        """Calculates DCI between specified groups based on perturbation
-        matrices.
+        """Calculates DCI between specified groups based on perturbation matrices.
 
-        Args:
+        Parameters
+        ----------
             groups (list): List of groups (atom indices or similar) to compare.
             labels (list): Corresponding labels for the groups.
             asym (bool, optional): If True, computes asymmetric group DCI.
@@ -1130,12 +1104,12 @@ class MDRun(GmxSystem):
             pertmat = np.load(pert_file)
             logger.info("  Calculating group DCI")
             dcis = mdm.group_molecule_dci(pertmat, groups=groups, asym=asym)
-            for dci, group, group_id in zip(dcis, groups, labels):
+            for dci_val, group, group_id in zip(dcis, groups, labels):
                 dci_file = pert_file.replace("pertmat", f"gdci_{group_id}")
                 dci_file = os.path.join(self.covdir, dci_file)
-                np.save(dci_file, dci)
+                np.save(dci_file, dci_val)
                 logger.info(f"  Saved group DCI at {dci_file}")
-            ch_dci_file = pert_file.replace("pertmat", f"ggdci")
+            ch_dci_file = pert_file.replace("pertmat", "ggdci")
             ch_dci_file = os.path.join(self.covdir, ch_dci_file)
             ch_dci = mdm.group_group_dci(pertmat, groups=groups, asym=asym)
             np.save(ch_dci_file, ch_dci)
@@ -1146,13 +1120,14 @@ class MDRun(GmxSystem):
     def get_rmsf_by_chain(self, **kwargs):
         """Calculates RMSF for each chain in the system using GROMACS rmsf.
 
-        Args:
+        Parameters
+        ----------
             kwargs: Additional parameters for the rmsf command. Defaults include:
-                    - f: Trajectory file.
-                    - s: Structure file.
-                    - n: Index file.
-                    - res: Whether to output per-residue RMSF (default: 'no').
-                    - fit: Whether to fit the trajectory (default: 'yes').
+            - f: Trajectory file.
+            - s: Structure file.
+            - n: Index file.
+            - res: Whether to output per-residue RMSF (default: "no").
+            - fit: Whether to fit the trajectory (default: "yes").
         """
         kwargs.setdefault("f", "traj.xtc")
         kwargs.setdefault("s", "traj.pdb")
@@ -1171,11 +1146,12 @@ class MDRun(GmxSystem):
     def get_rmsd_by_chain(self, **kwargs):
         """Calculates RMSD for each chain in the system using GROMACS rmsd.
 
-        Args:
+        Parameters
+        ----------
             kwargs: Additional parameters for the rmsd command. Defaults include:
-                    - f: Trajectory file.
-                    - s: Structure file.
-                    - n: Index file.
+            - f: Trajectory file.
+            - s: Structure file.
+            - n: Index file.
         """
         kwargs.setdefault("f", "traj.xtc")
         kwargs.setdefault("s", "traj.pdb")
@@ -1194,13 +1170,13 @@ class MDRun(GmxSystem):
 # Utils
 ################################################################################
 
-
 def sort_upper_lower_digit(alist):
-    """Sorts a list of strings such that uppercase letters come first, then
-    lowercase letters, followed by digits. Useful for organizing GROMACS
-    multichain files.
+    """Sorts a list of strings such that uppercase letters come first, then lowercase letters, followed by digits.
 
-    Args:
+    This is useful for organizing GROMACS multichain files.
+
+    Parameters
+        ----------
         alist (iterable): List of strings to sort.
 
     Returns:

@@ -9,8 +9,8 @@ Overview of reForge Package
 
    The reForge source code is hosted on GitLab at: https://github.com/DanYev/reforge
 
-The reForge Python package provides a comprehensive suite of utilities designed for high‐performance 
-simulation, analysis, and data processing workflows. It features optimized mathematical routines, 
+The reForge Python package provides a comprehensive suite of utilities designed for MD
+simulations, analysis, and data processing workflows. It features optimized mathematical routines, 
 GPU‐accelerated computations, and a variety of helper tools to streamline file I/O and data manipulation. 
 Developed to support advanced research projects in simulation and analysis, reForge is available for 
 public use under the GNU V3 License.
@@ -20,25 +20,20 @@ What's in reForge?
 
 In a nutshell, the key components of reForge are:
 
+- **Python package for Molecular Dynamics:**  
+  Easy to use workflows for set-up, multiple MD runs and analysis of large biomolecular systems.
+
 - **Optimized Mathematical Routines:**  
   High-performance functions written in Cython and CUDA for computing Hessian matrices, perturbation 
   matrices, and other advanced mathematical operations.
 
-- **GPU-Based Simulation Utilities:**  
+- **GPU-Based Analysis Utilities:**  
   Tools that leverage GPU acceleration for simulation and analysis tasks, significantly reducing 
   computation times.
-
-- **File I/O and Data Processing Helpers:**  
-  Functions for reading and writing various data formats (e.g., CSV, NPY, XVG) and for managing 
-  file systems efficiently.
 
 - **Profiling Tools:**  
   Decorators and utilities for memory and time profiling to ensure optimal performance during 
   computations.
-
-- **Support for Molecular Dynamics and Diffraction Analysis:**  
-  Specialized algorithms and workflows tailored to the simulation of x-ray diffraction under the Born 
-  approximation and related applications.
 
 For New Users
 -------------
@@ -88,9 +83,12 @@ Indices and Tables
 .. * :ref:`search`
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :glob:
 
    getting_started
    why
    reforge
+   reforge.actual_math
+   reforge.forge
+   reforge.martini

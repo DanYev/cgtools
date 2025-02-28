@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""
-File: mdm.py
+"""File: mdm.py
+
 Description:
     This module provides a unified interface for molecular dynamics (MD) and
     structural analysis routines within the reForge package. It wraps a variety
@@ -46,13 +46,15 @@ from reforge.actual_math import mycmath, mypymath
 
 
 def fft_ccf(*args, mode="serial", **kwargs):
-    """Unified wrapper for FFT-based correlation functions.
+    """
+    Unified wrapper for FFT-based correlation functions.
 
     This function dispatches to one of the internal FFT correlation routines
     based on the specified mode:
-      - 'serial' for _sfft_ccf,
-      - 'parallel' for _pfft_ccf, or
-      - 'gpu' for _gfft_ccf.
+
+        - serial for _sfft_ccf,
+        - parallel for _pfft_ccf, or
+        - gpu for _gfft_ccf.
 
     Parameters
     ----------
