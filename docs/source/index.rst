@@ -91,7 +91,6 @@ Indices and Tables
    :maxdepth: 2
    :glob:
 
-   api
    getting_started
    why
-   autosummary/*
+   reforge
