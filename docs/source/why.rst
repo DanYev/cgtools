@@ -1,8 +1,8 @@
 Why use reForge?
 ================
 
-Need to simulate large biomolecular complex? Or many?
------------------------------------------------------
+Need to simulate a large biomolecular complex? Or many?
+-------------------------------------------------------
 
 Then reForge is the right tool. Pain-free setup of Martini+CG Protein/RNA/Lipid complexes
 (https://www.nature.com/articles/s41467-024-53098-4)
@@ -19,11 +19,17 @@ Everything is included and python-based.
 Accelerated C- and CUDA routines
 --------------------------------
 
-- **Process terabytes of data like WHOOOOSH:**  
-  Just look at this massive performance gain comparing to the standard python and numpy.
+- **Process terabytes of data like WHOOOOSH:**
+
+  Just look at this massive performance gain compared to standard Python and NumPy.
+
   .. image:: img/reforge_speedup.png
+     :alt: reForge Speedup Performance
+     :scale: 80 %
+
   And this is for a medium sized system of only ~1000 residues. 
   Imagine processing hundreds or thousands of these.
+
 
 For new users
 -------------
