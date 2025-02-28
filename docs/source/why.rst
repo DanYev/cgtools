@@ -8,7 +8,7 @@ Then reForge is the right tool. Pain-free setup of Martini+CG Protein/RNA/Lipid 
 
   .. image:: img/reforge_ribosome.png
      :alt: reForge Ribosome
-     :scale: 100 %
+     :scale: 50 %
 
 - Kind of like here (https://www.nature.com/articles/s41467-024-53098-4)
 
@@ -42,7 +42,7 @@ Tools to develop your own models
 
   .. image:: img/reforge_dsrna.png
      :alt: reForge dsRNA
-     :scale: 100 %
+     :scale: 30 %
 
 For new users
 -------------

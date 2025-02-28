@@ -25,6 +25,7 @@ extensions = [
 ]
 
 autosummary_generate = True
+autodoc_member_order = 'bysource'
 # This skips generating an autodoc of the test module
 # when using the autosummary directive that is included
 # by default in api.rst
@@ -75,3 +76,5 @@ html_static_path = ['_static']
 html_css_files = [
     'custom.css',
 ]
+
+autodoc_member_order = 'bysource'
