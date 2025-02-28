@@ -1,5 +1,4 @@
-"""
-File: gmxmd.py
+"""File: gmxmd.py
 Description:
     This module provides classes and functions for setting up, running, and
     analyzing molecular dynamics (MD) simulations using GROMACS. The main
@@ -29,6 +28,7 @@ Requirements:
 Author: DY
 Date: 2025-02-27
 """
+
 
 import os
 import sys

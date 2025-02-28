@@ -1,5 +1,4 @@
-"""
-File: cli.py
+"""File: cli.py
 Description:
     This module provides a collection of command-line interface utilities for executing
     shell commands, submitting SLURM sbatch jobs, and running GROMACS operations from within
@@ -7,20 +6,18 @@ Description:
     as well as specialized wrappers for GROMACS commands (e.g., editconf, solvate, grompp, mdrun,
     and others) for molecular dynamics analysis.
 
-    Note: This module is intended for internal use only within the reForge workflow.
-
 Usage Example:
     >>> from cli import run, sbatch, gmx, change_directory
     >>> # Run a simple shell command
     >>> run('ls', '-l')
-    >>> 
+    >>>
     >>> # Change directory temporarily
     >>> with change_directory('/tmp'):
     ...     run('pwd')
-    >>> 
+    >>>
     >>> # Submit a job via SLURM
     >>> sbatch('script.sh', 'arg1', 'arg2', t='01:00:00', mem='4G', N='1', c='4')
-    >>> 
+    >>>
     >>> # Execute a GROMACS command
     >>> gmx('editconf', f='system.pdb', o='system_out.pdb')
 
@@ -33,6 +30,7 @@ Requirements:
 Author: DY
 Date: YYYY-MM-DD
 """
+
 
 import os
 import subprocess as sp
