@@ -22,7 +22,8 @@ if [ "$1" == "--all" ]; then
     pytest --maxfail=1 --disable-warnings -q
 else
     pytest -v tests/test_mypymath.py --maxfail=1 --disable-warnings -q
-    # pytest -v tests/test_mycmath.py --maxfail=1 --disable-warnings -q
-    # pytest -v tests/test_pdbtools.py --maxfail=1 --disable-warnings -q
-    # pytest -v tests/test_gmxmd.py --maxfail=1 --disable-warnings -q
+    pytest -v tests/test_mycmath.py --maxfail=1 --disable-warnings -q
+    pytest -v tests/test_mdm.py --maxfail=1 --disable-warnings -q
+    pytest -v tests/test_pdbtools.py --maxfail=1 --disable-warnings -q
+    pytest -v tests/test_gmxmd.py --maxfail=1 --disable-warnings -q
 fi

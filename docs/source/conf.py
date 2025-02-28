@@ -29,7 +29,7 @@ autosummary_generate = True
 # when using the autosummary directive that is included
 # by default in api.rst
 autodoc_mock_imports = [
-    'regorge.tests'
+    'reforge.tests'
 ]
 napoleon_google_docstring = False
 napoleon_use_param = False
@@ -60,7 +60,7 @@ language = "en"
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**/plotting_old*", ]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", ]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "default"

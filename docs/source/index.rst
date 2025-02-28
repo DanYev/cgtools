@@ -6,7 +6,6 @@ Welcome to the home page of the reForge Python package.
 Overview of reForge Package
 ---------------------------
 
-.. note::
 
    The reForge source code is hosted on GitLab at: https://github.com/DanYev/reforge
 
@@ -84,6 +83,15 @@ packages such as Cython, NumPy, CuPy, GROMACS, OpenMM, Vermouth and MDAnalysis.
 Indices and Tables
 ------------------
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`
+
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   api
+   getting_started
+   why
+   autosummary/*
