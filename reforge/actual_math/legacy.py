@@ -12,10 +12,13 @@ from reforge.utils import timeit, memprofit
 
 @timeit
 @memprofit
-def calcperturbMat(invHrs, direct, resnum, Normalize=True):
+def calcperturbMat(invHrs, resnum):
     """
     Legavy perturbation matrix for dfi calculation. 
     """
+    direct = np.array(([1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,1,1]))
+    direct = direct.T / np.sqrt(np.sum(direct, axis=1)).T # normalizing directions
+    direct = direct.T
     perturbMat = np.zeros((resnum, resnum))
     for k in range(len(direct)):
         peturbDir = direct[k, :]
@@ -26,13 +29,8 @@ def calcperturbMat(invHrs, direct, resnum, Normalize=True):
             delXperbMat = delXperbVex.reshape((resnum, 3))
             delRperbVec = np.sqrt(np.sum(delXperbMat * delXperbMat, axis=1))
             perturbMat[:, j] += delRperbVec[:]
-    perturbMat /= 7
-    if (Normalize):
-        nrmlperturbMat = perturbMat / np.sum(perturbMat)
-    else:
-        print("WARNING: The perturbation matrix is not NORMALIZED")
-        nrmlperturbMat = perturbMat
-    return nrmlperturbMat
+    perturbMat /= np.sum(perturbMat)   
+    return perturbMat
 
 
 @timeit
@@ -115,9 +113,8 @@ def _perturbation_matrix_cpu(covariance_matrix, dtype=np.float64):
     perturbation_matrix /= np.sum(perturbation_matrix)
     return perturbation_matrix
 
-
-@memprofit
 @timeit
+@memprofit
 def _td_perturbation_matrix_cpu(ccf, normalize=True, dtype=np.float64):
     """
     Calculates perturbation matrix from a covariance matrix or a hessian on CPU

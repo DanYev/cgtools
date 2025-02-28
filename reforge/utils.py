@@ -70,7 +70,7 @@ def timeit(func):
         result = func(*args, **kwargs)      # Execute the function
         end_time = time.perf_counter()      # End timer
         execution_time = end_time - start_time
-        logger.debug(f"Function '{func.__name__}' executed in {execution_time:.6f} seconds.")
+        logger.debug(f"Function '{func.__module__}.{func.__name__}' executed in {execution_time:.6f} seconds.")
         return result
     return wrapper
 
@@ -93,7 +93,7 @@ def memprofit(func):
         tracemalloc.start()  # Start memory tracking
         result = func(*args, **kwargs)  # Execute the function
         current, peak = tracemalloc.get_traced_memory()  # Get current and peak memory usage
-        logger.debug(f"Memory usage after executing '{func.__name__}': {current/1024**2:.2f} MB, Peak: {peak/1024**2:.2f} MB")
+        logger.debug(f"Memory usage after executing '{func.__module__}.{func.__name__}': {current/1024**2:.2f} MB, Peak: {peak/1024**2:.2f} MB")
         tracemalloc.stop()  # Stop memory tracking
         return result
     return wrapper 

@@ -309,16 +309,16 @@ def gmx_mdrun(**kwargs):
 
 
 def gmx_trjconv(clinput='1\n1\n', **kwargs):
-    """
+    r"""
     Execute the GROMACS 'trjconv' command to convert trajectory files.
-
+    
     Parameters
     ----------
     clinput : str, optional
         Input string for trajectory frame selection (default '1\n1\n').
     **kwargs : dict
         Additional options for 'trjconv'.
-
+    
     Returns
     -------
     None

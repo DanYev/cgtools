@@ -959,7 +959,7 @@ class MDRun(gmxSystem):
             cli.gmx_covar(self.covdir, clinput=clinput, **kwargs)
 
     def anaeig(self, clinput=None, **kwargs):
-        """
+        r"""
         Analyzes eigenvectors using GROMACS anaeig.
 
         Args:

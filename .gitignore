@@ -2,6 +2,7 @@ tmp
 build
 tests/test
 workflows/systems
+workflows/png
 *data*
 *slurm*
 custom_config.py
@@ -11,7 +12,6 @@ __pycache__
 .metadata
 .DS_Store
 *.pdb
-*.png
 *.pdf
 *.egg*
 *.ndx

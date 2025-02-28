@@ -24,36 +24,40 @@ Date: 2025-02-27
 import numpy as np
 import pytest
 from reforge.actual_math import mycmath, legacy
+from reforge.utils import logger
 
 # Set a fixed random seed for reproducibility of the tests.
 np.random.seed(42)
 
 
-def test_calculate_hessian():
+def test_hessian():
     """
     Test the calculation of the Hessian matrix.
 
     This test compares the output of the '_calculate_hessian' function between
     the legacy and the new implementation. It performs the following steps:
       - Generates random arrays for x, y, and z coordinates.
-      - Sets test parameters including the number of residues (resnum), cutoff,
-        spring constant, and a flag (dd).
+      - Sets test parameters including the number of residues (n), cutoff,
+        spring constant, and a distance dependence exponent (dd).
       - Computes the Hessian using both the legacy and new implementations.
       - Asserts that the results are almost identical within a tight tolerance.
 
     Returns:
         None
     """
-    resnum = 50
-    x = np.random.rand(resnum)
-    y = np.random.rand(resnum)
-    z = np.random.rand(resnum)
+    n = 50
+    x = np.random.rand(n)
+    y = np.random.rand(n)
+    z = np.random.rand(n)
+    vec = np.array((x, y, z)).T
     cutoff = 12
     spring_constant = 1000
     dd = 0
-    legacy_result = legacy._calculate_hessian(resnum, x, y, z, cutoff, spring_constant, dd)
-    new_result = mycmath._calculate_hessian(resnum, x, y, z, cutoff, spring_constant, dd)
+    legacy_result = legacy._calculate_hessian(n, x, y, z, cutoff, spring_constant, dd)
+    new_result = mycmath._calculate_hessian(n, x, y, z, cutoff, spring_constant, dd)
+    vec_result = mycmath._hessian(vec, cutoff, spring_constant, dd)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(vec_result, legacy_result, rtol=1e-6, atol=1e-6)
 
 
 def test_perturbation_matrix_old():
@@ -69,11 +73,12 @@ def test_perturbation_matrix_old():
     Returns:
         None
     """
-    m = 50  # number of residues
+    m = 200  # number of residues
     # Create a symmetric covariance matrix of shape (3*m, 3*m)
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
-    legacy_result = legacy._perturbation_matrix_old(covmat, m)
+    # legacy_result = legacy._perturbation_matrix_old(covmat, m)
+    legacy_result = legacy.calcperturbMat(covmat, m)
     new_result = mycmath._perturbation_matrix_old(covmat, m)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-4, atol=1e-4)
 
@@ -91,7 +96,7 @@ def test_perturbation_matrix():
     Returns:
         None
     """
-    m = 50
+    m = 200
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
     legacy_result = legacy._perturbation_matrix_cpu(covmat)
@@ -112,7 +117,7 @@ def test_td_perturbation_matrix():
     Returns:
         None
     """
-    m = 50
+    m = 200
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
     legacy_result = legacy._td_perturbation_matrix_cpu(covmat, normalize=True)
@@ -132,7 +137,7 @@ def test_perturbation_matrix_old_new():
     Returns:
         None
     """
-    m = 50
+    m = 200
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
     old_result = mycmath._perturbation_matrix_old(covmat, m)
