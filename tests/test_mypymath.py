@@ -26,6 +26,15 @@ import numpy as np
 import pytest
 from reforge.actual_math import mypymath
 
+# Skip GPU tests if CuPy is not installed.
+try:
+    import cupy as cp
+    from reforge.utils import cuda_detected
+    cuda_detected()
+except ImportError:
+    cp = None
+skip_reason = 'CUDA not detected'
+
 
 def test_covariance_matrix():
     """
@@ -55,7 +64,7 @@ def test_covariance_matrix():
     np.testing.assert_almost_equal(np.linalg.det(covmat), 0, decimal=5)
 
 
-def test_sfft_corr():
+def test_sfft_ccf():
     """
     Validate the sliding Fourier transform correlation function (_sfft_corr).
 
@@ -76,7 +85,7 @@ def test_sfft_corr():
     y = np.random.rand(n_coords, n_samples).astype(np.float64)
     x_centered = x - np.mean(x, axis=-1, keepdims=True)
     y_centered = y - np.mean(y, axis=-1, keepdims=True)
-    corr_fft = mypymath._sfft_corr(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
+    corr_fft = mypymath._sfft_ccf(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
     ref_corr = np.empty((n_coords, n_coords, n_samples), dtype=np.float64)
     # Manually compute the sliding average correlation.
     for i in range(n_coords):
@@ -87,7 +96,7 @@ def test_sfft_corr():
     np.testing.assert_allclose(corr_fft, ref_corr, rtol=1e-10, atol=1e-10)
 
 
-def test_pfft_corr():
+def test_pfft_ccf():
     """
     Compare the parallel (_pfft_corr) and serial (_sfft_corr) FFT-based correlation methods.
 
@@ -105,8 +114,8 @@ def test_pfft_corr():
     x = np.random.rand(n_coords, n_samples).astype(np.float64)
     y = np.random.rand(n_coords, n_samples).astype(np.float64)
     ntmax = 64
-    corr_par = mypymath._pfft_corr(x, y, ntmax=ntmax, center=True, dtype=np.float64)
-    corr_ser = mypymath._sfft_corr(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
+    corr_par = mypymath._pfft_ccf(x, y, ntmax=ntmax, center=True, dtype=np.float64)
+    corr_ser = mypymath._sfft_ccf(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
     np.testing.assert_allclose(corr_par, corr_ser, rtol=1e-10, atol=1e-10)
 
 
@@ -150,8 +159,8 @@ def test_ccf():
         else:
             manual_corr_sum += manual_corr_seg
     manual_ccf = manual_corr_sum / n_seg
-    par_ccf = mypymath.ccf(x, y, ntmax=None, n=n_seg, mode='parallel', center=True, dtype=np.float64)
-    ser_ccf = mypymath.ccf(x, y, ntmax=None, n=n_seg, mode='serial', center=True, dtype=np.float64)
+    par_ccf = mypymath._ccf(x, y, ntmax=None, n=n_seg, mode='parallel', center=True, dtype=np.float64)
+    ser_ccf = mypymath._ccf(x, y, ntmax=None, n=n_seg, mode='serial', center=True, dtype=np.float64)
     np.testing.assert_allclose(manual_ccf, par_ccf, rtol=1e-6, atol=1e-6)
     np.testing.assert_allclose(manual_ccf, ser_ccf, rtol=1e-6, atol=1e-6)
 
@@ -177,19 +186,11 @@ def test_inverse_sparse_matrix_cpu():
     np.testing.assert_allclose(inv_matrix, expected_inv, rtol=0, atol=1e-6)
 
 
-# Skip GPU tests if CuPy is not installed.
-try:
-    import cupy as cp
-    from cgtools.utils import cuda_detected
-    cuda_detected()
-except ImportError:
-    cp = None
-    skip_reason = 'CUDA not detected'
 
 
 
 @pytest.mark.skipif(cp is None, reason=skip_reason)
-def test_gfft_corr():
+def test_gfft_ccf():
     """
     Validate the GPU-based FFT correlation function (_gfft_corr).
 
@@ -206,9 +207,9 @@ def test_gfft_corr():
     x = np.random.rand(n_coords, n_samples).astype(np.float64)
     y = np.random.rand(n_coords, n_samples).astype(np.float64)
     ntmax = 64
-    corr_gpu = mypymath._gfft_corr(x, y, ntmax=ntmax, center=True, dtype=cp.float64)
+    corr_gpu = mypymath._gfft_ccf(x, y, ntmax=ntmax, center=True)
     corr = corr_gpu.get()
-    corr_ser = mypymath._sfft_corr(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
+    corr_ser = mypymath._sfft_ccf(x, y, ntmax=ntmax, center=True, loop=True)
     np.testing.assert_allclose(corr, corr_ser, rtol=1e-10, atol=1e-10)
 
 
@@ -258,3 +259,4 @@ def test_inverse_matrix_gpu():
 
 if __name__ == '__main__':
     pytest.main([os.path.abspath(__file__)])
+    # test_gfft_ccf()

@@ -11,15 +11,15 @@ Description:
     Note: This module is intended for internal use only.
 
 Usage Example:
-    >>> from mypymath import _sfft_corr, fft_corr
+    >>> from mypymath import _sfft_ccf, fft_ccf
     >>> import numpy as np
     >>> # Generate random signals
     >>> x = np.random.rand(10, 256)
     >>> y = np.random.rand(10, 256)
     >>> # Compute serial FFT-based correlation
-    >>> corr = _sfft_corr(x, y, ntmax=64, center=True, loop=True)
+    >>> corr = _sfft_ccf(x, y, ntmax=64, center=True, loop=True)
     >>> # Or use the unified FFT correlation wrapper
-    >>> corr = fft_corr(x, y, mode='serial', ntmax=64, center=True)
+    >>> corr = fft_ccf(x, y, mode='serial', ntmax=64, center=True)
 
 Requirements:
     - Python 3.x
@@ -49,12 +49,12 @@ from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
 from scipy.stats import pearsonr
 
 ##############################################################
-## Correlations ##
+## For time dependent analysis ##
 ##############################################################
 
 @memprofit
 @timeit
-def _sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
+def _sfft_ccf(x, y, ntmax=None, center=False, loop=True, dtype=None):
     """
     Compute the correlation function between two signals using a serial FFT-based method.
 
@@ -75,6 +75,8 @@ def _sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
         np.ndarray: Correlation function array of shape (n_coords, n_coords, ntmax).
     """
     logger.info("Doing FFTs serially.")
+    if not dtype:
+        dtype = x.dtype
     def compute_correlation(*args):
         i, j, x_f, y_f, ntmax, counts = args
         corr = ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real
@@ -102,7 +104,7 @@ def _sfft_corr(x, y, ntmax=None, center=False, loop=True, dtype=np.float64):
 
 @memprofit
 @timeit
-def _pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
+def _pfft_ccf(x, y, ntmax=None, center=False, dtype=None):
     """
     Compute the correlation function using a parallel FFT-based method.
 
@@ -120,19 +122,19 @@ def _pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
         np.ndarray: Correlation function array with shape (n_coords, n_coords, ntmax).
     """
     logger.info("Doing FFTs in parallel.")
+    if not dtype:
+        dtype = x.dtype
     def compute_correlation(*args):
         i, j, x_f, y_f, ntmax, counts = args
         corr = ifft(x_f[i] * np.conj(y_f[j]), axis=-1)[:ntmax].real
         return corr * counts
-
     def parallel_fft_correlation(x_f, y_f, ntmax, nt, n_jobs=-1):
         nx, ny = x_f.shape[0], y_f.shape[0]
         results = Parallel(n_jobs=n_jobs)(
             delayed(compute_correlation)(i, j, x_f, y_f, ntmax, nt) 
             for i in range(nx) for j in range(ny)
         )
-        return np.array(results).reshape(nx, ny, ntmax)
-    
+        return np.array(results).reshape(nx, ny, ntmax)   
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
@@ -149,7 +151,7 @@ def _pfft_corr(x, y, ntmax=None, center=False, dtype=np.float64):
 
 @memprofit
 @timeit
-def _gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
+def _gfft_ccf(x, y, ntmax=None, center=True, dtype=None):
     """
     Compute the correlation function on the GPU using FFT.
 
@@ -168,6 +170,8 @@ def _gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
         cp.ndarray: The computed correlation function as a CuPy array.
     """
     logger.info("Doing FFTs on GPU.")
+    if not dtype:
+        dtype = x.dtype
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = y.shape[0]
@@ -188,7 +192,77 @@ def _gfft_corr(x, y, ntmax=None, center=True, dtype=cp.float32):
         corr[i, :, :] = corr_row
     return corr
 
-def gfft_conv(x, y, loop=False, dtype=cp.float32):
+def _fft_ccf(*args, mode='serial', **kwargs):
+    """
+    Unified wrapper for FFT-based correlation functions.
+
+    This function dispatches to one of the internal FFT correlation routines based on 
+    the specified 'mode': 'serial' for _sfft_ccf, 'parallel' for _pfft_ccf, or 'gpu' 
+    for _gfft_ccf.
+
+    Parameters:
+        *args: Positional arguments for the chosen correlation function.
+        mode (str): Mode to use ('serial', 'parallel', or 'gpu').
+        **kwargs: Additional keyword arguments for the correlation function.
+
+    Returns:
+        np.ndarray or cp.ndarray: The computed correlation function.
+
+    Raises:
+        ValueError: If an unsupported mode is specified.
+    """
+    if mode == 'serial':
+        return _sfft_ccf(*args, **kwargs)
+    if mode == 'parallel':
+        return _pfft_ccf(*args, **kwargs)
+    if mode == 'gpu':
+        return _gfft_ccf(*args, **kwargs)
+    raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
+
+@memprofit
+@timeit
+def _ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
+    """
+    Compute the average cross-correlation function of two signals by segmenting them.
+
+    The function splits the input signals into 'n' segments, computes the correlation 
+    for each segment using the specified mode ('parallel', 'serial', or 'gpu'), and 
+    returns their average.
+
+    Parameters:
+        xs (np.ndarray): First input signal of shape (n_coords, n_samples).
+        ys (np.ndarray): Second input signal of shape (n_coords, n_samples).
+        ntmax (int, optional): Maximum number of time samples to retain per segment.
+        n (int, optional): Number of segments to split the signals into.
+        mode (str, optional): Mode for correlation computation ('parallel', 'serial', or 'gpu').
+        center (bool, optional): If True, mean-center the signals along the time axis.
+        dtype (data-type, optional): Desired data type (default: np.float32).
+
+    Returns:
+        np.ndarray: The averaged cross-correlation function.
+    """
+    logger.info(f"Calculating cross-correlation.")
+    xs = np.array_split(xs, n, axis=-1)
+    ys = np.array_split(ys, n, axis=-1)
+    nx = xs[0].shape[0]
+    ny = ys[0].shape[0]
+    nt = xs[-1].shape[1]
+    logger.info(f'Splitting trajectory into {n} parts')
+    if not ntmax or ntmax > (nt+1)//2:
+        ntmax = (nt+1)//2   
+    corr = np.zeros((nx, ny, ntmax), dtype=dtype)
+    for x_seg, y_seg in zip(xs, ys):
+        corr_n = _fft_ccf(x_seg, y_seg, ntmax=ntmax, mode=mode, center=center, dtype=dtype)
+        logger.debug(corr_n.shape)
+        corr += corr_n
+    corr = corr / n
+    logger.debug(np.sqrt(np.average(corr**2)))
+    logger.info(f"Finished calculating cross-correlation.")
+    return corr
+
+@memprofit
+@timeit
+def _gfft_conv(x, y, loop=False, dtype=cp.float32):
     """
     Compute element-wise convolution between two signals on the GPU using FFT.
 
@@ -226,7 +300,9 @@ def gfft_conv(x, y, loop=False, dtype=cp.float32):
         conv = conv.get()
     return conv
 
-def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
+@memprofit
+@timeit
+def _sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     """
     Compute the Cross-Power Spectral Density (CPSD) between two signals using FFT.
 
@@ -271,6 +347,8 @@ def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     cpsd = np.abs(cpsd) 
     return cpsd
 
+@memprofit
+@timeit
 def _covariance_matrix(positions, dtype=np.float32):
     """
     Calculate the position-position covariance matrix from a set of positions.
@@ -290,50 +368,12 @@ def _covariance_matrix(positions, dtype=np.float32):
     covmat = np.cov(centered_positions, rowvar=True, dtype=dtype)
     return np.array(covmat)
 
-def ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
-    """
-    Compute the average cross-correlation function of two signals by segmenting them.
-
-    The function splits the input signals into 'n' segments, computes the correlation 
-    for each segment using the specified mode ('parallel', 'serial', or 'gpu'), and 
-    returns their average.
-
-    Parameters:
-        xs (np.ndarray): First input signal of shape (n_coords, n_samples).
-        ys (np.ndarray): Second input signal of shape (n_coords, n_samples).
-        ntmax (int, optional): Maximum number of time samples to retain per segment.
-        n (int, optional): Number of segments to split the signals into.
-        mode (str, optional): Mode for correlation computation ('parallel', 'serial', or 'gpu').
-        center (bool, optional): If True, mean-center the signals along the time axis.
-        dtype (data-type, optional): Desired data type (default: np.float32).
-
-    Returns:
-        np.ndarray: The averaged cross-correlation function.
-    """
-    logger.info(f"Calculating cross-correlation.")
-    xs = np.array_split(xs, n, axis=-1)
-    ys = np.array_split(ys, n, axis=-1)
-    nx = xs[0].shape[0]
-    ny = ys[0].shape[0]
-    nt = xs[-1].shape[1]
-    print(f'Splitting trajectory into {n} parts', file=sys.stderr)
-    if not ntmax or ntmax > (nt+1)//2:
-        ntmax = (nt+1)//2   
-    corr = np.zeros((nx, ny, ntmax), dtype=np.float32)
-    for x_seg, y_seg in zip(xs, ys):
-        corr_n = fft_corr(x_seg, y_seg, ntmax=ntmax, mode=mode, center=center, dtype=dtype)
-        print(corr_n.shape, file=sys.stderr)
-        corr += corr_n
-    corr = corr / n
-    print(np.sqrt(np.average(corr**2)), file=sys.stderr)
-    print(f"Finished calculating cross-correlation.", file=sys.stderr)
-    return corr
 
 ##############################################################
 ## DCI and DFI Calculations ##
 ##############################################################
 
-def dci(perturbation_matrix, asym=False):
+def _dci(perturbation_matrix, asym=False):
     """
     Calculate the Dynamic Coupling Index (DCI) matrix from a perturbation matrix.
 
@@ -352,7 +392,7 @@ def dci(perturbation_matrix, asym=False):
         dci_val = dci_val - dci_val.T
     return dci_val
 
-def group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
+def _group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
     """
     Compute the DCI for specified groups of atoms relative to the entire molecule.
 
@@ -378,7 +418,7 @@ def group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
         dcis.append(dci_val)
     return dcis
 
-def group_group_dci(perturbation_matrix, groups=[[]], asym=False):
+def _group_group_dci(perturbation_matrix, groups=[[]], asym=False):
     """
     Calculate the DCI matrix between different groups of atoms.
 
@@ -528,32 +568,7 @@ def percentile(x):
         px[n] = np.where(sorted_x == n)[0][0] / len(x)
     return px
 
-def fft_corr(*args, mode='serial', **kwargs):
-    """
-    Unified wrapper for FFT-based correlation functions.
 
-    This function dispatches to one of the internal FFT correlation routines based on 
-    the specified 'mode': 'serial' for _sfft_corr, 'parallel' for _pfft_corr, or 'gpu' 
-    for _gfft_corr.
-
-    Parameters:
-        *args: Positional arguments for the chosen correlation function.
-        mode (str): Mode to use ('serial', 'parallel', or 'gpu').
-        **kwargs: Additional keyword arguments for the correlation function.
-
-    Returns:
-        np.ndarray or cp.ndarray: The computed correlation function.
-
-    Raises:
-        ValueError: If an unsupported mode is specified.
-    """
-    if mode == 'serial':
-        return _sfft_corr(*args, **kwargs)
-    if mode == 'parallel':
-        return _pfft_corr(*args, **kwargs)
-    if mode == 'gpu':
-        return _gfft_corr(*args, **kwargs)
-    raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
     
 if __name__ == '__main__':
     pass
