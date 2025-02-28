@@ -33,8 +33,7 @@ from typing import List, Tuple, Any
 
 
 def read_itp(filename):
-    """
-    Reads a Gromacs ITP file and organizes its contents by section.
+    """Reads a Gromacs ITP file and organizes its contents by section.
 
     This function parses the ITP file specified by `filename`, splitting it into sections
     (such as 'bonds', 'angles', etc.). For each section, it creates a list of entries,
@@ -70,8 +69,8 @@ def read_itp(filename):
 
 
 def line2bond(line, tag):
-    """
-    Parses a line from an ITP file and returns connectivity, parameters, and comment based on the section.
+    """Parses a line from an ITP file and returns connectivity, parameters, and
+    comment based on the section.
 
     This function splits the line at the first semicolon to separate the data from the comment.
     It then splits the data into tokens and, based on the section specified by `tag`, extracts
@@ -121,8 +120,7 @@ def line2bond(line, tag):
 
 
 def bond2line(connectivity=None, parameters="", comment=""):
-    """
-    Returns a formatted string for a bond entry in a Gromacs ITP file.
+    """Returns a formatted string for a bond entry in a Gromacs ITP file.
 
     The function formats the given atom indices and bond parameters into a single line.
     Atom indices and parameters are separated by a consistent amount of whitespace. An
@@ -159,9 +157,7 @@ def bond2line(connectivity=None, parameters="", comment=""):
 def format_header(
     molname="molecule", forcefield="", version="", arguments=""
 ) -> List[str]:
-    """
-    Formats the header of the topology file.
-    """
+    """Formats the header of the topology file."""
     lines = [f'; MARTINI ({forcefield}) Coarse Grained topology file for "{molname}"\n']
     lines.append(f"; Created using the following options:\n")
     lines.append(f"; {arguments}\n")
@@ -171,9 +167,7 @@ def format_header(
 
 
 def format_sequence_section(sequence, secstruct) -> List[str]:
-    """
-    Formats the sequence section.
-    """
+    """Formats the sequence section."""
     sequence_str = "".join(i for i in sequence)
     secstruct_str = "".join(i for i in secstruct)
     lines = ["; Sequence:\n"]
@@ -184,9 +178,7 @@ def format_sequence_section(sequence, secstruct) -> List[str]:
 
 
 def format_moleculetype_section(molname="molecule", nrexcl=1) -> List[str]:
-    """
-    Formats the moleculetype section.
-    """
+    """Formats the moleculetype section."""
     lines = ["\n[ moleculetype ]\n"]
     lines.append("; Name         Exclusions\n")
     lines.append(f"{molname:<15s} {nrexcl:3d}\n")
@@ -194,8 +186,8 @@ def format_moleculetype_section(molname="molecule", nrexcl=1) -> List[str]:
 
 
 def format_atoms_section(atoms: List[Tuple]) -> List[str]:
-    """
-    Formats the atoms section for a Gromacs ITP file.
+    """Formats the atoms section for a Gromacs ITP file.
+
     Args:
         atoms (List[Tuple[Any, ...]]): A list of atom records, where each record is a tuple.
                                        The tuple should have 8 or 9 elements depending on the atom.
@@ -216,8 +208,8 @@ def format_atoms_section(atoms: List[Tuple]) -> List[str]:
 
 
 def format_bonded_section(header: str, bonds: List[List]) -> List[str]:
-    """
-    Formats the atoms section for a Gromacs ITP file.
+    """Formats the atoms section for a Gromacs ITP file.
+
     Args:
         bonds (List[Tuple[Any, ...]]): A list of atom records, where each record is a tuple.
                                        The tuple should have 8 or 9 elements depending on the atom.
@@ -234,8 +226,8 @@ def format_bonded_section(header: str, bonds: List[List]) -> List[str]:
 def format_posres_section(
     atoms: List[Tuple], posres_fc=1000, selection=["BB1", "BB3", "SC1"]
 ) -> List[str]:
-    """
-    Formats the position restraints section.
+    """Formats the position restraints section.
+
     atom is the tuple: (atid, type, resid, resname, name, chargegrp, charge, mass, comment)
     """
     lines = [

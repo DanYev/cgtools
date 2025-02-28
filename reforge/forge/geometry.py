@@ -37,11 +37,9 @@ def get_dihedral(v1, v2, v3, v4):
 
 
 def calc_bonds(atoms, bonds):
-    """
-    Calculates bond distances given top.bonds instance of Topology class,
-    which contains connectivities, and a list of pdb Atom objects
-    Returns a BondList object
-    """
+    """Calculates bond distances given top.bonds instance of Topology class,
+    which contains connectivities, and a list of pdb Atom objects Returns a
+    BondList object."""
     conns = bonds.conns
     params = bonds.params
     comms = bonds.comms
@@ -56,11 +54,9 @@ def calc_bonds(atoms, bonds):
 
 
 def calc_angles(atoms, angles):
-    """
-    Calculates angles given top.angles instance of Topology class,
-    which contains connectivities, and an instance of Model class which contains a list of atoms
-    Returns a BondList object
-    """
+    """Calculates angles given top.angles instance of Topology class, which
+    contains connectivities, and an instance of Model class which contains a
+    list of atoms Returns a BondList object."""
     conns = angles.conns
     params = angles.params
     comms = angles.comms
@@ -75,11 +71,9 @@ def calc_angles(atoms, angles):
 
 
 def calc_dihedrals(atoms, dihs):
-    """
-    Calculates dihedrals given top.dihs instance of Topology class,
-    which contains connectivities, and an instance of Model class which contains a list of atoms
-    Returns a BondList object
-    """
+    """Calculates dihedrals given top.dihs instance of Topology class, which
+    contains connectivities, and an instance of Model class which contains a
+    list of atoms Returns a BondList object."""
     conns = dihs.conns
     params = dihs.params
     comms = dihs.comms

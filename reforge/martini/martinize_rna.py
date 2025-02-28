@@ -10,9 +10,7 @@ from reforge.pdbtools import AtomList, pdb2atomlist, pdb2system
 
 
 def martinize_rna_parser():
-    """
-    Parse command-line arguments.
-    """
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="CG Martini FF for RNA")
     parser.add_argument("-f", required=True, type=str, help="Input PDB file")
     parser.add_argument(

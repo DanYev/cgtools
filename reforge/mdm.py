@@ -46,8 +46,7 @@ from reforge.actual_math import mycmath, mypymath
 
 
 def fft_ccf(*args, mode="serial", **kwargs):
-    """
-    Unified wrapper for FFT-based correlation functions.
+    """Unified wrapper for FFT-based correlation functions.
 
     This function dispatches to one of the internal FFT correlation routines
     based on the specified mode:
@@ -84,8 +83,7 @@ def fft_ccf(*args, mode="serial", **kwargs):
 
 
 def covariance_matrix(positions, dtype=np.float64):
-    """
-    Compute the covariance matrix from trajectory positions.
+    """Compute the covariance matrix from trajectory positions.
 
     This function is a wrapper for mypymath's covariance matrix routine.
 
@@ -105,8 +103,8 @@ def covariance_matrix(positions, dtype=np.float64):
 
 
 def calc_and_save_covmats(positions, outdir, n=1, outtag="covmat", dtype=np.float32):
-    """
-    Calculate and save covariance matrices by splitting a trajectory into segments.
+    """Calculate and save covariance matrices by splitting a trajectory into
+    segments.
 
     The trajectory positions are split into 'n' segments along the frame axis. For each
     segment, the position-position covariance matrix is computed and saved as a .npy file.
@@ -145,8 +143,7 @@ def calc_and_save_covmats(positions, outdir, n=1, outtag="covmat", dtype=np.floa
 
 
 def perturbation_matrix(covariance_matrix, dtype=np.float64):
-    """
-    Compute the perturbation matrix from a covariance matrix.
+    """Compute the perturbation matrix from a covariance matrix.
 
     This wrapper calls the appropriate function from mycmath for the given data type.
     TODO: Improve type handling and add GPU support.
@@ -170,8 +167,8 @@ def perturbation_matrix(covariance_matrix, dtype=np.float64):
 
 
 def td_perturbation_matrix(covariance_matrix, dtype=np.float64):
-    """
-    Compute the block-wise (td) perturbation matrix from a covariance matrix.
+    """Compute the block-wise (td) perturbation matrix from a covariance
+    matrix.
 
     This wrapper calls the corresponding function from mycmath.
     TODO: Improve type handling and add GPU support.
@@ -195,8 +192,8 @@ def td_perturbation_matrix(covariance_matrix, dtype=np.float64):
 
 
 def dfi(perturbation_matrix):
-    """
-    Calculate the Dynamic Flexibility Index (DFI) from a perturbation matrix.
+    """Calculate the Dynamic Flexibility Index (DFI) from a perturbation
+    matrix.
 
     The DFI is computed by summing the rows of the perturbation matrix and then
     normalizing such that the total sum equals the number of residues.
@@ -217,8 +214,7 @@ def dfi(perturbation_matrix):
 
 
 def dci(perturbation_matrix, asym=False):
-    """
-    Calculate the Dynamic Coupling Index (DCI) from a perturbation matrix.
+    """Calculate the Dynamic Coupling Index (DCI) from a perturbation matrix.
 
     The DCI is computed by scaling the perturbation matrix such that the total sum of its
     elements equals the number of residues. Optionally, an asymmetric DCI (difference between
@@ -247,8 +243,8 @@ def dci(perturbation_matrix, asym=False):
 
 
 def group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
-    """
-    Calculate the DCI between groups of atoms and the remainder of the molecule.
+    """Calculate the DCI between groups of atoms and the remainder of the
+    molecule.
 
     For each group in 'groups', the DCI is computed by summing the coupling values between
     the group and all residues, then normalizing by the number of atoms in the group.
@@ -280,8 +276,7 @@ def group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
 
 
 def group_group_dci(perturbation_matrix, groups=[[]], asym=False):
-    """
-    Calculate the inter-group DCI matrix.
+    """Calculate the inter-group DCI matrix.
 
     For each pair of groups specified in 'groups', compute the average DCI between atoms
     in the first group and atoms in the second group. Optionally, an asymmetric DCI can be computed.
@@ -322,8 +317,7 @@ def group_group_dci(perturbation_matrix, groups=[[]], asym=False):
 
 
 def hessian(vecs, cutoff, spring_constant, dd):
-    """
-    Compute the Hessian matrix using an elastic network model.
+    """Compute the Hessian matrix using an elastic network model.
 
     This function is a simple wrapper for the internal _hessian routine from mycmath.
     TODO: Improve type handling and add GPU support.
@@ -350,8 +344,8 @@ def hessian(vecs, cutoff, spring_constant, dd):
 def inverse_matrix(
     matrix, device="cpu_sparse", k_singular=6, n_modes=100, dtype=None, **kwargs
 ):
-    """
-    Unified wrapper for computing the inverse of a matrix via eigen-decomposition.
+    """Unified wrapper for computing the inverse of a matrix via eigen-
+    decomposition.
 
     Depending on the 'device' parameter, the function selects an appropriate routine:
 
@@ -395,7 +389,7 @@ def inverse_matrix(
             if not cp.cuda.is_available():
                 raise RuntimeError("CUDA not available.")
             if device.lower() == "gpu_sparse":
-                return _inverse_sparse_matrix_gpu(
+                return mypymath._inverse_sparse_matrix_gpu(
                     matrix,
                     k_singular=k_singular,
                     n_modes=n_modes,
@@ -403,7 +397,7 @@ def inverse_matrix(
                     **kwargs,
                 )
             elif device.lower() == "gpu_dense":
-                return _inverse_matrix_gpu(
+                return mypymath._inverse_matrix_gpu(
                     matrix,
                     k_singular=k_singular,
                     n_modes=n_modes,
@@ -412,7 +406,7 @@ def inverse_matrix(
                 )
             else:
                 logger.info("Unknown GPU method; falling back to CPU sparse inversion.")
-                return _inverse_sparse_matrix_cpu(
+                return mypymath._inverse_sparse_matrix_cpu(
                     matrix,
                     k_singular=k_singular,
                     n_modes=n_modes,
@@ -423,17 +417,17 @@ def inverse_matrix(
             logger.info(
                 f"GPU inversion failed with error '{e}'. Falling back to CPU sparse inversion."
             )
-            return _inverse_sparse_matrix_cpu(
+            return mypymath._inverse_sparse_matrix_cpu(
                 matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs
             )
 
     elif device.lower() == "cpu_dense":
-        return _inverse_matrix_cpu(
+        return mypymath._inverse_matrix_cpu(
             matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs
         )
 
     else:
-        return _inverse_sparse_matrix_cpu(
+        return mypymath._inverse_sparse_matrix_cpu(
             matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs
         )
 
@@ -444,8 +438,7 @@ def inverse_matrix(
 
 
 def percentile(x):
-    """
-    Compute the percentile ranking for each element in an array.
+    """Compute the percentile ranking for each element in an array.
 
     Parameters
     ----------

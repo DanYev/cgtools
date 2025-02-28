@@ -34,8 +34,7 @@ from typing import List
 
 
 class Atom:
-    """
-    Represents an ATOM or HETATM record from a PDB file.
+    """Represents an ATOM or HETATM record from a PDB file.
 
     Attributes:
         record (str): 'ATOM' or 'HETATM' indicating the record type.
@@ -96,8 +95,7 @@ class Atom:
 
     @classmethod
     def from_pdb_line(cls, line):
-        """
-        Parse a line from a PDB file that starts with 'ATOM' or 'HETATM' and
+        """Parse a line from a PDB file that starts with 'ATOM' or 'HETATM' and
         return an Atom instance.
 
         Args:
@@ -152,8 +150,7 @@ class Atom:
         )
 
     def to_pdb_line(self):
-        """
-        Format the Atom instance as a fixed-width PDB ATOM/HETATM line.
+        """Format the Atom instance as a fixed-width PDB ATOM/HETATM line.
 
         Returns:
             str: A formatted string representing the atom in PDB format.
@@ -185,9 +182,8 @@ class Atom:
 
 
 class AtomList(list):
-    """
-    A specialized list for storing Atom objects with convenient properties and
-    methods to access or modify common atom attributes.
+    """A specialized list for storing Atom objects with convenient properties
+    and methods to access or modify common atom attributes.
 
     Example:
         >>> atoms = AtomList([atom1, atom2, atom3])
@@ -215,8 +211,7 @@ class AtomList(list):
     }
 
     def __add__(self, other):
-        """
-        Implements addition of two AtomList objects.
+        """Implements addition of two AtomList objects.
 
         Args:
             other (AtomList): Another AtomList instance.
@@ -440,8 +435,7 @@ class AtomList(list):
 
     @property
     def chains(self):
-        """
-        Group atoms by chain identifier and return an AtomListCollection.
+        """Group atoms by chain identifier and return an AtomListCollection.
 
         Returns:
             AtomListCollection: A collection where each element is an AtomList
@@ -462,9 +456,8 @@ class AtomList(list):
 
     @property
     def residues(self):
-        """
-        Group atoms by residue (based on residue id and insertion code) and return
-        an AtomListCollection.
+        """Group atoms by residue (based on residue id and insertion code) and
+        return an AtomListCollection.
 
         Returns:
             AtomListCollection: A collection where each element is an AtomList
@@ -484,14 +477,11 @@ class AtomList(list):
         return AtomListCollection(residues)
 
     def renum(self):
-        """
-        Renumber atom IDs (atids) starting from 0.
-        """
+        """Renumber atom IDs (atids) starting from 0."""
         self.atids = range(len(self))
 
     def sort(self, key=None, reverse=False):
-        """
-        Sort the AtomList in place.
+        """Sort the AtomList in place.
 
         Parameters:
             key (callable, optional): Function to extract a comparison key from each atom.
@@ -512,8 +502,7 @@ class AtomList(list):
         super().sort(key=key, reverse=reverse)
 
     def mask(self, mask_vals, mode="name"):
-        """
-        Filter atoms based on a specified attribute.
+        """Filter atoms based on a specified attribute.
 
         Parameters:
             mask_vals (iterable or str): Value(s) to include.
@@ -534,8 +523,7 @@ class AtomList(list):
         )
 
     def mask_out(self, mask_vals, mode="name"):
-        """
-        Filter out atoms based on a specified attribute.
+        """Filter out atoms based on a specified attribute.
 
         Parameters:
             mask_vals (iterable or str): Value(s) to exclude.
@@ -556,15 +544,12 @@ class AtomList(list):
         )
 
     def renumber(self):
-        """
-        Renumber atoms in the list starting from 1.
-        """
+        """Renumber atoms in the list starting from 1."""
         new_atids = [atid % 99999 for atid in range(1, len(self) + 1)]
         self.atids = new_atids
 
     def remove_atoms(self, atoms_to_remove):
-        """
-        Remove specified atoms from the AtomList.
+        """Remove specified atoms from the AtomList.
 
         Parameters:
             atoms_to_remove (iterable): Atoms to be removed.
@@ -575,8 +560,7 @@ class AtomList(list):
                 self.remove(atom)
 
     def read_pdb(self, in_pdb):
-        """
-        Read a PDB file and populate the AtomList with Atom instances.
+        """Read a PDB file and populate the AtomList with Atom instances.
 
         Args:
             in_pdb (str): Path to the PDB file.
@@ -599,8 +583,7 @@ class AtomList(list):
                     current_model = 1
 
     def write_pdb(self, out_pdb, append=False):
-        """
-        Write the AtomList to a PDB file.
+        """Write the AtomList to a PDB file.
 
         Args:
             out_pdb (str): Path to the output PDB file.
@@ -612,8 +595,7 @@ class AtomList(list):
                 f.write(atom.to_pdb_line() + "\n")
 
     def write_ndx(self, filename, header="[ group ]", append=False, wrap=15):
-        """
-        Write the atom IDs (atids) of the AtomList to a GROMACS .ndx file.
+        """Write the atom IDs (atids) of the AtomList to a GROMACS .ndx file.
 
         Parameters:
             filename (str): Path to the output .ndx file.
@@ -632,8 +614,7 @@ class AtomList(list):
 
 
 class AtomListCollection(list):
-    """
-    A collection of AtomList objects.
+    """A collection of AtomList objects.
 
     This container aggregates multiple AtomList instances and provides
     properties to access common attributes as lists of lists.
@@ -660,7 +641,8 @@ class AtomListCollection(list):
 
     @property
     def alt_locs(self) -> List[List]:
-        """Return a list of lists of alternate location indicators from each AtomList."""
+        """Return a list of lists of alternate location indicators from each
+        AtomList."""
         return [alist.alt_locs for alist in self]
 
     @property
@@ -675,7 +657,8 @@ class AtomListCollection(list):
 
     @property
     def resids(self) -> List[List]:
-        """Return a list of lists of residue sequence numbers from each AtomList."""
+        """Return a list of lists of residue sequence numbers from each
+        AtomList."""
         return [alist.resids for alist in self]
 
     @property
@@ -730,8 +713,7 @@ class AtomListCollection(list):
 
 
 class Residue:
-    """
-    Represents a residue containing a list of Atom objects.
+    """Represents a residue containing a list of Atom objects.
 
     Attributes:
         resname (str): Residue name.
@@ -747,8 +729,7 @@ class Residue:
         self._atoms = AtomList()
 
     def add_atom(self, atom):
-        """
-        Add an Atom to the residue.
+        """Add an Atom to the residue.
 
         Args:
             atom (Atom): Atom instance to add.
@@ -768,8 +749,7 @@ class Residue:
 
 
 class Chain:
-    """
-    Represents a chain containing multiple residues.
+    """Represents a chain containing multiple residues.
 
     Attributes:
         chid (str): Chain identifier.
@@ -781,8 +761,8 @@ class Chain:
         self.residues = {}
 
     def add_atom(self, atom):
-        """
-        Add an Atom to the chain, organizing it into the appropriate residue.
+        """Add an Atom to the chain, organizing it into the appropriate
+        residue.
 
         Args:
             atom (Atom): Atom instance to add.
@@ -808,8 +788,8 @@ class Chain:
 
 
 class Model:
-    """
-    Represents a model (e.g., in an NMR ensemble) containing multiple chains.
+    """Represents a model (e.g., in an NMR ensemble) containing multiple
+    chains.
 
     Attributes:
         modid (int): Model identifier.
@@ -827,8 +807,7 @@ class Model:
         return f"<Model {self.modid} with {len(self.chains)} chain(s)>"
 
     def add_atom(self, atom):
-        """
-        Add an Atom to the model, organizing it into the appropriate chain.
+        """Add an Atom to the model, organizing it into the appropriate chain.
 
         Args:
             atom (Atom): Atom instance to add.
@@ -847,8 +826,7 @@ class Model:
         return AtomList(all_atoms)
 
     def select_chains(self, chids):
-        """
-        Select and return chains based on a list of chain identifiers.
+        """Select and return chains based on a list of chain identifiers.
 
         Args:
             chids (iterable): Chain identifiers to select.
@@ -860,8 +838,7 @@ class Model:
 
 
 class System:
-    """
-    Represents an entire system, potentially containing multiple models.
+    """Represents an entire system, potentially containing multiple models.
 
     Attributes:
         models (dict): Dictionary of models keyed by model id.
@@ -877,8 +854,7 @@ class System:
         return f"<System with {len(self.models)} model(s)>"
 
     def add_atom(self, atom, modid=1):
-        """
-        Add an Atom to the system under a specified model.
+        """Add an Atom to the system under a specified model.
 
         Args:
             atom (Atom): Atom instance to add.
@@ -889,8 +865,7 @@ class System:
         self.models[modid].add_atom(atom)
 
     def add_atoms(self, atoms, modid=1):
-        """
-        Add multiple atoms to the system under a specified model.
+        """Add multiple atoms to the system under a specified model.
 
         Args:
             atoms (iterable): Iterable of Atom instances.
@@ -903,15 +878,16 @@ class System:
 
     @property
     def atoms(self):
-        """Return an AtomList containing all atoms in all models of the system."""
+        """Return an AtomList containing all atoms in all models of the
+        system."""
         all_atoms = []
         for model in self.models.values():
             all_atoms.extend(model.atoms)
         return AtomList(all_atoms)
 
     def residues(self):
-        """
-        Generator yielding each residue in the system across all models and chains.
+        """Generator yielding each residue in the system across all models and
+        chains.
 
         Yields:
             Residue: A residue in the system.
@@ -924,8 +900,7 @@ class System:
                     yield residue
 
     def chains(self):
-        """
-        Generator yielding each chain in the system across all models.
+        """Generator yielding each chain in the system across all models.
 
         Yields:
             Chain: A chain in the system.
@@ -935,8 +910,8 @@ class System:
                 yield chain
 
     def write_pdb(self, filename):
-        """
-        Write the system to a PDB file, including MODEL/ENDMDL records if applicable.
+        """Write the system to a PDB file, including MODEL/ENDMDL records if
+        applicable.
 
         Args:
             filename (str): Path to the output PDB file.
@@ -960,8 +935,8 @@ class System:
 
 
 class PDBParser:
-    """
-    Parses a PDB file and constructs a System object representing its hierarchical structure.
+    """Parses a PDB file and constructs a System object representing its
+    hierarchical structure.
 
     Attributes:
         pdb_file (str): Path to the PDB file.
@@ -971,8 +946,7 @@ class PDBParser:
         self.pdb_file = pdb_file
 
     def parse(self):
-        """
-        Parse the PDB file and build the corresponding System.
+        """Parse the PDB file and build the corresponding System.
 
         Returns:
             System: The parsed system structure.
@@ -1005,8 +979,7 @@ class PDBParser:
 
 
 def pdb2system(pdb_path) -> System:
-    """
-    Parse a PDB file and return a System object representing its structure.
+    """Parse a PDB file and return a System object representing its structure.
 
     Args:
         pdb_path (str): Path to the PDB file.
@@ -1020,8 +993,7 @@ def pdb2system(pdb_path) -> System:
 
 
 def pdb2atomlist(pdb_path) -> AtomList:
-    """
-    Read a PDB file and return an AtomList of its atoms.
+    """Read a PDB file and return an AtomList of its atoms.
 
     Args:
         pdb_path (str): Path to the PDB file.
@@ -1035,8 +1007,7 @@ def pdb2atomlist(pdb_path) -> AtomList:
 
 
 def sort_chains_atoms(atoms):
-    """
-    Sort an AtomList and renumber atom IDs from 1 to 99999.
+    """Sort an AtomList and renumber atom IDs from 1 to 99999.
 
     Args:
         atoms (AtomList): The AtomList to sort and renumber.
@@ -1067,8 +1038,8 @@ def rename_chains_for_gromacs(atoms):
 
 
 def sort_pdb(in_pdb, out_pdb):
-    """
-    Sort a PDB file to organize chains and atom records for GROMACS compatibility.
+    """Sort a PDB file to organize chains and atom records for GROMACS
+    compatibility.
 
     Args:
         in_pdb (str): Path to the input PDB file.
@@ -1082,8 +1053,7 @@ def sort_pdb(in_pdb, out_pdb):
 
 
 def clean_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, pH=7.0):
-    """
-    Clean a PDB file using PDBFixer via OpenMM.
+    """Clean a PDB file using PDBFixer via OpenMM.
 
     This function removes heterogens, finds and adds missing residues/atoms,
     replaces non-standard residues, and optionally adds hydrogens.
@@ -1120,8 +1090,7 @@ def clean_pdb(in_pdb, out_pdb, add_missing_atoms=False, add_hydrogens=False, pH=
 
 
 def rename_chain_in_pdb(in_pdb, new_chain_id):
-    """
-    Rename all chain identifiers in a PDB file to a specified new chain ID.
+    """Rename all chain identifiers in a PDB file to a specified new chain ID.
 
     Args:
         in_pdb (str): Path to the input PDB file.
@@ -1134,8 +1103,8 @@ def rename_chain_in_pdb(in_pdb, new_chain_id):
 
 
 def rename_chain_and_histidines_in_pdb(in_pdb, new_chain_id):
-    """
-    Rename chain identifiers and update histidine residue names in a PDB file.
+    """Rename chain identifiers and update histidine residue names in a PDB
+    file.
 
     Histidine residue names 'HSD' and 'HSE' are modified to standard names.
 
@@ -1155,8 +1124,7 @@ def rename_chain_and_histidines_in_pdb(in_pdb, new_chain_id):
 
 
 def write_ndx(atoms, fpath="system.ndx", backbone_atoms=("CA", "P", "C1'")):
-    """
-    Write a GROMACS index (.ndx) file based on an AtomList.
+    """Write a GROMACS index (.ndx) file based on an AtomList.
 
     The function writes a system index group, a backbone group, and groups for each chain.
 
@@ -1180,8 +1148,7 @@ def write_ndx(atoms, fpath="system.ndx", backbone_atoms=("CA", "P", "C1'")):
 
 
 def update_bfactors(in_pdb, out_pdb, bfactors):
-    """
-    Update the B-factors in a PDB file.
+    """Update the B-factors in a PDB file.
 
     Args:
         in_pdb (str): Path to the input PDB file.
@@ -1203,9 +1170,9 @@ def update_bfactors(in_pdb, out_pdb, bfactors):
 
 
 def sort_uld(alist):
-    """
-    Sort a list of characters so that uppercase letters come first, then lowercase,
-    and digits last. Useful for organizing multichain files for GROMACS.
+    """Sort a list of characters so that uppercase letters come first, then
+    lowercase, and digits last. Useful for organizing multichain files for
+    GROMACS.
 
     Args:
         alist (iterable): Iterable of characters to sort.

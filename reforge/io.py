@@ -44,8 +44,7 @@ from reforge.pdbtools import AtomList, System, PDBParser
 @timeit
 @memprofit
 def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
-    """
-    Read and return positions from an MDAnalysis trajectory.
+    """Read and return positions from an MDAnalysis trajectory.
 
     Parameters
     ----------
@@ -86,8 +85,7 @@ def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
 @timeit
 @memprofit
 def read_velocities(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
-    """
-    Read and return velocities from an MDAnalysis trajectory.
+    """Read and return velocities from an MDAnalysis trajectory.
 
     Parameters
     ----------
@@ -126,8 +124,7 @@ def read_velocities(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
 
 
 def parse_covar_dat(file, dtype=np.float32):
-    """
-    Parse a GROMACS covar.dat file into a covariance matrix.
+    """Parse a GROMACS covar.dat file into a covariance matrix.
 
     Parameters
     ----------
@@ -154,8 +151,8 @@ def parse_covar_dat(file, dtype=np.float32):
 
 
 def fname_filter(f, sw="", cont="", ew=""):
-    """
-    Check if a file name matches the specified start, contained, and end patterns.
+    """Check if a file name matches the specified start, contained, and end
+    patterns.
 
     Parameters
     ----------
@@ -177,8 +174,7 @@ def fname_filter(f, sw="", cont="", ew=""):
 
 
 def filter_files(fpaths, sw="", cont="", ew=""):
-    """
-    Filter a list of file paths based on name patterns.
+    """Filter a list of file paths based on name patterns.
 
     Parameters
     ----------
@@ -201,8 +197,7 @@ def filter_files(fpaths, sw="", cont="", ew=""):
 
 
 def pull_files(directory, pattern):
-    """
-    Recursively search for files in a directory matching a given pattern.
+    """Recursively search for files in a directory matching a given pattern.
 
     Parameters
     ----------
@@ -230,8 +225,8 @@ def pull_files(directory, pattern):
 
 
 def pull_all_files(directory):
-    """
-    Recursively retrieve all files in the specified directory and its subdirectories.
+    """Recursively retrieve all files in the specified directory and its
+    subdirectories.
 
     Parameters
     ----------
@@ -252,8 +247,7 @@ def pull_all_files(directory):
 
 
 def xvg2npy(xvg_path, npy_path, usecols=[0, 1]):
-    """
-    Convert a GROMACS XVG file to a NumPy binary file (.npy).
+    """Convert a GROMACS XVG file to a NumPy binary file (.npy).
 
     Parameters
     ----------
@@ -274,8 +268,7 @@ def xvg2npy(xvg_path, npy_path, usecols=[0, 1]):
 
 
 def pdb2system(pdb_path) -> System:
-    """
-    Parse a PDB file and return a System object.
+    """Parse a PDB file and return a System object.
 
     Parameters
     ----------
@@ -293,8 +286,7 @@ def pdb2system(pdb_path) -> System:
 
 
 def pdb2atomlist(pdb_path) -> AtomList:
-    """
-    Parse a PDB file and return an AtomList object.
+    """Parse a PDB file and return an AtomList object.
 
     Parameters
     ----------
@@ -312,8 +304,8 @@ def pdb2atomlist(pdb_path) -> AtomList:
 
 
 def read_data(fpath):
-    """
-    Read data from a file (.csv, .npy, .dat, or .xvg) and return it as a NumPy array.
+    """Read data from a file (.csv, .npy, .dat, or .xvg) and return it as a
+    NumPy array.
 
     Parameters
     ----------
@@ -356,8 +348,7 @@ def read_data(fpath):
 
 
 def read_xvg(fpath, usecols=[0, 1]):
-    """
-    Read a GROMACS XVG file and return its contents as a Pandas DataFrame.
+    """Read a GROMACS XVG file and return its contents as a Pandas DataFrame.
 
     Parameters
     ----------
@@ -384,8 +375,7 @@ def read_xvg(fpath, usecols=[0, 1]):
 
 
 def npy2csv(data, fpath):
-    """
-    Save a NumPy array to a file in either .csv or .npy format.
+    """Save a NumPy array to a file in either .csv or .npy format.
 
     Parameters
     ----------
@@ -404,8 +394,7 @@ def npy2csv(data, fpath):
 
 
 def save_1d_data(data, ids=[], fpath="dfi.xvg", sep=" "):
-    """
-    Save one-dimensional data in GROMACS XVG format.
+    """Save one-dimensional data in GROMACS XVG format.
 
     Parameters
     ----------
@@ -430,8 +419,7 @@ def save_1d_data(data, ids=[], fpath="dfi.xvg", sep=" "):
 
 
 def save_2d_data(data, ids=[], fpath="dfi.xvg", sep=" "):
-    """
-    Save two-dimensional data in GROMACS XVG format.
+    """Save two-dimensional data in GROMACS XVG format.
 
     Parameters
     ----------

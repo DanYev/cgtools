@@ -7,8 +7,8 @@ import matplotlib.animation as animation
 
 
 def init_figure(grid=(2, 3), axsize=(4, 4), **kwargs):
-    """
-    Instantiate a figure.
+    """Instantiate a figure.
+
     We can modify axes separately
     """
     m, n = grid
@@ -84,9 +84,7 @@ def set_ax_parameters(ax, xlabel="Time (s)", ylabel="Amplitude", axtitle="Axtitl
 
 
 def plot_figure(fig, axes, figname=None, figpath="png/test.png", **kwargs):
-    """
-    Finish plotting
-    """
+    """Finish plotting."""
     fig.suptitle(figname, fontsize=18)
     plt.tight_layout()
     plt.savefig(figpath)

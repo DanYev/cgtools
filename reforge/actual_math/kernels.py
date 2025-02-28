@@ -90,8 +90,7 @@ hessian_kernel = cp.RawKernel(hessian_kernel_code, "hessian_kernel")
 
 
 def hessian_cuda(vec, cutoff=1.2, spring_constant=1000.0, dd=0):
-    """
-    CUDA version of _hessian.
+    """CUDA version of _hessian.
 
     Parameters
     ----------
@@ -176,8 +175,7 @@ perturbation_matrix_kernel = cp.RawKernel(
 
 
 def perturbation_matrix_cuda(covar):
-    """
-    CUDA version of _perturbation_matrix.
+    """CUDA version of _perturbation_matrix.
 
     Parameters
     ----------
@@ -231,8 +229,7 @@ td_perturbation_matrix_kernel = cp.RawKernel(
 
 
 def td_perturbation_matrix_cuda(ccf, normalize=True):
-    """
-    CUDA version of _td_perturbation_matrix.
+    """CUDA version of _td_perturbation_matrix.
 
     Parameters
     ----------

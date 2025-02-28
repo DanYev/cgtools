@@ -1478,7 +1478,8 @@ def pdbFrameIterator(streamIterator):
 # It is not entirely clear where this fits in best.
 # Called from main.
 def getChargeType(resname, resid, choices):
-    """Get user input for the charge of residues, based on list with choises."""
+    """Get user input for the charge of residues, based on list with
+    choises."""
     print("Which %s type do you want for residue %s:" % (resname, resid + 1))
     for i, choice in choices.iteritems():
         print("%s. %s" % (i, choice))

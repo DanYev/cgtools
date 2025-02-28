@@ -15,9 +15,7 @@ from reforge.utils import logger
 
 
 def parse_arguments():
-    """
-    Parse command-line arguments.
-    """
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
         description="Automate downloading and extracting Go maps from PDB files."
     )
@@ -29,16 +27,13 @@ def parse_arguments():
 
 
 def check_browser(browser_name, command):
-    """
-    Check if a browser is installed by looking for its executable command.
-    """
+    """Check if a browser is installed by looking for its executable
+    command."""
     return shutil.which(command) is not None
 
 
 def check_debian_package(package_name):
-    """
-    Check if a Debian package is installed.
-    """
+    """Check if a Debian package is installed."""
     try:
         result = sp.run(["dpkg", "-s", package_name], capture_output=True, text=True)
         return result.returncode == 0
@@ -47,9 +42,7 @@ def check_debian_package(package_name):
 
 
 def install_webdriver(browser_name):
-    """
-    Install the WebDriver for the specified browser.
-    """
+    """Install the WebDriver for the specified browser."""
     try:
         if browser_name == "chrome":
             from webdriver_manager.chrome import ChromeDriverManager
@@ -84,9 +77,7 @@ def install_webdriver(browser_name):
 
 
 def check_browsers():
-    """
-    Check for installed browsers and logger.info their status.
-    """
+    """Check for installed browsers and logger.info their status."""
     browsers = {
         "firefox": check_browser("Firefox", "firefox")
         or check_debian_package("firefox-esr"),
@@ -115,9 +106,7 @@ def check_geckodriver_installed():
 
 
 def init_webdriver(download_dir):
-    """
-    Initialize the Firefox WebDriver with specified options.
-    """
+    """Initialize the Firefox WebDriver with specified options."""
     logger.info("Initializing WebDriver...")
     options = Options()
     options.add_argument(
@@ -144,8 +133,8 @@ def init_webdriver(download_dir):
 
 
 def get_go_maps(driver, pdb_files):
-    """
-    Use Selenium to automate downloading Go maps from the server.
+    """Use Selenium to automate downloading Go maps from the server.
+
     pdb_files - path to pdb files
     """
     logger.info("Submitting PDBs...")
@@ -178,9 +167,7 @@ def get_go_maps(driver, pdb_files):
 
 
 def extract_go_maps(wdir):
-    """
-    Extract downloaded Go maps from tar.gz files and organize them.
-    """
+    """Extract downloaded Go maps from tar.gz files and organize them."""
     logger.info("Extracting Go maps...")
     tgz_files = [f for f in os.listdir(wdir) if f.endswith(".tgz")]
     for f in tgz_files:

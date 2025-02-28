@@ -13,9 +13,7 @@ from reforge.utils import timeit, memprofit
 @timeit
 @memprofit
 def calcperturbMat(invHrs, resnum):
-    """
-    Legavy perturbation matrix for dfi calculation.
-    """
+    """Legavy perturbation matrix for dfi calculation."""
     direct = np.array(
         ([1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [1, 0, 1], [0, 1, 1], [1, 1, 1])
     )
@@ -104,10 +102,9 @@ def _perturbation_matrix_old(covariance_matrix, resnum, dtype=np.float64):
 @timeit
 @memprofit
 def _perturbation_matrix_cpu(covariance_matrix, dtype=np.float64):
-    """
-    Calculates perturbation matrix from a covariance matrix or a hessian on CPU
-    The result is normalized such that the total sum of the matrix elements is equal to 1
-    """
+    """Calculates perturbation matrix from a covariance matrix or a hessian on
+    CPU The result is normalized such that the total sum of the matrix elements
+    is equal to 1."""
     n = covariance_matrix.shape[0] // 3
     perturbation_matrix = np.zeros((n, n), dtype=dtype)
     directions = np.array(
@@ -131,10 +128,9 @@ def _perturbation_matrix_cpu(covariance_matrix, dtype=np.float64):
 @timeit
 @memprofit
 def _td_perturbation_matrix_cpu(ccf, normalize=True, dtype=np.float64):
-    """
-    Calculates perturbation matrix from a covariance matrix or a hessian on CPU
-    The result is normalized such that the total sum of the matrix elements is equal to 1
-    """
+    """Calculates perturbation matrix from a covariance matrix or a hessian on
+    CPU The result is normalized such that the total sum of the matrix elements
+    is equal to 1."""
     m = ccf.shape[0] // 3
     n = ccf.shape[1] // 3
     blocks = ccf.reshape(m, 3, n, 3).swapaxes(1, 2)

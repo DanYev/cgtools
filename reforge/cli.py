@@ -44,8 +44,7 @@ from functools import wraps
 
 
 def run(*args, **kwargs):
-    """
-    Execute a shell command from within a Python script.
+    """Execute a shell command from within a Python script.
 
     Parameters
     ----------
@@ -67,8 +66,7 @@ def run(*args, **kwargs):
 
 
 def sbatch(script, *args, **kwargs):
-    """
-    Submit a shell script as a SLURM sbatch job.
+    """Submit a shell script as a SLURM sbatch job.
 
     Parameters
     ----------
@@ -99,22 +97,30 @@ def sbatch(script, *args, **kwargs):
     kwargs.setdefault("e", "slurm_jobs/error.%A.err")
     kwargs.setdefault("o", "slurm_jobs/output.%A.out")
     # Separate long and short options
-    long_options = {key: value for key, value in kwargs.items() if len(key) > 1}
-    short_options = {key: value for key, value in kwargs.items() if len(key) == 1}
+    long_options = {
+        key: value for key,
+        value in kwargs.items() if len(key) > 1}
+    short_options = {
+        key: value for key,
+        value in kwargs.items() if len(key) == 1}
     # Build the sbatch command string
     sbatch_long_opts = " ".join(
-        [f'--{key.replace("_", "-")}={value}' for key, value in long_options.items()]
+        [f'--{key.replace("_", "-")}={value}' for key,
+         value in long_options.items()]
     )
     sbatch_short_opts = kwargs_to_str(hyphen="-", **short_options)
     command = " ".join(
-        ["sbatch", sbatch_short_opts, sbatch_long_opts, str(script), args_to_str(*args)]
+        ["sbatch",
+         sbatch_short_opts,
+         sbatch_long_opts,
+         str(script),
+            args_to_str(*args)]
     )
     sp.run(command.split())
 
 
 def gmx(command, gmx_callable="gmx_mpi", **kwargs):
-    """
-    Execute a GROMACS command.
+    """Execute a GROMACS command.
 
     Parameters
     ----------
@@ -144,8 +150,7 @@ def gmx(command, gmx_callable="gmx_mpi", **kwargs):
 
 @contextmanager
 def change_directory(new_dir):
-    """
-    Temporarily change the working directory.
+    """Temporarily change the working directory.
 
     Parameters
     ----------
@@ -166,8 +171,8 @@ def change_directory(new_dir):
 
 
 def from_wdir(func):
-    """
-    Decorator to temporarily change the working directory before executing a function.
+    """Decorator to temporarily change the working directory before executing a
+    function.
 
     The first argument of the decorated function should be the target working directory.
 
@@ -196,8 +201,7 @@ def from_wdir(func):
 
 
 def gmx_editconf(**kwargs):
-    """
-    Execute the GROMACS 'editconf' command to modify system configuration.
+    """Execute the GROMACS 'editconf' command to modify system configuration.
 
     Parameters
     ----------
@@ -220,8 +224,7 @@ def gmx_editconf(**kwargs):
 
 
 def gmx_solvate(**kwargs):
-    """
-    Execute the GROMACS 'solvate' command to add solvent to the system.
+    """Execute the GROMACS 'solvate' command to add solvent to the system.
 
     Parameters
     ----------
@@ -248,8 +251,7 @@ def gmx_solvate(**kwargs):
 
 
 def gmx_make_ndx(clinput=None, **kwargs):
-    """
-    Execute the GROMACS 'make_ndx' command to create an index file.
+    """Execute the GROMACS 'make_ndx' command to create an index file.
 
     Parameters
     ----------
@@ -270,8 +272,8 @@ def gmx_make_ndx(clinput=None, **kwargs):
 
 
 def gmx_grompp(**kwargs):
-    """
-    Execute the GROMACS 'grompp' command to preprocess input files and generate a .tpr file.
+    """Execute the GROMACS 'grompp' command to preprocess input files and
+    generate a .tpr file.
 
     Parameters
     ----------
@@ -293,8 +295,8 @@ def gmx_grompp(**kwargs):
 
 
 def gmx_mdrun(**kwargs):
-    """
-    Execute the GROMACS 'mdrun' command to perform molecular dynamics simulations or energy minimization.
+    """Execute the GROMACS 'mdrun' command to perform molecular dynamics
+    simulations or energy minimization.
 
     Parameters
     ----------
@@ -315,8 +317,7 @@ def gmx_mdrun(**kwargs):
 
 
 def gmx_trjconv(clinput="1\n1\n", **kwargs):
-    r"""
-    Execute the GROMACS 'trjconv' command to convert trajectory files.
+    r"""Execute the GROMACS 'trjconv' command to convert trajectory files.
 
     Parameters
     ----------
@@ -333,8 +334,8 @@ def gmx_trjconv(clinput="1\n1\n", **kwargs):
 
 
 def gmx_rmsf(clinput=None, **kwargs):
-    """
-    Execute the GROMACS 'rmsf' command to compute root mean square fluctuations (RMSF).
+    """Execute the GROMACS 'rmsf' command to compute root mean square
+    fluctuations (RMSF).
 
     Parameters
     ----------
@@ -365,8 +366,8 @@ def gmx_rmsf(clinput=None, **kwargs):
 
 
 def gmx_rms(clinput=None, **kwargs):
-    """
-    Execute the GROMACS 'rms' command to compute root mean square deviation (RMSD).
+    """Execute the GROMACS 'rms' command to compute root mean square deviation
+    (RMSD).
 
     Parameters
     ----------
@@ -397,8 +398,8 @@ def gmx_rms(clinput=None, **kwargs):
 
 
 def gmx_rdf(clinput=None, **kwargs):
-    """
-    Execute the GROMACS 'rdf' command to compute radial distribution functions (RDF).
+    """Execute the GROMACS 'rdf' command to compute radial distribution
+    functions (RDF).
 
     Parameters
     ----------
@@ -427,8 +428,7 @@ def gmx_rdf(clinput=None, **kwargs):
 
 
 def gmx_cluster(clinput=None, **kwargs):
-    """
-    Execute the GROMACS 'cluster' command to perform clustering analysis.
+    """Execute the GROMACS 'cluster' command to perform clustering analysis.
 
     Parameters
     ----------
@@ -445,8 +445,8 @@ def gmx_cluster(clinput=None, **kwargs):
 
 
 def gmx_extract_cluster(clinput=None, **kwargs):
-    """
-    Execute the GROMACS 'extract-cluster' command to extract clustered structures.
+    """Execute the GROMACS 'extract-cluster' command to extract clustered
+    structures.
 
     Parameters
     ----------
@@ -463,8 +463,8 @@ def gmx_extract_cluster(clinput=None, **kwargs):
 
 
 def gmx_covar(clinput=None, **kwargs):
-    """
-    Execute the GROMACS 'covar' command to compute the covariance matrix and normal modes.
+    """Execute the GROMACS 'covar' command to compute the covariance matrix and
+    normal modes.
 
     Parameters
     ----------
@@ -481,8 +481,8 @@ def gmx_covar(clinput=None, **kwargs):
 
 
 def gmx_anaeig(clinput=None, **kwargs):
-    """
-    Execute the GROMACS 'anaeig' command to analyze eigenvalues and eigenvectors.
+    """Execute the GROMACS 'anaeig' command to analyze eigenvalues and
+    eigenvectors.
 
     Parameters
     ----------
@@ -501,8 +501,8 @@ def gmx_anaeig(clinput=None, **kwargs):
 
 
 def gmx_make_edi(clinput=None, **kwargs):
-    """
-    Execute the GROMACS 'make_edi' command to generate essential dynamics (ED) information.
+    """Execute the GROMACS 'make_edi' command to generate essential dynamics
+    (ED) information.
 
     Parameters
     ----------
@@ -526,8 +526,7 @@ def gmx_make_edi(clinput=None, **kwargs):
 
 
 def args_to_str(*args):
-    """
-    Convert positional arguments to a space-separated string.
+    """Convert positional arguments to a space-separated string.
 
     Parameters
     ----------
@@ -543,8 +542,8 @@ def args_to_str(*args):
 
 
 def kwargs_to_str(hyphen="-", **kwargs):
-    """
-    Convert keyword arguments to a formatted string with a given hyphen prefix.
+    """Convert keyword arguments to a formatted string with a given hyphen
+    prefix.
 
     Parameters
     ----------
@@ -558,4 +557,5 @@ def kwargs_to_str(hyphen="-", **kwargs):
     str
         A formatted string of the keyword arguments.
     """
-    return " ".join([f"{hyphen}{key} {value}" for key, value in kwargs.items()])
+    return " ".join(
+        [f"{hyphen}{key} {value}" for key, value in kwargs.items()])

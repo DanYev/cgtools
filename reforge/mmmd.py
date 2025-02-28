@@ -24,10 +24,9 @@ from openmm.unit import *
 
 
 class mmSystem:
-    """
-    Class to set up and analyze protein-nucliotide-lipid systems for MD with GROMACS
-    All the attributes are the paths to files and directories needed to set up and run CG MD
-    """
+    """Class to set up and analyze protein-nucliotide-lipid systems for MD with
+    GROMACS All the attributes are the paths to files and directories needed to
+    set up and run CG MD."""
 
     MDATDIR = importlib.resources.files("reforge") / "martini" / "data"
     MITPDIR = importlib.resources.files("reforge") / "martini" / "itp"
@@ -47,8 +46,7 @@ class mmSystem:
     ]
 
     def __init__(self, sysdir, sysname, **kwargs):
-        """
-        Initializes the system with the required directories and files.
+        """Initializes the system with the required directories and files.
 
         Args:
             sysdir (str): Directory for the system files.
@@ -82,8 +80,8 @@ class mmSystem:
 
     @property
     def chains(self):
-        """
-        A list of chain ids in the system.
+        """A list of chain ids in the system.
+
         Either provide or extract from the PDB file
         Returns:
             list: List of chain identifiers.
@@ -107,8 +105,9 @@ class mmSystem:
 
     @property
     def mdruns(self):
-        """
-        A list of mdruns. Either provide or look up in self.mddir
+        """A list of mdruns.
+
+        Either provide or look up in self.mddir
         Returns:
             list: List of chain identifiers.
         """
@@ -127,10 +126,8 @@ class mmSystem:
         self._mdruns = mdruns
 
     def prepare_files(self):
-        """
-        Creates the necessary directories for the simulation and copies the
-        relevant input files to the working directory.
-        """
+        """Creates the necessary directories for the simulation and copies the
+        relevant input files to the working directory."""
         print("Preparing files and directories", file=sys.stderr)
         os.makedirs(self.prodir, exist_ok=True)
         os.makedirs(self.nucdir, exist_ok=True)
@@ -154,9 +151,7 @@ class mmSystem:
                 shutil.copy(fpath, outpath)
 
     def clean_pdb(self, pdb_file, **kwargs):
-        """
-        Cleans starting PDB file using PDBfixer by OpenMM
-        """
+        """Cleans starting PDB file using PDBfixer by OpenMM."""
         print("Cleaning the PDB", file=sys.stderr)
         pdbtools.clean_pdb(pdb_file, self.inpdb, **kwargs)
 
@@ -203,15 +198,14 @@ class mmSystem:
 
 
 class mdRun(mmSystem):
-    """
-    Run molecular dynamics (MD) simulation using the specified input files.
-    This method runs the MD simulation by calling an external simulation software,
-    such as GROMACS, with the provided input files.
+    """Run molecular dynamics (MD) simulation using the specified input files.
+
+    This method runs the MD simulation by calling an external simulation
+    software, such as GROMACS, with the provided input files.
     """
 
     def __init__(self, sysdir, sysname, runname):
-        """
-        Initializes required directories and files.
+        """Initializes required directories and files.
 
         Args:
             runname (str):
@@ -233,9 +227,7 @@ class mdRun(mmSystem):
         self.pngdir = os.path.join(self.rundir, "png")
 
     def prepare_files(self):
-        """
-        Create necessary directories.
-        """
+        """Create necessary directories."""
         os.makedirs(self.rundir, exist_ok=True)
         os.makedirs(self.rmsdir, exist_ok=True)
         os.makedirs(self.covdir, exist_ok=True)

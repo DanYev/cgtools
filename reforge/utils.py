@@ -49,8 +49,7 @@ logging.basicConfig(level=log_level, format="[%(levelname)s] %(message)s")
 
 
 def timeit(func):
-    """
-    Decorator to measure and log the execution time of a function.
+    """Decorator to measure and log the execution time of a function.
 
     Parameters
     ----------
@@ -78,8 +77,7 @@ def timeit(func):
 
 
 def memprofit(func):
-    """
-    Decorator to profile and log the memory usage of a function.
+    """Decorator to profile and log the memory usage of a function.
 
     Parameters
     ----------
@@ -110,8 +108,7 @@ def memprofit(func):
 
 @contextmanager
 def cd(newdir):
-    """
-    Context manager to temporarily change the current working directory.
+    """Context manager to temporarily change the current working directory.
 
     Parameters
     ----------
@@ -133,8 +130,7 @@ def cd(newdir):
 
 
 def clean_dir(directory=".", pattern="#*"):
-    """
-    Remove files matching a specific pattern from a directory.
+    """Remove files matching a specific pattern from a directory.
 
     Parameters
     ----------
@@ -154,8 +150,7 @@ def clean_dir(directory=".", pattern="#*"):
 
 
 def cuda_info():
-    """
-    Check CUDA availability and log CUDA device information if available.
+    """Check CUDA availability and log CUDA device information if available.
 
     Returns
     -------
@@ -173,8 +168,7 @@ def cuda_info():
 
 
 def cuda_detected():
-    """
-    Check if CUDA is detected without logging detailed device information.
+    """Check if CUDA is detected without logging detailed device information.
 
     Returns
     -------

@@ -4,9 +4,8 @@ import copy
 
 
 def move_o3(system):
-    """
-    Move each O3' atom to the next residue.
-    Needed for some CG Nucleic FFs due to the phosphate group mapping
+    """Move each O3' atom to the next residue. Needed for some CG Nucleic FFs
+    due to the phosphate group mapping.
 
     Parameters:
         system: A system object containing chains and residues.
@@ -29,8 +28,7 @@ def move_o3(system):
 
 
 def map_residue(residue, mapping, atid):
-    """
-    Map an atomistic residue to a coarse-grained (CG) residue.
+    """Map an atomistic residue to a coarse-grained (CG) residue.
 
     For each bead defined in the mapping dictionary, this function creates a new bead atom.
     The bead's coordinates are determined by averaging the coordinates of the atoms in the
@@ -68,8 +66,8 @@ def map_residue(residue, mapping, atid):
 
 
 def map_chain(chain, ff, atid=1):
-    """
-    Map a chain of atomistic residues to a coarse-grained (CG) representation.
+    """Map a chain of atomistic residues to a coarse-grained (CG)
+    representation.
 
     For each residue in the chain, the function retrieves the corresponding bead mapping
     from the force field (ff) based on the residue's name. For the first residue in the

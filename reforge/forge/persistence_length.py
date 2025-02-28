@@ -65,11 +65,9 @@ def get_angle(v1, v2):
 
 
 def rotation_matrix_from_vectors(vec1, vec2):
-    """Find the rotation matrix that aligns vec1 to vec2
-    :param vec1: A 3d "source" vector
-    :param vec2: A 3d "destination" vector
-    :return mat: A transform matrix (3x3) which when applied to vec1, aligns it with vec2.
-    """
+    """Find the rotation matrix that aligns vec1 to vec2 :param vec1: A 3d
+    "source" vector :param vec2: A 3d "destination" vector :return mat: A
+    transform matrix (3x3) which when applied to vec1, aligns it with vec2."""
     if (vec1 == vec2).all():
         rotation_matrix = np.eye(3)
     else:

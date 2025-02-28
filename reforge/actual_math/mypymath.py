@@ -50,8 +50,8 @@ from reforge.utils import timeit, memprofit, logger
 @memprofit
 @timeit
 def _sfft_ccf(x, y, ntmax=None, center=False, loop=True, dtype=None):
-    """
-    Compute the correlation function between two signals using a serial FFT-based method.
+    """Compute the correlation function between two signals using a serial FFT-
+    based method.
 
     This internal function calculates the correlation function <x(t)y(0)> by applying
     the Fast Fourier Transform (FFT) to the input signals. It optionally mean-centers the
@@ -103,8 +103,7 @@ def _sfft_ccf(x, y, ntmax=None, center=False, loop=True, dtype=None):
 @memprofit
 @timeit
 def _pfft_ccf(x, y, ntmax=None, center=False, dtype=None):
-    """
-    Compute the correlation function using a parallel FFT-based method.
+    """Compute the correlation function using a parallel FFT-based method.
 
     This function parallelizes the cross-correlation computation across all coordinate pairs
     using joblib, which can lead to performance gains on large arrays at the expense of memory usage.
@@ -155,8 +154,7 @@ def _pfft_ccf(x, y, ntmax=None, center=False, dtype=None):
 @memprofit
 @timeit
 def _gfft_ccf(x, y, ntmax=None, center=True, dtype=None):
-    """
-    Compute the correlation function on the GPU using FFT.
+    """Compute the correlation function on the GPU using FFT.
 
     This function leverages CuPy to compute the FFT-based correlation of the input
     signals on the GPU. It converts the input arrays to CuPy arrays, performs zero-padding
@@ -200,8 +198,7 @@ def _gfft_ccf(x, y, ntmax=None, center=True, dtype=None):
 
 
 def _fft_ccf(*args, mode="serial", **kwargs):
-    """
-    Unified wrapper for FFT-based correlation functions.
+    """Unified wrapper for FFT-based correlation functions.
 
     This function dispatches to one of the internal FFT correlation routines based on
     the specified 'mode': 'serial' for _sfft_ccf, 'parallel' for _pfft_ccf, or 'gpu'
@@ -230,8 +227,8 @@ def _fft_ccf(*args, mode="serial", **kwargs):
 @memprofit
 @timeit
 def _ccf(xs, ys, ntmax=None, n=1, mode="parallel", center=True, dtype=None):
-    """
-    Compute the average cross-correlation function of two signals by segmenting them.
+    """Compute the average cross-correlation function of two signals by
+    segmenting them.
 
     The function splits the input signals into 'n' segments, computes the correlation
     for each segment using the specified mode ('parallel', 'serial', or 'gpu'), and
@@ -274,8 +271,8 @@ def _ccf(xs, ys, ntmax=None, n=1, mode="parallel", center=True, dtype=None):
 @memprofit
 @timeit
 def _gfft_conv(x, y, loop=False, dtype=None):
-    """
-    Compute element-wise convolution between two signals on the GPU using FFT.
+    """Compute element-wise convolution between two signals on the GPU using
+    FFT.
 
     This function performs convolution via FFT by converting the inputs to CuPy arrays,
     applying FFT with zero-padding, and then computing the inverse FFT of their product.
@@ -320,8 +317,8 @@ def _gfft_conv(x, y, loop=False, dtype=None):
 @memprofit
 @timeit
 def _sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
-    """
-    Compute the Cross-Power Spectral Density (CPSD) between two signals using FFT.
+    """Compute the Cross-Power Spectral Density (CPSD) between two signals
+    using FFT.
 
     This function calculates the CPSD by applying FFT to the input signals and then
     computing the product of one FFT with the complex conjugate of the other. Depending
@@ -370,8 +367,8 @@ def _sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
 @memprofit
 @timeit
 def _covariance_matrix(positions, dtype=np.float32):
-    """
-    Calculate the position-position covariance matrix from a set of positions.
+    """Calculate the position-position covariance matrix from a set of
+    positions.
 
     The function centers the input positions by subtracting their mean and then
     computes the covariance matrix using NumPy's covariance function.
@@ -395,8 +392,8 @@ def _covariance_matrix(positions, dtype=np.float32):
 
 
 def _dci(perturbation_matrix, asym=False):
-    """
-    Calculate the Dynamic Coupling Index (DCI) matrix from a perturbation matrix.
+    """Calculate the Dynamic Coupling Index (DCI) matrix from a perturbation
+    matrix.
 
     The DCI is normalized such that the sum of matrix elements equals the number of residues.
     If asym=True, the function returns the asymmetric DCI matrix (difference between DCI and its transpose).
@@ -419,8 +416,8 @@ def _dci(perturbation_matrix, asym=False):
 
 
 def _group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
-    """
-    Compute the DCI for specified groups of atoms relative to the entire molecule.
+    """Compute the DCI for specified groups of atoms relative to the entire
+    molecule.
 
     For each group in 'groups', the function computes a DCI value by averaging the normalized
     entries in the perturbation matrix corresponding to that group.
@@ -446,8 +443,7 @@ def _group_molecule_dci(perturbation_matrix, groups=[[]], asym=False):
 
 
 def _group_group_dci(perturbation_matrix, groups=[[]], asym=False):
-    """
-    Calculate the DCI matrix between different groups of atoms.
+    """Calculate the DCI matrix between different groups of atoms.
 
     For each pair of groups, the function computes the average normalized perturbation
     over all atom pairs between the groups.
@@ -484,8 +480,8 @@ def _group_group_dci(perturbation_matrix, groups=[[]], asym=False):
 @timeit
 @memprofit
 def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, dtype=None, **kwargs):
-    """
-    Compute the inverse of a sparse matrix on the CPU using eigen-decomposition.
+    """Compute the inverse of a sparse matrix on the CPU using eigen-
+    decomposition.
 
     This function computes a truncated inverse of the input matrix by calculating its
     eigenvalues and eigenvectors, inverting the eigenvalues (with the smallest 'k_singular'
@@ -519,8 +515,8 @@ def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, dtype=None, **k
 @timeit
 @memprofit
 def _inverse_matrix_cpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs):
-    """
-    Compute the inverse of a matrix on the CPU using dense eigen-decomposition.
+    """Compute the inverse of a matrix on the CPU using dense eigen-
+    decomposition.
 
     This function uses NumPy's dense eigenvalue solver to compute the eigen-decomposition
     of the input matrix, then inverts the eigenvalues (with the smallest 'k_singular' set to zero)
@@ -554,8 +550,8 @@ def _inverse_matrix_cpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs)
 @timeit
 @memprofit
 def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, dtype=None, **kwargs):
-    """
-    Compute the inverse of a sparse matrix on the GPU using eigen-decomposition.
+    """Compute the inverse of a sparse matrix on the GPU using eigen-
+    decomposition.
 
     The input matrix is transferred to the GPU and decomposed using CuPy's sparse
     eigensolver. The eigenvalues are inverted (with the smallest 'k_singular' set to zero)
@@ -591,8 +587,8 @@ def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, dtype=None, **k
 @timeit
 @memprofit
 def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs):
-    """
-    Compute the inverse of a matrix on the GPU using dense eigen-decomposition.
+    """Compute the inverse of a matrix on the GPU using dense eigen-
+    decomposition.
 
     This function uses CuPy's dense eigenvalue solver to compute the eigen-decomposition
     of the input matrix, then inverts the eigenvalues (with the smallest 'k_singular' set to zero)
@@ -629,8 +625,7 @@ def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs)
 
 
 def percentile(x):
-    """
-    Compute the empirical percentile rank for each element in an array.
+    """Compute the empirical percentile rank for each element in an array.
 
     The function returns an array where each element is replaced by its percentile
     rank based on the sorted order of the input.

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Refactored Topology module.
+"""Refactored Topology module.
 
 This module contains the Topology class with improved readability,
 modularity, and error checking. Many long methods have been split into
@@ -21,10 +20,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 
 class BondList(list):
-    """
-    BondList is a helper subclass of the built-in list, specialized for storing bond information.
-    Each element in a BondList is expected to represent a bond (e.g., a list or tuple of atoms
-    connected by the bond), namely [connectivity, parameters, comment].
+    """BondList is a helper subclass of the built-in list, specialized for
+    storing bond information. Each element in a BondList is expected to
+    represent a bond (e.g., a list or tuple of atoms connected by the bond),
+    namely [connectivity, parameters, comment].
 
     Attributes:
         (inherited from list) The list holds individual bond representations.
@@ -39,22 +38,18 @@ class BondList(list):
     """
 
     def __add__(self, other):
-        """
-        Implements addition of two BondList objects.
-        """
+        """Implements addition of two BondList objects."""
         return BondList(super().__add__(other))  # BondList(list(self) + list(other))
 
     @property
     def conns(self):
-        """
-        Returns a list of connectivity values extracted from each bond (assumed to be at index 0).
-        """
+        """Returns a list of connectivity values extracted from each bond
+        (assumed to be at index 0)."""
         return [bond[0] for bond in self]
 
     @conns.setter
     def conns(self, new_conns):
-        """
-        Sets the connectivity for each bond.
+        """Sets the connectivity for each bond.
 
         Parameters:
             new_conns (iterable): A list-like object of new connectivity values.
@@ -72,15 +67,13 @@ class BondList(list):
 
     @property
     def params(self):
-        """
-        Returns a list of parameters extracted from each bond (assumed to be at index 1).
-        """
+        """Returns a list of parameters extracted from each bond (assumed to be
+        at index 1)."""
         return [bond[1] for bond in self]
 
     @params.setter
     def params(self, new_params):
-        """
-        Sets the parameters for each bond.
+        """Sets the parameters for each bond.
 
         Parameters:
             new_params (iterable): A list-like object of new parameter values.
@@ -97,15 +90,13 @@ class BondList(list):
 
     @property
     def comms(self):
-        """
-        Returns a list of comments extracted from each bond (assumed to be at index 2).
-        """
+        """Returns a list of comments extracted from each bond (assumed to be
+        at index 2)."""
         return [bond[2] for bond in self]
 
     @comms.setter
     def comms(self, new_comms):
-        """
-        Sets the comments for each bond.
+        """Sets the comments for each bond.
 
         Parameters:
             new_comms (iterable): A list-like object of new comment values.
@@ -122,16 +113,17 @@ class BondList(list):
 
     @property
     def measures(self):
-        """
-        Returns a list of 'measures' extracted from each bond.
-        Assumes that each bond's parameter is an iterable where the measure is at index 1.
+        """Returns a list of 'measures' extracted from each bond.
+
+        Assumes that each bond's parameter is an iterable where the
+        measure is at index 1.
         """
         return [bond[1][1] for bond in self]
 
     @measures.setter
     def measures(self, new_measures):
-        """
-        Sets the measure (assumed to be the second element in the parameters) for each bond.
+        """Sets the measure (assumed to be the second element in the
+        parameters) for each bond.
 
         Parameters:
             new_measures (iterable): A list-like object of new measure values.
@@ -149,8 +141,7 @@ class BondList(list):
             self[i] = bond
 
     def categorize(self):
-        """
-        Categorize bonds based on their comments.
+        """Categorize bonds based on their comments.
 
         Typically, the first string in the comment is used as a key.
         Returns:
@@ -165,12 +156,9 @@ class BondList(list):
         return adict
 
     def filter(self, condition, bycomm=True):
-        """
-        bycomm (bool): if filter by comment
-        Select bonds based on a generic condition
-        condition (callable): A function that takes a bond as input and returns True if the bond
-                              should be included, False otherwise.
-        """
+        """Bycomm (bool): if filter by comment Select bonds based on a generic
+        condition condition (callable): A function that takes a bond as input
+        and returns True if the bond should be included, False otherwise."""
         return BondList([bond for bond in self if condition(bond[2])])
 
 
@@ -178,8 +166,8 @@ class Topology:
     def __init__(
         self, forcefield, sequence: List = [], secstruct: List = [], **kwargs
     ) -> None:
-        """
-        Initialize a Topology instance. Main attributes are:
+        """Initialize a Topology instance. Main attributes are:
+
         1. atom - [atid, type, resid, resname, name, chargegrp, charge, mass, comment]
         2. bond - [connectivity, parameters, comment]
 
@@ -223,8 +211,8 @@ class Topology:
             self.secstruct = ["F" for item in self.sequence]
 
     def __iadd__(self, other) -> "Topology":
-        """
-        Implements in-place addition of another Topology.
+        """Implements in-place addition of another Topology.
+
         1. atom - (atid, type, resid, resname, name, chargegrp, charge, mass, comment)
         2. bond - [connectivity, parameters, comment]
         :param other: Another Topology instance or object convertible to one.
@@ -256,17 +244,15 @@ class Topology:
         return self
 
     def __add__(self, other) -> "Topology":
-        """
-        Implements addition of two Topology objects.
-        """
+        """Implements addition of two Topology objects."""
         # Create a copy of self. Assumes that the constructor can create a copy from self.
         new_top = self
         new_top += other  # Use __iadd__ to add the other topology
         return new_top
 
     def lines(self) -> list:
-        """
-        Returns the topology file representation as a list of lines.
+        """Returns the topology file representation as a list of lines.
+
         Returns:
             list: A list of strings, where each string is a line in the topology file.
         """
@@ -341,6 +327,7 @@ class Topology:
     @staticmethod
     def _update_sc_connectivity(conn, atid):
         """Update sidechain connectivity indices for a residue.
+
         Same as for the backbone but much simpler
         """
         result = []
@@ -349,20 +336,17 @@ class Topology:
         return result
 
     def _check_connectivity(self, conn):
-        """
-        Check if the current bond is within the boundaries
-        """
+        """Check if the current bond is within the boundaries."""
         for idx in conn:
             if idx < 1 or idx > self.natoms:
                 return False
         return True
 
     def process_atoms(self, secstruc=[], start_atom=0, start_resid=1):
-        """
-        Makes a list of tuples representic atoms to convert after to GROMACS itp file
-        FF input is given as (atid, type, name, chargegrp, charge, mass)
-        We need to convert it to (atid, type, resid, resname, name, chargegrp, charge, mass, comment)
-        """
+        """Makes a list of tuples representic atoms to convert after to GROMACS
+        itp file FF input is given as (atid, type, name, chargegrp, charge,
+        mass) We need to convert it to (atid, type, resid, resname, name,
+        chargegrp, charge, mass, comment)"""
         atid = start_atom
         resid = start_resid
         for resname in self.sequence:
@@ -397,9 +381,9 @@ class Topology:
         self.natoms = len(self.atoms)
 
     def process_bb_bonds(self, secstruc=[], start_atom=0, start_resid=1):
-        """
-        This method handles the mapping and the creation of backbone connectivity.
-        As is FF, bond must be a list of tuples [(connectivity), (parameters), (comment)]
+        """This method handles the mapping and the creation of backbone
+        connectivity. As is FF, bond must be a list of tuples [(connectivity),
+        (parameters), (comment)]
 
         :param sequence: The nucleic acid sequence or a Chain instance.
         :param secstruc: Secondary structure information.
@@ -440,9 +424,9 @@ class Topology:
             resid += 1
 
     def process_sc_bonds(self, secstruc=[], start_atom=0, start_resid=1):
-        """
-        This method handles the mapping and the creation of sidechain connectivity.
-        As is FF, bond must be a list of tuples [(connectivity), (parameters), (comment)]
+        """This method handles the mapping and the creation of sidechain
+        connectivity. As is FF, bond must be a list of tuples [(connectivity),
+        (parameters), (comment)]
 
         :param sequence: The nucleic acid sequence or a Chain instance.
         :param secstruc: Secondary structure information.
@@ -514,9 +498,9 @@ class Topology:
                         self.elnet.append([[a1.atid, a2.atid], [6, d, ef], comment])
 
     def from_sequence(self, sequence, secstruc=None):
-        """
-        Process bonds and atoms from the given sequence
-        :param sequence: The nucleic acid sequence or a Chain instance.
+        """Process bonds and atoms from the given sequence :param sequence: The
+        nucleic acid sequence or a Chain instance.
+
         :param secstruc: Secondary structure information.
         """
         self.sequence = sequence
