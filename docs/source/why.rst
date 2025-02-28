@@ -5,7 +5,7 @@ Need to simulate a large biomolecular complex? Or many?
 -------------------------------------------------------
 
 Then reForge is the right tool. Pain-free setup of Martini+CG Protein/RNA/Lipid complexes
-(https://www.nature.com/articles/s41467-024-53098-4)
+Kinda like here (https://www.nature.com/articles/s41467-024-53098-4)
 
 Python-based
 ------------
@@ -25,7 +25,7 @@ Accelerated C- and CUDA routines
 
   .. image:: img/reforge_speedup.png
      :alt: reForge Speedup Performance
-     :scale: 80 %
+     :scale: 60 %
 
   And this is for a medium sized system of only ~1000 residues. 
   Imagine processing hundreds or thousands of these.

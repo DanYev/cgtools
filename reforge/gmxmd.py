@@ -1,4 +1,5 @@
 """File: gmxmd.py
+
 Description:
     This module provides classes and functions for setting up, running, and
     analyzing molecular dynamics (MD) simulations using GROMACS. The main
@@ -614,10 +615,10 @@ class GmxSystem:
         Args:
             solvent (str, optional): Solvent residue name (default: 'W').
             kwargs: Additional parameters for genion. Defaults include:
-                    - conc: 0.15
-                    - pname: 'NA'
-                    - nname: 'CL'
-                    - neutral: ''
+                - conc: 0.15
+                - pname: 'NA'
+                - nname: 'CL'
+                - neutral: ''
         """
         kwargs.setdefault("conc", 0.15)
         kwargs.setdefault("pname", "NA")
