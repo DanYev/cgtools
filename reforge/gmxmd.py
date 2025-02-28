@@ -4,17 +4,17 @@ Description:
     analyzing molecular dynamics (MD) simulations using GROMACS. The main
     classes include:
 
-      - gmxSystem: Provides methods to prepare simulation files, process PDB
+      - GmxSystem: Provides methods to prepare simulation files, process PDB
                    files, run GROMACS commands, and perform various analyses on
                    MD data.
-      - MDRun: A subclass of gmxSystem dedicated to executing MD simulations and
+      - MDRun: A subclass of GmxSystem dedicated to executing MD simulations and
                performing post-processing tasks (e.g., RMSF, RMSD, covariance analysis).
 
     Additionally, utility functions (e.g., sort_upper_lower_digit) are included
     to assist in organizing GROMACS multichain files.
 
 Usage:
-    Import this module and instantiate the gmxSystem or MDRun classes to set up
+    Import this module and instantiate the GmxSystem or MDRun classes to set up
     and run your MD simulations.
 
 Requirements:
@@ -31,14 +31,11 @@ Date: 2025-02-27
 
 import os
 import sys
-import logging
 import importlib.resources
-import MDAnalysis as mda
-import numpy as np
-import pandas as pd
 import shutil
 import subprocess as sp
-import reforge
+import MDAnalysis as mda
+import numpy as np
 from reforge import cli, mdm, pdbtools, io
 from reforge.pdbtools import AtomList
 from reforge.utils import cd, clean_dir, logger
@@ -49,7 +46,7 @@ from reforge.utils import cd, clean_dir, logger
 ################################################################################
 
 
-class gmxSystem:
+class GmxSystem:
     """Class to set up and analyze protein-nucleotide-lipid systems for MD
     simulations using GROMACS.
 
@@ -75,7 +72,7 @@ class gmxSystem:
         "RU5",
     ]
 
-    def __init__(self, sysdir, sysname, **kwargs):
+    def __init__(self, sysdir, sysname):
         """Initializes the MD system with required directories and file paths.
 
         Args:
@@ -342,16 +339,16 @@ class gmxSystem:
         file = os.path.join(self.topdir, "go_atomtypes.itp")
         if not os.path.isfile(file):
             with open(file, "w") as f:
-                f.write(f"[ atomtypes ]\n")
+                f.write("[ atomtypes ]\n")
         file = os.path.join(self.topdir, "go_nbparams.itp")
         if not os.path.isfile(file):
             with open(file, "w") as f:
-                f.write(f"[ nonbond_params ]\n")
+                f.write("[ nonbond_params ]\n")
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
             cg_pdb = os.path.join(self.cgdir, file)
             name = file.split(".")[0]
-            go_map = os.path.join(self.mapdir, f"{name}.map")
+            go_map = os.path.join(self.mapdir, "{name}.map")
             martinize_go(self.root, self.topdir, in_pdb, cg_pdb, name=name, **kwargs)
         clean_dir(self.cgdir)
         clean_dir(self.root)
@@ -400,12 +397,12 @@ class gmxSystem:
         clean_dir(self.cgdir)
         clean_dir(self.root)
 
-    def martinize_nucleotides(self, append=False, **kwargs):
+    def martinize_nucleotides(self, **kwargs):
         """Performs coarse-graining on nucleotide PDBs using the
         martinize_nucleotide tool.
 
         Args:
-            append (bool, optional): If True, only processes nucleotides without existing topologies.
+            append (bool, optional): If True, skips already existing topologies.
             kwargs: Additional parameters for the martinize_nucleotide function.
 
         After processing, renames files and moves the resulting ITP files to the topology directory.
@@ -417,7 +414,6 @@ class gmxSystem:
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
             martinize_nucleotide(self.root, in_pdb, cg_pdb, **kwargs)
-        bdir = os.getcwd()
         nfiles = [f for f in os.listdir(self.root) if f.startswith("Nucleic")]
         for f in nfiles:
             file = os.path.join(self.root, f)
@@ -441,8 +437,10 @@ class gmxSystem:
         """
         logger.info("Working on RNA molecules...")
         from reforge.martini.martini_tools import martinize_rna
-
-        for file in os.listdir(self.nucdir):
+        files = os.listdir(self.nucdir)
+        if append:
+            files = [f for f in files if f.replace('pdb', 'itp') not in self.topdir]
+        for file in files:
             molname = file.split(".")[0]
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
@@ -499,28 +497,28 @@ class gmxSystem:
         itp_files = sort_upper_lower_digit(itp_files)
         with open(self.systop, "w") as f:
             # Include section
-            f.write(f'#define GO_VIRT"\n')
-            f.write(f"#define RUBBER_BANDS\n")
-            f.write(f'#include "topol/martini_v3.0.0.itp"\n')
-            f.write(f'#include "topol/martini_v3.0.0_rna.itp"\n')
-            f.write(f'#include "topol/martini_ions.itp"\n')
+            f.write('#define GO_VIRT"\n')
+            f.write("#define RUBBER_BANDS\n")
+            f.write('#include "topol/martini_v3.0.0.itp"\n')
+            f.write('#include "topol/martini_v3.0.0_rna.itp"\n')
+            f.write('#include "topol/martini_ions.itp"\n')
             if "go_atomtypes.itp" in os.listdir(self.topdir):
-                f.write(f'#include "topol/go_atomtypes.itp"\n')
-                f.write(f'#include "topol/go_nbparams.itp"\n')
-            f.write(f'#include "topol/martini_v3.0.0_solvents_v1.itp"\n')
-            f.write(f'#include "topol/martini_v3.0.0_phospholipids_v1.itp"\n')
-            f.write(f'#include "topol/martini_v3.0.0_ions_v1.itp"\n')
-            f.write(f"\n")
+                f.write('#include "topol/go_atomtypes.itp"\n')
+                f.write('#include "topol/go_nbparams.itp"\n')
+            f.write('#include "topol/martini_v3.0.0_solvents_v1.itp"\n')
+            f.write('#include "topol/martini_v3.0.0_phospholipids_v1.itp"\n')
+            f.write('#include "topol/martini_v3.0.0_ions_v1.itp"\n')
+            f.write("\n")
             for filename in itp_files:
-                f.write(f'#include "topol/{filename}"\n')
+                f.write('#include "topol/{filename}"\n')
             # System name and molecule count
-            f.write(f"\n[ system ]\n")
-            f.write(f"Martini system for {self.sysname}\n")
+            f.write("\n[ system ]\n")
+            f.write("Martini system for {self.sysname}\n")
             f.write("\n[molecules]\n")
             f.write("; name\t\tnumber\n")
             for filename in itp_files:
                 molecule_name = os.path.splitext(filename)[0]
-                f.write(f"{molecule_name}\t\t1\n")
+                f.write("{molecule_name}\t\t1\n")
             # Add resolved ions if requested.
             if add_resolved_ions:
                 ions = self.count_resolved_ions()
@@ -752,8 +750,8 @@ class gmxSystem:
         return mdrun
 
 
-class MDRun(gmxSystem):
-    """Subclass of gmxSystem for executing molecular dynamics (MD) simulations
+class MDRun(GmxSystem):
+    """Subclass of GmxSystem for executing molecular dynamics (MD) simulations
     and performing post-processing analyses."""
 
     def __init__(self, sysdir, sysname, runname):
@@ -1189,24 +1187,6 @@ class MDRun(gmxSystem):
                 o=os.path.join(self.rmsdir, f"rmsf_{chain}.xvg"),
                 **kwargs,
             )
-
-    def get_power_spectrum_xv(self, resp_ids=[], pert_ids=[], **kwargs):
-        """Calculates the position-velocity correlation (power spectrum) from
-        the trajectory.
-
-        Args:
-            resp_ids (list, optional): List of residue IDs.
-            pert_ids (list, optional): List of perturbation IDs.
-            kwargs: Additional parameters for the power spectrum calculation.
-        """
-        kwargs.setdefault("f", "../traj.trr")
-        kwargs.setdefault("s", "../traj.pdb")
-        bdir = os.getcwd()
-        os.chdir(self.covdir)
-        print(f"Working dir: {self.covdir}", file=sys.stderr)
-        mdm.calc_power_spectrum_xv(resp_ids, pert_ids, **kwargs)
-        print("Finished calculating", file=sys.stderr)
-        os.chdir(bdir)
 
 
 ################################################################################

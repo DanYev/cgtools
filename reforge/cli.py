@@ -33,7 +33,6 @@ Date: YYYY-MM-DD
 
 import os
 import subprocess as sp
-import shutil
 from contextlib import contextmanager
 from functools import wraps
 
@@ -53,7 +52,7 @@ def run(*args, **kwargs):
     **kwargs : dict
         Additional keyword arguments for command options. Special keys:
           - clinput (str, optional): Input string to be passed to the command's standard input.
-          - cltext (bool, optional): Indicates whether the input should be treated as text (default True).
+          - cltext (bool, optional): Whether the input should be treated as text (default True).
 
     Returns
     -------
@@ -77,7 +76,7 @@ def sbatch(script, *args, **kwargs):
     **kwargs : dict
         Additional keyword options for the sbatch command. Special keys include:
           - clinput (str, optional): Input string for the command's standard input.
-          - cltext (bool, optional): Flag indicating if input should be treated as text (default True).
+          - cltext (bool, optional): Indicates if input should be treated as text (default True).
 
     Example
     -------
@@ -116,7 +115,7 @@ def sbatch(script, *args, **kwargs):
          str(script),
             args_to_str(*args)]
     )
-    sp.run(command.split())
+    sp.run(command.split(), check=True)
 
 
 def gmx(command, gmx_callable="gmx_mpi", **kwargs):
@@ -140,7 +139,7 @@ def gmx(command, gmx_callable="gmx_mpi", **kwargs):
     clinput = kwargs.pop("clinput", None)
     cltext = kwargs.pop("cltext", True)
     command = gmx_callable + " " + command + " " + kwargs_to_str(**kwargs)
-    sp.run(command.split(), input=clinput, text=cltext)
+    sp.run(command.split(), input=clinput, text=cltext, check=True)
 
 
 ##############################################################

@@ -24,7 +24,7 @@ from reforge.gmxmd import *
 from reforge.cli import run
 
 # Create a gmxSystem instance for testing.
-mdsys = gmxSystem('tests', 'test')
+mdsys = GmxSystem('tests', 'test')
 in_pdb = '../dsRNA.pdb'
 
 def test_prepare_files():
