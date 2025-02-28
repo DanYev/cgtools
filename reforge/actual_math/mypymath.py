@@ -33,20 +33,14 @@ Author: DY
 Date: YYYY-MM-DD
 """
 
-import os
-import sys
-import MDAnalysis as mda
 import numpy as np
 import cupy as cp
-import pandas as pd
 import scipy.sparse.linalg
-import cupy.linalg
 import cupyx.scipy.sparse.linalg
-from cupyx.profiler import benchmark
-from reforge.utils import timeit, memprofit, logger
 from joblib import Parallel, delayed
 from numpy.fft import fft, ifft, rfft, irfft, fftfreq, fftshift, ifftshift
-from scipy.stats import pearsonr
+from reforge.utils import timeit, memprofit, logger
+
 
 ##############################################################
 ## For time dependent analysis ##
@@ -74,7 +68,7 @@ def _sfft_ccf(x, y, ntmax=None, center=False, loop=True, dtype=None):
     Returns:
         np.ndarray: Correlation function array of shape (n_coords, n_coords, ntmax).
     """
-    logger.info("Doing FFTs serially.")
+    logger.info("Computing CCFs serially.")
     if not dtype:
         dtype = x.dtype
     def compute_correlation(*args):
@@ -121,7 +115,7 @@ def _pfft_ccf(x, y, ntmax=None, center=False, dtype=None):
     Returns:
         np.ndarray: Correlation function array with shape (n_coords, n_coords, ntmax).
     """
-    logger.info("Doing FFTs in parallel.")
+    logger.info("Computing CCFs in parallel.")
     if not dtype:
         dtype = x.dtype
     def compute_correlation(*args):
@@ -164,12 +158,12 @@ def _gfft_ccf(x, y, ntmax=None, center=True, dtype=None):
         y (np.ndarray): Second input signal.
         ntmax (int, optional): Maximum number of time samples to retain; defaults to (nt+1)//2.
         center (bool, optional): If True, subtract the mean along the time axis.
-        dtype (data-type, optional): Desired CuPy data type (default: cp.float32).
+        dtype (data-type, optional): Desired CuPy data type (default: inferred from the input).
 
     Returns:
         cp.ndarray: The computed correlation function as a CuPy array.
     """
-    logger.info("Doing FFTs on GPU.")
+    logger.info("Computing CCFs on GPU.")
     if not dtype:
         dtype = x.dtype
     nt = x.shape[-1]
@@ -206,7 +200,7 @@ def _fft_ccf(*args, mode='serial', **kwargs):
         **kwargs: Additional keyword arguments for the correlation function.
 
     Returns:
-        np.ndarray or cp.ndarray: The computed correlation function.
+        np.ndarray: The computed correlation function.
 
     Raises:
         ValueError: If an unsupported mode is specified.
@@ -216,12 +210,12 @@ def _fft_ccf(*args, mode='serial', **kwargs):
     if mode == 'parallel':
         return _pfft_ccf(*args, **kwargs)
     if mode == 'gpu':
-        return _gfft_ccf(*args, **kwargs)
+        return _gfft_ccf(*args, **kwargs).get()
     raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
 
 @memprofit
 @timeit
-def _ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32):
+def _ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=None):
     """
     Compute the average cross-correlation function of two signals by segmenting them.
 
@@ -236,12 +230,14 @@ def _ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32
         n (int, optional): Number of segments to split the signals into.
         mode (str, optional): Mode for correlation computation ('parallel', 'serial', or 'gpu').
         center (bool, optional): If True, mean-center the signals along the time axis.
-        dtype (data-type, optional): Desired data type (default: np.float32).
+        dtype (data-type, optional): Desired data type (default: inferred from the input).
 
     Returns:
         np.ndarray: The averaged cross-correlation function.
     """
     logger.info(f"Calculating cross-correlation.")
+    if not dtype:
+        dtype = xs.dtype
     xs = np.array_split(xs, n, axis=-1)
     ys = np.array_split(ys, n, axis=-1)
     nx = xs[0].shape[0]
@@ -251,8 +247,8 @@ def _ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32
     if not ntmax or ntmax > (nt+1)//2:
         ntmax = (nt+1)//2   
     corr = np.zeros((nx, ny, ntmax), dtype=dtype)
-    for x_seg, y_seg in zip(xs, ys):
-        corr_n = _fft_ccf(x_seg, y_seg, ntmax=ntmax, mode=mode, center=center, dtype=dtype)
+    for x, y in zip(xs, ys):
+        corr_n = _fft_ccf(x, y, ntmax=ntmax, mode=mode, center=center, dtype=dtype)
         logger.debug(corr_n.shape)
         corr += corr_n
     corr = corr / n
@@ -262,7 +258,7 @@ def _ccf(xs, ys, ntmax=None, n=1, mode='parallel', center=True, dtype=np.float32
 
 @memprofit
 @timeit
-def _gfft_conv(x, y, loop=False, dtype=cp.float32):
+def _gfft_conv(x, y, loop=False, dtype=None):
     """
     Compute element-wise convolution between two signals on the GPU using FFT.
 
@@ -274,12 +270,14 @@ def _gfft_conv(x, y, loop=False, dtype=cp.float32):
         x (np.ndarray): First input signal.
         y (np.ndarray): Second input signal.
         loop (bool, optional): If True, compute convolution using a loop; otherwise, vectorized.
-        dtype (data-type, optional): Desired CuPy data type (default: cp.float32).
+        dtype (data-type, optional): Desired CuPy data type (default: inferred from the input).
 
     Returns:
         np.ndarray: Convolution result as a NumPy array.
     """
-    print("Doing FFTs on GPU.", file=sys.stderr)
+    logger.info("Doing convolution on GPU.")
+    if not dtype:
+        dtype = x.dtype
     nt = x.shape[-1]
     nx = x.shape[0]
     ny = x.shape[1]
@@ -289,7 +287,7 @@ def _gfft_conv(x, y, loop=False, dtype=cp.float32):
     y_f = cp.fft.fft(y, n=2*nt, axis=-1)
     counts = cp.arange(nt, 0, -1, dtype=dtype)**-1
     if loop:
-        conv = np.zeros((nx, ny, nt), dtype=np.float32)
+        conv = np.zeros((nx, ny, nt), dtype=dtype)
         counts = counts[None, :]
         for i in range(nx):
             conv_row = cp.fft.ifft(x_f[i, None, :] * cp.conj(y_f), axis=-1).real[:, :nt] * counts
@@ -357,7 +355,7 @@ def _covariance_matrix(positions, dtype=np.float32):
     computes the covariance matrix using NumPy's covariance function.
 
     Parameters:
-        positions (np.ndarray): Array of positions with shape (n_coords, n_samples).
+        # positions (np.ndarray): Array of positons with shape (n_coords, n_samples).
         dtype (data-type, optional): Data type for the covariance matrix (default: np.float32).
 
     Returns:
@@ -481,7 +479,7 @@ def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, dtype=None, **k
     evals, evecs = scipy.sparse.linalg.eigsh(matrix, **kwargs)
     inv_evals = evals**-1
     inv_evals[:k_singular] = 0.0 
-    print(evals[:20])
+    logger.info(evals[:20])
     inv_matrix = np.matmul(evecs, np.matmul(np.diag(inv_evals), evecs.T))
     return inv_matrix
 
@@ -515,7 +513,7 @@ def _inverse_matrix_cpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs)
     evecs = evecs[:, :n_modes]
     inv_evals = evals**-1
     inv_evals[:k_singular] = 0.0
-    print(evals[:20])
+    logger.info(evals[:20])
     inv_matrix = np.matmul(evecs, np.matmul(np.diag(inv_evals), evecs.T))
     return inv_matrix
 
@@ -549,7 +547,7 @@ def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, dtype=None, **k
     evals_gpu, evecs_gpu = cupyx.scipy.sparse.linalg.eigsh(matrix_gpu, **kwargs)
     inv_evals_gpu = evals_gpu**-1
     inv_evals_gpu[:k_singular] = 0.0  
-    print(evals_gpu[:20])
+    logger.info(evals_gpu[:20])
     inv_matrix_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
     return inv_matrix_gpu
 
@@ -576,12 +574,12 @@ def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs)
     if dtype == None:
         dtype = matrix.dtype
     matrix_gpu = cp.asarray(matrix, dtype)
-    evals_gpu, evecs_gpu = cupy.linalg.eigh(matrix_gpu, **kwargs)
+    evals_gpu, evecs_gpu = cp.linalg.eigh(matrix_gpu, **kwargs)
     evals_gpu = evals_gpu[:n_modes]
     evecs_gpu = evecs_gpu[:,:n_modes]
     inv_evals_gpu = evals_gpu**-1
     inv_evals_gpu[:k_singular] = 0.0   
-    print(evals_gpu[:20])
+    logger.info(evals_gpu[:20])
     inv_matrix_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
     return inv_matrix_gpu
 
