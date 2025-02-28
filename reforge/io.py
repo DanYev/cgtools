@@ -38,13 +38,13 @@ from reforge.pdbtools import AtomList, System, PDBParser
 
 ################################################################################
 ## Reading Trajectories with MDAnalysis
-################################################################################  
+################################################################################
+
 
 @timeit
 @memprofit
 def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
-    """
-    Read and return positions from an MDAnalysis trajectory.
+    """Read and return positions from an MDAnalysis trajectory.
 
     Parameters
     ----------
@@ -68,10 +68,16 @@ def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
     """
     logger.info("Reading positions...")
     arr = np.array(
-        [ag.positions.flatten() for ts in u.trajectory[::sample_rate] if b < ts.time < e],
-        dtype=dtype
+        [
+            ag.positions.flatten()
+            for ts in u.trajectory[::sample_rate]
+            if b < ts.time < e
+        ],
+        dtype=dtype,
     )
-    arr = np.ascontiguousarray(arr.T)  # Transpose for memory efficiency (shape: (n_coords, n_frames))
+    arr = np.ascontiguousarray(
+        arr.T
+    )  # Transpose for memory efficiency (shape: (n_coords, n_frames))
     logger.info("Done!")
     return arr
 
@@ -79,8 +85,7 @@ def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
 @timeit
 @memprofit
 def read_velocities(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
-    """
-    Read and return velocities from an MDAnalysis trajectory.
+    """Read and return velocities from an MDAnalysis trajectory.
 
     Parameters
     ----------
@@ -104,17 +109,22 @@ def read_velocities(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
     """
     logger.info("Reading velocities...")
     arr = np.array(
-        [ag.velocities.flatten() for ts in u.trajectory[::sample_rate] if b < ts.time < e],
-        dtype=dtype
+        [
+            ag.velocities.flatten()
+            for ts in u.trajectory[::sample_rate]
+            if b < ts.time < e
+        ],
+        dtype=dtype,
     )
-    arr = np.ascontiguousarray(arr.T)  # Transpose for memory efficiency (shape: (n_coords, n_frames))
+    arr = np.ascontiguousarray(
+        arr.T
+    )  # Transpose for memory efficiency (shape: (n_coords, n_frames))
     logger.info("Done!")
     return arr
 
 
 def parse_covar_dat(file, dtype=np.float32):
-    """
-    Parse a GROMACS covar.dat file into a covariance matrix.
+    """Parse a GROMACS covar.dat file into a covariance matrix.
 
     Parameters
     ----------
@@ -128,7 +138,7 @@ def parse_covar_dat(file, dtype=np.float32):
     np.ndarray
         A reshaped 2D covariance matrix of shape (3*resnum, 3*resnum), where resnum is inferred from the file.
     """
-    df = pd.read_csv(file, sep='\\s+', header=None)
+    df = pd.read_csv(file, sep="\\s+", header=None)
     covariance_matrix = np.asarray(df, dtype=dtype)
     resnum = int(np.sqrt(len(covariance_matrix) / 3))
     covariance_matrix = np.reshape(covariance_matrix, (3 * resnum, 3 * resnum))
@@ -139,9 +149,10 @@ def parse_covar_dat(file, dtype=np.float32):
 ## File Filtering and Retrieval Functions
 ################################################################################
 
-def fname_filter(f, sw='', cont='', ew=''):
-    """
-    Check if a file name matches the specified start, contained, and end patterns.
+
+def fname_filter(f, sw="", cont="", ew=""):
+    """Check if a file name matches the specified start, contained, and end
+    patterns.
 
     Parameters
     ----------
@@ -160,11 +171,10 @@ def fname_filter(f, sw='', cont='', ew=''):
         True if the file name satisfies all specified conditions; otherwise, False.
     """
     return f.startswith(sw) and cont in f and f.endswith(ew)
-    
 
-def filter_files(fpaths, sw='', cont='', ew=''):
-    """
-    Filter a list of file paths based on name patterns.
+
+def filter_files(fpaths, sw="", cont="", ew=""):
+    """Filter a list of file paths based on name patterns.
 
     Parameters
     ----------
@@ -184,11 +194,10 @@ def filter_files(fpaths, sw='', cont='', ew=''):
     """
     files = [f for f in fpaths if fname_filter(f.name, sw=sw, cont=cont, ew=ew)]
     return files
-    
+
 
 def pull_files(directory, pattern):
-    """
-    Recursively search for files in a directory matching a given pattern.
+    """Recursively search for files in a directory matching a given pattern.
 
     Parameters
     ----------
@@ -209,13 +218,15 @@ def pull_files(directory, pattern):
     """
     base_path = Path(directory)
     if not base_path.exists() or not base_path.is_dir():
-        raise FileNotFoundError(f"Directory '{directory}' does not exist or is not a directory.")
+        raise FileNotFoundError(
+            f"Directory '{directory}' does not exist or is not a directory."
+        )
     return [str(p) for p in base_path.rglob(pattern)]
 
 
 def pull_all_files(directory):
-    """
-    Recursively retrieve all files in the specified directory and its subdirectories.
+    """Recursively retrieve all files in the specified directory and its
+    subdirectories.
 
     Parameters
     ----------
@@ -227,16 +238,16 @@ def pull_all_files(directory):
     list[str]
         A list of absolute file paths for all files found.
     """
-    return pull_files(directory, pattern='*')
+    return pull_files(directory, pattern="*")
 
 
 ################################################################################
 ## Data Conversion and I/O Functions
 ################################################################################
 
+
 def xvg2npy(xvg_path, npy_path, usecols=[0, 1]):
-    """
-    Convert a GROMACS XVG file to a NumPy binary file (.npy).
+    """Convert a GROMACS XVG file to a NumPy binary file (.npy).
 
     Parameters
     ----------
@@ -251,14 +262,13 @@ def xvg2npy(xvg_path, npy_path, usecols=[0, 1]):
     -------
     None
     """
-    df = pd.read_csv(xvg_path, sep='\\s+', header=None, usecols=usecols)
+    df = pd.read_csv(xvg_path, sep="\\s+", header=None, usecols=usecols)
     data = np.squeeze(df.to_numpy().T)
     np.save(npy_path, data)
 
 
 def pdb2system(pdb_path) -> System:
-    """
-    Parse a PDB file and return a System object.
+    """Parse a PDB file and return a System object.
 
     Parameters
     ----------
@@ -276,8 +286,7 @@ def pdb2system(pdb_path) -> System:
 
 
 def pdb2atomlist(pdb_path) -> AtomList:
-    """
-    Parse a PDB file and return an AtomList object.
+    """Parse a PDB file and return an AtomList object.
 
     Parameters
     ----------
@@ -291,12 +300,12 @@ def pdb2atomlist(pdb_path) -> AtomList:
     """
     atoms = AtomList()
     atoms.read_pdb(pdb_path)
-    return atoms    
+    return atoms
 
 
 def read_data(fpath):
-    """ 
-    Read data from a file (.csv, .npy, .dat, or .xvg) and return it as a NumPy array.
+    """Read data from a file (.csv, .npy, .dat, or .xvg) and return it as a
+    NumPy array.
 
     Parameters
     ----------
@@ -313,34 +322,33 @@ def read_data(fpath):
     ValueError
         If the file cannot be read properly or the data does not meet expected criteria.
     """
-    ftype = fpath.split('.')[-1]
-    if ftype == 'npy':
+    ftype = fpath.split(".")[-1]
+    if ftype == "npy":
         try:
             data = np.load(fpath)
         except:
             raise ValueError()
-    if ftype == 'csv' or ftype == 'dat':
+    if ftype == "csv" or ftype == "dat":
         try:
-            df = pd.read_csv(fpath, sep='\\s+', header=None)
+            df = pd.read_csv(fpath, sep="\\s+", header=None)
             data = np.squeeze(df.values)
             if data.shape[0] != 1104:
                 raise ValueError()
         except:
             raise ValueError()
-    if ftype == 'xvg':
+    if ftype == "xvg":
         try:
-            df = pd.read_csv(fpath, sep='\\s+', header=None, usecols=[1])
+            df = pd.read_csv(fpath, sep="\\s+", header=None, usecols=[1])
             data = np.squeeze(df.values)
             if data.shape[0] > 10000:
                 raise ValueError()
         except:
             raise ValueError()
     return data
-    
-    
+
+
 def read_xvg(fpath, usecols=[0, 1]):
-    """ 
-    Read a GROMACS XVG file and return its contents as a Pandas DataFrame.
+    """Read a GROMACS XVG file and return its contents as a Pandas DataFrame.
 
     Parameters
     ----------
@@ -360,15 +368,14 @@ def read_xvg(fpath, usecols=[0, 1]):
         If the file cannot be read.
     """
     try:
-        df = pd.read_csv(fpath, sep='\\s+', header=None, usecols=usecols)
+        df = pd.read_csv(fpath, sep="\\s+", header=None, usecols=usecols)
     except:
         raise ValueError()
     return df
-    
-    
+
+
 def npy2csv(data, fpath):
-    """ 
-    Save a NumPy array to a file in either .csv or .npy format.
+    """Save a NumPy array to a file in either .csv or .npy format.
 
     Parameters
     ----------
@@ -381,14 +388,13 @@ def npy2csv(data, fpath):
     -------
     None
     """
-    if ftype == 'csv':
+    if ftype == "csv":
         df = pd.DataFrame(data)
-        df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=',')
+        df.to_csv(fpath, index=False, header=None, float_format="%.3E", sep=",")
 
 
-def save_1d_data(data, ids=[], fpath='dfi.xvg', sep=' '): 
-    """ 
-    Save one-dimensional data in GROMACS XVG format.
+def save_1d_data(data, ids=[], fpath="dfi.xvg", sep=" "):
+    """Save one-dimensional data in GROMACS XVG format.
 
     Parameters
     ----------
@@ -408,13 +414,12 @@ def save_1d_data(data, ids=[], fpath='dfi.xvg', sep=' '):
     ids = list(ids)
     if not ids:
         ids = np.arange(1, len(data) + 1).astype(int)
-    df = pd.DataFrame({'ids': ids, 'data': data})
-    df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=sep)
-    
-    
-def save_2d_data(data, ids=[], fpath='dfi.xvg', sep=' '): 
-    """ 
-    Save two-dimensional data in GROMACS XVG format.
+    df = pd.DataFrame({"ids": ids, "data": data})
+    df.to_csv(fpath, index=False, header=None, float_format="%.3E", sep=sep)
+
+
+def save_2d_data(data, ids=[], fpath="dfi.xvg", sep=" "):
+    """Save two-dimensional data in GROMACS XVG format.
 
     Parameters
     ----------
@@ -432,5 +437,4 @@ def save_2d_data(data, ids=[], fpath='dfi.xvg', sep=' '):
     None
     """
     df = pd.DataFrame(data)
-    df.to_csv(fpath, index=False, header=None, float_format='%.3E', sep=sep)
-      
+    df.to_csv(fpath, index=False, header=None, float_format="%.3E", sep=sep)
