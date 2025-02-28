@@ -368,7 +368,6 @@ def _covariance_matrix(positions, dtype=np.float32):
     covmat = np.cov(centered_positions, rowvar=True, dtype=dtype)
     return np.array(covmat)
 
-
 ##############################################################
 ## DCI and DFI Calculations ##
 ##############################################################
@@ -454,7 +453,7 @@ def _group_group_dci(perturbation_matrix, groups=[[]], asym=False):
 
 @timeit
 @memprofit
-def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, **kwargs):
+def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, dtype=None, **kwargs):
     """
     Compute the inverse of a sparse matrix on the CPU using eigen-decomposition.
 
@@ -466,6 +465,7 @@ def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, **kwargs):
         matrix (np.ndarray): The input matrix.
         k_singular (int, optional): Number of smallest eigenvalues to zero out.
         n_modes (int, optional): Number of eigenmodes to compute.
+        dtype: Desired data type (default: input matrix.dtype).
         **kwargs: Additional arguments for the eigensolver.
 
     Returns:
@@ -475,6 +475,9 @@ def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, **kwargs):
     kwargs.setdefault('which', 'SA')
     kwargs.setdefault('tol', 0)
     kwargs.setdefault('maxiter', None)
+    if dtype == None:
+        dtype = matrix.dtype
+    matrix = np.asarray(matrix, dtype=dtype)
     evals, evecs = scipy.sparse.linalg.eigsh(matrix, **kwargs)
     inv_evals = evals**-1
     inv_evals[:k_singular] = 0.0 
@@ -484,7 +487,41 @@ def _inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, **kwargs):
 
 @timeit
 @memprofit
-def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, gpu_dtype=cp.float64, **kwargs):
+def _inverse_matrix_cpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs):
+    """
+    Compute the inverse of a matrix on the CPU using dense eigen-decomposition.
+
+    This function uses NumPy's dense eigenvalue solver to compute the eigen-decomposition 
+    of the input matrix, then inverts the eigenvalues (with the smallest 'k_singular' set to zero)
+    and reconstructs the inverse matrix.
+
+    Parameters
+    ----------
+    matrix (np.ndarray): The input matrix.
+    k_singular (int, optional): Number of smallest eigenvalues to zero out.
+    n_modes (int, optional): Number of eigenmodes to consider.
+    dtype: Desired data type (default: input matrix.dtype).
+    **kwargs: Additional arguments for the eigenvalue solver.
+
+    Returns
+    -------
+    np.ndarray: The inverse matrix computed on the CPU.
+    """
+    if dtype == None:
+        dtype = matrix.dtype
+    matrix = np.asarray(matrix, dtype=dtype)
+    evals, evecs = np.linalg.eigh(matrix, **kwargs)
+    evals = evals[:n_modes]
+    evecs = evecs[:, :n_modes]
+    inv_evals = evals**-1
+    inv_evals[:k_singular] = 0.0
+    print(evals[:20])
+    inv_matrix = np.matmul(evecs, np.matmul(np.diag(inv_evals), evecs.T))
+    return inv_matrix
+
+@timeit
+@memprofit
+def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, dtype=None, **kwargs):
     """
     Compute the inverse of a sparse matrix on the GPU using eigen-decomposition.
 
@@ -496,7 +533,7 @@ def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, gpu_dtype=cp.fl
         matrix (np.ndarray): The input matrix.
         k_singular (int, optional): Number of smallest eigenvalues to zero out.
         n_modes (int, optional): Number of eigenmodes to compute.
-        gpu_dtype: Desired CuPy data type (default: cp.float64).
+        dtype: Desired CuPy data type (default: input matrix.dtype).
         **kwargs: Additional arguments for the GPU eigensolver.
 
     Returns:
@@ -506,7 +543,9 @@ def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, gpu_dtype=cp.fl
     kwargs.setdefault('which', 'SA')
     kwargs.setdefault('tol', 0)
     kwargs.setdefault('maxiter', None)
-    matrix_gpu = cp.asarray(matrix, gpu_dtype)
+    if dtype == None:
+        dtype = matrix.dtype
+    matrix_gpu = cp.asarray(matrix, dtype)
     evals_gpu, evecs_gpu = cupyx.scipy.sparse.linalg.eigsh(matrix_gpu, **kwargs)
     inv_evals_gpu = evals_gpu**-1
     inv_evals_gpu[:k_singular] = 0.0  
@@ -516,7 +555,7 @@ def _inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, gpu_dtype=cp.fl
 
 @timeit
 @memprofit   
-def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, gpu_dtype=cp.float64, **kwargs):
+def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs):
     """
     Compute the inverse of a matrix on the GPU using dense eigen-decomposition.
 
@@ -528,22 +567,23 @@ def _inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, gpu_dtype=cp.float64,
         matrix (np.ndarray): The input matrix.
         k_singular (int, optional): Number of smallest eigenvalues to zero out.
         n_modes (int, optional): Number of eigenmodes to consider.
-        gpu_dtype: Desired CuPy data type (default: cp.float64).
+        dtype: Desired CuPy data type (default: input matrix.dtype).
         **kwargs: Additional arguments for the eigenvalue solver.
 
     Returns:
         cp.ndarray: The inverse matrix computed on the GPU.
     """
-    matrix_gpu = cp.asarray(matrix, gpu_dtype)
+    if dtype == None:
+        dtype = matrix.dtype
+    matrix_gpu = cp.asarray(matrix, dtype)
     evals_gpu, evecs_gpu = cupy.linalg.eigh(matrix_gpu, **kwargs)
-    print(evals_gpu)
     evals_gpu = evals_gpu[:n_modes]
     evecs_gpu = evecs_gpu[:,:n_modes]
     inv_evals_gpu = evals_gpu**-1
     inv_evals_gpu[:k_singular] = 0.0   
     print(evals_gpu[:20])
-    invM_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
-    return invM_gpu
+    inv_matrix_gpu = cp.matmul(evecs_gpu, cp.matmul(cp.diag(inv_evals_gpu), evecs_gpu.T))
+    return inv_matrix_gpu
 
 ##############################################################
 ## Miscellaneous Functions ##
@@ -567,8 +607,7 @@ def percentile(x):
     for n in range(len(x)):
         px[n] = np.where(sorted_x == n)[0][0] / len(x)
     return px
-
-
     
+
 if __name__ == '__main__':
     pass

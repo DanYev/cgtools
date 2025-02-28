@@ -149,7 +149,7 @@ def _hessian(np.ndarray[double, ndim=2] vec,
     """
     cdef int i, j
     cdef double x_ij, y_ij, z_ij, r, invr, gamma
-    cdef int n = vec.shape[0] // 3
+    cdef int n = vec.shape[0] 
     cdef np.ndarray[double, ndim=2] hessian = np.zeros((3 * n, 3 * n), dtype=np.float64)
     
     for i in range(n):

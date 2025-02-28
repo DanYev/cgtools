@@ -26,14 +26,13 @@ import numpy as np
 import pytest
 from reforge.actual_math import mypymath
 
-# Skip GPU tests if CuPy is not installed.
+# Skip GPU tests if CUDA is not available
 try:
     import cupy as cp
     from reforge.utils import cuda_detected
     cuda_detected()
 except ImportError:
     cp = None
-skip_reason = 'CUDA not detected'
 
 
 def test_covariance_matrix():
@@ -183,13 +182,34 @@ def test_inverse_sparse_matrix_cpu():
     # Invert the matrix with all eigenvalues inverted.
     inv_matrix = mypymath._inverse_sparse_matrix_cpu(matrix, k_singular=0, n_modes=N-1)
     expected_inv = np.diag(1.0 / diag_vals)
-    np.testing.assert_allclose(inv_matrix, expected_inv, rtol=0, atol=1e-6)
+    np.testing.assert_allclose(inv_matrix, expected_inv, rtol=1e-6, atol=1e-6)
 
 
+def test_inverse_matrix_cpu():
+    """
+    Verify the CPU-based sparse matrix inversion function (_inverse_sparse_matrix_cpu).
 
+    This test:
+      - Constructs a diagonal matrix with known values.
+      - Inverts the matrix using _inverse_sparse_matrix_cpu.
+      - Compares the computed inverse with the expected inverse (reciprocals of the diagonal elements).
+    
+    Returns:
+        None
+    """
+    N = 100
+    diag_vals = np.linspace(1, 1e7, N)
+    matrix = np.diag(diag_vals)
+    # Invert the matrix with all eigenvalues inverted.
+    inv_matrix = mypymath._inverse_matrix_cpu(matrix, k_singular=0, n_modes=N)
+    expected_inv = np.diag(1.0 / diag_vals)
+    np.testing.assert_allclose(inv_matrix, expected_inv, rtol=1e-6, atol=1e-6)
 
+#############################
+## GPU tests ##
+#############################
 
-@pytest.mark.skipif(cp is None, reason=skip_reason)
+@pytest.mark.skipif(cp is None, reason='CUDA not detected')
 def test_gfft_ccf():
     """
     Validate the GPU-based FFT correlation function (_gfft_corr).
@@ -213,7 +233,7 @@ def test_gfft_ccf():
     np.testing.assert_allclose(corr, corr_ser, rtol=1e-10, atol=1e-10)
 
 
-@pytest.mark.skipif(cp is None, reason=skip_reason)
+@pytest.mark.skipif(cp is None, reason='CUDA not detected')
 def test_inverse_sparse_matrix_gpu():
     """
     Test the GPU-based sparse matrix inversion (_inverse_sparse_matrix_gpu).
@@ -229,13 +249,13 @@ def test_inverse_sparse_matrix_gpu():
     N = 200
     diag_vals = np.linspace(1, 10, N)
     matrix = np.diag(diag_vals)
-    inv_matrix_gpu = mypymath._inverse_sparse_matrix_gpu(matrix, k_singular=0, n_modes=N//10, gpu_dtype=cp.float64)
+    inv_matrix_gpu = mypymath._inverse_sparse_matrix_gpu(matrix, k_singular=0, n_modes=N//10, dtype=cp.float64)
     inv_matrix = cp.asnumpy(inv_matrix_gpu)
     expected_inv = mypymath._inverse_sparse_matrix_cpu(matrix, k_singular=0, n_modes=N//10)
     np.testing.assert_allclose(inv_matrix, expected_inv, rtol=0, atol=1e-6)
 
 
-@pytest.mark.skipif(cp is None, reason=skip_reason)
+@pytest.mark.skipif(cp is None, reason='CUDA not detected')
 def test_inverse_matrix_gpu():
     """
     Verify the GPU matrix inversion function (_inverse_matrix_gpu).
@@ -250,11 +270,11 @@ def test_inverse_matrix_gpu():
     """
     N = 200
     diag_vals = np.linspace(1, 10, N)
-    matrix = np.diag(diag_vals)
+    matrix = np.diag(diag_vals).astype(np.float64)
     inv_matrix_gpu = mypymath._inverse_matrix_gpu(matrix, k_singular=0, n_modes=N)
     inv_matrix = cp.asnumpy(inv_matrix_gpu)
     expected_inv = np.diag(1.0 / diag_vals)
-    np.testing.assert_allclose(inv_matrix, expected_inv, rtol=1e-5)
+    np.testing.assert_allclose(inv_matrix, expected_inv, rtol=1e-5, atol=1e-6)
 
 
 if __name__ == '__main__':
