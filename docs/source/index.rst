@@ -88,7 +88,7 @@ Indices and Tables
 .. * :ref:`search`
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :glob:
 
    getting_started

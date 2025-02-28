@@ -1,5 +1,5 @@
-"""
-File: itpio.py
+"""File: itpio.py
+
 Description:
     This module provides functions for reading, parsing, formatting, and writing
     GROMACS ITP files. It includes utilities to extract and format different sections

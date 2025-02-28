@@ -51,9 +51,10 @@ def fft_ccf(*args, mode="serial", **kwargs):
 
     This function dispatches to one of the internal FFT correlation routines
     based on the specified mode:
-    - serial for _sfft_ccf,
-    - parallel for _pfft_ccf, or
-    - gpu for _gfft_ccf.
+
+        - serial for _sfft_ccf,
+        - parallel for _pfft_ccf, or
+        - gpu for _gfft_ccf.
 
     Parameters
     ----------
