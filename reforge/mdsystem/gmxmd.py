@@ -28,8 +28,8 @@ Requirements:
 Author: DY
 Date: 2025-02-27
 """
-
 import os
+from pathlib import Path
 import sys
 import importlib.resources
 import shutil
@@ -39,7 +39,7 @@ import numpy as np
 from reforge import cli, mdm, pdbtools, io
 from reforge.pdbtools import AtomList
 from reforge.utils import cd, clean_dir, logger
-from .mdsystem import MDSystem, MDRun
+from .mdsystem import MDSystem, MDRun, sort_upper_lower_digit
 
 
 ################################################################################
@@ -69,22 +69,20 @@ class GmxSystem(MDSystem):
 
         Sets up paths for various files required for coarse-grained MD simulation.
         """
-        self.sysgro = os.path.join(self.root, "system.gro")
-        self.systop = os.path.join(self.root, "system.top")
-        self.sysndx = os.path.join(self.root, "system.ndx")
-        self.mdpdir = os.path.join(self.root, "mdp")
+        self.sysgro = self.root / "system.gro"
+        self.systop = self.root / "system.top"
+        self.sysndx = self.root /  "system.ndx"
+        self.mdpdir = self.root / "mdp"
 
     def gmx(self, command="-h", clinput=None, clean_wdir=True, **kwargs):
-        """Executes a GROMACS command using the reforge CLI.
+        """Executes a GROMACS command from the system's root directory. 
 
         Parameters
         ----------
             command (str): The GROMACS command to run (default: "-h").
             clinput (str, optional): Input to pass to the command's stdin.
             clean_wdir (bool, optional): If True, cleans the working directory after execution.
-            kwargs: Additional keyword arguments to pass to the CLI.
-
-        Runs the command from the system's root directory.
+            kwargs: Additional keyword arguments to pass to gromacs.
         """
         with cd(self.root):
             cli.gmx(command, clinput=clinput, **kwargs)
@@ -123,7 +121,7 @@ class GmxSystem(MDSystem):
                 outpath = os.path.join(self.topdir, file)
                 shutil.copy(fpath, outpath)
 
-    def make_system_top(self, add_resolved_ions=False, prefix="chain"):
+    def make_cg_topology(self, add_resolved_ions=False, prefix="chain"):
         """Creates the system topology file by including all relevant ITP files and
         defining the system and molecule sections.
 
@@ -287,7 +285,7 @@ class GmxSystem(MDSystem):
         return mdrun
 
 
-class GmxRun(GmxSystem, MDRun):
+class GmxRun(MDRun):
     """Subclass of GmxSystem for executing molecular dynamics (MD) simulations
     and performing post-processing analyses.
     """
@@ -301,26 +299,29 @@ class GmxRun(GmxSystem, MDRun):
             sysname (str): Name of the MD system.
             runname (str): Name for the MD run.
         """
-        super().__init__(sysdir, sysname)
-        self.runname = runname
-        self.rundir = os.path.join(self.mddir, self.runname)
-        self.rmsdir = os.path.join(self.rundir, "rms_analysis")
-        self.covdir = os.path.join(self.rundir, "cov_analysis")
-        self.lrtdir = os.path.join(self.rundir, "lrt_analysis")
-        self.cludir = os.path.join(self.rundir, "clusters")
-        self.pngdir = os.path.join(self.rundir, "png")
+        super().__init__(sysdir, sysname, runname)
+        self.sysgro = os.path.join(self.root, "system.gro")
+        self.systop = os.path.join(self.root, "system.top")
+        self.sysndx = os.path.join(self.root, "system.ndx")
+        self.mdpdir = os.path.join(self.root, "mdp")
         self.str = os.path.join(self.rundir, "mdc.pdb")  # Structure file
         self.trj = os.path.join(self.rundir, "mdc.trr")  # Trajectory file
 
-    def prepare_files(self):
-        """Creates necessary directories for the MD run and copies essential files."""
-        os.makedirs(self.rundir, exist_ok=True)
-        os.makedirs(self.rmsdir, exist_ok=True)
-        os.makedirs(self.cludir, exist_ok=True)
-        os.makedirs(self.covdir, exist_ok=True)
-        os.makedirs(self.lrtdir, exist_ok=True)
-        os.makedirs(self.pngdir, exist_ok=True)
-        shutil.copy("atommass.dat", os.path.join(self.rundir, "atommass.dat"))
+    def gmx(self, command="-h", clinput=None, clean_wdir=True, **kwargs):
+        """Executes a GROMACS command from the run's root directory. 
+
+        Parameters
+        ----------
+            command (str): The GROMACS command to run (default: "-h").
+            clinput (str, optional): Input to pass to the command's stdin.
+            clean_wdir (bool, optional): If True, cleans the working directory after execution.
+            kwargs: Additional keyword arguments to pass to gromacs.
+
+        """
+        with cd(self.rundir):
+            cli.gmx(command, clinput=clinput, **kwargs)
+            if clean_wdir:
+                clean_dir()
 
     def empp(self, **kwargs):
         """Prepares the energy minimization run using GROMACS grompp.
@@ -341,8 +342,7 @@ class GmxRun(GmxSystem, MDRun):
         kwargs.setdefault("p", self.systop)
         kwargs.setdefault("n", self.sysndx)
         kwargs.setdefault("o", "em.tpr")
-        with cd(self.rundir):
-            cli.gmx_grompp(**kwargs)
+        self.gmx('grompp', **kwargs)
 
     def hupp(self, **kwargs):
         """Prepares the heat-up phase using GROMACS grompp.
