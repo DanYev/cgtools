@@ -638,13 +638,11 @@ class System:
     def residues(self):
         for model in self.models.values():
             for chain in sorted(model.chains.values(), key=lambda c: c.chid):
-                for residue in sorted(chain.residues.values(), key=lambda r: (r.resid, r.icode)):
-                    yield residue
+                yield from sorted(chain.residues.values(), key=lambda r: (r.resid, r.icode))
 
     def chains(self):
         for model in self.models.values():
-            for chain in sorted(model.chains.values(), key=lambda c: c.chid):
-                yield chain
+            yield from sorted(model.chains.values(), key=lambda c: c.chid)
 
     def write_pdb(self, filename):
         with open(filename, "w", encoding="utf-8") as f:
