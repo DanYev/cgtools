@@ -30,15 +30,13 @@ Date: 2025-02-27
 
 import os
 import sys
-import importlib.resources
 import shutil
 import subprocess as sp
-import MDAnalysis as mda
 import numpy as np
 from reforge import cli, mdm, pdbtools, io
 from reforge.pdbtools import AtomList
 from reforge.utils import cd, clean_dir, logger
-
+from reforge.martini import getgo, martini_tools
 
 ################################################################################
 # GMX system class
@@ -51,7 +49,7 @@ class MDSystem:
     Most attributes are paths to files and directories needed to set up
     and run the MD simulation.
     """
-    NUC_RESNAMES = ["A", "C", "G", "U", 
+    NUC_RESNAMES = ["A", "C", "G", "U",
                     "RA3", "RA5", "RC3", "RC5", 
                     "RG3", "RG5", "RU3", "RU5",]
 
@@ -70,11 +68,11 @@ class MDSystem:
         self.root = os.path.join(self.sysdir, sysname)
         self.inpdb = os.path.join(self.root, "inpdb.pdb")
         self.solupdb = os.path.join(self.root, "solute.pdb")
-        self.ionpdb = os.path.join(self.iondir, "ions.pdb")
         self.syspdb = os.path.join(self.root, "system.pdb")
         self.prodir = os.path.join(self.root, "proteins")
         self.nucdir = os.path.join(self.root, "nucleotides")
         self.iondir = os.path.join(self.root, "ions")
+        self.ionpdb = os.path.join(self.iondir, "ions.pdb")
         self.topdir = os.path.join(self.root, "topol")
         self.mapdir = os.path.join(self.root, "map")
         self.cgdir = os.path.join(self.root, "cgpdb")
@@ -92,7 +90,7 @@ class MDSystem:
         """
         atoms = io.pdb2atomlist(self.inpdb)
         chains = sort_upper_lower_digit(set(atoms.chids))
-        return chains   
+        return chains
 
     def sort_input_pdb(self, in_pdb="inpdb.pdb"):
         """Sorts and renames atoms and chains in the input PDB file.
@@ -101,7 +99,7 @@ class MDSystem:
         ----------
             in_pdb (str): Path to the input PDB file (default: "inpdb.pdb").
 
-        Uses pdbtools to perform sorting and renaming, saving the result to the designated input PDB path.
+        Uses pdbtools to perform sorting and renaming, saving the result to self.inpdb.
         """
         with cd(self.root):
             pdbtools.sort_pdb(in_pdb, self.inpdb)
@@ -132,7 +130,8 @@ class MDSystem:
         logger.info("Cleaning the PDB using GROMACS pdb2gmx...")
         if not in_pdb:
             in_pdb = self.inpdb
-        self.gmx("pdb2gmx", f=in_pdb, o=in_pdb, **kwargs)
+        with cd(self.root):
+            cli.gmx("pdb2gmx", f=in_pdb, o=in_pdb, **kwargs)
         clean_dir(self.root, "topol*")
         clean_dir(self.root, "posre*")
 
@@ -145,7 +144,6 @@ class MDSystem:
         def it_is_nucleotide(atoms):
             # Check if the chain is nucleotide based on residue name.
             return atoms.resnames[0] in self.NUC_RESNAMES
-
         logger.info("Splitting chains from the input PDB...")
         system = pdbtools.pdb2system(self.inpdb)
         for chain in system.chains():
@@ -184,13 +182,15 @@ class MDSystem:
         and cleaning temporary files afterward.
         """
         logger.info("Cleaning chain PDBs using GROMACS pdb2gmx...")
-        files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir) if not f.startswith("#")]
-        files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir) if not f.startswith("#")]
+        files = [os.path.join(self.prodir, f) for f in os.listdir(self.prodir)\
+            if not f.startswith("#")]
+        files += [os.path.join(self.nucdir, f) for f in os.listdir(self.nucdir)\
+            if not f.startswith("#")]
         files = sorted(files)
         with cd(self.root):
             for file in files:
                 new_chain_id = file.split("chain_")[1][0]
-                self.gmx("pdb2gmx", f=file, o=file, **kwargs)
+                cli.gmx("pdb2gmx", f=file, o=file, **kwargs)
                 pdbtools.rename_chain_and_histidines_in_pdb(file, new_chain_id)
             clean_dir(self.prodir)
             clean_dir(self.nucdir)
@@ -207,11 +207,11 @@ class MDSystem:
             append (bool, optional): If True, filters out maps that already exist in self.mapdir.
         """
         print("Getting GO-maps", file=sys.stderr)
-        from reforge.martini import getgo
         pdbs = sorted([os.path.join(self.prodir, file) for file in os.listdir(self.prodir)])
         map_names = [f.replace("pdb", "map") for f in os.listdir(self.prodir)]
         if append:
-            pdbs = [pdb for pdb, amap in zip(pdbs, map_names) if amap not in os.listdir(self.mapdir)]
+            pdbs = [pdb for pdb, amap in zip(pdbs, map_names)\
+                if amap not in os.listdir(self.mapdir)]
         if pdbs:
             getgo.get_go(self.mapdir, pdbs)
         else:
@@ -221,17 +221,18 @@ class MDSystem:
         """Performs virtual site-based GoMartini coarse-graining on protein PDBs.
 
         Uses Martinize2 from https://github.com/marrink-lab/vermouth-martinize.
-        All keyword arguments are passed directly to Martinize2. Run `martinize2 -h` to see the full list of parameters.
+        All keyword arguments are passed directly to Martinize2. 
+        Run `martinize2 -h` to see the full list of parameters.
 
         Parameters
         ----------
-            append (bool, optional): If True, only processes proteins for which corresponding topology files do not already exist.
+            append (bool, optional): If True, only processes proteins for 
+                which corresponding topology files do not already exist.
             kwargs: Additional parameters for the martinize_go function.
 
         Generates .itp files and cleans temporary directories after processing.
         """
         logger.info("Working on proteins (GoMartini)...")
-        from reforge.martini.martini_tools import martinize_go
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace("pdb", "itp") for f in pdbs]
         if append:
@@ -241,11 +242,11 @@ class MDSystem:
         # Create files for virtual CA parameters if they don't exist.
         file_path = os.path.join(self.topdir, "go_atomtypes.itp")
         if not os.path.isfile(file_path):
-            with open(file_path, "w") as f:
+            with open(file_path, "w", encoding='utf-8') as f:
                 f.write("[ atomtypes ]\n")
         file_path = os.path.join(self.topdir, "go_nbparams.itp")
         if not os.path.isfile(file_path):
-            with open(file_path, "w") as f:
+            with open(file_path, "w", encoding='utf-8') as f:
                 f.write("[ nonbond_params ]\n")
         for file in pdbs:
             in_pdb = os.path.join(self.prodir, file)
@@ -253,7 +254,7 @@ class MDSystem:
             name = file.split(".")[0]
             # Note: Use f-string formatting correctly.
             go_map = os.path.join(self.mapdir, f"{name}.map")
-            martinize_go(self.root, self.topdir, in_pdb, cg_pdb, name=name, **kwargs)
+            martini_tools.martinize_go(self.root, self.topdir, in_pdb, cg_pdb, name=name, **kwargs)
         clean_dir(self.cgdir)
         clean_dir(self.root)
         clean_dir(self.root, "*.itp")
@@ -262,17 +263,19 @@ class MDSystem:
         """Generates an elastic network for proteins using the Martini elastic network model.
 
         Uses Martinize2 from https://github.com/marrink-lab/vermouth-martinize.
-        All keyword arguments are passed directly to Martinize2. Run `martinize2 -h` to see the full list of parameters.
+        All keyword arguments are passed directly to Martinize2. 
+        Run `martinize2 -h` to see the full list of parameters.
 
         Parameters
         ----------
-            append (bool, optional): If True, processes only proteins that do not already have corresponding topology files.
+            append (bool, optional): If True, processes only proteins that do not 
+                already have corresponding topology files.
             kwargs: Elastic network parameters (e.g., elastic bond force constants, cutoffs).
 
-        Modifies the generated ITP files by replacing the default molecule name with the actual protein name and cleans temporary files.
+        Modifies the generated ITP files by replacing the default molecule name 
+        with the actual protein name and cleans temporary files.
         """
         logger.info("Working on proteins (Elastic Network)...")
-        from .martini.martini_tools import martinize_en
         pdbs = sorted(os.listdir(self.prodir))
         itps = [f.replace("pdb", "itp") for f in pdbs]
         if append:
@@ -283,7 +286,7 @@ class MDSystem:
             new_itp = os.path.join(self.root, "molecule_0.itp")
             updated_itp = os.path.join(self.topdir, file.replace("pdb", "itp"))
             new_top = os.path.join(self.root, "protein.top")
-            martinize_en(self.root, self.topdir, in_pdb, cg_pdb, **kwargs)
+            martini_tools.martinize_en(self.root, self.topdir, in_pdb, cg_pdb, **kwargs)
             # Replace 'molecule_0' with the actual molecule name in the ITP.
             with open(new_itp, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -305,16 +308,15 @@ class MDSystem:
         After processing, renames files and moves the resulting ITP files to the topology directory.
         """
         logger.info("Working on nucleotides...")
-        from .martini.martini_tools import martinize_nucleotide
         for file in os.listdir(self.nucdir):
             in_pdb = os.path.join(self.nucdir, file)
             cg_pdb = os.path.join(self.cgdir, file)
-            martinize_nucleotide(self.root, in_pdb, cg_pdb, **kwargs)
+            martini_tools.martinize_nucleotide(self.root, in_pdb, cg_pdb, **kwargs)
         nfiles = [f for f in os.listdir(self.root) if f.startswith("Nucleic")]
         for f in nfiles:
             file_path = os.path.join(self.root, f)
             command = f"sed -i s/Nucleic_/chain_/g {file_path}"
-            sp.run(command.split())
+            sp.run(command.split(), check=True)
             outfile = f.replace("Nucleic", "chain")
             shutil.move(file_path, os.path.join(self.topdir, outfile))
         clean_dir(self.cgdir)
@@ -331,7 +333,6 @@ class MDSystem:
         Exits the process with an error message if coarse-graining fails.
         """
         logger.info("Working on RNA molecules...")
-        from reforge.martini.martini_tools import martinize_rna
         files = os.listdir(self.nucdir)
         if append:
             files = [f for f in files if f.replace("pdb", "itp") not in self.topdir]
@@ -341,7 +342,8 @@ class MDSystem:
             cg_pdb = os.path.join(self.cgdir, file)
             cg_itp = os.path.join(self.topdir, molname + ".itp")
             try:
-                martinize_rna(self.root, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
+                martini_tools.martinize_rna(self.root,
+                    f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
             except Exception as e:
                 sys.exit(f"Could not coarse-grain {in_pdb}: {e}")
 
@@ -370,9 +372,8 @@ class MDSystem:
                 all_atoms.extend(atoms)
             all_atoms.renumber()
             all_atoms.write_pdb(self.solupdb)
-            self.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
+            cli.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
 
-    
     def find_resolved_ions(self, mask=["MG", "ZN", "K"]):
         """Identifies resolved ions in the input PDB file and writes them to "ions.pdb".
 
@@ -380,7 +381,7 @@ class MDSystem:
         ----------
             mask (list, optional): List of ion identifiers to look for (default: ["MG", "ZN", "K"]).
         """
-        mask_atoms(self.inpdb, "ions.pdb", mask=mask)
+        pdbtools.mask_atoms(self.inpdb, "ions.pdb", mask=mask)
 
     def count_resolved_ions(self, ions=["MG", "ZN", "K"]):
         """Counts the number of resolved ions in the system PDB file.
@@ -396,7 +397,7 @@ class MDSystem:
             A dictionary mapping ion names to their counts.
         """
         counts = {ion: 0 for ion in ions}
-        with open(self.syspdb, "r") as file:
+        with open(self.syspdb, "r", encoding='utf-8') as file:
             for line in file:
                 if line.startswith("ATOM") or line.startswith("HETATM"):
                     current_ion = line[12:16].strip()
@@ -404,7 +405,6 @@ class MDSystem:
                         counts[current_ion] += 1
         return counts
 
-    
     def get_mean_sem(self, pattern="dfi*.npy"):
         """Calculates the mean and standard error of the mean (SEM) from numpy files.
 
@@ -414,7 +414,7 @@ class MDSystem:
 
         Saves the calculated averages and errors as numpy files in the data directory.
         """
-        logger.info(f"Calculating averages and errors from {pattern}")
+        logger.info("Calculating averages and errors from %s", pattern)
         files = io.pull_files(self.mddir, pattern)
         datas = [np.load(file) for file in files]
         mean = np.average(datas, axis=0)
@@ -438,10 +438,10 @@ class MDSystem:
         logger.info("Getting time-dependent averages")
         files = io.pull_files(self.mddir, fname)
         if loop:
-            logger.info(f"Processing {files[0]}")
+            logger.info("Processing %s", files[0])
             average = np.load(files[0])
             for f in files[1:]:
-                logger.info(f"Processing {f}")
+                logger.info("Processing %s", f)
                 arr = np.load(f)
                 average += arr
             average /= len(files)
@@ -451,34 +451,6 @@ class MDSystem:
         np.save(os.path.join(self.datdir, fname), average)
         logger.info("Done!")
         return average
-
-    def get_averages(self, rmsf=False, dfi=True, dci=True):
-        """Computes averages for various analyses (RMSF, DFI, DCI) based on MD run data.
-
-        Parameters
-        ----------
-            rmsf (bool, optional): If True, computes RMSF averages.
-            dfi (bool, optional): If True, computes DFI averages.
-            dci (bool, optional): If True, computes DCI averages.
-        """
-        all_files = io.pull_all_files(self.mddir)
-        if rmsf:
-            files = io.filter_files(all_files, sw="rmsf.", ew=".xvg")
-            self.get_mean_sem(files, "rmsf.csv", col=1)
-            for chain in self.chains:
-                sw = f"rmsf_{chain}"
-                files = io.filter_files(all_files, sw=sw, ew=".xvg")
-                self.get_mean_sem(files, f"{sw}.csv", col=1)
-        if dfi:
-            print("Processing DFI", file=sys.stderr)
-            files = io.filter_files(all_files, sw="dfi", ew=".xvg")
-            self.get_mean_sem(files, "dfi.csv", col=1)
-        if dci:
-            print("Processing DCI", file=sys.stderr)
-            files = io.filter_files(all_files, sw="dci", ew=".xvg")
-            self.get_mean_sem_2d(files, out_fname="dci.csv", out_errname="dci_err.csv")
-            files = io.filter_files(all_files, sw="asym", ew=".xvg")
-            self.get_mean_sem_2d(files, out_fname="dci.csv", out_errname="dci_err.csv")
 
 
 class MDRun(MDSystem):
@@ -502,8 +474,8 @@ class MDRun(MDSystem):
         self.covdir = os.path.join(self.rundir, "cov_analysis")
         self.lrtdir = os.path.join(self.rundir, "lrt_analysis")
         self.cludir = os.path.join(self.rundir, "clusters")
-        self.pngdir = os.path.join(self.rundir, "png")  
-
+        self.pngdir = os.path.join(self.rundir, "png")
+    
     def prepare_files(self):
         """Creates necessary directories for the MD run and copies essential files."""
         os.makedirs(self.rundir, exist_ok=True)
@@ -513,7 +485,7 @@ class MDRun(MDSystem):
         os.makedirs(self.lrtdir, exist_ok=True)
         os.makedirs(self.pngdir, exist_ok=True)
         
-    def get_covmats(self, u=None, ag=None, sample_rate=1, b=50000, e=1000000, n=10, outtag="covmat"):
+    def get_covmats(self, u, ag, **kwargs):
         """Calculates covariance matrices by splitting the trajectory into chunks.
 
         Parameters
@@ -526,18 +498,17 @@ class MDRun(MDSystem):
             n (int, optional): Number of covariance matrices to calculate.
             outtag (str, optional): Tag prefix for output files.
         """
+        sample_rate = kwargs.pop('sample_rate', 1)
+        b = kwargs.pop('b', 50000)
+        e = kwargs.pop('e', 1000000)
+        n = kwargs.pop('b', 10)
+        outtag = kwargs.pop('outtag', 'covmat')
         logger.info("Calculating covariance matrices...")
-        if not u:
-            u = mda.Universe(self.str, self.trj, in_memory=True)
-        if not ag:
-            ag = u.atoms.select_atoms("name BB or name BB1 or name BB3")
-            if not ag:
-                ag = u.atoms.select_atoms("name CA or name P or name C1'")
         positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e)
         mdm.calc_and_save_covmats(positions, outdir=self.covdir, n=n, outtag=outtag)
         logger.info("Finished calculating covariance matrices!")
 
-    def get_pertmats(self, intag="covmat", outtag="pertmat", **kwargs):
+    def get_pertmats(self, intag="covmat", outtag="pertmat"):
         """Calculates perturbation matrices from the covariance matrices.
 
         Parameters
@@ -549,16 +520,16 @@ class MDRun(MDSystem):
         with cd(self.covdir):
             cov_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
             for cov_file in cov_files:
-                logger.info(f"  Processing covariance matrix {cov_file}")
+                logger.info("  Processing covariance matrix %s", cov_file)
                 covmat = np.load(cov_file)
                 logger.info("  Calculating perturbation matrix")
                 pertmat = mdm.perturbation_matrix(covmat)
                 pert_file = cov_file.replace(intag, outtag)
-                logger.info(f"  Saving perturbation matrix at {pert_file}")
+                logger.info("  Saving perturbation matrix at %s", pert_file)
                 np.save(pert_file, pertmat)
         logger.info("Finished calculating perturbation matrices!")
 
-    def get_dfi(self, intag="pertmat", outtag="dfi", **kwargs):
+    def get_dfi(self, intag="pertmat", outtag="dfi"):
         """Calculates Dynamic Flexibility Index (DFI) from perturbation matrices.
 
         Parameters
@@ -570,14 +541,14 @@ class MDRun(MDSystem):
         with cd(self.covdir):
             pert_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
             for pert_file in pert_files:
-                logger.info(f"  Processing perturbation matrix {pert_file}")
+                logger.info("  Processing perturbation matrix %s", pert_file)
                 pertmat = np.load(pert_file)
                 logger.info("  Calculating DFI")
                 dfi_val = mdm.dfi(pertmat)
                 dfi_file = pert_file.replace(intag, outtag)
                 dfi_file = os.path.join(self.covdir, dfi_file)
                 np.save(dfi_file, dfi_val)
-                logger.info(f"  Saved DFI at {dfi_file}")
+                logger.info("  Saved DFI at %s", dfi_file)
         logger.info("Finished calculating DFIs!")
 
     def get_dci(self, intag="pertmat", outtag="dci", asym=False):
@@ -592,17 +563,17 @@ class MDRun(MDSystem):
         with cd(self.covdir):
             pert_files = [f for f in sorted(os.listdir()) if f.startswith(intag)]
             for pert_file in pert_files:
-                logger.info(f"  Processing perturbation matrix {pert_file}")
+                logger.info("  Processing perturbation matrix %s", pert_file) 
                 pertmat = np.load(pert_file)
                 logger.info("  Calculating DCI")
                 dci_file = pert_file.replace(intag, outtag)
                 dci_file = os.path.join(self.covdir, dci_file)
                 dci_val = mdm.dci(pertmat, asym=asym)
                 np.save(dci_file, dci_val)
-                logger.info(f"  Saved DCI at {dci_file}")
+                logger.info("  Saved DCI at %s", dci_file)
         logger.info("Finished calculating DCIs!")
 
-    def get_group_dci(self, groups=[], labels=[], asym=False):
+    def get_group_dci(self, groups, labels, asym=False):
         """Calculates DCI between specified groups based on perturbation matrices.
 
         Parameters
@@ -613,10 +584,10 @@ class MDRun(MDSystem):
         """
         bdir = os.getcwd()
         os.chdir(self.covdir)
-        logger.info(f"Working dir: {self.covdir}")
+        logger.info("Working dir: %s", self.covdir)
         pert_files = [f for f in sorted(os.listdir()) if f.startswith("pertmat")]
         for pert_file in pert_files:
-            logger.info(f"  Processing perturbation matrix {pert_file}")
+            logger.info("  Processing perturbation matrix %s", pert_file) 
             pertmat = np.load(pert_file)
             logger.info("  Calculating group DCI")
             dcis = mdm.group_molecule_dci(pertmat, groups=groups, asym=asym)
@@ -624,11 +595,31 @@ class MDRun(MDSystem):
                 dci_file = pert_file.replace("pertmat", f"gdci_{group_id}")
                 dci_file = os.path.join(self.covdir, dci_file)
                 np.save(dci_file, dci_val)
-                logger.info(f"  Saved group DCI at {dci_file}")
+                logger.info("  Saved group DCI at %s", dci_file)
             ch_dci_file = pert_file.replace("pertmat", "ggdci")
             ch_dci_file = os.path.join(self.covdir, ch_dci_file)
             ch_dci = mdm.group_group_dci(pertmat, groups=groups, asym=asym)
             np.save(ch_dci_file, ch_dci)
-            logger.info(f"  Saved group-group DCI at {ch_dci_file}")
+            logger.info("  Saved group-group DCI at %s", ch_dci_file)
         logger.info("Finished calculating group DCIs!")
         os.chdir(bdir)
+
+################################################################################
+# Utils
+################################################################################
+
+def sort_upper_lower_digit(alist):
+    """Sorts a list of strings such that uppercase letters come first, 
+    then lowercase letters, followed by digits.
+
+    This is useful for organizing GROMACS multichain files.
+
+    Parameters
+        ----------
+        alist (iterable): List of strings to sort.
+
+    Returns:
+        list: Sorted list of strings.
+    """
+    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
+    return slist

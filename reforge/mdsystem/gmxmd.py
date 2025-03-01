@@ -1169,21 +1169,3 @@ class MDRun(GmxSystem):
             )
 
 
-################################################################################
-# Utils
-################################################################################
-
-def sort_upper_lower_digit(alist):
-    """Sorts a list of strings such that uppercase letters come first, then lowercase letters, followed by digits.
-
-    This is useful for organizing GROMACS multichain files.
-
-    Parameters
-        ----------
-        alist (iterable): List of strings to sort.
-
-    Returns:
-        list: Sorted list of strings.
-    """
-    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
-    return slist
