@@ -41,7 +41,6 @@ from reforge.pdbtools import AtomList
 from reforge.utils import cd, clean_dir, logger
 from .mdsystem import MDSystem, MDRun, sort_upper_lower_digit
 
-
 ################################################################################
 # GMX system class
 ################################################################################
@@ -71,8 +70,10 @@ class GmxSystem(MDSystem):
         """
         self.sysgro = self.root / "system.gro"
         self.systop = self.root / "system.top"
-        self.sysndx = self.root /  "system.ndx"
+        self.sysndx = self.root / "system.ndx"
         self.mdpdir = self.root / "mdp"
+        # Define gro directory (used in make_gro_file)
+        self.grodir = self.root / "gro"
 
     def gmx(self, command="-h", clinput=None, clean_wdir=True, **kwargs):
         """Executes a GROMACS command from the system's root directory. 
@@ -100,26 +101,27 @@ class GmxSystem(MDSystem):
           - Copies .itp files from the master ITP directory to the system topology directory.
         """
         logger.info("Preparing files and directories")
-        os.makedirs(self.prodir, exist_ok=True)
-        os.makedirs(self.nucdir, exist_ok=True)
-        os.makedirs(self.topdir, exist_ok=True)
-        os.makedirs(self.mapdir, exist_ok=True)
-        os.makedirs(self.mdpdir, exist_ok=True)
-        os.makedirs(self.cgdir, exist_ok=True)
-        os.makedirs(self.datdir, exist_ok=True)
-        os.makedirs(self.pngdir, exist_ok=True)
-        for file in os.listdir(self.MMDPDIR):
-            if file.endswith(".mdp"):
-                fpath = os.path.join(self.MMDPDIR, file)
-                outpath = os.path.join(self.mdpdir, file)
-                shutil.copy(fpath, outpath)
-        shutil.copy(os.path.join(self.MDATDIR, "water.gro"), self.root)
-        shutil.copy(os.path.join(self.MDATDIR, "atommass.dat"), self.root)
-        for file in os.listdir(self.MITPDIR):
-            if file.endswith(".itp"):
-                fpath = os.path.join(self.MITPDIR, file)
-                outpath = os.path.join(self.topdir, file)
-                shutil.copy(fpath, outpath)
+        self.prodir.mkdir(parents=True, exist_ok=True)
+        self.nucdir.mkdir(parents=True, exist_ok=True)
+        self.topdir.mkdir(parents=True, exist_ok=True)
+        self.mapdir.mkdir(parents=True, exist_ok=True)
+        self.mdpdir.mkdir(parents=True, exist_ok=True)
+        self.cgdir.mkdir(parents=True, exist_ok=True)
+        self.datdir.mkdir(parents=True, exist_ok=True)
+        self.pngdir.mkdir(parents=True, exist_ok=True)
+        # Copy .mdp files from master MDP directory
+        for file in self.MMDPDIR.iterdir():
+            if file.name.endswith(".mdp"):
+                outpath = self.mdpdir / file.name
+                shutil.copy(file, outpath)
+        # Copy water.gro and atommass.dat from master data directory
+        shutil.copy(self.MDATDIR / "water.gro", self.root)
+        shutil.copy(self.MDATDIR / "atommass.dat", self.root)
+        # Copy .itp files from master ITP directory
+        for file in self.MITPDIR.iterdir():
+            if file.name.endswith(".itp"):
+                outpath = self.topdir / file.name
+                shutil.copy(file, outpath)
 
     def make_cg_topology(self, add_resolved_ions=False, prefix="chain"):
         """Creates the system topology file by including all relevant ITP files and
@@ -133,16 +135,16 @@ class GmxSystem(MDSystem):
         Writes the topology file (self.systop) with include directives and molecule counts.
         """
         logger.info("Writing system topology...")
-        itp_files = [f for f in os.listdir(self.topdir) if f.startswith(prefix) and f.endswith(".itp")]
+        itp_files = [p.name for p in self.topdir.iterdir() if p.name.startswith(prefix) and p.name.endswith(".itp")]
         itp_files = sort_upper_lower_digit(itp_files)
-        with open(self.systop, "w") as f:
+        with self.systop.open("w") as f:
             # Include section
             f.write('#define GO_VIRT"\n')
             f.write("#define RUBBER_BANDS\n")
             f.write('#include "topol/martini_v3.0.0.itp"\n')
             f.write('#include "topol/martini_v3.0.0_rna.itp"\n')
             f.write('#include "topol/martini_ions.itp"\n')
-            if "go_atomtypes.itp" in os.listdir(self.topdir):
+            if any(p.name == "go_atomtypes.itp" for p in self.topdir.iterdir()):
                 f.write('#include "topol/go_atomtypes.itp"\n')
                 f.write('#include "topol/go_nbparams.itp"\n')
             f.write('#include "topol/martini_v3.0.0_solvents_v1.itp"\n')
@@ -157,7 +159,7 @@ class GmxSystem(MDSystem):
             f.write("\n[molecules]\n")
             f.write("; name\t\tnumber\n")
             for filename in itp_files:
-                molecule_name = os.path.splitext(filename)[0]
+                molecule_name = Path(filename).stem
                 f.write(f"{molecule_name}\t\t1\n")
             # Add resolved ions if requested.
             if add_resolved_ions:
@@ -177,30 +179,32 @@ class GmxSystem(MDSystem):
         Converts PDB files to GRO files, merges them, and adjusts the system box.
         """
         with cd(self.root):
-            cg_pdb_files = os.listdir(self.cgdir)
-            cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
+            cg_pdb_files = sort_upper_lower_digit([p.name for p in self.cgdir.iterdir()])
             for file in cg_pdb_files:
                 if file.endswith(".pdb"):
-                    pdb_file = os.path.join(self.cgdir, file)
-                    gro_file = pdb_file.replace(".pdb", ".gro").replace("cgpdb", "gro")
+                    pdb_file = self.cgdir / file
+                    # Replace suffix and directory component as in the original string manipulation
+                    gro_file_str = str(pdb_file).replace(".pdb", ".gro").replace("cgpdb", "gro")
+                    gro_file = Path(gro_file_str)
                     command = f"gmx_mpi editconf -f {pdb_file} -o {gro_file}"
                     sp.run(command.split())
             # Merge all .gro files.
-            gro_files = sorted(os.listdir(self.grodir))
+            gro_files = sorted([p.name for p in self.grodir.iterdir()])
             total_count = 0
             for filename in gro_files:
                 if filename.endswith(".gro"):
-                    filepath = os.path.join(self.grodir, filename)
-                    with open(filepath, "r") as in_f:
-                        atom_count = int(in_f.readlines()[1].strip())
+                    filepath = self.grodir / filename
+                    with filepath.open("r") as in_f:
+                        lines = in_f.readlines()
+                        atom_count = int(lines[1].strip())
                         total_count += atom_count
-            with open(self.sysgro, "w") as out_f:
+            with self.sysgro.open("w") as out_f:
                 out_f.write(f"{self.sysname} \n")
                 out_f.write(f"  {total_count}\n")
                 for filename in gro_files:
                     if filename.endswith(".gro"):
-                        filepath = os.path.join(self.grodir, filename)
-                        with open(filepath, "r") as in_f:
+                        filepath = self.grodir / filename
+                        with filepath.open("r") as in_f:
                             lines = in_f.readlines()[2:-1]
                             for line in lines:
                                 out_f.write(line)
@@ -239,7 +243,7 @@ class GmxSystem(MDSystem):
         kwargs.setdefault("pname", "NA")
         kwargs.setdefault("nname", "CL")
         kwargs.setdefault("neutral", "")
-        self.gmx("grompp", f="mdp/ions.mdp", c=self.syspdb, p=self.systop, o="ions.tpr")
+        self.gmx("grompp", f=str(self.mdpdir / "ions.mdp"), c=self.syspdb, p=self.systop, o="ions.tpr")
         self.gmx("genion", clinput="W\n", s="ions.tpr", p=self.systop, o=self.syspdb, **kwargs)
         self.gmx("editconf", f=self.syspdb, o=self.sysgro)
         clean_dir(self.root, "ions.tpr")
@@ -253,23 +257,21 @@ class GmxSystem(MDSystem):
                 List of atom names to include in the backbone (default: ["CA", "P", "C1'"]).
         """
         logger.info(f"Making index file from {self.syspdb}...")
-        # self.syspdb = os.path.join(self.rootdir, 'sys.pdb')
         system = pdbtools.pdb2atomlist(self.syspdb)
         solute = pdbtools.pdb2atomlist(self.solupdb)
         solvent = AtomList(system[len(solute):])
         backbone = solute.mask(backbone_atoms, mode="name")
         not_water = system.mask_out(water_resname, mode='resname')
-        system.write_ndx(self.sysndx, header="[ System ]", append=False, wrap=15) # 0
-        solute.write_ndx(self.sysndx, header="[ Solute ]", append=True, wrap=15) # 1
-        backbone.write_ndx(self.sysndx, header="[ Backbone ]", append=True, wrap=15) # 2
-        solvent.write_ndx(self.sysndx, header="[ Solvent ]", append=True, wrap=15) # 3
-        not_water.write_ndx(self.sysndx, header="[ Not_Water ]", append=True, wrap=15) # 4
+        system.write_ndx(self.sysndx, header="[ System ]", append=False, wrap=15)
+        solute.write_ndx(self.sysndx, header="[ Solute ]", append=True, wrap=15)
+        backbone.write_ndx(self.sysndx, header="[ Backbone ]", append=True, wrap=15)
+        solvent.write_ndx(self.sysndx, header="[ Solvent ]", append=True, wrap=15)
+        not_water.write_ndx(self.sysndx, header="[ Not_Water ]", append=True, wrap=15)
         chids = sorted(set(solute.chids))
         for chid in chids:
             chain = solute.mask(chid, mode="chid")
             chain.write_ndx(self.sysndx, header=f"[ chain_{chid} ]", append=True, wrap=15)
         logger.info(f"Written index to {self.sysndx}")
-
 
     def initmd(self, runname):
         """Initializes a new GMX MD run.
@@ -300,12 +302,12 @@ class GmxRun(MDRun):
             runname (str): Name for the MD run.
         """
         super().__init__(sysdir, sysname, runname)
-        self.sysgro = os.path.join(self.root, "system.gro")
-        self.systop = os.path.join(self.root, "system.top")
-        self.sysndx = os.path.join(self.root, "system.ndx")
-        self.mdpdir = os.path.join(self.root, "mdp")
-        self.str = os.path.join(self.rundir, "mdc.pdb")  # Structure file
-        self.trj = os.path.join(self.rundir, "mdc.trr")  # Trajectory file
+        self.sysgro = self.root / "system.gro"
+        self.systop = self.root / "system.top"
+        self.sysndx = self.root / "system.ndx"
+        self.mdpdir = self.root / "mdp"
+        self.str = self.rundir / "mdc.pdb"  # Structure file
+        self.trj = self.rundir / "mdc.trr"  # Trajectory file
 
     def gmx(self, command="-h", clinput=None, clean_wdir=True, **kwargs):
         """Executes a GROMACS command from the run's root directory. 
@@ -316,7 +318,6 @@ class GmxRun(MDRun):
             clinput (str, optional): Input to pass to the command's stdin.
             clean_wdir (bool, optional): If True, cleans the working directory after execution.
             kwargs: Additional keyword arguments to pass to gromacs.
-
         """
         with cd(self.rundir):
             cli.gmx(command, clinput=clinput, **kwargs)
@@ -336,7 +337,7 @@ class GmxRun(MDRun):
                 - n: Index file.
                 - o: Output TPR file ("em.tpr").
         """
-        kwargs.setdefault("f", os.path.join(self.mdpdir, "em.mdp"))
+        kwargs.setdefault("f", str(self.mdpdir / "em.mdp"))
         kwargs.setdefault("c", self.sysgro)
         kwargs.setdefault("r", self.sysgro)
         kwargs.setdefault("p", self.systop)
@@ -357,7 +358,7 @@ class GmxRun(MDRun):
                 - n: Index file.
                 - o: Output TPR file ("hu.tpr").
         """
-        kwargs.setdefault("f", os.path.join(self.mdpdir, "hu.mdp"))
+        kwargs.setdefault("f", str(self.mdpdir / "hu.mdp"))
         kwargs.setdefault("c", "em.gro")
         kwargs.setdefault("r", "em.gro")
         kwargs.setdefault("p", self.systop)
@@ -379,7 +380,7 @@ class GmxRun(MDRun):
                 - n: Index file.
                 - o: Output TPR file ("eq.tpr").
         """
-        kwargs.setdefault("f", os.path.join(self.mdpdir, "eq.mdp"))
+        kwargs.setdefault("f", str(self.mdpdir / "eq.mdp"))
         kwargs.setdefault("c", "hu.gro")
         kwargs.setdefault("r", "hu.gro")
         kwargs.setdefault("p", self.systop)
@@ -403,7 +404,7 @@ class GmxRun(MDRun):
                 - n: Index file.
                 - o: Output TPR file ("md.tpr").
         """
-        kwargs.setdefault("f", os.path.join(self.mdpdir, "md.mdp"))
+        kwargs.setdefault("f", str(self.mdpdir / "md.mdp"))
         kwargs.setdefault("c", "eq.gro")
         kwargs.setdefault("r", "eq.gro")
         kwargs.setdefault("p", self.systop)
@@ -450,11 +451,11 @@ class GmxRun(MDRun):
                 - f: Trajectory file.
                 - o: Output xvg file.
         """
-        xvg_file = os.path.join(self.rmsdir, "rmsf.xvg")
-        npy_file = os.path.join(self.rmsdir, "rmsf.npy")
+        xvg_file = self.rmsdir / "rmsf.xvg"
+        npy_file = self.rmsdir / "rmsf.npy"
         kwargs.setdefault("s", self.str)
         kwargs.setdefault("f", self.trj)
-        kwargs.setdefault("o", xvg_file)
+        kwargs.setdefault("o", str(xvg_file))
         with cd(self.rmsdir):
             cli.gmx_rmsf(clinput=clinput, **kwargs)
             io.xvg2npy(xvg_file, npy_file, usecols=[1])
@@ -470,11 +471,11 @@ class GmxRun(MDRun):
                 - f: Trajectory file.
                 - o: Output xvg file.
         """
-        xvg_file = os.path.join(self.rmsdir, "rmsd.xvg")
-        npy_file = os.path.join(self.rmsdir, "rmsd.npy")
+        xvg_file = self.rmsdir / "rmsd.xvg"
+        npy_file = self.rmsdir / "rmsd.npy"
         kwargs.setdefault("s", self.str)
         kwargs.setdefault("f", self.trj)
-        kwargs.setdefault("o", xvg_file)
+        kwargs.setdefault("o", str(xvg_file))
         with cd(self.rmsdir):
             cli.gmx_rms(clinput=clinput, **kwargs)
             io.xvg2npy(xvg_file, npy_file, usecols=[0, 1])
@@ -592,7 +593,7 @@ class GmxRun(MDRun):
             cli.gmx_rmsf(
                 self.rundir,
                 clinput=f"{idx}\n{idx}\n",
-                o=os.path.join(self.rmsdir, f"rmsf_{chain}.xvg"),
+                o=str(self.rmsdir / f"rmsf_{chain}.xvg"),
                 **kwargs,
             )
 
@@ -614,8 +615,6 @@ class GmxRun(MDRun):
             cli.gmx_rmsf(
                 self.rundir,
                 clinput=f"{idx}\n",
-                o=os.path.join(self.rmsdir, f"rmsf_{chain}.xvg"),
+                o=str(self.rmsdir / f"rmsf_{chain}.xvg"),
                 **kwargs,
             )
-
-
