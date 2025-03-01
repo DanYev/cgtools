@@ -28,18 +28,15 @@ Requirements:
 Author: DY
 Date: 2025-02-27
 """
-import os
+
 from pathlib import Path
-import sys
 import importlib.resources
 import shutil
 import subprocess as sp
-import MDAnalysis as mda
-import numpy as np
-from reforge import cli, mdm, pdbtools, io
+from reforge import cli, pdbtools, io
 from reforge.pdbtools import AtomList
 from reforge.utils import cd, clean_dir, logger
-from .mdsystem import MDSystem, MDRun, sort_upper_lower_digit
+from reforge.mdsystem.mdsystem import MDSystem, MDRun, sort_upper_lower_digit
 
 ################################################################################
 # GMX system class
@@ -58,7 +55,6 @@ class GmxSystem(MDSystem):
     MITPDIR = importlib.resources.files("reforge") / "martini" / "itp"
 
     def __init__(self, sysdir, sysname):
-        super().__init__(sysdir, sysname)
         """Initializes the MD system with required directories and file paths.
 
         Parameters
@@ -68,6 +64,7 @@ class GmxSystem(MDSystem):
 
         Sets up paths for various files required for coarse-grained MD simulation.
         """
+        super().__init__(sysdir, sysname)
         self.sysgro = self.root / "system.gro"
         self.systop = self.root / "system.top"
         self.sysndx = self.root / "system.ndx"
@@ -135,7 +132,7 @@ class GmxSystem(MDSystem):
         Writes the topology file (self.systop) with include directives and molecule counts.
         """
         logger.info("Writing system topology...")
-        itp_files = [p.name for p in self.topdir.iterdir() if p.name.startswith(prefix) and p.name.endswith(".itp")]
+        itp_files = [p.name for p in self.topdir.glob(f'{prefix}*itp')]
         itp_files = sort_upper_lower_digit(itp_files)
         with self.systop.open("w") as f:
             # Include section
@@ -187,7 +184,7 @@ class GmxSystem(MDSystem):
                     gro_file_str = str(pdb_file).replace(".pdb", ".gro").replace("cgpdb", "gro")
                     gro_file = Path(gro_file_str)
                     command = f"gmx_mpi editconf -f {pdb_file} -o {gro_file}"
-                    sp.run(command.split())
+                    sp.run(command.split(), check=True)
             # Merge all .gro files.
             gro_files = sorted([p.name for p in self.grodir.iterdir()])
             total_count = 0
@@ -210,7 +207,7 @@ class GmxSystem(MDSystem):
                                 out_f.write(line)
                 out_f.write("10.00000   10.00000   10.00000\n")
             command = f"gmx_mpi editconf -f {self.sysgro} -d {d} -bt {bt}  -o {self.sysgro}"
-            sp.run(command.split())
+            sp.run(command.split(), check=True)
 
     def solvate(self, **kwargs):
         """Solvates the system using GROMACS solvate command.
@@ -243,20 +240,23 @@ class GmxSystem(MDSystem):
         kwargs.setdefault("pname", "NA")
         kwargs.setdefault("nname", "CL")
         kwargs.setdefault("neutral", "")
-        self.gmx("grompp", f=str(self.mdpdir / "ions.mdp"), c=self.syspdb, p=self.systop, o="ions.tpr")
-        self.gmx("genion", clinput="W\n", s="ions.tpr", p=self.systop, o=self.syspdb, **kwargs)
+        self.gmx("grompp",
+            f=self.mdpdir / "ions.mdp", c=self.syspdb, p=self.systop, o="ions.tpr")
+        self.gmx("genion", clinput=f"{solvent}\n",
+            s="ions.tpr", p=self.systop, o=self.syspdb, **kwargs)
         self.gmx("editconf", f=self.syspdb, o=self.sysgro)
         clean_dir(self.root, "ions.tpr")
 
-    def make_system_ndx(self, backbone_atoms=["CA", "P", "C1'"], water_resname='W'):
-        """Creates an index (NDX) file for the system, separating solute, backbone, solvent, and individual chains.
+    def make_system_ndx(self, backbone_atoms=("CA", "P", "C1'"), water_resname='W'):
+        """Creates an index (NDX) file for the system, separating solute, 
+        backbone, solvent, and individual chains.
 
         Parameters
         ----------
             backbone_atoms : list, optional
                 List of atom names to include in the backbone (default: ["CA", "P", "C1'"]).
         """
-        logger.info(f"Making index file from {self.syspdb}...")
+        logger.info("Making index file from %s...", self.syspdb)
         system = pdbtools.pdb2atomlist(self.syspdb)
         solute = pdbtools.pdb2atomlist(self.solupdb)
         solvent = AtomList(system[len(solute):])
@@ -271,7 +271,7 @@ class GmxSystem(MDSystem):
         for chid in chids:
             chain = solute.mask(chid, mode="chid")
             chain.write_ndx(self.sysndx, header=f"[ chain_{chid} ]", append=True, wrap=15)
-        logger.info(f"Written index to {self.sysndx}")
+        logger.info("Written index to %s", self.sysndx)
 
     def initmd(self, runname):
         """Initializes a new GMX MD run.
@@ -364,8 +364,7 @@ class GmxRun(MDRun):
         kwargs.setdefault("p", self.systop)
         kwargs.setdefault("n", self.sysndx)
         kwargs.setdefault("o", "hu.tpr")
-        with cd(self.rundir):
-            cli.gmx_grompp(**kwargs)
+        self.gmx('grompp', **kwargs)
 
     def eqpp(self, **kwargs):
         """Prepares the equilibration phase using GROMACS grompp.
@@ -386,16 +385,13 @@ class GmxRun(MDRun):
         kwargs.setdefault("p", self.systop)
         kwargs.setdefault("n", self.sysndx)
         kwargs.setdefault("o", "eq.tpr")
-        with cd(self.rundir):
-            cli.gmx_grompp(**kwargs)
+        self.gmx('grompp', **kwargs)
 
-    def mdpp(self, grompp=True, **kwargs):
+    def mdpp(self, **kwargs):
         """Prepares the production MD run using GROMACS grompp.
 
         Parameters
         ----------
-            grompp (bool, optional): Whether to run grompp (default: True).
-
             kwargs: Additional parameters for grompp. Defaults include:
                 - f: Path to "md.mdp".
                 - c: Starting structure ("eq.gro").
@@ -410,8 +406,7 @@ class GmxRun(MDRun):
         kwargs.setdefault("p", self.systop)
         kwargs.setdefault("n", self.sysndx)
         kwargs.setdefault("o", "md.tpr")
-        with cd(self.rundir):
-            cli.gmx_grompp(**kwargs)
+        self.gmx('grompp', **kwargs)
 
     def mdrun(self, **kwargs):
         """Executes the production MD run using GROMACS mdrun.
@@ -426,8 +421,7 @@ class GmxRun(MDRun):
         kwargs.setdefault("deffnm", "md")
         kwargs.setdefault("nsteps", "-2")
         kwargs.setdefault("ntomp", "8")
-        with cd(self.rundir):
-            cli.gmx_mdrun(**kwargs)
+        self.gmx('mdrun', **kwargs)
 
     def trjconv(self, clinput=None, **kwargs):
         """Converts trajectories using GROMACS trjconv.
@@ -437,8 +431,7 @@ class GmxRun(MDRun):
             clinput (str, optional): Input to be passed to trjconv.
             kwargs: Additional parameters for trjconv.
         """
-        with cd(self.rundir):
-            cli.gmx_trjconv(clinput=clinput, **kwargs)
+        self.gmx('trjconv', clinput=clinput, **kwargs)
 
     def rmsf(self, clinput=None, **kwargs):
         """Calculates RMSF using GROMACS rmsf.
@@ -456,9 +449,8 @@ class GmxRun(MDRun):
         kwargs.setdefault("s", self.str)
         kwargs.setdefault("f", self.trj)
         kwargs.setdefault("o", str(xvg_file))
-        with cd(self.rmsdir):
-            cli.gmx_rmsf(clinput=clinput, **kwargs)
-            io.xvg2npy(xvg_file, npy_file, usecols=[1])
+        self.gmx('rmsf', clinput=clinput, **kwargs)
+        io.xvg2npy(xvg_file, npy_file, usecols=[1])
 
     def rmsd(self, clinput=None, **kwargs):
         """Calculates RMSD using GROMACS rms.
@@ -476,9 +468,8 @@ class GmxRun(MDRun):
         kwargs.setdefault("s", self.str)
         kwargs.setdefault("f", self.trj)
         kwargs.setdefault("o", str(xvg_file))
-        with cd(self.rmsdir):
-            cli.gmx_rms(clinput=clinput, **kwargs)
-            io.xvg2npy(xvg_file, npy_file, usecols=[0, 1])
+        self.gmx('rms', clinput=clinput, **kwargs)
+        io.xvg2npy(xvg_file, npy_file, usecols=[0, 1])
 
     def rdf(self, clinput=None, **kwargs):
         """Calculates the radial distribution function using GROMACS rdf.
@@ -493,9 +484,8 @@ class GmxRun(MDRun):
         """
         kwargs.setdefault("f", "mdc.xtc")
         kwargs.setdefault("s", "mdc.pdb")
-        kwargs.setdefault("n", self.mdcndx)
-        with cd(self.rmsdir):
-            cli.gmx_rdf(clinput=clinput, **kwargs)
+        kwargs.setdefault("n", self.sysndx)
+        self.gmx('rdf', clinput=clinput, **kwargs)
 
     def cluster(self, clinput=None, **kwargs):
         """Performs clustering using GROMACS cluster.
@@ -508,7 +498,7 @@ class GmxRun(MDRun):
         kwargs.setdefault("s", self.str)
         kwargs.setdefault("f", self.trj)
         with cd(self.cludir):
-            cli.gmx_cluster(clinput=clinput, **kwargs)
+            cli.gmx('cluster', clinput=clinput, **kwargs)
 
     def extract_cluster(self, clinput=None, **kwargs):
         """Extracts frames belonging to a cluster using GROMACS extract-cluster.
@@ -522,7 +512,7 @@ class GmxRun(MDRun):
         kwargs.setdefault("f", self.trj)
         kwargs.setdefault("clusters", "cluster.ndx")
         with cd(self.cludir):
-            cli.gmx_extract_cluster(clinput=clinput, **kwargs)
+            cli.gmx('extract_cluster', clinput=clinput, **kwargs)
 
     def covar(self, clinput=None, **kwargs):
         """Calculates and diagonalizes the covariance matrix using GROMACS covar.
@@ -535,11 +525,10 @@ class GmxRun(MDRun):
             - s: Structure file.
             - n: Index file.
         """
-        kwargs.setdefault("f", "../traj.xtc")
-        kwargs.setdefault("s", "../traj.pdb")
-        kwargs.setdefault("n", self.trjndx)
+        kwargs.setdefault("f", self.trj)
+        kwargs.setdefault("s", self.str)
         with cd(self.covdir):
-            cli.gmx_covar(self.covdir, clinput=clinput, **kwargs)
+            cli.gmx('covar', clinput=clinput, **kwargs)
 
     def anaeig(self, clinput=None, **kwargs):
         r"""Analyzes eigenvectors using GROMACS anaeig.
@@ -552,10 +541,11 @@ class GmxRun(MDRun):
             - s: Structure file.
             - v: Output eigenvector file.
         """
-        kwargs.setdefault("f", "../traj.xtc")
-        kwargs.setdefault("s", "../traj.pdb")
+        kwargs.setdefault("f", self.trj)
+        kwargs.setdefault("s", self.str)
         kwargs.setdefault("v", "eigenvec.trr")
-        cli.gmx_anaeig(self.covdir, clinput=clinput, **kwargs)
+        with cd(self.covdir):
+            cli.gmx('anaeig', clinput=clinput, **kwargs)
 
     def make_edi(self, clinput=None, **kwargs):
         """Prepares files for essential dynamics analysis using GROMACS make-edi.
@@ -568,8 +558,9 @@ class GmxRun(MDRun):
             - s: Structure file.
         """
         kwargs.setdefault("f", "eigenvec.trr")
-        kwargs.setdefault("s", "../traj.pdb")
-        cli.gmx_make_edi(self.covdir, clinput=clinput, **kwargs)
+        kwargs.setdefault("s", self.str)
+        with cd(self.covdir):
+            cli.gmx('make_edi', clinput=clinput, **kwargs)
 
     def get_rmsf_by_chain(self, **kwargs):
         """Calculates RMSF for each chain in the system using GROMACS rmsf.
@@ -583,15 +574,14 @@ class GmxRun(MDRun):
             - res: Whether to output per-residue RMSF (default: "no").
             - fit: Whether to fit the trajectory (default: "yes").
         """
-        kwargs.setdefault("f", "traj.xtc")
-        kwargs.setdefault("s", "traj.pdb")
-        kwargs.setdefault("n", self.trjndx)
+        kwargs.setdefault("f", self.trj)
+        kwargs.setdefault("s", self.str)
+        kwargs.setdefault("n", self.sysndx)
         kwargs.setdefault("res", "no")
         kwargs.setdefault("fit", "yes")
         for idx, chain in enumerate(self.chains):
             idx = idx + 1
-            cli.gmx_rmsf(
-                self.rundir,
+            cli.gmx('rmsf',
                 clinput=f"{idx}\n{idx}\n",
                 o=str(self.rmsdir / f"rmsf_{chain}.xvg"),
                 **kwargs,
@@ -607,13 +597,12 @@ class GmxRun(MDRun):
             - s: Structure file.
             - n: Index file.
         """
-        kwargs.setdefault("f", "traj.xtc")
-        kwargs.setdefault("s", "traj.pdb")
-        kwargs.setdefault("n", self.trjndx)
+        kwargs.setdefault("f", self.trj)
+        kwargs.setdefault("s", self.str)
+        kwargs.setdefault("n", self.sysndx)
         for idx, chain in enumerate(self.chains):
             idx = idx + 1
-            cli.gmx_rmsf(
-                self.rundir,
+            cli.gmx('rms',
                 clinput=f"{idx}\n",
                 o=str(self.rmsdir / f"rmsf_{chain}.xvg"),
                 **kwargs,

@@ -151,8 +151,8 @@ class MDSystem:
         kwargs.setdefault("add_hydrogens", True)
         kwargs.setdefault("pH", 7.0)
         logger.info("Cleaning chain PDBs using OpenMM...")
-        files = [p for p in self.prodir.iterdir()]
-        files += [p for p in self.nucdir.iterdir()]
+        files = list(self.prodir.iterdir())
+        files += list(self.nucdir.iterdir())
         files = sorted(files, key=lambda p: p.name)
         for file in files:
             pdbtools.clean_pdb(file, file, **kwargs)
@@ -325,7 +325,8 @@ class MDSystem:
             cg_pdb = self.cgdir / file
             cg_itp = self.topdir / f"{molname}.itp"
             try:
-                martini_tools.martinize_rna(self.root, f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
+                martini_tools.martinize_rna(self.root, 
+                    f=in_pdb, os=cg_pdb, ot=cg_itp, mol=molname, **kwargs)
             except Exception as e:
                 sys.exit(f"Could not coarse-grain {in_pdb}: {e}")
 
@@ -356,7 +357,7 @@ class MDSystem:
             all_atoms.write_pdb(self.solupdb)
             cli.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
 
-    def find_resolved_ions(self, mask=["MG", "ZN", "K"]):
+    def find_resolved_ions(self, mask=("MG", "ZN", "K")):
         """Identifies resolved ions in the input PDB file and writes them to "ions.pdb".
 
         Parameters
@@ -365,7 +366,7 @@ class MDSystem:
         """
         pdbtools.mask_atoms(self.inpdb, "ions.pdb", mask=mask)
 
-    def count_resolved_ions(self, ions=["MG", "ZN", "K"]):
+    def count_resolved_ions(self, ions=("MG", "ZN", "K")):
         """Counts the number of resolved ions in the system PDB file.
 
         Parameters
@@ -457,7 +458,7 @@ class MDRun(MDSystem):
         self.lrtdir = self.rundir / "lrt_analysis"
         self.cludir = self.rundir / "clusters"
         self.pngdir = self.rundir / "png"
-    
+
     def prepare_files(self):
         """Creates necessary directories for the MD run and copies essential files."""
         self.mddir.mkdir(parents=True, exist_ok=True)
@@ -564,28 +565,25 @@ class MDRun(MDSystem):
             labels (list): Corresponding labels for the groups.
             asym (bool, optional): If True, computes asymmetric group DCI.
         """
-        bdir = Path.cwd()
-        os.chdir(str(self.covdir))
-        logger.info("Working dir: %s", self.covdir)
-        pert_files = [p.name for p in sorted(Path.cwd().iterdir()) if p.name.startswith("pertmat")]
-        for pert_file in pert_files:
-            logger.info("  Processing perturbation matrix %s", pert_file)
-            pertmat = np.load(Path(pert_file))
-            logger.info("  Calculating group DCI")
-            dcis = mdm.group_molecule_dci(pertmat, groups=groups, asym=asym)
-            for dci_val, group, group_id in zip(dcis, groups, labels):
-                dci_file = pert_file.replace("pertmat", f"gdci_{group_id}")
-                dci_file_path = self.covdir / dci_file
-                np.save(dci_file_path, dci_val)
-                logger.info("  Saved group DCI at %s", dci_file_path)
-            ch_dci_file = pert_file.replace("pertmat", "ggdci")
-            ch_dci_file_path = self.covdir / ch_dci_file
-            ch_dci = mdm.group_group_dci(pertmat, groups=groups, asym=asym)
-            np.save(ch_dci_file_path, ch_dci)
-            logger.info("  Saved group-group DCI at %s", ch_dci_file_path)
+        with cd(self.covdir):
+            pert_files = sorted(Path.cwd().glob("pertmat*"))
+            for pert_file in pert_files:
+                logger.info("  Processing perturbation matrix %s", pert_file)
+                pertmat = np.load(pert_file)
+                logger.info("  Calculating group DCI")
+                dcis = mdm.group_molecule_dci(pertmat, groups=groups, asym=asym)
+                for dci_val, group, group_id in zip(dcis, groups, labels):
+                    dci_file = pert_file.replace("pertmat", f"gdci_{group_id}")
+                    dci_file_path = self.covdir / dci_file
+                    np.save(dci_file_path, dci_val)
+                    logger.info("  Saved group DCI at %s", dci_file_path)
+                ch_dci_file = pert_file.replace("pertmat", "ggdci")
+                ch_dci_file_path = self.covdir / ch_dci_file
+                ch_dci = mdm.group_group_dci(pertmat, groups=groups, asym=asym)
+                np.save(ch_dci_file_path, ch_dci)
+                logger.info("  Saved group-group DCI at %s", ch_dci_file_path)
         logger.info("Finished calculating group DCIs!")
-        os.chdir(str(bdir))
-        
+
 ################################################################################
 # Utils
 ################################################################################

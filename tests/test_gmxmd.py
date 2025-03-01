@@ -99,7 +99,7 @@ def test_solvate():
     Test that solvate() executes without error.
     """
     mdsys.solvate()
-    assert Path(mdsys.syspdb).exists()
+    assert mdsys.syspdb.exists()
 
 def test_add_bulk_ions():
     """
@@ -112,23 +112,23 @@ def test_make_system_ndx():
     Test that make_system_ndx() creates the system index file.
     """
     mdsys.make_system_ndx()
-    assert Path(mdsys.sysndx).exists()
+    assert mdsys.sysndx.exists()
 
 def test_mdrun_prep():
     """
     Test that prepare_files() creates the MD run directory.
     """
     mdrun.prepare_files()
-    assert Path(mdrun.rundir).exists()
+    assert mdrun.rundir.exists()
 
 def test_empp():
     """
     Test that empp() executes without error.
     """
     mdrun.empp()
-    assert Path(mdrun.rundir).exists()
+    assert Path(mdrun.rundir / "em.tpr").exists()
 
 
 if __name__ == '__main__':
-    pytest.main([str(Path(__file__).resolve())])
-    # test_mdrun_prep()
+    # pytest.main([str(Path(__file__).resolve())])
+    test_empp()
