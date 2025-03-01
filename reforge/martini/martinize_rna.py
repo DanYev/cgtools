@@ -1,16 +1,23 @@
+#!/usr/bin/env python3
 """
-Usage: python martinize_rna.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp
+Usage: python martinize_rna.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 
+-os molecule.pdb -ot molecule.itp
+
+This script processes an all-atom RNA structure and returns coarse-grained topology in the 
+GROMACS' .itp format and coarse-grained PDB.
+It parses command-line arguments, processes each chain of the input PDB,
+maps them to coarse-grained representations, merges the resulting topologies,
+optionally applies an elastic network, and writes the output ITP file.
 """
 
 import argparse
-import reforge.forge.forcefields as ffs
-import reforge.forge.cgmap as cgmap
+from reforge.forge.forcefields import martini30rna
+from reforge.forge import cgmap
 from reforge.forge.topology import Topology
-from reforge.pdbtools import AtomList, pdb2atomlist, pdb2system
-
+from reforge.pdbtools import AtomList, pdb2system
 
 def martinize_rna_parser():
-    """Parse command-line arguments."""
+    """Parse command-line arguments for RNA coarse-graining."""
     parser = argparse.ArgumentParser(description="CG Martini FF for RNA")
     parser.add_argument("-f", required=True, type=str, help="Input PDB file")
     parser.add_argument(
@@ -82,63 +89,71 @@ def martinize_rna_parser():
     return parser.parse_args()
 
 
-def process_chain(chain, ff, start_atom, molname):
-    # Mapping
-    atoms = cgmap.map_chain(
-        chain, ff, atid=start_atom
-    )  # Map residue according to the force-field. Returns list of CG atoms
-    # Topology
-    sequence = [
-        residue.resname for residue in chain
-    ]  # So far only need sequence for the topology
-    top = Topology(forcefield=ff, sequence=sequence, molname=molname)
-    top.process_atoms()  # Adds itp atom objects to the topology list
-    top.process_bb_bonds()  # Adds bb bond objects to the topology list
-    top.process_sc_bonds()  # Adds sc bond objects to the topology list
-    return atoms, top
+def process_chain(_chain, _ff, _start_idx, _mol_name):
+    """
+    Process an individual RNA chain: map it to coarse-grained representation and
+    generate a topology.
+
+    Args:
+        chain (iterable): An RNA chain from the parsed system.
+        ff: Force field object.
+        start_idx (int): Starting atom index for mapping.
+        mol_name (str): Molecule name.
+
+    Returns:
+        tuple: (cg_atoms, chain_topology)
+    """
+    _cg_atoms = cgmap.map_chain(_chain, _ff, atid=_start_idx)
+    sequence = [res.resname for res in _chain]
+    chain_topology = Topology(forcefield=_ff, sequence=sequence, molname=_mol_name)
+    chain_topology.process_atoms()
+    chain_topology.process_bb_bonds()
+    chain_topology.process_sc_bonds()
+    return _cg_atoms, chain_topology
 
 
-def merge_topologies(topologies):
-    top = topologies.pop(0)
-    if topologies:
-        for new_top in topologies:
-            top += new_top
-    return top
+def merge_topologies(top_list):
+    """
+    Merge multiple Topology objects into one.
+
+    Args:
+        top_list (list): List of Topology objects.
+
+    Returns:
+        Topology: The merged Topology.
+    """
+    _merged_topology = top_list.pop(0)
+    for new_top in top_list:
+        _merged_topology += new_top
+    return _merged_topology
 
 
 if __name__ == "__main__":
-    # Reading options
     options = martinize_rna_parser()
-    if options.ff == "reg":  # Force field
-        ff = ffs.martini30rna()
-    if options.ff == "pol":
-        ff = ffs.martini31rna()
+    if options.ff == "reg":
+        ff = martini30rna()
+    else:
+        raise ValueError(f"Unsupported force field option: {options.ff}")
     inpdb = options.f
-    molname = options.mol
-    # Processing chains
+    mol_name = options.mol
     system = pdb2system(inpdb)
-    cgmap.move_o3(
-        system
-    )  # Need to move all O3's to the next residue. Annoying but wcyd
-    structure, topologies = AtomList(), []
-    start_atom = 1
+    cgmap.move_o3(system)  # Adjust O3 atoms as required
+    structure = AtomList()
+    topologies = []
+    start_idx = 1
     for chain in system.chains():
-        atoms, top = process_chain(chain, ff, start_atom, molname)
-        structure.extend(atoms)
-        topologies.append(top)
-        start_atom += len(atoms)
+        cg_atoms, chain_top = process_chain(chain, ff, start_idx, mol_name)
+        structure.extend(cg_atoms)
+        topologies.append(chain_top)
+        start_idx += len(cg_atoms)
     structure.write_pdb(options.os)
-    # Finishing topologies
-    top = merge_topologies(topologies)
+    merged_topology = merge_topologies(topologies)
     if options.elastic:
-        top.elastic_network(
+        merged_topology.elastic_network(
             structure,
-            anames=[
-                "BB1",
-                "BB3",
-            ],
+            anames=["BB1", "BB3"],
             el=options.el,
             eu=options.eu,
             ef=options.ef,
         )
-    top.write_to_itp(options.ot)
+    merged_topology.write_to_itp(options.ot)
