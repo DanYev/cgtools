@@ -130,5 +130,4 @@ def test_empp():
 
 
 if __name__ == '__main__':
-    # pytest.main([str(Path(__file__).resolve())])
-    test_empp()
+    pytest.main([str(Path(__file__).resolve())])

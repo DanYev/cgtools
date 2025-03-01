@@ -52,9 +52,9 @@ def fft_ccf(*args, mode="serial", **kwargs):
     This function dispatches to one of the internal FFT correlation routines
     based on the specified mode:
 
-        - serial for _sfft_ccf,
-        - parallel for _pfft_ccf, or
-        - gpu for _gfft_ccf.
+        - serial for sfft_ccf,
+        - parallel for pfft_ccf, or
+        - gpu for gfft_ccf.
 
     Parameters
     ----------
@@ -76,11 +76,11 @@ def fft_ccf(*args, mode="serial", **kwargs):
         If an unsupported mode is specified.
     """
     if mode == "serial":
-        return rpymath._sfft_ccf(*args, **kwargs)
+        return rpymath.sfft_ccf(*args, **kwargs)
     if mode == "parallel":
-        return rpymath._pfft_ccf(*args, **kwargs)
+        return rpymath.pfft_ccf(*args, **kwargs)
     if mode == "gpu":
-        return rpymath._gfft_ccf(*args, **kwargs).get()
+        return rpymath.gfft_ccf(*args, **kwargs).get()
     raise ValueError("Mode must be 'serial', 'parallel' or 'gpu'.")
 
 
@@ -101,7 +101,7 @@ def covariance_matrix(positions, dtype=np.float64):
     np.ndarray
         The computed covariance matrix.
     """
-    return rpymath._covariance_matrix(positions, dtype=dtype)
+    return rpymath.covariance_matrix(positions, dtype=dtype)
 
 
 def calc_and_save_covmats(positions, outdir, n=1, outtag="covmat", dtype=np.float32):
@@ -164,7 +164,7 @@ def perturbation_matrix(covariance_matrix, dtype=np.float64):
     """
     covariance_matrix = covariance_matrix.astype(np.float64)
     if dtype == np.float64:
-        pertmat = rcmath._perturbation_matrix(covariance_matrix)
+        pertmat = rcmath.perturbation_matrix(covariance_matrix)
     return pertmat
 
 
@@ -189,7 +189,7 @@ def td_perturbation_matrix(covariance_matrix, dtype=np.float64):
     """
     covariance_matrix = covariance_matrix.astype(np.float64)
     if dtype == np.float64:
-        pertmat = rcmath._td_perturbation_matrix(covariance_matrix)
+        pertmat = rcmath.td_perturbation_matrix(covariance_matrix)
     return pertmat
 
 
@@ -321,7 +321,7 @@ def group_group_dci(perturbation_matrix, groups=[[]], asym=False):
 def hessian(vecs, cutoff, spring_constant, dd):
     """Compute the Hessian matrix using an elastic network model.
 
-    This function is a simple wrapper for the internal _hessian routine from rcmath.
+    This function is a simple wrapper for the hessian routine from rcmath.
     TODO: Improve type handling and add GPU support.
 
     Parameters
@@ -340,7 +340,7 @@ def hessian(vecs, cutoff, spring_constant, dd):
     np.ndarray
         The computed Hessian matrix.
     """
-    return rcmath._hessian(vecs, cutoff, spring_constant, dd)
+    return rcmath.hessian(vecs, cutoff, spring_constant, dd)
 
 
 def inverse_matrix(
@@ -391,7 +391,7 @@ def inverse_matrix(
             if not cp.cuda.is_available():
                 raise RuntimeError("CUDA not available.")
             if device.lower() == "gpu_sparse":
-                return rpymath._inverse_sparse_matrix_gpu(
+                return rpymath.inverse_sparse_matrix_gpu(
                     matrix,
                     k_singular=k_singular,
                     n_modes=n_modes,
@@ -399,7 +399,7 @@ def inverse_matrix(
                     **kwargs,
                 )
             elif device.lower() == "gpu_dense":
-                return rpymath._inverse_matrix_gpu(
+                return rpymath.inverse_matrix_gpu(
                     matrix,
                     k_singular=k_singular,
                     n_modes=n_modes,
@@ -408,7 +408,7 @@ def inverse_matrix(
                 )
             else:
                 logger.info("Unknown GPU method; falling back to CPU sparse inversion.")
-                return rpymath._inverse_sparse_matrix_cpu(
+                return rpymath.inverse_sparse_matrix_cpu(
                     matrix,
                     k_singular=k_singular,
                     n_modes=n_modes,
@@ -419,17 +419,17 @@ def inverse_matrix(
             logger.info(
                 f"GPU inversion failed with error '{e}'. Falling back to CPU sparse inversion."
             )
-            return rpymath._inverse_sparse_matrix_cpu(
+            return rpymath.inverse_sparse_matrix_cpu(
                 matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs
             )
 
     elif device.lower() == "cpu_dense":
-        return rpymath._inverse_matrix_cpu(
+        return rpymath.inverse_matrix_cpu(
             matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs
         )
 
     else:
-        return rpymath._inverse_sparse_matrix_cpu(
+        return rpymath.inverse_sparse_matrix_cpu(
             matrix, k_singular=k_singular, n_modes=n_modes, dtype=dtype, **kwargs
         )
 
