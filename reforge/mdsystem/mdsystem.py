@@ -2,21 +2,11 @@
 
 Description:
     This module provides classes and functions for setting up, running, and
-    analyzing molecular dynamics (MD) simulations using GROMACS. The main
+    analyzing molecular dynamics (MD) simulations.  The main
     classes include:
 
-      - GmxSystem: Provides methods to prepare simulation files, process PDB
-        files, run GROMACS commands, and perform various analyses on MD data.
-      - MDRun: A subclass of GmxSystem dedicated to executing MD simulations and
-        performing post-processing tasks (e.g., RMSF, RMSD, covariance analysis).
-
-    Additionally, utility functions (e.g., sort_upper_lower_digit) are included
-    to assist in organizing GROMACS multichain files.
-
 Usage:
-    Import this module and instantiate the GmxSystem or MDRun classes to set up
-    and run your MD simulations.
-
+  
 Requirements:
     - Python 3.x
     - MDAnalysis
@@ -43,9 +33,7 @@ from reforge.martini import getgo, martini_tools
 ################################################################################
 
 class MDSystem:
-    """Class to set up and analyze protein-nucleotide-lipid systems for MD
-    simulations using GROMACS.
-
+    """
     Most attributes are paths to files and directories needed to set up
     and run the MD simulation.
     """
@@ -347,7 +335,7 @@ class MDSystem:
             except Exception as e:
                 sys.exit(f"Could not coarse-grain {in_pdb}: {e}")
 
-    def make_solute_pdb(self, **kwargs):
+    def make_cg_solute_pdb(self, **kwargs):
         """Merges coarse-grained PDB files into a single solute PDB file.
 
         Parameters
