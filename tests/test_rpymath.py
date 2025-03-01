@@ -56,7 +56,7 @@ def test_covariance_matrix():
                           [7, 8, 9]], dtype=np.float64)
     nt = 10
     positions = np.tile(positions, (nt, nt))
-    covmat = rpymath._covariance_matrix(positions, dtype=np.float64)
+    covmat = rpymath.covariance_matrix(positions, dtype=np.float64)
     # Expect a (3*nt, 3*nt) covariance matrix when rowvar=True.
     assert covmat.shape == (3*nt, 3*nt)
     # For this degenerate data (linearly dependent), the determinant should be ~0.
@@ -84,7 +84,7 @@ def test_sfft_ccf():
     y = np.random.rand(n_coords, n_samples).astype(np.float64)
     x_centered = x - np.mean(x, axis=-1, keepdims=True)
     y_centered = y - np.mean(y, axis=-1, keepdims=True)
-    corr_fft = rpymath._sfft_ccf(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
+    corr_fft = rpymath.sfft_ccf(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
     ref_corr = np.empty((n_coords, n_coords, n_samples), dtype=np.float64)
     # Manually compute the sliding average correlation.
     for i in range(n_coords):
@@ -113,8 +113,8 @@ def test_pfft_ccf():
     x = np.random.rand(n_coords, n_samples).astype(np.float64)
     y = np.random.rand(n_coords, n_samples).astype(np.float64)
     ntmax = 64
-    corr_par = rpymath._pfft_ccf(x, y, ntmax=ntmax, center=True, dtype=np.float64)
-    corr_ser = rpymath._sfft_ccf(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
+    corr_par = rpymath.pfft_ccf(x, y, ntmax=ntmax, center=True, dtype=np.float64)
+    corr_ser = rpymath.sfft_ccf(x, y, ntmax=ntmax, center=True, loop=True, dtype=np.float64)
     np.testing.assert_allclose(corr_par, corr_ser, rtol=1e-10, atol=1e-10)
 
 
@@ -158,8 +158,8 @@ def test_ccf():
         else:
             manual_corr_sum += manual_corr_seg
     manual_ccf = manual_corr_sum / n_seg
-    par_ccf = rpymath._ccf(x, y, ntmax=None, n=n_seg, mode='parallel', center=True, dtype=np.float64)
-    ser_ccf = rpymath._ccf(x, y, ntmax=None, n=n_seg, mode='serial', center=True, dtype=np.float64)
+    par_ccf = rpymath.ccf(x, y, ntmax=None, n=n_seg, mode='parallel', center=True, dtype=np.float64)
+    ser_ccf = rpymath.ccf(x, y, ntmax=None, n=n_seg, mode='serial', center=True, dtype=np.float64)
     np.testing.assert_allclose(manual_ccf, par_ccf, rtol=1e-6, atol=1e-6)
     np.testing.assert_allclose(manual_ccf, ser_ccf, rtol=1e-6, atol=1e-6)
 
@@ -180,7 +180,7 @@ def test_inverse_sparse_matrix_cpu():
     diag_vals = np.linspace(1, 1e7, N)
     matrix = np.diag(diag_vals)
     # Invert the matrix with all eigenvalues inverted.
-    inv_matrix = rpymath._inverse_sparse_matrix_cpu(matrix, k_singular=0, n_modes=N-1)
+    inv_matrix = rpymath.inverse_sparse_matrix_cpu(matrix, k_singular=0, n_modes=N-1)
     expected_inv = np.diag(1.0 / diag_vals)
     np.testing.assert_allclose(inv_matrix, expected_inv, rtol=1e-6, atol=1e-6)
 
@@ -201,7 +201,7 @@ def test_inverse_matrix_cpu():
     diag_vals = np.linspace(1, 1e7, N)
     matrix = np.diag(diag_vals)
     # Invert the matrix with all eigenvalues inverted.
-    inv_matrix = rpymath._inverse_matrix_cpu(matrix, k_singular=0, n_modes=N)
+    inv_matrix = rpymath.inverse_matrix_cpu(matrix, k_singular=0, n_modes=N)
     expected_inv = np.diag(1.0 / diag_vals)
     np.testing.assert_allclose(inv_matrix, expected_inv, rtol=1e-6, atol=1e-6)
 
@@ -227,9 +227,9 @@ def test_gfft_ccf():
     x = np.random.rand(n_coords, n_samples).astype(np.float64)
     y = np.random.rand(n_coords, n_samples).astype(np.float64)
     ntmax = 64
-    corr_gpu = rpymath._gfft_ccf(x, y, ntmax=ntmax, center=True)
+    corr_gpu = rpymath.gfft_ccf(x, y, ntmax=ntmax, center=True)
     corr = corr_gpu.get()
-    corr_ser = rpymath._sfft_ccf(x, y, ntmax=ntmax, center=True, loop=True)
+    corr_ser = rpymath.sfft_ccf(x, y, ntmax=ntmax, center=True, loop=True)
     np.testing.assert_allclose(corr, corr_ser, rtol=1e-10, atol=1e-10)
 
 
@@ -249,9 +249,9 @@ def test_inverse_sparse_matrix_gpu():
     N = 200
     diag_vals = np.linspace(1, 10, N)
     matrix = np.diag(diag_vals)
-    inv_matrix_gpu = rpymath._inverse_sparse_matrix_gpu(matrix, k_singular=0, n_modes=N//10, dtype=cp.float64)
+    inv_matrix_gpu = rpymath.inverse_sparse_matrix_gpu(matrix, k_singular=0, n_modes=N//10, dtype=cp.float64)
     inv_matrix = cp.asnumpy(inv_matrix_gpu)
-    expected_inv = rpymath._inverse_sparse_matrix_cpu(matrix, k_singular=0, n_modes=N//10)
+    expected_inv = rpymath.inverse_sparse_matrix_cpu(matrix, k_singular=0, n_modes=N//10)
     np.testing.assert_allclose(inv_matrix, expected_inv, rtol=0, atol=1e-6)
 
 
@@ -271,7 +271,7 @@ def test_inverse_matrix_gpu():
     N = 200
     diag_vals = np.linspace(1, 10, N)
     matrix = np.diag(diag_vals).astype(np.float64)
-    inv_matrix_gpu = rpymath._inverse_matrix_gpu(matrix, k_singular=0, n_modes=N)
+    inv_matrix_gpu = rpymath.inverse_matrix_gpu(matrix, k_singular=0, n_modes=N)
     inv_matrix = cp.asnumpy(inv_matrix_gpu)
     expected_inv = np.diag(1.0 / diag_vals)
     np.testing.assert_allclose(inv_matrix, expected_inv, rtol=1e-5, atol=1e-6)

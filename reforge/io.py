@@ -1,19 +1,19 @@
 """File: io.py
 
 Description:
-    This module provides I/O utilities for the reForge workflow, including functions for reading
-    and saving various data formats (e.g., CSV, NPY, XVG) as well as parsing PDB files into domain-specific
-    objects. Additionally, it offers helper functions for filtering file names and recursively retrieving
-    file paths from directories.
+    This module provides I/O utilities for the reForge workflow, including functions 
+    for reading and saving various data formats (e.g., CSV, NPY, XVG) as well as parsing 
+    PDB files into domain-specific objects. Additionally, it offers helper functions for 
+    filtering file names and recursively retrieving file paths from directories.
 
 Usage Example:
     >>> from io import read_positions, pdb2system, npy2csv
     >>> import numpy as np
     >>> # Read positions from an MDAnalysis Universe object 'u'
-    >>> positions = read_positions(u, ag, b=0, e=500, sample_rate=1)
+    >>> positions = read_positions(u, ag, time_range=(0, 500), sample_rate=1)
     >>> # Save a NumPy array to CSV format
     >>> data = np.random.rand(100, 10)
-    >>> save_data(data, 'output.csv')
+    >>> npy2csv(data, 'output.csv')
     >>> # Parse a PDB file into a System object
     >>> system = pdb2system('structure.pdb')
 
@@ -29,10 +29,9 @@ Author: Your Name
 Date: YYYY-MM-DD
 """
 
-import os
+from pathlib import Path
 import numpy as np
 import pandas as pd
-from pathlib import Path
 from reforge.utils import timeit, memprofit, logger
 from reforge.pdbtools import AtomList, System, PDBParser
 
@@ -40,10 +39,9 @@ from reforge.pdbtools import AtomList, System, PDBParser
 ## Reading Trajectories with MDAnalysis
 ################################################################################
 
-
 @timeit
 @memprofit
-def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
+def read_positions(u, ag, time_range=(0, 10000000), sample_rate=1, dtype=np.float32):
     """Read and return positions from an MDAnalysis trajectory.
 
     Parameters
@@ -52,10 +50,8 @@ def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
         The MDAnalysis Universe containing the trajectory.
     ag : MDAnalysis AtomGroup
         The atom group from which to extract positions.
-    b : float, optional
-        Beginning time (default is 0).
-    e : float, optional
-        Ending time (default is 10000000).
+    time_range : tuple, optional
+        The beginning and ending times (default is (0, 10000000)).
     sample_rate : int, optional
         Sampling rate (default is 1).
     dtype : data-type, optional
@@ -64,27 +60,23 @@ def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
     Returns
     -------
     np.ndarray
-        A contiguous 2D array with shape (n_coords, n_frames) containing flattened position coordinates.
+        A contiguous 2D array with shape (n_coords, n_frames) containing flattened 
+        position coordinates.
     """
+    b, e = time_range
     logger.info("Reading positions...")
     arr = np.array(
-        [
-            ag.positions.flatten()
-            for ts in u.trajectory[::sample_rate]
-            if b < ts.time < e
-        ],
+        [ag.positions.flatten() for ts in u.trajectory[::sample_rate] if b < ts.time < e],
         dtype=dtype,
     )
-    arr = np.ascontiguousarray(
-        arr.T
-    )  # Transpose for memory efficiency (shape: (n_coords, n_frames))
+    arr = np.ascontiguousarray(arr.T)
     logger.info("Done!")
     return arr
 
 
 @timeit
 @memprofit
-def read_velocities(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
+def read_velocities(u, ag, time_range=(0, 10000000), sample_rate=1, dtype=np.float32):
     """Read and return velocities from an MDAnalysis trajectory.
 
     Parameters
@@ -93,10 +85,8 @@ def read_velocities(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
         The MDAnalysis Universe containing the trajectory.
     ag : MDAnalysis AtomGroup
         The atom group from which to extract velocities.
-    b : float, optional
-        Beginning time (default is 0).
-    e : float, optional
-        Ending time (default is 10000000).
+    time_range : tuple, optional
+        The beginning and ending times (default is (0, 10000000)).
     sample_rate : int, optional
         Sampling rate (default is 1).
     dtype : data-type, optional
@@ -105,20 +95,16 @@ def read_velocities(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
     Returns
     -------
     np.ndarray
-        A contiguous 2D array with shape (n_coords, n_frames) containing flattened velocity vectors.
+        A contiguous 2D array with shape (n_coords, n_frames) containing flattened 
+        velocity vectors.
     """
+    b, e = time_range
     logger.info("Reading velocities...")
     arr = np.array(
-        [
-            ag.velocities.flatten()
-            for ts in u.trajectory[::sample_rate]
-            if b < ts.time < e
-        ],
+        [ag.velocities.flatten() for ts in u.trajectory[::sample_rate] if b < ts.time < e],
         dtype=dtype,
     )
-    arr = np.ascontiguousarray(
-        arr.T
-    )  # Transpose for memory efficiency (shape: (n_coords, n_frames))
+    arr = np.ascontiguousarray(arr.T)
     logger.info("Done!")
     return arr
 
@@ -136,7 +122,8 @@ def parse_covar_dat(file, dtype=np.float32):
     Returns
     -------
     np.ndarray
-        A reshaped 2D covariance matrix of shape (3*resnum, 3*resnum), where resnum is inferred from the file.
+        A reshaped 2D covariance matrix of shape (3*resnum, 3*resnum), where resnum 
+        is inferred from the file.
     """
     df = pd.read_csv(file, sep="\\s+", header=None)
     covariance_matrix = np.asarray(df, dtype=dtype)
@@ -149,10 +136,8 @@ def parse_covar_dat(file, dtype=np.float32):
 ## File Filtering and Retrieval Functions
 ################################################################################
 
-
 def fname_filter(f, sw="", cont="", ew=""):
-    """Check if a file name matches the specified start, contained, and end
-    patterns.
+    """Check if a file name matches the specified start, contained, and end patterns.
 
     Parameters
     ----------
@@ -192,8 +177,7 @@ def filter_files(fpaths, sw="", cont="", ew=""):
     list[Path]
         A list of Path objects that match the specified filters.
     """
-    files = [f for f in fpaths if fname_filter(f.name, sw=sw, cont=cont, ew=ew)]
-    return files
+    return [f for f in fpaths if fname_filter(f.name, sw=sw, cont=cont, ew=ew)]
 
 
 def pull_files(directory, pattern):
@@ -225,8 +209,7 @@ def pull_files(directory, pattern):
 
 
 def pull_all_files(directory):
-    """Recursively retrieve all files in the specified directory and its
-    subdirectories.
+    """Recursively retrieve all files in the specified directory and its subdirectories.
 
     Parameters
     ----------
@@ -245,8 +228,7 @@ def pull_all_files(directory):
 ## Data Conversion and I/O Functions
 ################################################################################
 
-
-def xvg2npy(xvg_path, npy_path, usecols=[0, 1]):
+def xvg2npy(xvg_path, npy_path, usecols=(0, 1)):
     """Convert a GROMACS XVG file to a NumPy binary file (.npy).
 
     Parameters
@@ -262,7 +244,10 @@ def xvg2npy(xvg_path, npy_path, usecols=[0, 1]):
     -------
     None
     """
-    df = pd.read_csv(xvg_path, sep="\\s+", header=None, usecols=usecols)
+    try:
+        df = pd.read_csv(xvg_path, sep="\\s+", header=None, usecols=usecols)
+    except Exception as exc:
+        raise ValueError("Error reading XVG file") from exc
     data = np.squeeze(df.to_numpy().T)
     np.save(npy_path, data)
 
@@ -281,8 +266,7 @@ def pdb2system(pdb_path) -> System:
         A System object representing the parsed PDB structure.
     """
     parser = PDBParser(pdb_path)
-    system = parser.parse()
-    return system
+    return parser.parse()
 
 
 def pdb2atomlist(pdb_path) -> AtomList:
@@ -304,8 +288,7 @@ def pdb2atomlist(pdb_path) -> AtomList:
 
 
 def read_data(fpath):
-    """Read data from a file (.csv, .npy, .dat, or .xvg) and return it as a
-    NumPy array.
+    """Read data from a file (.csv, .npy, .dat, or .xvg) and return it as a NumPy array.
 
     Parameters
     ----------
@@ -322,32 +305,34 @@ def read_data(fpath):
     ValueError
         If the file cannot be read properly or the data does not meet expected criteria.
     """
-    ftype = fpath.split(".")[-1]
+    ftype = Path(fpath).suffix[1:]
     if ftype == "npy":
         try:
             data = np.load(fpath)
-        except:
-            raise ValueError()
-    if ftype == "csv" or ftype == "dat":
+        except Exception as exc:
+            raise ValueError("Error loading npy file") from exc
+    elif ftype in {"csv", "dat"}:
         try:
             df = pd.read_csv(fpath, sep="\\s+", header=None)
             data = np.squeeze(df.values)
             if data.shape[0] != 1104:
-                raise ValueError()
-        except:
-            raise ValueError()
-    if ftype == "xvg":
+                raise ValueError("Data shape mismatch for csv/dat file")
+        except Exception as exc:
+            raise ValueError("Error reading csv/dat file") from exc
+    elif ftype == "xvg":
         try:
             df = pd.read_csv(fpath, sep="\\s+", header=None, usecols=[1])
             data = np.squeeze(df.values)
             if data.shape[0] > 10000:
-                raise ValueError()
-        except:
-            raise ValueError()
+                raise ValueError("Data shape too large for xvg file")
+        except Exception as exc:
+            raise ValueError("Error reading xvg file") from exc
+    else:
+        raise ValueError("Unsupported file type")
     return data
 
 
-def read_xvg(fpath, usecols=[0, 1]):
+def read_xvg(fpath, usecols=(0, 1)):
     """Read a GROMACS XVG file and return its contents as a Pandas DataFrame.
 
     Parameters
@@ -369,8 +354,8 @@ def read_xvg(fpath, usecols=[0, 1]):
     """
     try:
         df = pd.read_csv(fpath, sep="\\s+", header=None, usecols=usecols)
-    except:
-        raise ValueError()
+    except Exception as exc:
+        raise ValueError("Error reading xvg file") from exc
     return df
 
 
@@ -382,18 +367,20 @@ def npy2csv(data, fpath):
     data : np.ndarray
         The data to be saved.
     fpath : str
-        Path to the output file. The file extension determines the format (.csv or .npy).
+        Path to the output file. The file extension determines the format 
+        (.csv or .npy).
 
     Returns
     -------
     None
     """
+    ftype = Path(fpath).suffix[1:]
     if ftype == "csv":
         df = pd.DataFrame(data)
         df.to_csv(fpath, index=False, header=None, float_format="%.3E", sep=",")
 
 
-def save_1d_data(data, ids=[], fpath="dfi.xvg", sep=" "):
+def save_1d_data(data, ids=None, fpath="dfi.xvg", sep=" "):
     """Save one-dimensional data in GROMACS XVG format.
 
     Parameters
@@ -401,7 +388,8 @@ def save_1d_data(data, ids=[], fpath="dfi.xvg", sep=" "):
     data : list or np.ndarray
         The y-column data to be saved.
     ids : list or np.ndarray, optional
-        The x-column data (e.g., indices). If not provided, defaults to a range starting from 1.
+        The x-column data (e.g., indices). If not provided, defaults to a range 
+        starting from 1.
     fpath : str, optional
         Path to the output file (default is 'dfi.xvg').
     sep : str, optional
@@ -411,14 +399,13 @@ def save_1d_data(data, ids=[], fpath="dfi.xvg", sep=" "):
     -------
     None
     """
-    ids = list(ids)
-    if not ids:
+    if ids is None:
         ids = np.arange(1, len(data) + 1).astype(int)
     df = pd.DataFrame({"ids": ids, "data": data})
     df.to_csv(fpath, index=False, header=None, float_format="%.3E", sep=sep)
 
 
-def save_2d_data(data, ids=[], fpath="dfi.xvg", sep=" "):
+def save_2d_data(data, fpath="dfi.xvg", sep=" "):
     """Save two-dimensional data in GROMACS XVG format.
 
     Parameters
@@ -426,7 +413,8 @@ def save_2d_data(data, ids=[], fpath="dfi.xvg", sep=" "):
     data : list or np.ndarray
         The 2D data to be saved.
     ids : list, optional
-        Optional identifiers (unused in this function; provided for interface consistency).
+        Optional identifiers (unused in this function; provided for interface 
+        consistency).
     fpath : str, optional
         Path to the output file (default is 'dfi.xvg').
     sep : str, optional

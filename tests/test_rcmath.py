@@ -53,9 +53,9 @@ def test_hessian():
     cutoff = 12
     spring_constant = 1000
     dd = 0
-    legacy_result = legacy._calculate_hessian(n, x, y, z, cutoff, spring_constant, dd)
-    new_result = rcmath._calculate_hessian(n, x, y, z, cutoff, spring_constant, dd)
-    vec_result = rcmath._hessian(vec, cutoff, spring_constant, dd)
+    legacy_result = legacy.calculate_hessian(n, x, y, z, cutoff, spring_constant, dd)
+    new_result = rcmath.calculate_hessian(n, x, y, z, cutoff, spring_constant, dd)
+    vec_result = rcmath.hessian(vec, cutoff, spring_constant, dd)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-6, atol=1e-6)
     np.testing.assert_allclose(vec_result, legacy_result, rtol=1e-6, atol=1e-6)
 
@@ -77,9 +77,9 @@ def test_perturbation_matrix_old():
     # Create a symmetric covariance matrix of shape (3*m, 3*m)
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
-    # legacy_result = legacy._perturbation_matrix_old(covmat, m)
+    # legacy_result = legacy.perturbation_matrix_old(covmat, m)
     legacy_result = legacy.calcperturbMat(covmat, m)
-    new_result = rcmath._perturbation_matrix_old(covmat, m)
+    new_result = rcmath.perturbation_matrix_old(covmat, m)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-4, atol=1e-4)
 
 
@@ -99,8 +99,8 @@ def test_perturbation_matrix():
     m = 200
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
-    legacy_result = legacy._perturbation_matrix_cpu(covmat)
-    new_result = rcmath._perturbation_matrix(covmat)
+    legacy_result = legacy.perturbation_matrix_cpu(covmat)
+    new_result = rcmath.perturbation_matrix(covmat)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-6, atol=1e-6)
 
 
@@ -120,8 +120,8 @@ def test_td_perturbation_matrix():
     m = 200
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
-    legacy_result = legacy._td_perturbation_matrix_cpu(covmat, normalize=True)
-    new_result = rcmath._td_perturbation_matrix(covmat, normalize=True)
+    legacy_result = legacy.td_perturbation_matrix_cpu(covmat, normalize=True)
+    new_result = rcmath.td_perturbation_matrix(covmat, normalize=True)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-6, atol=1e-6)
 
 
@@ -140,8 +140,8 @@ def test_perturbation_matrix_old_new():
     m = 200
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
-    old_result = rcmath._perturbation_matrix_old(covmat, m)
-    new_result = rcmath._perturbation_matrix(covmat)
+    old_result = rcmath.perturbation_matrix_old(covmat, m)
+    new_result = rcmath.perturbation_matrix(covmat)
     np.testing.assert_allclose(new_result, old_result, rtol=1e-4, atol=1e-4)
 
 
