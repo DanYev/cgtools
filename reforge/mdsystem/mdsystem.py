@@ -270,7 +270,7 @@ class MDSystem:
             new_itp = self.root / "molecule_0.itp"
             updated_itp = self.topdir / file.replace("pdb", "itp")
             new_top = self.root / "protein.top"
-            martini_tools.martinize_en(self.root, self.topdir, in_pdb, cg_pdb, **kwargs)
+            martini_tools.martinize_en(self.root, in_pdb, cg_pdb, **kwargs)
             with open(new_itp, "r", encoding="utf-8") as f:
                 content = f.read()
             updated_content = content.replace("molecule_0", file[:-4], 1)

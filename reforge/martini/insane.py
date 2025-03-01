@@ -701,11 +701,10 @@ Define additional lipid types (same format as in lipid-martini-itp-v01.py)
 args = sys.argv[1:]
 
 if '-h' in args or '--help' in args:
-    print "\n",__file__
-    print desc or "\nSomeone ought to write a description for this script...\n"
+    print("\n",__file__)
+    print(desc or "\nSomeone ought to write a description for this script...\n")
     for thing in options:
-        print type(thing) != str and "%10s  %s"%(thing[0],thing[1].description) or thing
-    print
+        print(type(thing) != str and "%10s  %s"%(thing[0],thing[1].description) or thing)
     sys.exit()
 
 
@@ -738,7 +737,7 @@ for name, head, link, tail in zip(usrmols,usrheads,usrlinks,usrtails):
     lipidDefString = ""  
 
     if len(tailsArray) != len(linkArray):
-        print "Error, Number of tails has to equal number of linkers"
+        print("Error, Number of tails has to equal number of linkers")
         sys.exit()
 
     # Find longest tail 
@@ -766,7 +765,7 @@ for name, head, link, tail in zip(usrmols,usrheads,usrlinks,usrtails):
         elif cLinker == 'A':
             lipidDefString += "AM" + str(i+1) + " "
         else:
-            print "Error, linker type not supported"
+            print("Error, linker type not supported")
             sys.exit()
 
     # Add tails 
@@ -1214,8 +1213,8 @@ if lipL:
     maxd    = float(max([max(i) for i in grid_up+grid_lo]))
     if  maxd == 0:
         if protein:
-            print >>sys.stderr, "; The protein seems not to be inside the membrane."
-            print >>sys.stderr, "; Run with -orient to put it in."
+            print("; The protein seems not to be inside the membrane.")
+            print("; Run with -orient to put it in.")
         maxd = 1
 
 
@@ -1286,7 +1285,7 @@ if lipL:
             hx,hy = (int(0.5*lo_lipids_x), int(0.5*lo_lipids_y))
         hr = int(options["-hole"].value/min(lo_lipdx,lo_lipdy)+0.5)
         ys = int(lo_lipids_x*box[1][0]/box[0][0]+0.5)
-        print >>sys.stderr, "; Making a hole with radius %f nm centered at grid cell (%d,%d)"%(options["-hole"].value,hx, hy), hr
+        print("; Making a hole with radius %f nm centered at grid cell (%d,%d)"%(options["-hole"].value,hx, hy), hr)
         hr -= 1
         for ii in range(hx-hr-1,hx+hr+1):
             for jj in range(hx-hr-1,hx+hr+1):
@@ -1315,7 +1314,7 @@ if lipL:
             hx,hy = (int(0.5*up_lipids_x), int(0.5*up_lipids_y))
         hr = int(options["-hole"].value/min(up_lipdx,up_lipdy)+0.5)
         ys = int(up_lipids_x*box[1][0]/box[0][0]+0.5)
-        print >>sys.stderr, "; Making a hole with radius %f nm centered at grid cell (%d,%d)"%(options["-hole"].value,hx, hy), hr
+        print("; Making a hole with radius %f nm centered at grid cell (%d,%d)"%(options["-hole"].value,hx, hy), hr)
         hr -= 1
         for ii in range(hx-hr-1,hx+hr+1):
             for jj in range(hx-hr-1,hx+hr+1):
@@ -1338,12 +1337,12 @@ if lipL:
     # To randomize the lipids we add a random number which is used for sorting
     random.seed()
     upper, lower = [], []
-    for i in xrange(up_lipids_x):
-        for j in xrange(up_lipids_y):
+    for i in range(up_lipids_x):
+        for j in range(up_lipids_y):
             if grid_up[i][j]:
                 upper.append((random.random(),i*pbcx/up_lipids_x,j*pbcy/up_lipids_y))
-    for i in xrange(lo_lipids_x):
-        for j in xrange(lo_lipids_y):
+    for i in range(lo_lipids_x):
+        for j in range(lo_lipids_y):
             if grid_lo[i][j]:
                 lower.append((random.random(),i*pbcx/lo_lipids_x,j*pbcy/lo_lipids_y))
         
@@ -1358,9 +1357,13 @@ if lipL:
     upper = [i[1:] for i in upper[max(0, asym):]]
     lower = [i[1:] for i in lower[max(0,-asym):]]
 
-    print >>sys.stderr, "; X: %.3f (%d bins) Y: %.3f (%d bins) in upper leaflet"%(pbcx,up_lipids_x,pbcy,up_lipids_y)
-    print >>sys.stderr, "; X: %.3f (%d bins) Y: %.3f (%d bins) in lower leaflet"%(pbcx,lo_lipids_x,pbcy,lo_lipids_y)
-    print >>sys.stderr, "; %d lipids in upper leaflet, %d lipids in lower leaflet"%(len(upper),len(lower))
+    print("; X: %.3f (%d bins) Y: %.3f (%d bins) in upper leaflet" %
+      (pbcx, up_lipids_x, pbcy, up_lipids_y), file=sys.stderr)
+    print("; X: %.3f (%d bins) Y: %.3f (%d bins) in lower leaflet" %
+      (pbcx, lo_lipids_x, pbcy, lo_lipids_y), file=sys.stderr)
+    print("; %d lipids in upper leaflet, %d lipids in lower leaflet" %
+      (len(upper), len(lower)), file=sys.stderr)
+
 
     # Types of lipids, relative numbers, fractions and numbers
 
@@ -1442,16 +1445,16 @@ for j in protein.atoms:
 #mcharge = sum([charges.get(i[0].strip(),0) for i in set([j[1:3] for j in membrane.atoms])]) 
 #pcharge = sum([charges.get(i[0].strip(),0) for i in set([j[1:3] for j in protein.atoms if not j[0].strip().startswith('v')])])
 
-charge  = mcharge + pcharge
-plen, mlen, slen = 0, 0, 0
-plen = protein and len(protein) or 0
-print >>sys.stderr, "; NDX Solute %d %d" % (1, protein and plen or 0)
-print >>sys.stderr, "; Charge of protein: %f" % pcharge
+charge = mcharge + pcharge
+plen = len(protein) if protein else 0
+print("; NDX Solute %d %d" % (1, plen if protein else 0), file=sys.stderr)
+print("; Charge of protein: %f" % pcharge, file=sys.stderr)
 
-mlen = membrane and len(membrane) or 0
-print >>sys.stderr, "; NDX Membrane %d %d" % (1+plen, membrane and plen+mlen or 0)
-print >>sys.stderr, "; Charge of membrane: %f" % mcharge
-print >>sys.stderr, "; Total charge: %f" % charge
+mlen = len(membrane) if membrane else 0
+print("; NDX Membrane %d %d" % (1 + plen, (plen + mlen) if membrane else 0), file=sys.stderr)
+print("; Charge of membrane: %f" % mcharge, file=sys.stderr)
+print("; Total charge: %f" % charge, file=sys.stderr)
+
 
 
 def _point(y,phi):
@@ -1481,7 +1484,7 @@ if solv:
         
     # Initialize a grid of solvent, spanning the whole cell
     # Exclude all cells within specified distance from membrane center
-    grid   = [[[i < hz-excl or i > hz+excl for i in xrange(nz)] for j in xrange(ny)] for i in xrange(nx)]
+    grid   = [[[i < hz-excl or i > hz+excl for i in range(nz)] for j in range(ny)] for i in range(nx)]
 
     # Flag all cells occupied by protein or membrane
     for p,q,r in protein.coord+membrane.coord:
@@ -1510,7 +1513,7 @@ if solv:
     # Set the center for each solvent molecule
     kick = options["-solr"].value
     grid = [ (R(),(i+0.5+R()*kick)*dx,(j+0.5+R()*kick)*dy,(k+0.5+R()*kick)*dz) 
-             for i in xrange(nx) for j in xrange(ny) for k in xrange(nz) if grid[i][j][k] ]
+             for i in range(nx) for j in range(ny) for k in range(nz) if grid[i][j][k] ]
 
     # Sort on the random number
     grid.sort()
@@ -1599,59 +1602,62 @@ else:
 
 ## Write the output ##
 
-slen = solvent and len(sol) or 0
-print >>sys.stderr, "; NDX Solvent %d %d" % (1+plen+mlen, solvent and plen+mlen+slen or 0)
-print >>sys.stderr, "; NDX System %d %d" % (1, plen+mlen+slen)
-print >>sys.stderr, "; \"I mean, the good stuff is just INSANE\" --Julia Ormond"
+slen = len(sol) if solvent else 0
+print("; NDX Solvent %d %d" % (1 + plen + mlen, (plen + mlen + slen) if solvent else 0), file=sys.stderr)
+print("; NDX System %d %d" % (1, plen + mlen + slen), file=sys.stderr)
+print('; "I mean, the good stuff is just INSANE" --Julia Ormond', file=sys.stderr)
 
 # Open the output stream
-oStream = options["-o"] and open(options["-o"].value,"w") or sys.stdout
+oStream = open(options["-o"].value, "w") if options["-o"] else sys.stdout
 
 # Print the title
 if membrane.atoms:
-    title  = "INSANE! Membrane UpperLeaflet>"+":".join(lipU)+"="+":".join([str(i) for i in numU])
-    title += " LowerLeaflet>"+":".join(lipL)+"="+":".join([str(i) for i in numL])
-
+    title = ("INSANE! Membrane UpperLeaflet>" + ":".join(lipU) +
+             "=" + ":".join(str(i) for i in numU))
+    title += (" LowerLeaflet>" + ":".join(lipL) +
+              "=" + ":".join(str(i) for i in numL))
     if protein:
         title = "Protein in " + title
 else:
     title = "Insanely solvated protein."
 
-print >>oStream, title
+print(title, file=oStream)
 
 # Print the number of atoms
-print >>oStream, "%5d"%(len(protein)+len(membrane)+len(sol))
+print("%5d" % (len(protein) + len(membrane) + len(sol)), file=oStream)
 
 # Print the atoms
-id = 1
+atom_id = 1
 if protein:
     for i in range(len(protein)):
-        at,rn,ri = protein.atoms[i][:3]
-        x,y,z    = protein.coord[i]
-        oStream.write("%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n"%(ri%1e5,rn,at,id%1e5,x,y,z))
-        id += 1
+        at, rn, ri = protein.atoms[i][:3]
+        x, y, z = protein.coord[i]
+        oStream.write("%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n" %
+                      (ri % 1e5, rn, at, atom_id % 1e5, x, y, z))
+        atom_id += 1
 if membrane:
     for i in range(len(membrane)):
-        at,rn,ri = membrane.atoms[i][:3]
-        x,y,z    = membrane.coord[i]
-        oStream.write("%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n"%(ri%1e5,rn,at,id%1e5,x,y,z))
-        id += 1
+        at, rn, ri = membrane.atoms[i][:3]
+        x, y, z = membrane.coord[i]
+        oStream.write("%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n" %
+                      (ri % 1e5, rn, at, atom_id % 1e5, x, y, z))
+        atom_id += 1
 if sol:
     # Print the solvent
-    print >>oStream, "\n".join([i[0]+"%8.3f%8.3f%8.3f"%i[1] for i in sol])
+    print("\n".join(i[0] + "%8.3f%8.3f%8.3f" % i[1] for i in sol), file=oStream)
 
 # Print the box
-print >>oStream, "%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f\n"%grobox
+print("%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f\n" % grobox, file=oStream)
 
 if options["-p"]:
     # Write a rudimentary topology file
-    top = open(options["-p"].value,"w")
-    print >>top, '#include "martini.itp"\n'
-    print >>top, '[ system ]\n; name\n%s\n\n[ molecules ]\n; name  number'%title
-    if protein:
-        print >>top, "%-10s %5d"%("Protein",1)
-    print >>top, "\n".join("%-10s %7d"%i for i in molecules)
-    top.close()
+    with open(options["-p"].value, "w", encoding="utf-8") as top:
+        print('#include "martini.itp"\n', file=top)
+        print('[ system ]\n; name\n%s\n\n[ molecules ]\n; name  number' % title, file=top)
+        if protein:
+            print("%-10s %5d" % ("Protein", 1), file=top)
+        print("\n".join("%-10s %7d" % i for i in molecules), file=top)
 else:
-    print >>sys.stderr, "\n".join("%-10s %7d"%i for i in molecules)
+    print("\n".join("%-10s %7d" % i for i in molecules), file=sys.stderr)
+
 
