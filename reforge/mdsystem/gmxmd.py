@@ -602,7 +602,7 @@ class GmxSystem:
         self.gmx("editconf", f=self.syspdb, o=self.sysgro)
         clean_dir(self.root, "ions.tpr")
 
-    def make_system_ndx(self, backbone_atoms=["CA", "P", "C1'"]):
+    def make_system_ndx(self, backbone_atoms=["CA", "P", "C1'"], water_resname='W'):
         """Creates an index (NDX) file for the system, separating solute, backbone, solvent, and individual chains.
 
         Parameters
@@ -610,15 +610,18 @@ class GmxSystem:
             backbone_atoms : list, optional
                 List of atom names to include in the backbone (default: ["CA", "P", "C1'"]).
         """
-        logger.info("Making index file...")
+        logger.info(f"Making index file from {self.syspdb}...")
+        # self.syspdb = os.path.join(self.rootdir, 'sys.pdb')
         system = pdbtools.pdb2atomlist(self.syspdb)
         solute = pdbtools.pdb2atomlist(self.solupdb)
         solvent = AtomList(system[len(solute):])
         backbone = solute.mask(backbone_atoms, mode="name")
-        system.write_ndx(self.sysndx, header="[ System ]", append=False, wrap=15)
-        solute.write_ndx(self.sysndx, header="[ Solute ]", append=True, wrap=15)
-        backbone.write_ndx(self.sysndx, header="[ Backbone ]", append=True, wrap=15)
-        solvent.write_ndx(self.sysndx, header="[ Solvent ]", append=True, wrap=15)
+        not_water = system.mask_out(water_resname, mode='resname')
+        system.write_ndx(self.sysndx, header="[ System ]", append=False, wrap=15) # 0
+        solute.write_ndx(self.sysndx, header="[ Solute ]", append=True, wrap=15) # 1
+        backbone.write_ndx(self.sysndx, header="[ Backbone ]", append=True, wrap=15) # 2
+        solvent.write_ndx(self.sysndx, header="[ Solvent ]", append=True, wrap=15) # 3
+        not_water.write_ndx(self.sysndx, header="[ Not_Water ]", append=True, wrap=15) # 4
         chids = sorted(set(solute.chids))
         for chid in chids:
             chain = solute.mask(chid, mode="chid")

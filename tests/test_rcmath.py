@@ -1,15 +1,15 @@
 """
 ===============================================================================
-File: test_mycmath.py
+File: test_rcmath.py
 Description:
-    This file contains unit tests for the 'mycmath' module from the 
-    reforge.actual_math package. The tests compare the outputs of the new 
+    This file contains unit tests for the 'rcmath' module from the 
+    reforge.rfgmath package. The tests compare the outputs of the new 
     implementations with their legacy counterparts for various mathematical 
     functions, including Hessian calculation and perturbation matrices.
 
 Usage:
     Run the tests with pytest:
-        pytest -v tests/test_mycmath.py
+        pytest -v tests/test_rcmath.py
 
 Requirements:
     - NumPy
@@ -23,7 +23,7 @@ Date: 2025-02-27
 
 import numpy as np
 import pytest
-from reforge.actual_math import mycmath, legacy
+from reforge.rfgmath import rcmath, legacy
 from reforge.utils import logger
 
 # Set a fixed random seed for reproducibility of the tests.
@@ -54,8 +54,8 @@ def test_hessian():
     spring_constant = 1000
     dd = 0
     legacy_result = legacy._calculate_hessian(n, x, y, z, cutoff, spring_constant, dd)
-    new_result = mycmath._calculate_hessian(n, x, y, z, cutoff, spring_constant, dd)
-    vec_result = mycmath._hessian(vec, cutoff, spring_constant, dd)
+    new_result = rcmath._calculate_hessian(n, x, y, z, cutoff, spring_constant, dd)
+    vec_result = rcmath._hessian(vec, cutoff, spring_constant, dd)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-6, atol=1e-6)
     np.testing.assert_allclose(vec_result, legacy_result, rtol=1e-6, atol=1e-6)
 
@@ -79,7 +79,7 @@ def test_perturbation_matrix_old():
     covmat = (A + A.T) / 2
     # legacy_result = legacy._perturbation_matrix_old(covmat, m)
     legacy_result = legacy.calcperturbMat(covmat, m)
-    new_result = mycmath._perturbation_matrix_old(covmat, m)
+    new_result = rcmath._perturbation_matrix_old(covmat, m)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-4, atol=1e-4)
 
 
@@ -100,7 +100,7 @@ def test_perturbation_matrix():
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
     legacy_result = legacy._perturbation_matrix_cpu(covmat)
-    new_result = mycmath._perturbation_matrix(covmat)
+    new_result = rcmath._perturbation_matrix(covmat)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-6, atol=1e-6)
 
 
@@ -121,7 +121,7 @@ def test_td_perturbation_matrix():
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
     legacy_result = legacy._td_perturbation_matrix_cpu(covmat, normalize=True)
-    new_result = mycmath._td_perturbation_matrix(covmat, normalize=True)
+    new_result = rcmath._td_perturbation_matrix(covmat, normalize=True)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-6, atol=1e-6)
 
 
@@ -140,8 +140,8 @@ def test_perturbation_matrix_old_new():
     m = 200
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
-    old_result = mycmath._perturbation_matrix_old(covmat, m)
-    new_result = mycmath._perturbation_matrix(covmat)
+    old_result = rcmath._perturbation_matrix_old(covmat, m)
+    new_result = rcmath._perturbation_matrix(covmat)
     np.testing.assert_allclose(new_result, old_result, rtol=1e-4, atol=1e-4)
 
 

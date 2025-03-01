@@ -1,5 +1,5 @@
 """
-File: mycmath.pyx
+File: rcmath.pyx
 Description:
     This module contains internal routines for performing optimized mathematical 
     operations. It includes functions for calculating position-position Hessian matrices 
@@ -10,7 +10,7 @@ Description:
 
 Usage Example:
     >>> import numpy as np
-    >>> from mycmath import _calculate_hessian, _hessian, _perturbation_matrix, _td_perturbation_matrix
+    >>> from rcmath import _calculate_hessian, _hessian, _perturbation_matrix, _td_perturbation_matrix
     >>> # Generate random coordinate data for residues
     >>> n = 10
     >>> vecs = np.random.rand(n, 3)

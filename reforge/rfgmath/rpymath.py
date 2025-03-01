@@ -1,5 +1,5 @@
 """
-File: mypymath.py
+File: rpymath.py
 Description:
     This module contains internal routines for performing various mathematical
     and signal processing operations required in our workflow. It includes FFT‐based
@@ -11,7 +11,7 @@ Description:
     Note: This module is intended for internal use only.
 
 Usage Example:
-    >>> from mypymath import _sfft_ccf, fft_ccf
+    >>> from rpymath import _sfft_ccf, fft_ccf
     >>> import numpy as np
     >>> # Generate random signals
     >>> x = np.random.rand(10, 256)
