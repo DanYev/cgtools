@@ -211,5 +211,3 @@ def insert_membrane(wdir, **kwargs):
         cli.run("python3 -m", script, **kwargs)
 
 
-if __name__ == "__main__":
-    dssp("../tests/1btl.pdb")

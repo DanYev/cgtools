@@ -257,7 +257,7 @@ class Topology:
             list: A list of strings, where each string is a line in the topology file.
         """
         lines = itpio.format_header(
-            molname=self.name, forcefield=self.ff.name, version="", arguments=""
+            molname=self.name, forcefield=self.ff.name, arguments=""
         )
         lines += itpio.format_sequence_section(self.sequence, self.secstruct)
         lines += itpio.format_moleculetype_section(molname=self.name, nrexcl=1)
