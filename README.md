@@ -30,12 +30,12 @@ reforge
 **Find tutorial directory and run:**
 
 ```bash
-sbatch submit2sol.sh
+python submit.py
 ```
 
 
 ### Copyright
 
-Copyright (c) 2024, DY
+Copyright (c) 2025, DY
 
 

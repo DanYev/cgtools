@@ -90,6 +90,3 @@ Indices and Tables
    why
    Tutorials 
    reforge
-   reforge.actual_math
-   reforge.forge
-   reforge.martini
