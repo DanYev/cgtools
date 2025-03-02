@@ -38,7 +38,7 @@ Date: YYYY-MM-DD
 import os
 import numpy as np
 import cupy as cp
-from reforge.utils import logger  
+from reforge.utils import logger  # removed unused imports: sys, MDAnalysis, pandas, timeit, memprofit, cuda_detected
 from reforge.rfgmath import rcmath, rpymath
 
 
