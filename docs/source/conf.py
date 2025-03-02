@@ -22,7 +22,13 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinx.ext.extlinks",
+    "sphinx_gallery.gen_gallery",
 ]
+
+sphinx_gallery_conf = {
+    'examples_dirs': '../examples',  # folder with your scripts (e.g. your example_c60.py)
+    'gallery_dirs': 'auto_examples',
+}
 
 autosummary_generate = True
 autodoc_member_order = 'bysource'

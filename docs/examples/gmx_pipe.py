@@ -40,10 +40,10 @@ import shutil
 import MDAnalysis as mda
 from pathlib import Path
 from reforge import cli, io, mdm
-from reforge.gmxmd import gmxSystem, MDRun
+from reforge.mdsystem.gmxmd import gmxSystem, MDRun
 from reforge.utils import *  # Assuming this imports required utilities
 
-
+#%%
 def setup(*args):
     """Runs the complete setup pipeline.
 
@@ -56,7 +56,8 @@ def setup(*args):
     # Uncomment the following line if you also want to setup a protein-membrane system.
     # setup_cg_protein_membrane(*args)
 
-
+# Some comments
+#%%
 def setup_cg_protein_rna(sysdir, sysname):
     """Sets up a coarse-grained protein/RNA system.
 
@@ -284,7 +285,7 @@ def tdlrt_analysis(sysdir, sysname, runname):
     ag = u.atoms
     positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e)
     velocities = io.read_velocities(u, ag, sample_rate=sample_rate, b=b, e=e)
-    corr = lrt.ccf(positions, velocities, ntmax=ntmax, n=5, mode="gpu", center=True)
+    corr = mdm.ccf(positions, velocities, ntmax=ntmax, n=5, mode="gpu", center=True)
     np.save(corr_file, corr)
 
 

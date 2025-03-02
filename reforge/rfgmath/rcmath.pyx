@@ -1,6 +1,6 @@
-"""Cython math 
-
+"""
 Description:
+
     This module contains internal routines for performing optimized mathematical 
     operations. It includes functions for calculating position-position Hessian matrices 
     and perturbation matrices derived from coordinate and covariance data. 

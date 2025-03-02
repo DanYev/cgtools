@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Math for MD
 
 Description:
