@@ -16,6 +16,7 @@ dependencies:
   - selenium-manager
   - pandas
   - packaging
+  - pdbfixer
   - pytest
   - vermouth
   - webdriver-manager 

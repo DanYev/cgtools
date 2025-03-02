@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-"""File: mdm.py
+"""Math for MD
 
 Description:
-    This module provides a unified interface for molecular dynamics (MD) and
+    This module provides a unified interface for molecular dynamics and
     structural analysis routines within the reForge package. It wraps a variety
     of operations including FFT-based cross-correlation, covariance matrix
     computation, perturbation matrix calculations (for DFI/DCI metrics), and

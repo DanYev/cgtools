@@ -1,7 +1,7 @@
 # pylint: disable=too-many-lines, too-many-instance-attributes, too-many-arguments, too-many-locals, missing-function-docstring, too-many-public-methods, unnecessary-lambda-assignment, unspecified-encoding, broad-exception-caught, undefined-variable, invalid-name, import-outside-toplevel, f-string-without-interpolation, too-few-public-methods, unused-import
 
-"""
-File: pdbtools.py
+"""Classes for parsing and manipulating PDB atoms
+
 Description:
     This module provides utilities for parsing, manipulating, and writing PDB files.
     It defines classes for representing individual atoms (Atom), groups of atoms (AtomList),

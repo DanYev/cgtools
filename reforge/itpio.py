@@ -1,12 +1,10 @@
-"""
+"""IO for GROMACS topology .itp files
 
 Description:
-
     This module provides functions for reading, parsing, formatting, and writing
     GROMACS ITP files. It includes utilities to extract and format different sections
     (such as bonds, angles, atoms, etc.) and higher-level functions tailored for
     Martini RNA and ion topologies.
-
 
 Requirements:
     - Python 3.x
