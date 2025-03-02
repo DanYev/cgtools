@@ -1,4 +1,4 @@
-"""IO for GROMACS topology .itp files
+"""IO for GROMACS topology .itp files.
 
 Description:
     This module provides functions for reading, parsing, formatting, and writing
@@ -19,29 +19,31 @@ import shutil as sh
 from typing import List, Tuple
 
 ###################################
-## Generic functions ##
+# Generic functions
 ###################################
 
 def read_itp(filename):
-    """Reads a Gromacs ITP file and organizes its contents by section.
+    """Read a Gromacs ITP file and organize its contents by section.
 
-    Args:
-        filename (str): The path to the ITP file.
+    Parameters
+    ----------
+    filename : str
+        The path to the ITP file.
 
-    Returns:
-        dict: A dictionary where keys are section names and values are lists
-              of entries, each entry being a list of [connectivity, parameters, comment].
+    Returns
+    -------
+    dict
+        A dictionary where keys are section names and values are lists of entries,
+        each entry being a list of [connectivity, parameters, comment].
     """
     itp_data = {}
-    # current_section variable removed since it was unused
     with open(filename, "r", encoding="utf-8") as file:
         for line in file:
             # Skip comments and empty lines
             if line.strip() == "" or line.strip().startswith(";"):
                 continue
             # Detect section headers; break long condition into multiple lines.
-            if (line.startswith("[")
-                    and line.endswith("]\n")):
+            if (line.startswith("[") and line.endswith("]\n")):
                 tag = line.strip()[2:-2]
                 itp_data[tag] = []
             else:
@@ -51,18 +53,22 @@ def read_itp(filename):
 
 
 def line2bond(line, tag):
-    """Parses a line from an ITP file and returns connectivity, parameters, and comment.
+    """Parse a line from an ITP file and return connectivity, parameters, and comment.
 
-    Args:
-        line (str): A line from the ITP file.
-        tag (str): The section tag (e.g. 'bonds', 'angles', etc.).
+    Parameters
+    ----------
+    line : str
+        A line from the ITP file.
+    tag : str
+        The section tag (e.g. 'bonds', 'angles', etc.).
 
-    Returns:
-        tuple: A tuple (connectivity, parameters, comment) where connectivity is a tuple
-               of ints, parameters is a tuple of numbers (first as int, rest as floats),
-               and comment is a string.
+    Returns
+    -------
+    tuple
+        A tuple (connectivity, parameters, comment) where connectivity is a tuple of ints,
+        parameters is a tuple of numbers (first as int, rest as floats), and comment is a string.
     """
-    data, _, comment = line.partition(";")  # Use _ for unused separator
+    data, _, comment = line.partition(";")
     data = data.split()
     comment = comment.strip()
     if tag == "bonds" or tag == "constraints":
@@ -83,31 +89,34 @@ def line2bond(line, tag):
     if parameters:
         parameters[0] = int(parameters[0])
         parameters[1:] = [float(i) for i in parameters[1:]]
-    # Use a generator expression instead of a list comprehension here.
     connectivity = tuple(int(i) for i in connectivity)
     parameters = tuple(parameters)
     return connectivity, parameters, comment
 
 
 def bond2line(connectivity=None, parameters="", comment=""):
-    """Formats a bond entry into a string for a Gromacs ITP file.
+    """Format a bond entry into a string for a Gromacs ITP file.
 
-    Args:
-        connectivity (tuple): Connectivity indices.
-        parameters (tuple): Bond parameters.
-        comment (str): Optional comment.
+    Parameters
+    ----------
+    connectivity : tuple, optional
+        Connectivity indices.
+    parameters : tuple, optional
+        Bond parameters.
+    comment : str, optional
+        Optional comment.
 
-    Returns:
-        str: A formatted string representing the bond entry.
+    Returns
+    -------
+    str
+        A formatted string representing the bond entry.
     """
-    # Format each connectivity value as a 5-character wide integer.
     connectivity_str = "   ".join(f"{int(atom):5d}" for atom in connectivity)
     type_str = ""
     parameters_str = ""
     if parameters:
         type_str = f"{int(parameters[0]):2d}"
-        parameters_str = "   ".join(f"{float(param):7.4f}"
-            for param in parameters[1:])
+        parameters_str = "   ".join(f"{float(param):7.4f}" for param in parameters[1:])
     line = connectivity_str + "   " + type_str + "   " + parameters_str
     if comment:
         line += " ; " + comment
@@ -116,33 +125,43 @@ def bond2line(connectivity=None, parameters="", comment=""):
 
 
 def format_header(molname="molecule", forcefield="", arguments="") -> List[str]:
-    """Formats the header of the topology file.
+    """Format the header of the topology file.
 
-    Args:
-        molname (str): Molecule name.
-        forcefield (str): Force field identifier.
-        arguments (str): Command-line arguments used.
+    Parameters
+    ----------
+    molname : str, optional
+        Molecule name. Default is "molecule".
+    forcefield : str, optional
+        Force field identifier.
+    arguments : str, optional
+        Command-line arguments used.
 
-    Returns:
-        List[str]: List of header lines.
+    Returns
+    -------
+    List[str]
+        A list of header lines.
     """
     lines = [f'; MARTINI ({forcefield}) Coarse Grained topology file for "{molname}"\n']
     lines.append("; Created using the following options:\n")
     lines.append(f"; {arguments}\n")
-    # Convert unnecessary f-string to a regular string since no interpolation occurs.
     lines.append("; " + "#" * 100 + "\n")
     return lines
 
 
 def format_sequence_section(sequence, secstruct) -> List[str]:
-    """Formats the sequence section.
+    """Format the sequence section.
 
-    Args:
-        sequence (iterable): Sequence characters.
-        secstruct (iterable): Secondary structure characters.
+    Parameters
+    ----------
+    sequence : iterable
+        Sequence characters.
+    secstruct : iterable
+        Secondary structure characters.
 
-    Returns:
-        List[str]: Formatted lines for the sequence section.
+    Returns
+    -------
+    List[str]
+        Formatted lines for the sequence section.
     """
     sequence_str = "".join(sequence)
     secstruct_str = "".join(secstruct)
@@ -154,14 +173,19 @@ def format_sequence_section(sequence, secstruct) -> List[str]:
 
 
 def format_moleculetype_section(molname="molecule", nrexcl=1) -> List[str]:
-    """Formats the moleculetype section.
+    """Format the moleculetype section.
 
-    Args:
-        molname (str): Molecule name.
-        nrexcl (int): Number of exclusions.
+    Parameters
+    ----------
+    molname : str, optional
+        Molecule name. Default is "molecule".
+    nrexcl : int, optional
+        Number of exclusions. Default is 1.
 
-    Returns:
-        List[str]: Formatted lines for the moleculetype section.
+    Returns
+    -------
+    List[str]
+        Formatted lines for the moleculetype section.
     """
     lines = ["\n[ moleculetype ]\n"]
     lines.append("; Name         Exclusions\n")
@@ -170,13 +194,17 @@ def format_moleculetype_section(molname="molecule", nrexcl=1) -> List[str]:
 
 
 def format_atoms_section(atoms: List[Tuple]) -> List[str]:
-    """Formats the atoms section for a Gromacs ITP file.
+    """Format the atoms section for a Gromacs ITP file.
 
-    Args:
-        atoms (List[Tuple]): List of atom records.
+    Parameters
+    ----------
+    atoms : List[Tuple]
+        List of atom records.
 
-    Returns:
-        List[str]: List of formatted lines.
+    Returns
+    -------
+    List[str]
+        A list of formatted lines.
     """
     lines = ["\n[ atoms ]\n"]
     fs8 = "%5d %5s %5d %5s %5s %5d %7.4f ; %s"
@@ -190,14 +218,19 @@ def format_atoms_section(atoms: List[Tuple]) -> List[str]:
 
 
 def format_bonded_section(header: str, bonds: List[List]) -> List[str]:
-    """Formats a bonded section (e.g., bonds, angles) for a Gromacs ITP file.
+    """Format a bonded section (e.g., bonds, angles) for a Gromacs ITP file.
 
-    Args:
-        header (str): Section header.
-        bonds (List[List]): List of bond entries.
+    Parameters
+    ----------
+    header : str
+        Section header.
+    bonds : List[List]
+        List of bond entries.
 
-    Returns:
-        List[str]: List of formatted lines.
+    Returns
+    -------
+    List[str]
+        A list of formatted lines.
     """
     lines = [f"\n[ {header} ]\n"]
     for bond in bonds:
@@ -208,16 +241,21 @@ def format_bonded_section(header: str, bonds: List[List]) -> List[str]:
 
 def format_posres_section(atoms: List[Tuple], posres_fc=1000, 
                           selection: List[str] = None) -> List[str]:
-    """Formats the position restraints section.
+    """Format the position restraints section.
 
-    Args:
-        atoms (List[Tuple]): List of atom records.
-        posres_fc (float): Force constant for restraints.
-        selection (List[str], optional): Atom names to select. Defaults to 
-            ["BB1", "BB3", "SC1"] if not provided.
+    Parameters
+    ----------
+    atoms : List[Tuple]
+        List of atom records.
+    posres_fc : float, optional
+        Force constant for restraints. Default is 1000.
+    selection : List[str], optional
+        Atom names to select. Defaults to ["BB1", "BB3", "SC1"] if not provided.
 
-    Returns:
-        List[str]: List of formatted lines.
+    Returns
+    -------
+    List[str]
+        A list of formatted lines.
     """
     if selection is None:
         selection = ["BB1", "BB3", "SC1"]
@@ -234,11 +272,14 @@ def format_posres_section(atoms: List[Tuple], posres_fc=1000,
 
 
 def write_itp(filename, lines):
-    """Writes a list of lines to an ITP file.
+    """Write a list of lines to an ITP file.
 
-    Args:
-        filename (str): Output file path.
-        lines (List[str]): Lines to write.
+    Parameters
+    ----------
+    filename : str
+        Output file path.
+    lines : List[str]
+        Lines to write.
     """
     with open(filename, "w", encoding="utf-8") as file:
         for line in lines:
@@ -246,16 +287,20 @@ def write_itp(filename, lines):
 
 
 ###################################
-## HL functions for martini_rna ##
+# HL functions for martini_rna
 ###################################
 
 def make_in_terms(input_file, output_file, dict_of_names):
     """Generate a Martini ITP file using input terms and a dictionary of names.
 
-    Args:
-        input_file (str): Path to the input ITP file.
-        output_file (str): Path to the output ITP file.
-        dict_of_names (dict): Dictionary mapping keys to desired names.
+    Parameters
+    ----------
+    input_file : str
+        Path to the input ITP file.
+    output_file : str
+        Path to the output ITP file.
+    dict_of_names : dict
+        Dictionary mapping keys to desired names.
     """
     tag = None
     pairs = []
@@ -341,11 +386,16 @@ def make_in_terms(input_file, output_file, dict_of_names):
 def make_cross_terms(input_file, output_file, old_name, new_name):
     """Append cross-term entries to an ITP file by replacing an old name with a new one.
 
-    Args:
-        input_file (str): Path to the input ITP file.
-        output_file (str): Path to the output ITP file.
-        old_name (str): The name to be replaced.
-        new_name (str): The replacement name.
+    Parameters
+    ----------
+    input_file : str
+        Path to the input ITP file.
+    output_file : str
+        Path to the output ITP file.
+    old_name : str
+        The name to be replaced.
+    new_name : str
+        The replacement name.
     """
     switch = False
     with open(input_file, "r", encoding="utf-8") as file:
@@ -373,10 +423,10 @@ def make_cross_terms(input_file, output_file, old_name, new_name):
 
 
 def make_marnatini_itp():
-    """High-level function to generate and copy a Martini RNA ITP file.
+    """Generate and copy a Martini RNA ITP file.
 
-    It processes a base Martini ITP file using defined name mappings and
-    copies the resulting file to several target directories.
+    This high-level function processes a base Martini ITP file using defined name mappings
+    and copies the resulting file to several target directories.
     """
     dict_of_names = {
         "TA1": "SC5",
@@ -417,10 +467,10 @@ def make_marnatini_itp():
 
 
 def make_ions_itp():
-    """High-level function to generate an ITP file for ions.
+    """Generate an ITP file for ions.
 
-    It modifies a base Martini ITP file, adjusts parameters, and writes the final
-    Martini ions ITP file.
+    This function modifies a base Martini ITP file, adjusts parameters, and writes
+    the final Martini ions ITP file.
     """
     import pandas as pd
 
@@ -446,13 +496,17 @@ def make_ions_itp():
 
 
 def count_itp_atoms(file_path):
-    """Counts the number of atom entries in the [ atoms ] section of an ITP file.
+    """Count the number of atom entries in the [ atoms ] section of an ITP file.
 
-    Args:
-        file_path (str): Path to the ITP file.
+    Parameters
+    ----------
+    file_path : str
+        Path to the ITP file.
 
-    Returns:
-        int: The atom count, or 0 if an error occurs.
+    Returns
+    -------
+    int
+        The atom count, or 0 if an error occurs.
     """
     in_atoms_section = False
     atom_count = 0
@@ -473,7 +527,7 @@ def count_itp_atoms(file_path):
     except FileNotFoundError:
         print(f"Error: File {file_path} not found.")
         return 0
-    except Exception as e:  # broad exception caught; consider catching specific exceptions
+    except Exception as e:
         print(f"An error occurred: {e}")
         return 0
 

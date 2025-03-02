@@ -1,8 +1,10 @@
-"""
-Module: cgmap.py
+"""CG mapping tools
+
 Description:
     Provides functions to map atomistic PDB data to a coarse-grained (CG)
-    representation for use with Martini force fields.
+    representation.
+
+Author: DY
 """
 
 import copy

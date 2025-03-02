@@ -1,8 +1,9 @@
 """
-Module: geometry.py
 Description:
     Provides geometric calculations (distances, angles, dihedrals) for coarse-grained
     systems and functions to compute bond lists from a system (using a reference topology).
+
+Author: DY
 """
 
 import sys

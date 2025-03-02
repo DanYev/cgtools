@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
 """
-Module: persistence_length.py
 Description:
     This module computes the persistence length of a nucleic acid system by
     calculating angles between consecutive bond vectors in a coarse-grained model.
     It provides functions to read a structure from a PDB file, compute geometric
     measures (angles, rotation matrices), and finally plot the average angles.
+
+Author: DY
 """
 
 import matplotlib.pyplot as plt

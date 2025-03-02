@@ -181,14 +181,14 @@ def filter_files(fpaths, sw="", cont="", ew=""):
 
 
 def pull_files(directory, pattern):
-    """Recursively search for files in a directory matching a given pattern.
+    r"""Recursively search for files in a directory matching a given pattern.
 
     Parameters
     ----------
     directory : str or Path
         The root directory to search.
     pattern : str
-        The glob pattern to match files (e.g., '*.txt').
+        The glob pattern to match files (e.g., \*.txt).
 
     Returns
     -------

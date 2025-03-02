@@ -10,9 +10,6 @@ Description:
       - MDRun: A subclass of GmxSystem dedicated to executing MD simulations and
         performing post-processing tasks (e.g., RMSF, RMSD, covariance analysis).
 
-    Additionally, utility functions (e.g., sort_upper_lower_digit) are included
-    to assist in organizing GROMACS multichain files.
-
 Usage:
     Import this module and instantiate the GmxSystem or MDRun classes to set up
     and run your MD simulations.

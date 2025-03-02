@@ -1,9 +1,11 @@
-"""
-Module: forcefields.py
+"""Collection of CG force fields
+
 Description:
     This module defines force fields for Martini RNA and nucleic acids.
     It provides classes for reading ITP files and organizing force-field parameters
     for coarse-grained simulations.
+
+Author: DY    
 """
 
 import importlib.resources
