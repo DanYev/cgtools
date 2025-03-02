@@ -1,5 +1,6 @@
 tmp
 build
+examples
 tests/test
 workflows/systems
 workflows/png
@@ -47,6 +48,7 @@ __pycache__
 *.blg
 *.synctex.*
 *.dat
+!*atommass.dat
 *.xtc
 *.trr
 *.lock
