@@ -21,9 +21,9 @@ if [ "$1" == "--all" ]; then
     echo "Running all tests..."
     pytest --maxfail=1 --disable-warnings -q
 else
-    pytest -v tests/test_rpymath.py --maxfail=1 --disable-warnings -q
-    pytest -v tests/test_rcmath.py --maxfail=1 --disable-warnings -q
-    pytest -v tests/test_mdm.py --maxfail=1 --disable-warnings -q
+    # pytest -v tests/test_rpymath.py --maxfail=1 --disable-warnings -q
+    # pytest -v tests/test_rcmath.py --maxfail=1 --disable-warnings -q
+    # pytest -v tests/test_mdm.py --maxfail=1 --disable-warnings -q
     pytest -v tests/test_pdbtools.py --maxfail=1 --disable-warnings -q
     pytest -v tests/test_gmxmd.py --maxfail=1 --disable-warnings -q
 fi

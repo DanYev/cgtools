@@ -11,7 +11,7 @@ optionally applies an elastic network, and writes the output ITP file.
 """
 
 import argparse
-from reforge.forge.forcefields import martini30rna
+from reforge.forge.forcefields import Martini30RNA
 from reforge.forge import cgmap
 from reforge.forge.topology import Topology
 from reforge.pdbtools import AtomList, pdb2system
@@ -131,7 +131,7 @@ def merge_topologies(top_list):
 if __name__ == "__main__":
     options = martinize_rna_parser()
     if options.ff == "reg":
-        ff = martini30rna()
+        ff = Martini30RNA()
     else:
         raise ValueError(f"Unsupported force field option: {options.ff}")
     inpdb = options.f
