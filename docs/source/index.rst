@@ -84,9 +84,8 @@ Indices and Tables
 
 .. toctree::
    :maxdepth: 2
-   :glob:
 
    getting_started
    why
-   Tutorials 
-   reforge
+   auto_examples/index
+   modules

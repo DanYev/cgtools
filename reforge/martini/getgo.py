@@ -1,9 +1,12 @@
-"""
-Module: getgo.py
+"""Gets contact maps for Go-Martini from RCSU server
+
 Description:
-    This module automates the download and extraction of Go maps for PDB files
-    using Selenium and various WebDriver managers. It checks for installed browsers,
-    installs the appropriate WebDriver if needed, and then processes a list of PDB files.
+    This module automates the download and extraction of Go maps from 
+    http://info.ifpan.edu.pl/~rcsu/rcsu/index.html using Selenium and various 
+    WebDriver managers. It checks for installed browsers, installs the appropriate 
+    WebDriver if needed, and then processes a list of PDB files.
+
+Author: DY
 """
 
 import argparse

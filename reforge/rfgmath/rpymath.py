@@ -1,5 +1,5 @@
-"""
-File: rpymath.py
+"""Python math functions
+
 Description:
     This module contains internal routines for performing various mathematical
     and signal processing operations required in our workflow. It includes FFT‐based
@@ -181,9 +181,9 @@ def fft_ccf(*args, mode="serial", **kwargs):
     """Unified wrapper for FFT-based correlation functions.
     
     Parameters:
-        *args: Positional arguments for the chosen correlation function.
+        args: Positional arguments for the chosen correlation function.
         mode (str): Mode to use ('serial', 'parallel', or 'gpu').
-        **kwargs: Additional keyword arguments.
+        kwargs: Additional keyword arguments.
     
     Returns:
         np.ndarray: The computed correlation function.
@@ -432,7 +432,7 @@ def inverse_sparse_matrix_cpu(matrix, *, k_singular=6, n_modes=20, dtype=None, *
         k_singular (int, optional): Number of smallest eigenvalues to zero out.
         n_modes (int, optional): Number of eigenmodes to compute.
         dtype: Desired data type (default: matrix.dtype).
-        **kwargs: Additional arguments for eigensolver.
+        kwargs: Additional arguments for eigensolver.
     
     Returns:
         np.ndarray: The computed inverse matrix.
@@ -462,7 +462,7 @@ def inverse_matrix_cpu(matrix, *, k_singular=6, n_modes=100, dtype=None, **kwarg
         k_singular (int, optional): Number of smallest eigenvalues to zero out.
         n_modes (int, optional): Number of eigenmodes to consider.
         dtype: Desired data type (default: matrix.dtype).
-        **kwargs: Additional arguments for the solver.
+        kwargs: Additional arguments for the solver.
     
     Returns:
         np.ndarray: The inverse matrix computed on the CPU.
@@ -490,7 +490,7 @@ def inverse_sparse_matrix_gpu(matrix, *, k_singular=6, n_modes=20, dtype=None, *
         k_singular (int, optional): Number of smallest eigenvalues to zero out.
         n_modes (int, optional): Number of eigenmodes to compute.
         dtype: Desired CuPy data type (default: matrix.dtype).
-        **kwargs: Additional arguments for the GPU eigensolver.
+        kwargs: Additional arguments for the GPU eigensolver.
     
     Returns:
         cp.ndarray: The inverse matrix computed on the GPU.
@@ -522,7 +522,7 @@ def inverse_matrix_gpu(matrix, *, k_singular=6, n_modes=100, dtype=None, **kwarg
         k_singular (int, optional): Number of smallest eigenvalues to zero out.
         n_modes (int, optional): Number of eigenmodes to consider.
         dtype: Desired CuPy data type (default: matrix.dtype).
-        **kwargs: Additional arguments for the solver.
+        kwargs: Additional arguments for the solver.
     
     Returns:
         cp.ndarray: The inverse matrix computed on the GPU.

@@ -1,5 +1,5 @@
-reforge
-=======
+reForge API
+===========
 
 .. toctree::
    :maxdepth: 4

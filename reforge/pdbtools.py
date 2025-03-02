@@ -1,21 +1,24 @@
 # pylint: disable=too-many-lines, too-many-instance-attributes, too-many-arguments, too-many-locals, missing-function-docstring, too-many-public-methods, unnecessary-lambda-assignment, unspecified-encoding, broad-exception-caught, undefined-variable, invalid-name, import-outside-toplevel, f-string-without-interpolation, too-few-public-methods, unused-import
 
-"""
-File: pdbtools.py
+"""Classes and functions for parsing and manipulating PDB atoms
+
 Description:
     This module provides utilities for parsing, manipulating, and writing PDB files.
     It defines classes for representing individual atoms (Atom), groups of atoms (AtomList),
     as well as hierarchical representations of residues, chains, models, and entire systems.
     In addition, helper functions are provided to read and write PDB files and GROMACS index
     (NDX) files, and to perform common operations such as sorting and cleaning PDB files.
+
 Usage:
     from pdbtools import pdb2system, pdb2atomlist, sort_pdb, clean_pdb
     system = pdb2system("input.pdb")
     atoms = pdb2atomlist("input.pdb")
+
 Requirements:
     - Python 3.x
     - pathlib and typing (standard library)
     - pdbfixer and OpenMM (for cleaning PDB files, optional)
+    
 Author: DY
 Date: 2025-02-27
 """

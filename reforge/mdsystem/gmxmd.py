@@ -10,9 +10,6 @@ Description:
       - MDRun: A subclass of GmxSystem dedicated to executing MD simulations and
         performing post-processing tasks (e.g., RMSF, RMSD, covariance analysis).
 
-    Additionally, utility functions (e.g., sort_upper_lower_digit) are included
-    to assist in organizing GROMACS multichain files.
-
 Usage:
     Import this module and instantiate the GmxSystem or MDRun classes to set up
     and run your MD simulations.
@@ -36,7 +33,7 @@ import subprocess as sp
 from reforge import cli, pdbtools, io
 from reforge.pdbtools import AtomList
 from reforge.utils import cd, clean_dir, logger
-from reforge.mdsystem.mdsystem import MDSystem, MDRun, sort_upper_lower_digit
+from reforge.mdsystem.mdsystem import MDSystem, MDRun
 
 ################################################################################
 # GMX system class
@@ -133,7 +130,7 @@ class GmxSystem(MDSystem):
         """
         logger.info("Writing system topology...")
         itp_files = [p.name for p in self.topdir.glob(f'{prefix}*itp')]
-        itp_files = sort_upper_lower_digit(itp_files)
+        itp_files = pdbtools.sort_uld(itp_files)
         with self.systop.open("w") as f:
             # Include section
             f.write('#define GO_VIRT"\n')
@@ -176,7 +173,7 @@ class GmxSystem(MDSystem):
         Converts PDB files to GRO files, merges them, and adjusts the system box.
         """
         with cd(self.root):
-            cg_pdb_files = sort_upper_lower_digit([p.name for p in self.cgdir.iterdir()])
+            cg_pdb_files = pdbtools.sort_uld([p.name for p in self.cgdir.iterdir()])
             for file in cg_pdb_files:
                 if file.endswith(".pdb"):
                     pdb_file = self.cgdir / file

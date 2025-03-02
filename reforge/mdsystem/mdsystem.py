@@ -77,7 +77,7 @@ class MDSystem:
             list: Sorted chain identifiers extracted from the PDB file.
         """
         atoms = io.pdb2atomlist(self.inpdb)
-        chains = sort_upper_lower_digit(set(atoms.chids))
+        chains = pdbtools.sort_uld(set(atoms.chids))
         return chains
 
     def sort_input_pdb(self, in_pdb="inpdb.pdb"):
@@ -347,7 +347,7 @@ class MDSystem:
         logger.info("Merging CG PDB files into a single solute PDB...")
         with cd(self.root):
             cg_pdb_files = [p.name for p in self.cgdir.iterdir()]
-            cg_pdb_files = sort_upper_lower_digit(cg_pdb_files)
+            cg_pdb_files = pdbtools.sort_uld(cg_pdb_files)
             cg_pdb_files = [self.cgdir / fname for fname in cg_pdb_files]
             all_atoms = AtomList()
             for file in cg_pdb_files:
@@ -584,22 +584,3 @@ class MDRun(MDSystem):
                 logger.info("  Saved group-group DCI at %s", ch_dci_file_path)
         logger.info("Finished calculating group DCIs!")
 
-################################################################################
-# Utils
-################################################################################
-
-def sort_upper_lower_digit(alist):
-    """Sorts a list of strings such that uppercase letters come first, 
-    then lowercase letters, followed by digits.
-
-    This is useful for organizing GROMACS multichain files.
-
-    Parameters
-        ----------
-        alist (iterable): List of strings to sort.
-
-    Returns:
-        list: Sorted list of strings.
-    """
-    slist = sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
-    return slist

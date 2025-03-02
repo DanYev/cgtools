@@ -23,7 +23,7 @@ Getting started
     pip install -e .
 
 Running the Tutorial
-====================
+--------------------
 
 To run the tutorial, execute the following command in the tutorial directory:
 
@@ -31,7 +31,3 @@ To run the tutorial, execute the following command in the tutorial directory:
 
     python submit.py
 
-Copyright
-=========
-
-Copyright (c) 2025, DY
