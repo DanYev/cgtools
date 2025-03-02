@@ -1,31 +1,71 @@
-import os
+"""
+Module: geometry.py
+Description:
+    Provides geometric calculations (distances, angles, dihedrals) for coarse-grained
+    systems and functions to compute bond lists from a system (using a reference topology).
+"""
+
 import sys
-import copy
-import time
 import numpy as np
-import reforge.forge.cgmap as cgmap
-from reforge.forge.topology import Topology, BondList
+from reforge.pdbtools import pdb2system
+from reforge.forge import cgmap
+from reforge.forge.topology import BondList
+from reforge.utils import logger
 
 
 def get_distance(v1, v2):
+    """
+    Compute the Euclidean distance between two vectors (returned in nanometers).
+
+    Args:
+        v1: First vector (list or array-like).
+        v2: Second vector (list or array-like).
+
+    Returns:
+        float: Distance between v1 and v2 divided by 10.
+    """
     v1 = np.array(v1)
     v2 = np.array(v2)
     return np.linalg.norm(v1 - v2) / 10.0
 
 
 def get_angle(v1, v2, v3):
+    """
+    Calculate the angle at vertex v2 (in degrees) given three points.
+
+    Args:
+        v1: First vector (list or array-like).
+        v2: Vertex vector (list or array-like).
+        v3: Third vector (list or array-like).
+
+    Returns:
+        float: Angle in degrees.
+    """
     v1, v2, v3 = map(np.array, (v1, v2, v3))
-    v1 = v1 - v2
-    v2 = v3 - v2
-    cos_theta = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+    vec1 = v1 - v2
+    vec2 = v3 - v2
+    cos_theta = np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
     angle_radians = np.arccos(np.clip(cos_theta, -1.0, 1.0))
-    angle_degrees = np.degrees(angle_radians)
-    return angle_degrees
+    return np.degrees(angle_radians)
 
 
 def get_dihedral(v1, v2, v3, v4):
+    """
+    Calculate the dihedral angle (in degrees) defined by four points.
+
+    Args:
+        v1: First vector.
+        v2: Second vector.
+        v3: Third vector.
+        v4: Fourth vector.
+
+    Returns:
+        float: Dihedral angle in degrees.
+    """
     v1, v2, v3, v4 = map(np.array, (v1, v2, v3, v4))
-    b1, b2, b3 = v2 - v1, v3 - v2, v4 - v3
+    b1 = v2 - v1
+    b2 = v3 - v2
+    b3 = v4 - v3
     b2n = b2 / np.linalg.norm(b2)
     n1 = np.cross(b1, b2)
     n1 /= np.linalg.norm(n1)
@@ -37,53 +77,73 @@ def get_dihedral(v1, v2, v3, v4):
 
 
 def calc_bonds(atoms, bonds):
-    """Calculates bond distances given top.bonds instance of Topology class,
-    which contains connectivities, and a list of pdb Atom objects Returns a
-    BondList object."""
+    """
+    Calculate bond distances from a topology bonds object and a list of atoms.
+
+    Args:
+        atoms: List of atom objects.
+        bonds: Topology bonds object with attributes 'conns', 'params', and 'comms'.
+
+    Returns:
+        BondList: A list of bonds with computed distances.
+    """
     conns = bonds.conns
     params = bonds.params
     comms = bonds.comms
     pairs = [(atoms[i - 1], atoms[j - 1]) for i, j in conns]
     vecs_list = [(a1.vec, a2.vec) for a1, a2 in pairs]
-    dists = [get_distance(*vecs) for vecs in vecs_list]
+    distances = [get_distance(*vecs) for vecs in vecs_list]
     resnames = [a1.resname for a1, a2 in pairs]
-    params = [[param[0], metric] + param[2:] for param, metric in zip(params, dists)]
+    params = [[param[0], metric] + param[2:] for param, metric in zip(params, distances)]
     comms = [f"{resname} {comm}" for comm, resname in zip(comms, resnames)]
     result = list(zip(conns, params, comms))
     return BondList(result)
 
 
 def calc_angles(atoms, angles):
-    """Calculates angles given top.angles instance of Topology class, which
-    contains connectivities, and an instance of Model class which contains a
-    list of atoms Returns a BondList object."""
+    """
+    Calculate bond angles from a topology angles object and a list of atoms.
+
+    Args:
+        atoms: List of atom objects.
+        angles: Topology angles object with attributes 'conns', 'params', and 'comms'.
+
+    Returns:
+        BondList: A list of angles with computed values.
+    """
     conns = angles.conns
     params = angles.params
     comms = angles.comms
     triplets = [(atoms[i - 1], atoms[j - 1], atoms[k - 1]) for i, j, k in conns]
     vecs_list = [(a1.vec, a2.vec, a3.vec) for a1, a2, a3 in triplets]
-    angles = [get_angle(*vecs) for vecs in vecs_list]
+    angle_values = [get_angle(*vecs) for vecs in vecs_list]
     resnames = [a1.resname for a1, a2, a3 in triplets]
-    params = [[param[0], metric] + param[2:] for param, metric in zip(params, angles)]
+    params = [[param[0], metric] + param[2:] for param, metric in zip(params, angle_values)]
     comms = [f"{resname} {comm}" for comm, resname in zip(comms, resnames)]
     result = list(zip(conns, params, comms))
     return BondList(result)
 
 
 def calc_dihedrals(atoms, dihs):
-    """Calculates dihedrals given top.dihs instance of Topology class, which
-    contains connectivities, and an instance of Model class which contains a
-    list of atoms Returns a BondList object."""
+    """
+    Calculate dihedral angles from a topology dihedrals object and a list of atoms.
+
+    Args:
+        atoms: List of atom objects.
+        dihs: Topology dihedrals object with attributes 'conns', 'params', and 'comms'.
+
+    Returns:
+        BondList: A list of dihedrals with computed values.
+    """
     conns = dihs.conns
     params = dihs.params
     comms = dihs.comms
-    quads = [
-        (atoms[i - 1], atoms[j - 1], atoms[k - 1], atoms[l - 1]) for i, j, k, l in conns
-    ]
+    quads = [(atoms[i - 1], atoms[j - 1], atoms[k - 1], atoms[l - 1])
+             for i, j, k, l in conns]
     vecs_list = [(a1.vec, a2.vec, a3.vec, a4.vec) for a1, a2, a3, a4 in quads]
-    dihs = [get_dihedral(*vecs) for vecs in vecs_list]
+    dihedral_values = [get_dihedral(*vecs) for vecs in vecs_list]
     resnames = [a2.resname for a1, a2, a3, a4 in quads]
-    params = [[param[0], metric] + param[2:] for param, metric in zip(params, dihs)]
+    params = [[param[0], metric] + param[2:] for param, metric in zip(params, dihedral_values)]
     comms = [f"{resname} {comm}" for comm, resname in zip(comms, resnames)]
     result = list(zip(conns, params, comms))
     return BondList(result)
@@ -91,12 +151,20 @@ def calc_dihedrals(atoms, dihs):
 
 def get_cg_bonds(inpdb, top):
     """
-    Calculates bonds, angles, dihedrals given a CG system .pdb and the reference topology oblect
-    Returns three BondList objects: bonds, angles, dihedrals
+    Calculate bonds, angles, and dihedrals for a coarse-grained system.
+
+    Args:
+        inpdb (str): Input PDB file for the coarse-grained system.
+        top: Topology object containing bond, angle, and dihedral definitions.
+
+    Returns:
+        tuple: Three BondList objects: (bonds, angles, dihedrals).
     """
-    print(f"Calculating bonds, angles and dihedrals from {inpdb}...", file=sys.stderr)
-    system = cgmap.read_pdb(inpdb)
-    bonds, angles, dihs = BondList(), BondList(), BondList()
+    logger.info("Calculating bonds, angles and dihedrals from %s...", inpdb)
+    system = pdb2system(inpdb)
+    bonds = BondList()
+    angles = BondList()
+    dihs = BondList()
     for model in system:
         bonds.extend(calc_bonds(model.atoms(), top.bonds + top.cons))
         angles.extend(calc_angles(model.atoms(), top.angles))
@@ -107,21 +175,26 @@ def get_cg_bonds(inpdb, top):
 
 def get_aa_bonds(inpdb, ff, top):
     """
-    Calculates bonds, angles, dihedrals given an AA system .pdb and the reference topology oblect
-    Returns three BondList objects: bonds, angles, dihedrals
+    Calculate bonds, angles, and dihedrals for an all-atom system.
+
+    Args:
+        inpdb (str): Input PDB file for the all-atom system.
+        ff: Force field object.
+        top: Topology object containing reference bonds, angles, and dihedrals.
+
+    Returns:
+        tuple: Three BondList objects: (bonds, angles, dihedrals).
     """
-    print(f"Calculating bonds, angles and dihedrals from {inpdb}...", file=sys.stderr)
-    system = cgmap.read_pdb(inpdb)
+    logger.info("Calculating bonds, angles and dihedrals from %s...", inpdb)
+    system = pdb2system(inpdb)
     cgmap.move_o3(system)
-    bonds, angles, dihs = BondList(), BondList(), BondList()
+    bonds = BondList()
+    angles = BondList()
+    dihs = BondList()
     for model in system:
-        model = cgmap.map_model(model, ff, atid=1, merge=True)
-        bonds.extend(calc_bonds(model, top.bonds + top.cons))
-        angles.extend(calc_angles(model, top.angles))
-        dihs.extend(calc_dihedrals(model, top.dihs))
+        mapped_model = cgmap.map_model(model, ff, atid=1)
+        bonds.extend(calc_bonds(mapped_model, top.bonds + top.cons))
+        angles.extend(calc_angles(mapped_model, top.angles))
+        dihs.extend(calc_dihedrals(mapped_model, top.dihs))
     print("Done!", file=sys.stderr)
     return bonds, angles, dihs
-
-
-if __name__ == "__main__":
-    pass

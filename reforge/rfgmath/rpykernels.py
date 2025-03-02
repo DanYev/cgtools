@@ -1,5 +1,5 @@
 """
-File: mycmath_cuda.py
+File: rcmath_cuda.py
 Description:
     This module contains CUDA kernel versions of internal routines for performing optimized mathematical
     operations. It includes functions for calculating position-position Hessian matrices and perturbation
@@ -9,7 +9,7 @@ Description:
 Usage Example:
     >>> import cupy as cp
     >>> import numpy as np
-    >>> from mycmath_cuda import calculate_hessian_cuda, hessian_cuda, perturbation_matrix_cuda, td_perturbation_matrix_cuda
+    >>> from rcmath_cuda import calculate_hessian_cuda, hessian_cuda, perturbation_matrix_cuda, td_perturbation_matrix_cuda
     >>> n = 10
     >>> # Create random coordinate data on the GPU:
     >>> x = cp.asarray(np.random.rand(n))

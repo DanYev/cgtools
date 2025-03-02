@@ -1,5 +1,5 @@
 """
-File: mycmath.pyx
+File: rcmath.pyx
 Description:
     This module contains internal routines for performing optimized mathematical 
     operations. It includes functions for calculating position-position Hessian matrices 
@@ -10,7 +10,7 @@ Description:
 
 Usage Example:
     >>> import numpy as np
-    >>> from mycmath import _calculate_hessian, _hessian, _perturbation_matrix, _td_perturbation_matrix
+    >>> from rcmath import _calculate_hessian, _hessian, _perturbation_matrix, _td_perturbation_matrix
     >>> # Generate random coordinate data for residues
     >>> n = 10
     >>> vecs = np.random.rand(n, 3)
@@ -43,7 +43,7 @@ from reforge.utils import timeit, memprofit
 @cython.wraparound(False)
 @timeit
 @memprofit
-def _calculate_hessian(int resnum,
+def calculate_hessian(int resnum,
                        np.ndarray[double, ndim=1] x,
                        np.ndarray[double, ndim=1] y,
                        np.ndarray[double, ndim=1] z,
@@ -120,7 +120,7 @@ def _calculate_hessian(int resnum,
 @cython.wraparound(False)
 @timeit
 @memprofit
-def _hessian(np.ndarray[double, ndim=2] vec,
+def hessian(np.ndarray[double, ndim=2] vec,
              double cutoff=1.2,
              double spring_constant=1000,
              int dd=0):
@@ -192,7 +192,7 @@ def _hessian(np.ndarray[double, ndim=2] vec,
 @cython.wraparound(False)
 @timeit
 @memprofit
-def _perturbation_matrix_old(np.ndarray[double, ndim=2] covariance_matrix,
+def perturbation_matrix_old(np.ndarray[double, ndim=2] covariance_matrix,
                              int resnum):
     """
     Compute a perturbation matrix from a covariance matrix using an older method.
@@ -264,7 +264,7 @@ def _perturbation_matrix_old(np.ndarray[double, ndim=2] covariance_matrix,
 @cython.wraparound(False)
 @timeit
 @memprofit
-def _perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.ndarray:
+def perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.ndarray:
     """
     Compute a perturbation matrix from a covariance matrix.
 
@@ -335,7 +335,7 @@ def _perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.nda
 @cython.wraparound(False)
 @timeit
 @memprofit
-def _td_perturbation_matrix(np.ndarray[double, ndim=2] ccf, bint normalize=True) -> np.ndarray:
+def td_perturbation_matrix(np.ndarray[double, ndim=2] ccf, bint normalize=True) -> np.ndarray:
     """
     Calculate the perturbation matrix from a covariance (or Hessian) matrix using block-wise norms.
 

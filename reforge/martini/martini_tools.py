@@ -1,20 +1,30 @@
-import argparse
-import importlib.resources
-import numpy as np
+"""
+Module: martini_tools.py
+Description:
+    This module provides tools for preparing Martini simulations (e.g. topology
+    file generation, linking itp files, processing PDB files with GROMACS, and running
+    various martinize2 routines). Note that this module is intended for internal use.
+"""
+
 import os
-import pandas as pd
 import shutil
-import subprocess as sp
-from pathlib import Path
 from MDAnalysis import Universe
 from MDAnalysis.analysis.dssp import translate, DSSP
-from reforge.martini import getgo
 from reforge import cli
 from reforge.utils import cd, logger
 
 
 def dssp(in_file):
-    adic = {"-": "C", "H": "H", "E": "E"}
+    """
+    Compute the DSSP secondary structure for the given PDB file.
+    
+    Args:
+        in_file (str): Path to the PDB file.
+    
+    Returns:
+        str: Secondary structure string with '-' replaced by 'C'.
+    """
+    logger.info("Doing DSSP")
     u = Universe(in_file)
     run = DSSP(u).run()
     mean_secondary_structure = translate(run.results.dssp_ndarray.mean(axis=0))
@@ -23,105 +33,58 @@ def dssp(in_file):
 
 
 def append_to(in_file, out_file):
-    with open(in_file, "r") as src:
+    """
+    Append the contents of in_file (excluding the first line) to out_file.
+    
+    Args:
+        in_file (str): Path to the source file.
+        out_file (str): Path to the destination file.
+    """
+    with open(in_file, "r", encoding="utf-8") as src:
         lines = src.readlines()
-    with open(out_file, "a") as dest:
+    with open(out_file, "a", encoding="utf-8") as dest:
         dest.writelines(lines[1:])
 
 
-def make_topology_file(wdir, protein="protein"):
-    r"""
-    -protein        Name of the protein (just for the reference, doesn't affect anything)
-
+def fix_go_map(wdir, in_map, out_map="go.map"):
+    """
+    Fix the Go-map file by removing the last column from lines that start with 'R '.
+    
+    Args:
+        wdir (str): Working directory.
+        in_map (str): Input map filename.
+        out_map (str): Output map filename.
     """
     bdir = os.getcwd()
     os.chdir(wdir)
-    with open("system.top", "w") as out_file:
-        out_file.write(f"#define GO_VIRT\n")
-        out_file.write(f'#include "martini.itp"\n')
-        out_file.write(f'#include "go_atomtypes.itp"\n')
-        out_file.write(f'#include "go_nbparams.itp"\n')
-        out_file.write(f'#include "protein.itp"\n')
-        out_file.write(f'#include "solvents.itp"\n')
-        out_file.write(f'#include "ions.itp"\n')
-        out_file.write(f"\n[ system ]\n")
-        out_file.write(f"Martini protein in water\n\n")
-        out_file.write(f"\n[ molecules ]\n")
-        out_file.write(f"{protein}  1\n")
-    os.chdir(bdir)
-
-
-def link_itps(wdir):
-    bdir = os.getcwd()
-    os.chdir(wdir)
-    for name, path in PRT_DICT.items():
-        if name.endswith(".itp"):
-            command = f"ln -sf {path} {name}"  # > /dev/null 2>&
-            sp.run(command.split())
-    os.chdir(bdir)
-
-
-def gmx_pdb(wdir, in_pdb, out_pdb):
-    bdir = os.getcwd()
-    os.chdir(wdir)
-    command = f"gmx_mpi pdb2gmx -f {in_pdb} -o clean.pdb -water none -ff amber94 -renum -ignh"  #
-    sp.run(command.split())
-    with open(out_pdb, "w") as fd:
-        sp.run(["grep", "^ATOM", "clean.pdb"], stdout=fd)
-    os.remove("clean.pdb")
-    os.chdir(bdir)
-
-
-def fix_go_map(wdir, in_map, out_map="go.map"):
-    bdir = os.getcwd()
-    os.chdir(wdir)
-    with open(in_map, "r") as in_file:
-        with open(out_map, "w") as out_file:
+    with open(in_map, "r", encoding="utf-8") as in_file:
+        with open(out_map, "w", encoding="utf-8") as out_file:
             for line in in_file:
                 if line.startswith("R "):
                     new_line = " ".join(line.split()[:-1])
-                    out_file.write(f"{new_line}\n")
+                    out_file.write(new_line + "\n")
     os.chdir(bdir)
 
 
-def prepare_files(pdb, wdir="test", mutations=None, protein="protein"):
-    r"""
-    -wdir           Relative path to the working directory
-    """
-    os.makedirs(wdir, exist_ok=True)
-    copy_from = os.path.join(wdir, "protein_minimized.pdb")
-    copy_to = os.path.join(wdir, "protein.pdb")
-    shutil.copy(copy_from, copy_to)
-    link_itps(wdir)
-    make_topology_file(wdir, protein=protein)
-    print("Getting Go-map...")
-    getgo.get_go(wdir, protein)
-    fix_go_map(wdir, in_map="protein_map.map")
-    print("All the files are ready!")
-
-
 @cli.from_wdir
-def martinize_go(
-    wdir,
-    topdir,
-    aapdb,
-    cgpdb,
-    name="protein",
-    go_eps=9.414,
-    go_low=0.3,
-    go_up=1.1,
-    go_res_dist=3,
-    go_write_file="map/contacts.map",
-    **kwargs,
-):
+def martinize_go(wdir, topdir, aapdb, cgpdb, name="protein", go_eps=9.414,
+                 go_low=0.3, go_up=1.1, go_res_dist=3,
+                 go_write_file="map/contacts.map", **kwargs):
     """
-    Virtual site based GoMartini:
-    -go_map         Contact map to be used for the Martini Go model.Currently, only one format is supported. (default: None)
-    -go_moltype     Set the name of the molecule when using Virtual Sites GoMartini. (default: protein)
-    -go_eps         The strength of the Go model structural bias in kJ/mol. (default: 9.414)
-    -go_low         Minimum distance (nm) below which contacts are removed. (default: 0.3)
-    -go_up          Maximum distance (nm) above which contacts are removed. (default: 1.1)
-    -go_res_dist    Minimum graph distance (similar sequence distance) below which contacts are removed. (default: 3)
+    Run virtual site-based GoMartini via martinize2.
+    
+    Args:
+        wdir (str): Working directory.
+        topdir (str): Topology directory.
+        aapdb (str): Input all-atom PDB file.
+        cgpdb (str): Coarse-grained PDB file.
+        name (str): Protein name.
+        go_eps (float): Strength of the Go-model bias.
+        go_low (float): Lower distance cutoff (nm).
+        go_up (float): Upper distance cutoff (nm).
+        go_res_dist (int): Minimum residue distance below which contacts are removed.
+        go_write_file (str): Output file for Go-map.
+        **kwargs: Additional keyword arguments.
     """
     kwargs.setdefault("f", aapdb)
     kwargs.setdefault("x", cgpdb)
@@ -136,8 +99,9 @@ def martinize_go(
     kwargs.setdefault("maxwarn", "1000")
     ss = dssp(aapdb)
     with cd(wdir):
-        line = f"-name {name} -go-eps {go_eps} -go-low {go_low} -go-up {go_up} \
-                    -go-res-dis {go_res_dist} -go-write-file {go_write_file} -ss {ss}"
+        line = ("-name {} -go-eps {} -go-low {} -go-up {} -go-res-dis {} "
+                "-go-write-file {} -ss {}").format(
+                    name, go_eps, go_low, go_up, go_res_dist, go_write_file, ss)
         cli.run("martinize2", line, **kwargs)
         append_to("go_atomtypes.itp", os.path.join(topdir, "go_atomtypes.itp"))
         append_to("go_nbparams.itp", os.path.join(topdir, "go_nbparams.itp"))
@@ -145,23 +109,19 @@ def martinize_go(
 
 
 @cli.from_wdir
-def martinize_en(
-    wdir, topdir, aapdb, cgpdb, name="protein", ef=700, el=0.0, eu=0.9, **kwargs
-):
+def martinize_en(wdir, aapdb, cgpdb, ef=700, el=0.0, eu=0.9, **kwargs):
     """
-    Protein elastic network:
-      -elastic              Write elastic bonds (default: False)
-      -ef RB_FORCE_CONSTANT
-                            Elastic bond force constant Fc in kJ/mol/nm^2 (default: 500)
-      -el RB_LOWER_BOUND    Elastic bond lower cutoff: F = Fc if rij < lo (default: 0)
-      -eu RB_UPPER_BOUND    Elastic bond upper cutoff: F = 0 if rij > up (default: 0.9)
-      -ermd RES_MIN_DIST    The minimum separation between two residues to have an RB the default value is set by the force-field. (default: None)
-      -ea RB_DECAY_FACTOR   Elastic bond decay factor a (default: 0)
-      -ep RB_DECAY_POWER    Elastic bond decay power p (default: 1)
-      -em RB_MINIMUM_FORCE  Remove elastic bonds with force constant lower than this (default: 0)
-      -eb RB_SELECTION      Comma separated list of bead names for elastic bonds (default: None)
-      -eunit RB_UNIT        Establish what is the structural unit for the elastic network. Bonds are only created within a unit. Options are molecule, chain, all, or aspecified region defined by resids,
-                            with followingformat: <start_resid_1>:<end_resid_1>, <start_resid_2>:<end_resid_2>... (default: molecule)
+    Run protein elastic network generation via martinize2.
+    
+    Args:
+        wdir (str): Working directory.
+        topdir (str): Topology directory.
+        aapdb (str): Input all-atom PDB file.
+        cgpdb (str): Coarse-grained PDB file.
+        ef (float): Force constant.
+        el (float): Lower cutoff.
+        eu (float): Upper cutoff.
+        **kwargs: Additional arguments.
     """
     kwargs.setdefault("f", aapdb)
     kwargs.setdefault("x", cgpdb)
@@ -175,12 +135,21 @@ def martinize_en(
     kwargs.setdefault("maxwarn", "1000")
     kwargs.setdefault("elastic", "")
     ss = dssp(aapdb)
-    line = f"-ef {ef} -eu {eu} -ss {ss}"
+    line = ("-ef {} -el {} -eu {} -ss {}").format(ef, el, eu, ss)
     with cd(wdir):
         cli.run("martinize2", line, **kwargs)
 
 
 def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
+    """
+    Run nucleotide coarse-graining using martinize_nucleotides.
+    
+    Args:
+        wdir (str): Working directory.
+        aapdb (str): Input all-atom PDB file.
+        cgpdb (str): Coarse-grained PDB file.
+        **kwargs: Additional parameters.
+    """
     kwargs.setdefault("f", aapdb)
     kwargs.setdefault("x", cgpdb)
     kwargs.setdefault("sys", "RNA")
@@ -195,7 +164,11 @@ def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
 
 def martinize_rna(wdir, **kwargs):
     """
-    Usage: python test_forge.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp
+    Run RNA coarse-graining using martinize_rna.
+    
+    Args:
+        wdir (str): Working directory.
+        **kwargs: Additional parameters.
     """
     with cd(wdir):
         script = "reforge.martini.martinize_rna"
@@ -204,12 +177,12 @@ def martinize_rna(wdir, **kwargs):
 
 def insert_membrane(wdir, **kwargs):
     """
-    Usage: python test_forge.py -f ssRNA.pdb -mol rna -elastic yes -ef 100 -el 0.5 -eu 1.2 -os molecule.pdb -ot molecule.itp
+    Insert a membrane using the insane tool.
+    
+    Args:
+        wdir (str): Working directory.
+        **kwargs: Additional parameters.
     """
     with cd(wdir):
         script = "reforge.martini.insane"
         cli.run("python3 -m", script, **kwargs)
-
-
-if __name__ == "__main__":
-    dssp("../tests/1btl.pdb")

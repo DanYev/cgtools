@@ -4,8 +4,8 @@ import numpy as np
 
 extensions = [
     Extension(
-        "reforge.actual_math.mycmath",           # Full module name
-        ["reforge/actual_math/mycmath.pyx"],     # Path to your .pyx file
+        "reforge.rfgmath.rcmath",           # Full module name
+        ["reforge/rfgmath/rcmath.pyx"],     # Path to your .pyx file
         include_dirs=[np.get_include()],     # Include numpy headers if needed
         extra_compile_args=["-O3"],
     )

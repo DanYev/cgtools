@@ -1,11 +1,16 @@
-from reforge.pdbtools import System, PDBParser
-import numpy as np
-import copy
+"""
+Module: cgmap.py
+Description:
+    Provides functions to map atomistic PDB data to a coarse-grained (CG)
+    representation for use with Martini force fields.
+"""
 
+import copy
+import numpy as np
 
 def move_o3(system):
-    """Move each O3' atom to the next residue. Needed for some CG Nucleic FFs
-    due to the phosphate group mapping.
+    """Move each O3' atom to the next residue. Needed for some CG nucleic
+    force fields due to the phosphate group mapping.
 
     Parameters:
         system: A system object containing chains and residues.
@@ -18,13 +23,12 @@ def move_o3(system):
                     atoms.remove(atom)
                     if i == 0:
                         o3atom = atom
-                        break
                     else:
                         o3atom.resname = residue.resname
                         o3atom.resid = residue.resid
                         atoms.append(o3atom)
                         o3atom = atom
-                        break
+                    break
 
 
 def map_residue(residue, mapping, atid):
@@ -36,12 +40,11 @@ def map_residue(residue, mapping, atid):
 
     Parameters:
         residue: The original residue object.
-        mapping (dict): A dictionary where keys are bead names and values are lists of atom
-                        names to be included in that bead.
-        atid (int): The starting atom id to assign to new beads.
+        mapping (dict): Dictionary with bead names as keys and lists of atom names as values.
+        atid (int): Starting atom id to assign to new beads.
 
     Returns:
-        list: A list of new bead atoms representing the coarse-grained residue.
+        list: List of new bead atoms representing the coarse-grained residue.
     """
     cgresidue = []
     dummy_atom = residue.atoms[0]
@@ -51,37 +54,29 @@ def map_residue(residue, mapping, atid):
         bead.atid = atid
         atid += 1
         atoms = residue.atoms.mask(anames)
-        vecs = atoms.vecs
-        bvec = np.average(vecs, axis=0)
-        bead.x = bvec[0]
-        bead.y = bvec[1]
-        bead.z = bvec[2]
+        bvec = np.average(atoms.vecs, axis=0)
+        bead.x, bead.y, bead.z = bvec[0], bvec[1], bvec[2]
         bead.vec = bvec
-        if bname.startswith("B"):
-            bead.element = "Z"
-        else:
-            bead.element = "S"
+        bead.element = "Z" if bname.startswith("B") else "S"
         cgresidue.append(bead)
     return cgresidue
 
 
 def map_chain(chain, ff, atid=1):
-    """Map a chain of atomistic residues to a coarse-grained (CG)
-    representation.
+    """Map a chain of atomistic residues to a coarse-grained (CG) representation.
 
     For each residue in the chain, the function retrieves the corresponding bead mapping
-    from the force field (ff) based on the residue's name. For the first residue in the
-    chain, the mapping for "BB1" is removed. Each residue is then converted to its CG
-    representation using the map_residue function, and the resulting beads are collected
-    into a single list.
+    from the force field (ff) based on the residue's name. For the first residue, the mapping
+    for "BB1" is removed. Each residue is then converted to its CG representation using the
+    map_residue function, and the resulting beads are collected into a single list.
 
     Parameters:
-        chain: A list of residue objects.
-        ff: A force field object that contains a 'mapping' dictionary keyed by residue name.
-        atid (int): The starting atom id for the new beads (default is 1).
+        chain: List of residue objects.
+        ff: Force field object that contains a 'mapping' dictionary keyed by residue name.
+        atid (int): Starting atom id for new beads (default is 1).
 
     Returns:
-        list: A list of coarse-grained bead atoms representing the entire chain.
+        list: List of coarse-grained bead atoms representing the entire chain.
     """
     cgchain = []
     for idx, residue in enumerate(chain):
@@ -95,19 +90,19 @@ def map_chain(chain, ff, atid=1):
     return cgchain
 
 
-def map_model(model, ff, atid=1, merge=True):
+def map_model(model, ff, atid=1):
     """
     Map a model of atomistic residues to a coarse-grained (CG) representation.
+
     Parameters:
-        model: A list of residue objects.
-        ff: A force field object that contains a 'mapping' dictionary keyed by residue name.
-        atid (int): The starting atom id for the new beads (default is 1).
-        merge (bool): Merge chains - maintain consequtive atids (default is True).
+        model: Iterable of chains (each a list of residue objects).
+        ff: Force field object containing a 'mapping' dictionary keyed by residue name.
+        atid (int): Starting atom id for new beads (default is 1).
+
     Returns:
-        list: A list of coarse-grained bead atoms representing the entire chain.
+        list: List of coarse-grained bead atoms representing the entire model.
     """
     cgmodel = []
-    i = 0
     for chain in model:
         cgchain = map_chain(chain, ff, atid)
         cgmodel.extend(cgchain)

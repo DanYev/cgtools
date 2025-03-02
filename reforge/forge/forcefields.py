@@ -1,36 +1,82 @@
+"""
+Module: forcefields.py
+Description:
+    This module defines force fields for Martini RNA and nucleic acids.
+    It provides classes for reading ITP files and organizing force-field parameters
+    for coarse-grained simulations.
+"""
+
 import importlib.resources
 import os
-import sys
 from reforge import itpio
 
-
-forcefields = ["martini30rna", "martini31nucleic"]
-rna_system = "test"
-
-
-# Split each argument in a list
+# Split each argument into a list of tokens.
 def nsplit(*x):
     return [i.split() for i in x]
 
+# List of available force fields
+forcefields = ["martini30rna", "martini31nucleic"]
+RNA_SYSTEM = "test"
+
 
 ###################################
-## FORCE FIELDS ##
+## FORCE FIELDS BASE CLASS ##
 ###################################
-
 
 class NucleicForceField:
+    """
+    Base class for nucleic acid force fields.
+    """
 
     @staticmethod
     def read_itp(resname, directory, mol, version):
-        # itpdir = os.path.abspath(f'/scratch/dyangali/reforge/forge/forcefields/{directory}')
+        """
+        Read an ITP file for a given residue.
+
+        Args:
+            resname (str): Residue name.
+            directory (str): Directory where force field files are stored.
+            mol (str): Molecule name.
+            version (str): Version string.
+
+        Returns:
+            dict: Parsed ITP data.
+        """
         itpdir = importlib.resources.files("reforge") / "forge" / "forcefields"
-        file = os.path.join(itpdir, f"{directory}", f"{mol}_{resname}_{version}.itp")
-        itp_data = itpio.read_itp(file)
+        file_path = os.path.join(itpdir, directory, f"{mol}_{resname}_{version}.itp")
+        itp_data = itpio.read_itp(file_path)
         return itp_data
 
     @staticmethod
+    def read_itps(mol, ff_type, version):
+        """
+        Read ITP files for nucleobases A, C, G, and U.
+
+        Args:
+            mol (str): Molecule name.
+            ff_type (str): Force-field type (e.g. "polar").
+            version (str): Version string.
+
+        Returns:
+            tuple: (a_itp, c_itp, g_itp, u_itp)
+        """
+        a_itp = NucleicForceField.read_itp("A", ff_type, mol, version)
+        c_itp = NucleicForceField.read_itp("C", ff_type, mol, version)
+        g_itp = NucleicForceField.read_itp("G", ff_type, mol, version)
+        u_itp = NucleicForceField.read_itp("U", ff_type, mol, version)
+        return a_itp, c_itp, g_itp, u_itp
+
+    @staticmethod
     def itp_to_indata(itp_data):
-        # Bond must be a list of tuples [(connectivity), (parameters), (comment)]
+        """
+        Convert ITP data into individual parameter lists.
+
+        Args:
+            itp_data (dict): Parsed ITP file data.
+
+        Returns:
+            tuple: (sc_bonds, sc_angles, sc_dihs, sc_cons, sc_excls, sc_pairs, sc_vs3s)
+        """
         sc_bonds = itp_data["bonds"]
         sc_angles = itp_data["angles"]
         sc_dihs = itp_data["dihedrals"]
@@ -42,6 +88,18 @@ class NucleicForceField:
 
     @staticmethod
     def parameters_by_resname(resnames, directory, mol, version):
+        """
+        Obtain parameters for each residue.
+
+        Args:
+            resnames (list): List of residue names.
+            directory (str): Directory containing ITP files.
+            mol (str): Molecule name.
+            version (str): Version string.
+
+        Returns:
+            dict: Mapping of residue name to its parameters.
+        """
         params = []
         for resname in resnames:
             itp_data = NucleicForceField.read_itp(resname, directory, mol, version)
@@ -50,19 +108,20 @@ class NucleicForceField:
         return dict(zip(resnames, params))
 
     def __init__(self, directory, mol, version):
-        # FF location
+        """
+        Initialize the nucleic force field.
+
+        Args:
+            directory (str): Directory with force field files.
+            mol (str): Molecule name.
+            version (str): Version string.
+        """
         self.directory = directory
         self.mol = mol
         self.version = version
-        # Dictionary with SC params for each residue
-        self.resdict = self.parameters_by_resname(
-            self.resnames, directory, mol, version
-        )
-        # Elastic network
-        self.elastic_network = False  # By default use an elastic network
-        self.el_bond_type = (
-            6  # Elastic networks bond shouldn't lead to exclusions (type 6)
-        )
+        self.resdict = self.parameters_by_resname(self.resnames, directory, mol, version)
+        self.elastic_network = False
+        self.el_bond_type = 6  # Elastic network bond type
 
     def sc_bonds(self, resname):
         return self.resdict[resname][0]
@@ -85,8 +144,17 @@ class NucleicForceField:
     def sc_vs3s(self, resname):
         return self.resdict[resname][6]
 
-    def sc_blist(self, resname):  # list with all bonded parameters
-        res = [
+    def sc_blist(self, resname):
+        """
+        Get all bonded parameters for a residue.
+
+        Args:
+            resname (str): Residue name.
+
+        Returns:
+            list: List of bonded parameter lists.
+        """
+        return [
             self.sc_bonds(resname),
             self.sc_angles(resname),
             self.sc_dihs(resname),
@@ -95,28 +163,21 @@ class NucleicForceField:
             self.sc_pairs(resname),
             self.sc_vs3s(resname),
         ]
-        return res
 
 
-class martini30rna(NucleicForceField):
+###################################
+## Martini 3.0 RNA Force Field ##
+###################################
 
+class Martini30RNA(NucleicForceField):
+    """
+    Force field for Martini 3.0 RNA.
+    """
     resnames = ["A", "C", "G", "U"]
 
-    # FF mapping
     bb_mapping = {
         "BB1": ("P", "OP1", "OP2", "O5'", "O3'", "O1P", "O2P"),
-        "BB2": (
-            "C5'",
-            "1H5'",
-            "2H5'",
-            "H5'",
-            "H5''",
-            "C4'",
-            "H4'",
-            "O4'",
-            "C3'",
-            "H3'",
-        ),
+        "BB2": ("C5'", "1H5'", "2H5'", "H5'", "H5''", "C4'", "H4'", "O4'", "C3'", "H3'"),
         "BB3": ("C1'", "C2'", "O2'", "O4'"),
     }
     a_mapping = {
@@ -129,21 +190,21 @@ class martini30rna(NucleicForceField):
     c_mapping = {
         "SC1": ("N1", "C5", "C6"),
         "SC2": ("C2", "O2"),
-        "SC3": ("N3"),
+        "SC3": ("N3",),
         "SC4": ("N4", "C4", "H41", "H42"),
     }
     g_mapping = {
         "SC1": ("C8", "H8", "N9"),
         "SC2": ("C4", "N3"),
         "SC3": ("C2", "N2", "H21", "H22"),
-        "SC4": ("N1"),
+        "SC4": ("N1",),
         "SC5": ("C6", "O6"),
         "SC6": ("C5", "N7"),
     }
     u_mapping = {
         "SC1": ("N1", "C5", "C6"),
         "SC2": ("C2", "O2"),
-        "SC3": ("N3"),
+        "SC3": ("N3",),
         "SC4": ("C4", "O4"),
     }
     mapping = {
@@ -153,23 +214,16 @@ class martini30rna(NucleicForceField):
         "U": {**bb_mapping, **u_mapping},
     }
 
-    # NucleicForceField.update_non_standard_mapping(mapping)
-
-    def __init__(self, directory="rna_reg", mol=rna_system, version="new"):
+    def __init__(self, directory="rna_reg", mol=RNA_SYSTEM, version="new"):
         super().__init__(directory, mol, version)
         self.name = "martini30rna"
 
-        ##################
-        # RNA PARAMETERS # RNA BACKBONE PARAMETERS TUT
-        ##################
-        # Atom must be a tuple (atid, type, name, chargegrp, charge, mass)
+        # RNA backbone atoms: tuple of (atom id, type, name, charge group, charge, mass)
         self.bb_atoms = [
             (0, "Q1n", "BB1", 1, -1, 72),
             (1, "C6", "BB2", 1, 0, 60),
             (2, "N2", "BB3", 1, 0, 60),
         ]
-        # Bond must be a list of tuples [(connectivity), (parameters), (comment)]
-        # Comments are very important: that's how we will indentify between bonds of the same type later
         self.bb_bonds = [
             [(0, 1), (1, 0.350, 25000), ("BB1-BB2")],
             [(1, 2), (1, 0.239, 25000), ("BB2-BB3")],
@@ -190,7 +244,6 @@ class martini30rna(NucleicForceField):
         self.bb_excls = [[(0, 2), (), ("BB1-BB3")], [(2, 0), (), ("BB3-BB1n")]]
         self.bb_pairs = []
         self.bb_vs3s = []
-        # list with all bonded parameters
         self.bb_blist = [
             self.bb_bonds,
             self.bb_angles,
@@ -201,6 +254,7 @@ class martini30rna(NucleicForceField):
             self.bb_vs3s,
         ]
 
+        # Side-chain atom definitions for each base.
         a_atoms = [
             (3, "TA0", "SC1", 2, 0, 45),
             (4, "TA1", "SC2", 2, 0, 0),
@@ -228,54 +282,33 @@ class martini30rna(NucleicForceField):
             (5, "TU2", "SC3", 2, 0, 0),
             (6, "TU3", "SC4", 2, 0, 37),
         ]
-        sc_atoms = a_atoms, c_atoms, g_atoms, u_atoms
+        sc_atoms = (a_atoms, c_atoms, g_atoms, u_atoms)
         self.mapdict = dict(zip(self.resnames, sc_atoms))
 
     def sc_atoms(self, resname):
+        """Return side-chain atoms for the given residue."""
         return self.mapdict[resname]
 
 
-class martini31nucleic(NucleicForceField):
-
-    # FF mapping
+class Martini31Nucleic(NucleicForceField):
+    """
+    Force field for Martini 3.1 nucleic acids.
+    """
     bb_mapping = nsplit(
         "P OP1 OP2 O5' O3' O1P O2P",
         "C5' 1H5' 2H5' H5' H5'' C4' H4' O4' C3' H3'",
         "C1' C2' O2' O4'",
     )
     mapping = {
-        "A": bb_mapping
-        + nsplit(
-            "C8",
-            "N3 C4",
-            "C2",
-            "N1",
-            "N6 C6 H61 H62",
-            "N7 C5",
-        ),
-        "C": bb_mapping + nsplit("C6", "O2", "N3", "N4 C4 H41 H42", "C2"),
-        "G": bb_mapping
-        + nsplit("C8", "C4 N3", "C2 N2 H22 H21", "N1", "O6", "C5 N7", "H1", "C6"),
-        "U": bb_mapping
-        + nsplit(
-            "C6",
-            "O2",
-            "N3",
-            "O4",
-            "C2",
-            "H3",
-            "C4",
-        ),
+        "A": {**dict(zip(["SC1"], nsplit("TA1 TA2 TA3 TA4 TA5 TA6"))), **{}},
+        "C": {**dict(zip(["SC1"], nsplit("TY1 TY2 TY3 TY4 TY5"))), **{}},
+        "G": {**dict(zip(["SC1"], nsplit("TG1 TG2 TG3 TG4 TG5 TG6 TG7 TG8"))), **{}},
+        "U": {**dict(zip(["SC1"], nsplit("TU1 TU2 TU3 TU4 TU5 TU6 TU7"))), **{}},
     }
 
-    # NucleicForceField.update_non_standard_mapping(mapping)
-
     def __init__(self):
-
-        # parameters are defined here for the following (protein) forcefields:
+        super().__init__(directory="rna_pol", mol=RNA_SYSTEM, version="new")
         self.name = "martini31nucleic"
-
-        # Charged types:
         charges = {
             "TDU": 0.5,
             "TA1": 0.4,
@@ -307,25 +340,17 @@ class martini31nucleic(NucleicForceField):
         }
         self.charges = {key: value * 1.8 for key, value in charges.items()}
         self.bbcharges = {"BB1": -1}
+        self.use_bbs_angles = False
+        self.use_bbbb_dihedrals = False
 
-        # Not all (eg Elnedyn) forcefields use backbone-backbone-sidechain angles and BBBB-dihedrals.
-        self.UseBBSAngles = False
-        self.UseBBBBDihedrals = False
-
-        ##################
-        # DNA PARAMETERS #
-        ##################
-
-        # DNA BACKBONE PARAMETERS
         self.dna_bb = {
-            "atom": spl("Q0 SN0 SC2"),
+            "atom": nsplit("Q0 SN0 SC2"),
             "bond": [],
             "angle": [],
             "dih": [],
             "excl": [],
             "pair": [],
         }
-        # DNA BACKBONE CONNECTIVITY
         self.dna_con = {
             "bond": [],
             "angle": [],
@@ -337,13 +362,8 @@ class martini31nucleic(NucleicForceField):
         self.bases = {}
         self.base_connectivity = {}
 
-        ##################
-        # RNA PARAMETERS # @ff
-        ##################
-
-        # RNA BACKBONE PARAMETERS TUT
         self.rna_bb = {
-            "atom": spl("Q1 N4 N6"),
+            "atom": nsplit("Q1 N4 N6"),
             "bond": [
                 (1, 0.349, 18000),
                 (1, 0.377, 12000),
@@ -352,70 +372,56 @@ class martini31nucleic(NucleicForceField):
             ],
             "angle": [(10, 119.0, 27), (10, 118.0, 140), (10, 138.0, 180)],
             "dih": [
-                (
-                    3,
-                    13,
-                    -7,
-                    -25,
-                    -6,
-                    25,
-                    -2,
-                ),  # (3,   10,  -8, 22, 8, -26, -6) # (3,   4,  -3, 9, 3, -10, -3)
+                (3, 13, -7, -25, -6, 25, -2),
                 (1, 0, 6, 1),
                 (1, -112.0, 15, 1),
-            ],  # (1,     15.0,   5, 1)
+            ],
             "excl": [(), (), ()],
             "pair": [],
         }
-        # RNA BACKBONE CONNECTIVITY
         self.rna_con = {
             "bond": [(0, 1), (1, 0), (1, 2), (2, 0)],
-            "angle": [
-                (0, 1, 0),
-                (1, 0, 1),
-                (0, 1, 2),
-            ],
-            "dih": [
-                (0, 1, 0, 1),
-                (1, 0, 1, 0),
-                (1, 0, 1, 2),
-            ],
-            "excl": [
-                (2, 0),
-                (0, 2),
-            ],
+            "angle": [(0, 1, 0), (1, 0, 1), (0, 1, 2)],
+            "dih": [(0, 1, 0, 1), (1, 0, 1, 0), (1, 0, 1, 2)],
+            "excl": [(2, 0), (0, 2)],
             "pair": [],
         }
 
-        a_itp, c_itp, g_itp, u_itp = NucleicForceField.read_itps(
-            rna_system, "polar", "new"
-        )
+        a_itp, c_itp, g_itp, u_itp = NucleicForceField.read_itps(RNA_SYSTEM, "polar", "new")
 
-        # ADENINE
-        mapping = [spl("TA1 TA2 TA3 TA4 TA5 TA6")]
-        connectivity, itp_params = martini31nucleic.itp_to_indata(a_itp)
-        parameters = mapping + itp_params
-        self.update_adenine(mapping, connectivity, itp_params)
+        mapping_a = nsplit("TA1 TA2 TA3 TA4 TA5 TA6")
+        connectivity_a, itp_params_a = self.itp_to_indata(a_itp)
+        self.update_adenine(mapping_a, connectivity_a, itp_params_a)
 
-        # CYTOSINE
-        mapping = [spl("TY1 TY2 TY3 TY4 TY5")]
-        connectivity, itp_params = martini31nucleic.itp_to_indata(c_itp)
-        parameters = mapping + itp_params
-        self.update_cytosine(mapping, connectivity, itp_params)
+        mapping_c = nsplit("TY1 TY2 TY3 TY4 TY5")
+        connectivity_c, itp_params_c = self.itp_to_indata(c_itp)
+        self.update_cytosine(mapping_c, connectivity_c, itp_params_c)
 
-        # GUANINE
-        mapping = [spl("TG1 TG2 TG3 TG4 TG5 TG6 TG7 TG8")]
-        connectivity, itp_params = martini31nucleic.itp_to_indata(g_itp)
-        parameters = mapping + itp_params
-        self.update_guanine(mapping, connectivity, itp_params)
+        mapping_g = nsplit("TG1 TG2 TG3 TG4 TG5 TG6 TG7 TG8")
+        connectivity_g, itp_params_g = self.itp_to_indata(g_itp)
+        self.update_guanine(mapping_g, connectivity_g, itp_params_g)
 
-        # URACIL
-        mapping = [spl("TU1 TU2 TU3 TU4 TU5 TU6 TU7")]
-        connectivity, itp_params = martini31nucleic.itp_to_indata(u_itp)
-        parameters = mapping + itp_params
-        self.update_uracil(mapping, connectivity, itp_params)
+        mapping_u = nsplit("TU1 TU2 TU3 TU4 TU5 TU6 TU7")
+        connectivity_u, itp_params_u = self.itp_to_indata(u_itp)
+        self.update_uracil(mapping_u, connectivity_u, itp_params_u)
 
         super().__init__()
+
+    def sc_atoms(self, resname):
+        """Return side-chain atoms for a given residue."""
+        return self.mapdict[resname]
+
+    # The update_* methods are currently commented out.
+    # They can be implemented if needed.
+    # def update_adenine(self, mapping, connectivity, itp_params):
+    #     pass
+    # def update_cytosine(self, mapping, connectivity, itp_params):
+    #     pass
+    # def update_guanine(self, mapping, connectivity, itp_params):
+    #     pass
+    # def update_uracil(self, mapping, connectivity, itp_params):
+    #     pass
+
 
     # def update_adenine(self, mapping, connectivity, itp_params):
     #     parameters = mapping + itp_params

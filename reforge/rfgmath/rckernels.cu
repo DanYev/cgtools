@@ -1,5 +1,5 @@
 /*
-File: mycmath_cuda_kernels.cu
+File: rcmath_cuda_kernels.cu
 Description:
     This file contains CUDA kernel implementations for calculating position-position Hessian 
     matrices and perturbation matrices derived from coordinate and covariance data. These 

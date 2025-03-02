@@ -88,7 +88,5 @@ Indices and Tables
 
    getting_started
    why
+   Tutorials 
    reforge
-   reforge.actual_math
-   reforge.forge
-   reforge.martini

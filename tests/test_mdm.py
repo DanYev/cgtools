@@ -24,11 +24,6 @@ import numpy as np
 import pytest
 from reforge.mdm import * 
 
-# For GPU tests
-try:
-    import cupy as cp
-except ImportError:
-    cp = None
 
 # ---------------------------
 # Test FFT-based correlation
@@ -179,7 +174,6 @@ def test_inverse_matrix_cpu():
     np.testing.assert_allclose(inv_mat, expected_inv, rtol=1e-5, atol=1e-6)
 
 
-@pytest.mark.skipif(cp is None, reason='CUDA not detected')
 def test_inverse_matrix_gpu():
     """
     Test the unified inverse_matrix wrapper for GPU.
@@ -190,7 +184,6 @@ def test_inverse_matrix_gpu():
     diag_vals = np.linspace(1, 10, N)
     matrix = np.diag(diag_vals).astype(np.float64)
     inv_mat_gpu = inverse_matrix(matrix, device='gpu_dense', k_singular=0, n_modes=N)
-    # Convert GPU result to NumPy array.
     inv_mat = cp.asnumpy(inv_mat_gpu)
     expected_inv = np.diag(1.0 / diag_vals)
     np.testing.assert_allclose(inv_mat, expected_inv, rtol=1e-5, atol=1e-6)

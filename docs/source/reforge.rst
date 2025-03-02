@@ -1,6 +1,17 @@
 reforge package
 ===============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   reforge.forge
+   reforge.martini
+   reforge.mdsystem
+   reforge.rfgmath
+
 Submodules
 ----------
 
@@ -8,14 +19,6 @@ reforge.cli module
 ------------------
 
 .. automodule:: reforge.cli
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-reforge.gmxmd module
---------------------
-
-.. automodule:: reforge.gmxmd
    :members:
    :show-inheritance:
    :undoc-members:
@@ -40,14 +43,6 @@ reforge.mdm module
 ------------------
 
 .. automodule:: reforge.mdm
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-reforge.mmmd module
--------------------
-
-.. automodule:: reforge.mmmd
    :members:
    :show-inheritance:
    :undoc-members:
