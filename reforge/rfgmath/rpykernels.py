@@ -1,5 +1,5 @@
-"""
-File: rcmath_cuda.py
+"""CUDA kernels for CuPy
+
 Description:
     This module contains CUDA kernel versions of internal routines for performing optimized mathematical
     operations. It includes functions for calculating position-position Hessian matrices and perturbation
