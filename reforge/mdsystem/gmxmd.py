@@ -47,8 +47,8 @@ class GmxSystem(MDSystem):
     and run the MD simulation.
     """
 
-    MDATDIR = importlib.resources.files("reforge") / "martini" / "data"
-    MMDPDIR = importlib.resources.files("reforge") / "martini" / "data" / "mdp"
+    MDATDIR = importlib.resources.files("reforge") / "martini" / "datdir"
+    MMDPDIR = importlib.resources.files("reforge") / "martini" / "datdir" / "mdp"
     MITPDIR = importlib.resources.files("reforge") / "martini" / "itp"
 
     def __init__(self, sysdir, sysname):
