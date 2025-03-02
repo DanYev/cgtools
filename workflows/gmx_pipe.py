@@ -1,3 +1,24 @@
+"""
+Gmx Pipe Tutorial
+=================
+
+This module serves as a tutorial for setting up and running coarse-grained
+molecular dynamics (MD) simulations using the reForge package and GROMACS. It
+provides a pipeline that performs several key tasks:
+    - System Setup: Copying force field and parameter files, preparing directories,
+    cleaning and sorting the input PDB file, and splitting chains.
+    - Coarse-Graining: Applying coarse-graining methods for proteins (using both
+    Go-model and elastic network approaches) and nucleotides.
+    - Solvation and Ion Addition: Solvating the system and adding ions to neutralize it.
+    - MD Simulation: Running energy minimization, equilibration, and production MD runs.
+    - Post-Processing: Converting trajectories, and performing
+    analyses such as RMSF, RMSD, covariance analysis, clustering, and time-dependent
+    correlation calculations.
+
+Author: DY
+Date: 2025-XX-XX
+"""
+
 import os
 import numpy as np
 import pandas as pd
@@ -5,7 +26,7 @@ import sys
 import shutil
 import MDAnalysis as mda
 from reforge import cli, io, mdm
-from reforge.gmxmd import gmxSystem, MDRun
+from reforge.mdsystem.gmxmd import GmxSystem, GmxRun
 from reforge.utils import *
 from pathlib import Path
 
@@ -17,7 +38,7 @@ def setup(*args):
 
 def setup_cg_protein_rna(sysdir, sysname):
     ### FOR CG PROTEIN+/RNA SYSTEMS ###
-    mdsys = gmxSystem(sysdir, sysname)
+    mdsys = GmxSystem(sysdir, sysname)
 
     # 1.1. Need to copy force field and md-parameter files and prepare directories
     mdsys.prepare_files() # be careful it can overwrite later files
@@ -53,7 +74,7 @@ def setup_cg_protein_rna(sysdir, sysname):
       
 def setup_cg_protein_membrane(sysdir, sysname):
     ### FOR CG PROTEIN+LIPID BILAYERS ###
-    mdsys = gmxSystem(sysdir, sysname)
+    mdsys = GmxSystem(sysdir, sysname)
 
     # 1.1. Need to copy force field and md-parameter files and prepare directories
     mdsys.prepare_files() # be careful it can overwrite later files
@@ -88,7 +109,7 @@ def setup_cg_protein_membrane(sysdir, sysname):
 
 
 def md(sysdir, sysname, runname, ntomp): 
-    mdrun = MDRun(sysdir, sysname, runname)
+    mdrun = GmxRun(sysdir, sysname, runname)
     mdrun.prepare_files()
     # Choose appropriate mdp files
     em_mdp = os.path.join(mdrun.mdpdir, 'em.mdp')
@@ -103,13 +124,13 @@ def md(sysdir, sysname, runname, ntomp):
     
     
 def extend(sysdir, sysname, runname, ntomp):    
-    mdsys = gmxSystem(sysdir, sysname)
+    mdsys = GmxSystem(sysdir, sysname)
     mdrun = mdsys.initmd(runname)
     mdrun.mdrun(deffnm='md', cpi='md.cpt', ntomp=ntomp, nsteps=-2) 
 
 
 def make_ndx(sysdir, sysname, **kwargs):
-    mdsys = gmxSystem(sysdir, sysname)
+    mdsys = GmxSystem(sysdir, sysname)
     mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
       
     
@@ -117,7 +138,7 @@ def trjconv(sysdir, sysname, runname, mode='solu', fit='rot+trans', **kwargs):
     kwargs.setdefault('b', 0) # in ps
     kwargs.setdefault('dt', 1000) # in ps
     kwargs.setdefault('e', 1000000) # in ps
-    mdrun = MDRun(sysdir, sysname, runname)
+    mdrun = GmxRun(sysdir, sysname, runname)
     if mode == 'solu': # REMOVE SOLVENT # NDX groups: 1.System 2.Solute 3.Backbone 4.Solvent 5...chains...
         k = 1
     if mode == 'bb': # JUST FOR BACKBONE ANALYSIS
@@ -135,20 +156,20 @@ def rms_analysis(sysdir, sysname, runname, **kwargs):
     kwargs.setdefault('b',  50000) # in ps
     kwargs.setdefault('dt', 1000) # in ps
     kwargs.setdefault('e', 10000000) # in ps
-    mdrun = MDRun(sysdir, sysname, runname)
+    mdrun = GmxRun(sysdir, sysname, runname)
     mdrun.rmsf(clinput=f'2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='yes', res='yes', **kwargs) # n=mdrun.sysndx
     mdrun.rmsd(clinput=f'2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='rot+trans', **kwargs)
 
     
 def cluster(sysdir, sysname, runname, **kwargs):
-    mdrun = MDRun(sysdir, sysname, runname)
+    mdrun = GmxRun(sysdir, sysname, runname)
     b = 100000
     mdrun.cluster(clinput=f'1\n 1\n', b=b, dt=1000, cutoff=0.15, method='gromos', cl='clusters.pdb', clndx='cluster.ndx', av='yes')
     mdrun.extract_cluster()
 
 
 def cov_analysis(sysdir, sysname, runname):
-    mdrun = MDRun(sysdir, sysname, runname) 
+    mdrun = GmxRun(sysdir, sysname, runname) 
     u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True)
     ag = u.atoms.select_atoms("name CA or name P or name C1'") # Select the backbone atoms
     if not ag:
@@ -163,7 +184,7 @@ def cov_analysis(sysdir, sysname, runname):
 
 
 def tdlrt_analysis(sysdir, sysname, runname):
-    mdrun = MDRun(sysdir, sysname, runname) 
+    mdrun = GmxRun(sysdir, sysname, runname) 
     # CCF params FRAMEDT=20 ps
     b = 0
     e = 100000
@@ -176,12 +197,12 @@ def tdlrt_analysis(sysdir, sysname, runname):
     ag = u.atoms
     positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e) 
     velocities = io.read_velocities(u, ag, sample_rate=sample_rate, b=b, e=e)
-    corr = lrt.ccf(positions, velocities, ntmax=ntmax, n=5, mode='gpu', center=True)
+    corr = mdm.ccf(positions, velocities, ntmax=ntmax, n=5, mode='gpu', center=True)
     np.save(corr_file, corr)
 
 
 def get_averages(sysdir, sysname):
-    mdsys = gmxSystem(sysdir, sysname)   
+    mdsys = GmxSystem(sysdir, sysname)   
     mdsys.get_mean_sem(pattern='pertmat*.npy')
     mdsys.get_mean_sem(pattern='covmat*.npy')
     # mdsys.get_mean_sem(pattern='dfi*.npy')
@@ -194,7 +215,7 @@ def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):
     """
     Need to loop for big arrays
     """
-    mdsys = gmxSystem(sysdir, sysname)  
+    mdsys = GmxSystem(sysdir, sysname)  
     print('Getting averages', file=sys.stderr)  
     files = io.pull_files(mdsys.mddir, fname)
     if loop:
