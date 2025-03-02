@@ -40,8 +40,13 @@ print(mdsys.inpdb)
 mdsys.split_chains()
 
 #%%
+print("Results:", 42)
+import matplotlib.pyplot as plt
+plt.plot([1, 2, 3], [4, 5, 6])
+plt.show()  # Optional: Sphinx Gallery captures figures automatically
+plt.close()
 # Coarse-grain the proteins using martinize2 by Martini
-mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p="backbone", pf=500, append=False)
+# mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p="backbone", pf=500, append=False)
 # Let's take a look at generated files:
 
 # # 4. Solvate and add ions.

@@ -28,7 +28,7 @@ extensions = [
 sphinx_gallery_conf = {
     'examples_dirs': '../examples',  # folder with your scripts (e.g. your example_c60.py)
     'gallery_dirs': 'auto_examples',
-    'execute_gallery': True, 
+    # 'execute_gallery': True, 
 }
 
 autosummary_generate = True
