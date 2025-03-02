@@ -87,4 +87,5 @@ Indices and Tables
 
    getting_started
    why
+   auto_examples/index
    modules

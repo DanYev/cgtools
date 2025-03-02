@@ -1,32 +1,20 @@
 #!/usr/bin/env python
 """
-Gmx Pipe Tutorial Module
+Gmx Pipe Tutorial
+=================
 
 This module serves as a tutorial for setting up and running coarse-grained
 molecular dynamics (MD) simulations using the reForge package and GROMACS. It
 provides a pipeline that performs several key tasks:
-  1. System Setup: Copying force field and parameter files, preparing directories,
-     cleaning and sorting the input PDB file, and splitting chains.
-  2. Coarse-Graining: Applying coarse-graining methods for proteins (using both
-     Go-model and elastic network approaches) and nucleotides.
-  3. Solvation and Ion Addition: Solvating the system and adding ions to neutralize it.
-  4. MD Simulation: Running energy minimization, equilibration, and production MD runs.
-  5. Post-Processing: Generating index files, converting trajectories, and performing
-     analyses such as RMSF, RMSD, covariance analysis, clustering, and time-dependent
-     correlation calculations.
-
-Usage Example:
-    To set up a coarse-grained protein/RNA system:
-      >>> from gmx_pipe import setup
-      >>> sysdir = "/path/to/simulation"
-      >>> sysname = "my_system"
-      >>> setup(sysdir, sysname)
-
-    To run an MD simulation:
-      >>> from gmx_pipe import md
-      >>> runname = "run1"
-      >>> ntomp = 8
-      >>> md(sysdir, sysname, runname, ntomp)
+System Setup: Copying force field and parameter files, preparing directories,
+cleaning and sorting the input PDB file, and splitting chains.
+Coarse-Graining: Applying coarse-graining methods for proteins (using both
+Go-model and elastic network approaches) and nucleotides.
+Solvation and Ion Addition: Solvating the system and adding ions to neutralize it.
+MD Simulation: Running energy minimization, equilibration, and production MD runs.
+Post-Processing: Converting trajectories, and performing
+analyses such as RMSF, RMSD, covariance analysis, clustering, and time-dependent
+correlation calculations.
 
 Author: DY
 Date: 2025-XX-XX
@@ -62,14 +50,14 @@ def setup_cg_protein_rna(sysdir, sysname):
     """Sets up a coarse-grained protein/RNA system.
 
     This function performs the following steps:
-      1. Prepares system files and directories.
-      2. Sorts and cleans the input PDB file.
-      3. Splits chains and cleans them using GROMACS.
-      4. Retrieves GO contact maps.
-      5. Applies coarse-graining (using the Go-model for proteins and Martini RNA for nucleotides).
-      6. Creates topology and structure files.
-      7. Solvates the system and adds ions.
-      8. Generates index files.
+        1. Prepares system files and directories.
+        2. Sorts and cleans the input PDB file.
+        3. Splits chains and cleans them using GROMACS.
+        4. Retrieves GO contact maps.
+        5. Applies coarse-graining (using the Go-model for proteins and Martini RNA for nucleotides).
+        6. Creates topology and structure files.
+        7. Solvates the system and adds ions.
+        8. Generates index files.
 
     Args:
         sysdir (str): Base directory for the system.
