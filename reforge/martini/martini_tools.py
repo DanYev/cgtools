@@ -1,9 +1,9 @@
 """
-Module: martini_tools.py
-Description:
-    This module provides tools for preparing Martini simulations (e.g. topology
-    file generation, linking itp files, processing PDB files with GROMACS, and running
-    various martinize2 routines). Note that this module is intended for internal use.
+Module for Martini simulation tools.
+
+This module provides tools for preparing Martini simulations, such as topology file generation,
+linking itp files, processing PDB files with GROMACS, and running various martinize2 routines.
+Note that this module is intended for internal use.
 """
 
 import os
@@ -15,14 +15,17 @@ from reforge.utils import cd, logger
 
 
 def dssp(in_file):
-    """
-    Compute the DSSP secondary structure for the given PDB file.
-    
-    Args:
-        in_file (str): Path to the PDB file.
-    
-    Returns:
-        str: Secondary structure string with '-' replaced by 'C'.
+    """Compute the DSSP secondary structure for the given PDB file.
+
+    Parameters
+    ----------
+    in_file : str
+        Path to the PDB file.
+
+    Returns
+    -------
+    str
+        Secondary structure string with '-' replaced by 'C'.
     """
     logger.info("Doing DSSP")
     u = Universe(in_file)
@@ -33,12 +36,14 @@ def dssp(in_file):
 
 
 def append_to(in_file, out_file):
-    """
-    Append the contents of in_file (excluding the first line) to out_file.
-    
-    Args:
-        in_file (str): Path to the source file.
-        out_file (str): Path to the destination file.
+    """Append the contents of in_file (excluding the first line) to out_file.
+
+    Parameters
+    ----------
+    in_file : str
+        Path to the source file.
+    out_file : str
+        Path to the destination file.
     """
     with open(in_file, "r", encoding="utf-8") as src:
         lines = src.readlines()
@@ -47,13 +52,16 @@ def append_to(in_file, out_file):
 
 
 def fix_go_map(wdir, in_map, out_map="go.map"):
-    """
-    Fix the Go-map file by removing the last column from lines that start with 'R '.
-    
-    Args:
-        wdir (str): Working directory.
-        in_map (str): Input map filename.
-        out_map (str): Output map filename.
+    """Fix the Go-map file by removing the last column from lines that start with 'R '.
+
+    Parameters
+    ----------
+    wdir : str
+        Working directory.
+    in_map : str
+        Input map filename.
+    out_map : str, optional
+        Output map filename. Default is "go.map".
     """
     bdir = os.getcwd()
     os.chdir(wdir)
@@ -70,21 +78,32 @@ def fix_go_map(wdir, in_map, out_map="go.map"):
 def martinize_go(wdir, topdir, aapdb, cgpdb, name="protein", go_eps=9.414,
                  go_low=0.3, go_up=1.1, go_res_dist=3,
                  go_write_file="map/contacts.map", **kwargs):
-    """
-    Run virtual site-based GoMartini via martinize2.
-    
-    Args:
-        wdir (str): Working directory.
-        topdir (str): Topology directory.
-        aapdb (str): Input all-atom PDB file.
-        cgpdb (str): Coarse-grained PDB file.
-        name (str): Protein name.
-        go_eps (float): Strength of the Go-model bias.
-        go_low (float): Lower distance cutoff (nm).
-        go_up (float): Upper distance cutoff (nm).
-        go_res_dist (int): Minimum residue distance below which contacts are removed.
-        go_write_file (str): Output file for Go-map.
-        **kwargs: Additional keyword arguments.
+    """Run virtual site-based GoMartini via martinize2.
+
+    Parameters
+    ----------
+    wdir : str
+        Working directory.
+    topdir : str
+        Topology directory.
+    aapdb : str
+        Input all-atom PDB file.
+    cgpdb : str
+        Coarse-grained PDB file.
+    name : str, optional
+        Protein name. Default is "protein".
+    go_eps : float, optional
+        Strength of the Go-model bias. Default is 9.414.
+    go_low : float, optional
+        Lower distance cutoff (nm). Default is 0.3.
+    go_up : float, optional
+        Upper distance cutoff (nm). Default is 1.1.
+    go_res_dist : int, optional
+        Minimum residue distance below which contacts are removed. Default is 3.
+    go_write_file : str, optional
+        Output file for Go-map. Default is "map/contacts.map".
+    **kwargs :
+        Additional keyword arguments.
     """
     kwargs.setdefault("f", aapdb)
     kwargs.setdefault("x", cgpdb)
@@ -110,18 +129,24 @@ def martinize_go(wdir, topdir, aapdb, cgpdb, name="protein", go_eps=9.414,
 
 @cli.from_wdir
 def martinize_en(wdir, aapdb, cgpdb, ef=700, el=0.0, eu=0.9, **kwargs):
-    """
-    Run protein elastic network generation via martinize2.
-    
-    Args:
-        wdir (str): Working directory.
-        topdir (str): Topology directory.
-        aapdb (str): Input all-atom PDB file.
-        cgpdb (str): Coarse-grained PDB file.
-        ef (float): Force constant.
-        el (float): Lower cutoff.
-        eu (float): Upper cutoff.
-        **kwargs: Additional arguments.
+    """Run protein elastic network generation via martinize2.
+
+    Parameters
+    ----------
+    wdir : str
+        Working directory.
+    aapdb : str
+        Input all-atom PDB file.
+    cgpdb : str
+        Coarse-grained PDB file.
+    ef : float, optional
+        Force constant. Default is 700.
+    el : float, optional
+        Lower cutoff. Default is 0.0.
+    eu : float, optional
+        Upper cutoff. Default is 0.9.
+    **kwargs :
+        Additional keyword arguments.
     """
     kwargs.setdefault("f", aapdb)
     kwargs.setdefault("x", cgpdb)
@@ -141,14 +166,18 @@ def martinize_en(wdir, aapdb, cgpdb, ef=700, el=0.0, eu=0.9, **kwargs):
 
 
 def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
-    """
-    Run nucleotide coarse-graining using martinize_nucleotides.
-    
-    Args:
-        wdir (str): Working directory.
-        aapdb (str): Input all-atom PDB file.
-        cgpdb (str): Coarse-grained PDB file.
-        **kwargs: Additional parameters.
+    """Run nucleotide coarse-graining using martinize_nucleotides.
+
+    Parameters
+    ----------
+    wdir : str
+        Working directory.
+    aapdb : str
+        Input all-atom PDB file.
+    cgpdb : str
+        Coarse-grained PDB file.
+    **kwargs :
+        Additional parameters.
     """
     kwargs.setdefault("f", aapdb)
     kwargs.setdefault("x", cgpdb)
@@ -163,12 +192,14 @@ def martinize_nucleotide(wdir, aapdb, cgpdb, **kwargs):
 
 
 def martinize_rna(wdir, **kwargs):
-    """
-    Run RNA coarse-graining using martinize_rna.
-    
-    Args:
-        wdir (str): Working directory.
-        **kwargs: Additional parameters.
+    """Run RNA coarse-graining using martinize_rna.
+
+    Parameters
+    ----------
+    wdir : str
+        Working directory.
+    **kwargs :
+        Additional parameters.
     """
     with cd(wdir):
         script = "reforge.martini.martinize_rna"
@@ -176,12 +207,14 @@ def martinize_rna(wdir, **kwargs):
 
 
 def insert_membrane(wdir, **kwargs):
-    """
-    Insert a membrane using the insane tool.
-    
-    Args:
-        wdir (str): Working directory.
-        **kwargs: Additional parameters.
+    """Insert a membrane using the insane tool.
+
+    Parameters
+    ----------
+    wdir : str
+        Working directory.
+    **kwargs :
+        Additional parameters.
     """
     with cd(wdir):
         script = "reforge.martini.insane"
