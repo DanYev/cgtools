@@ -96,8 +96,11 @@ def setup_cg_protein_membrane(sysdir, sysname):
     # mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500, append=True) # Martini + Go-network FF
     # mdsys.make_cg_topology(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
     # mdsys.make_cg_structure(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
-    mdsys.insert_membrane(f=mdsys.solupdb, o=mdsys.syspdb, x=20, y=20, z=20, 
-        l='POPC:1', u='POPC:1', sol='W')
+    mdsys.insert_membrane(
+        f=mdsys.solupdb, o=mdsys.syspdb, p=mdsys.systop, 
+        x=20, y=20, z=20, 
+        l='POPC:1', u='POPC:1', sol='W',
+    )
     exit()
 
 
