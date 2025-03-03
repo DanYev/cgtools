@@ -8,11 +8,13 @@ Note that this module is intended for internal use.
 
 import os
 import shutil
+import warnings
 from MDAnalysis import Universe
 from MDAnalysis.analysis.dssp import translate, DSSP
 from reforge import cli
 from reforge.utils import cd, logger
 
+warnings.filterwarnings("ignore", message="Reader has no dt information, set to 1.0 ps")
 
 def dssp(in_file):
     """Compute the DSSP secondary structure for the given PDB file.
