@@ -142,7 +142,7 @@ class GmxSystem(MDSystem):
                 all_atoms.extend(atoms)
             all_atoms.renumber()
             all_atoms.write_pdb(self.solupdb)
-            cli.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
+            # cli.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
 
 
     def make_cg_topology(self, add_resolved_ions=False, prefix="chain"):

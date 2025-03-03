@@ -330,6 +330,11 @@ class MDSystem:
             except Exception as e:
                 sys.exit(f"Could not coarse-grain {in_pdb}: {e}")
 
+    def insert_membrane(self, **kwargs):
+        """Insert CG lipid membrane using INSANE."""
+        with cd(self.root):
+            martini_tools.insert_membrane(**kwargs)
+
     def find_resolved_ions(self, mask=("MG", "ZN", "K")):
         """Identifies resolved ions in the input PDB file and writes them to "ions.pdb".
 
