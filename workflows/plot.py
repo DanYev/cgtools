@@ -126,6 +126,6 @@ if __name__ == '__main__':
     plot_pdfi(system)
     plot_dci(system)
     plot_asym(system)
-    # plot_rmsf(system)
-    # plot_rmsd(system)
+    plot_rmsf(system)
+    plot_rmsd(system)
 

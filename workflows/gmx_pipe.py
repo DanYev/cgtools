@@ -187,6 +187,14 @@ def cov_analysis(sysdir, sysname, runname):
     mdrun.get_dfi(outtag='dfi')
     mdrun.get_dci(outtag='dci', asym=False)
     mdrun.get_dci(outtag='asym', asym=True)
+    # Calc DCI between chains
+    atoms = io.pdb2atomlist(mdrun.str)
+    backbone_anames = ["BB", "BB2"]
+    bb = atoms.mask(backbone_anames, mode='name')
+    bb.renum() # Renumber atids form 0, needed to mask numpy arrays
+    groups = bb.chains.atids # mask for the arrays
+    labels = [chids[0] for chids in bb.chains.chids]
+    mdrun.get_group_dci(groups=groups, labels=labels, asym=False)
     # clean_dir(mdrun.covdir, 'covmat*')
 
 
@@ -216,6 +224,10 @@ def get_averages(sysdir, sysname):
     mdsys.get_mean_sem(pattern='dci*.npy')
     mdsys.get_mean_sem(pattern='asym*.npy')
     mdsys.get_mean_sem(pattern='rmsf*.npy')
+    mdsys.get_mean_sem(pattern='ggdci*.npy') # group-group DCI    
+    for chain in mdsys.chains:
+        logger.info(f'Processing chain {chain}')
+        msys.get_mean_sem(pattern=f'gdci_{chain}*.npy')
 
 
 def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):
