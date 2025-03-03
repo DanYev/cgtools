@@ -474,6 +474,7 @@ class GmxRun(MDRun):
         kwargs.setdefault("s", self.str)
         kwargs.setdefault("f", self.trj)
         kwargs.setdefault("o", str(xvg_file))
+        kwargs.setdefault("xvg", "none")
         self.gmx('rmsf', clinput=clinput, **kwargs)
         io.xvg2npy(xvg_file, npy_file, usecols=[1])
 
@@ -493,6 +494,7 @@ class GmxRun(MDRun):
         kwargs.setdefault("s", self.str)
         kwargs.setdefault("f", self.trj)
         kwargs.setdefault("o", str(xvg_file))
+        kwargs.setdefault("xvg", "none")
         self.gmx('rms', clinput=clinput, **kwargs)
         io.xvg2npy(xvg_file, npy_file, usecols=[0, 1])
 
@@ -510,6 +512,7 @@ class GmxRun(MDRun):
         kwargs.setdefault("f", "mdc.xtc")
         kwargs.setdefault("s", "mdc.pdb")
         kwargs.setdefault("n", self.sysndx)
+        kwargs.setdefault("xvg", "none")
         self.gmx('rdf', clinput=clinput, **kwargs)
 
     def cluster(self, clinput=None, **kwargs):

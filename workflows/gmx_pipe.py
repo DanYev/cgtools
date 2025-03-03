@@ -149,12 +149,14 @@ def trjconv(sysdir, sysname, runname, mode='solu', fit='rot+trans', **kwargs):
         k = 1
     if mode == 'bb': # JUST FOR BACKBONE ANALYSIS
         k = 2
-    # mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, center='yes', pbc='cluster', ur='compact', e=0)
-    # mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.trr', n=mdrun.sysndx, center='yes', pbc='cluster', ur='compact', **kwargs)
-    # mdrun.trjconv(clinput='0\n 0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', pbc='nojump')
+    mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, 
+        center='yes', pbc='cluster', ur='compact', e=0)
+    mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.trr', n=mdrun.sysndx, 
+        center='yes', pbc='cluster', ur='compact', **kwargs)
+    mdrun.trjconv(clinput='0\n 0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', pbc='nojump')
     if fit:
-        # mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', fit=fit)
-        mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdv.pdb', dt=10000)
+        mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', fit=fit)
+        # mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdv.pdb', dt=10000)
     clean_dir(mdrun.rundir)
     
 
@@ -163,7 +165,8 @@ def rms_analysis(sysdir, sysname, runname, **kwargs):
     kwargs.setdefault('dt', 1000) # in ps
     kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
-    mdrun.rmsf(clinput=f'2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='yes', res='yes', **kwargs) # n=mdrun.sysndx
+    # 2 is for backbone
+    mdrun.rmsf(clinput=f'2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='yes', res='yes', **kwargs)
     mdrun.rmsd(clinput=f'2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='rot+trans', **kwargs)
 
     
@@ -177,10 +180,8 @@ def cluster(sysdir, sysname, runname, **kwargs):
 def cov_analysis(sysdir, sysname, runname):
     mdrun = GmxRun(sysdir, sysname, runname) 
     u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True)
-    ag = u.atoms.select_atoms("name CA or name P or name C1'") # Select the backbone atoms
-    if not ag:
-        ag = u.atoms.select_atoms("name BB or name BB1 or name BB3")
-    # clean_dir(mdrun.covdir, '*npy')
+    ag = u.atoms.select_atoms("name BB or name BB1 or name BB3")
+    clean_dir(mdrun.covdir, '*npy')
     mdrun.get_covmats(u, ag, sample_rate=1, b=50000, e=1000000, n=4, outtag='covmat') #  Begin at b picoseconds, end at e, sample each frame
     mdrun.get_pertmats()
     mdrun.get_dfi(outtag='dfi')
@@ -211,10 +212,10 @@ def get_averages(sysdir, sysname):
     mdsys = GmxSystem(sysdir, sysname)   
     mdsys.get_mean_sem(pattern='pertmat*.npy')
     mdsys.get_mean_sem(pattern='covmat*.npy')
-    # mdsys.get_mean_sem(pattern='dfi*.npy')
-    # mdsys.get_mean_sem(pattern='dci*.npy')
-    # mdsys.get_mean_sem(pattern='asym*.npy')
-    # mdsys.get_mean_sem(pattern='rmsf*.npy')
+    mdsys.get_mean_sem(pattern='dfi*.npy')
+    mdsys.get_mean_sem(pattern='dci*.npy')
+    mdsys.get_mean_sem(pattern='asym*.npy')
+    mdsys.get_mean_sem(pattern='rmsf*.npy')
 
 
 def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):

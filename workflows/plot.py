@@ -2,9 +2,10 @@ import os
 import numpy as np
 import pandas as pd
 import sys
-from reforge import io, gmxmd
+from reforge import io
+from reforge.mdsystem import gmxmd
 from reforge.plotting import *
-from reforge.lrt import percentile
+from reforge.mdm import percentile
 
 
 def pull_data(metric):
@@ -119,12 +120,12 @@ def plot_asym(system):
     
 if __name__ == '__main__':
     sysdir = 'systems' 
-    sysname = '1btl'
-    system = gmxmd.gmxSystem(sysdir, sysname)
+    sysname = '8aw3'
+    system = gmxmd.GmxSystem(sysdir, sysname)
     plot_dfi(system)
     plot_pdfi(system)
     plot_dci(system)
     plot_asym(system)
-    plot_rmsf(system)
-    plot_rmsd(system)
+    # plot_rmsf(system)
+    # plot_rmsd(system)
 

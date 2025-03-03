@@ -239,17 +239,17 @@ def run_job(jobname, submit=False, **kwargs):
 script = 'sbatch.sh'
 pyscript = 'gmx_pipe.py'
 sysdir = 'systems' 
-sysnames = ['egfr',] # 1btl 8aw3
+sysnames = ['8aw3'] # 1btl 8aw3
 runs = ['mdrun_1', 'mdrun_2', ] # 
 
 
 # setup(submit=False, mem='4G')
-md(submit=True, ntomp=8, mem='4G', q='public', p='htc', t='00-04:00:00',)
+# md(submit=True, ntomp=8, mem='4G', q='public', p='htc', t='00-04:00:00',)
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
 # trjconv(submit=True)
-# rms_analysis(submit=False)
-# cov_analysis(submit=False)
-# get_averages(submit=False)
+# rms_analysis(submit=True)
+# cov_analysis(submit=True)
+get_averages(submit=True)
 # plot(submit=False)
 # cluster(submit=False)
 # tdlrt_analysis(submit=False)
@@ -257,4 +257,3 @@ md(submit=True, ntomp=8, mem='4G', q='public', p='htc', t='00-04:00:00',)
 # tdlrt_figs(submit=True)
 # test(submit=True)
 # sys_job('make_ndx', submit=False)
-
