@@ -92,17 +92,19 @@ def setup_cg_protein_membrane(sysdir, sysname):
     # mdsys.get_go_maps(append=True)
 
     # # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually. 
-    # mdsys.martinize_proteins_en(ef=500, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
-    mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500, append=False) # Martini + Go-network FF
-
-    # 
+    # mdsys.martinize_proteins_en(ef=700, el=0.0, eu=0.9, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
+    mdsys.martinize_proteins_go(go_eps=9.414, go_low=0.3, go_up=1.1, p='backbone', pf=500, append=False) # Martini + Go-network FF
     mdsys.make_cg_topology(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
     mdsys.make_cg_structure(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
+
+    # Now we need to insert membrane and 
     mdsys.insert_membrane(
         f=mdsys.solupdb, o=mdsys.sysgro, p=mdsys.systop, 
         x=18, y=18, z=25, dm=10.5, 
         u='POPC:1', l='POPC:1', sol='W',
     )
+
+    # Insert membrane generates a .gro file but we want to have a .pdb so we will convert it first and then add ions to the box
     mdsys.gmx('editconf', f=mdsys.sysgro, o=mdsys.syspdb)
     mdsys.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
 
