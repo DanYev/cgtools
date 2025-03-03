@@ -197,7 +197,7 @@ def fft_ccf(*args, mode="serial", **kwargs):
         return pfft_ccf(*args, **kwargs)
     if mode == "gpu":
         result = gfft_ccf(*args, **kwargs)
-        return result.get() if hasattr(result, "get") else result
+        return result.get() 
     raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
 
 

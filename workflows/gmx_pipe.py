@@ -28,6 +28,7 @@ import MDAnalysis as mda
 from reforge import cli, io, mdm
 from reforge.mdsystem.gmxmd import GmxSystem, GmxRun
 from reforge.utils import *
+import logging
 from pathlib import Path
 
 
@@ -199,19 +200,20 @@ def cov_analysis(sysdir, sysname, runname):
 
 
 def tdlrt_analysis(sysdir, sysname, runname):
+
     mdrun = GmxRun(sysdir, sysname, runname) 
     # CCF params FRAMEDT=20 ps
     b = 0
-    e = 100000
+    e = 1000000
     sample_rate = 1
     ntmax = 1000 # how many frames to save
-    corr_file = os.path.join(mdrun.lrtdir, f'corr_pp.npy')
+    corr_file = os.path.join(mdrun.lrtdir, 'corr_pp.npy')
     # CALC CCF
     u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True)
     ag = u.atoms
     positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e) 
     velocities = io.read_velocities(u, ag, sample_rate=sample_rate, b=b, e=e)
-    corr = mdm.ccf(positions, positions, ntmax=ntmax, n=2, mode='gpu', center=True)
+    corr = mdm.ccf(positions, positions, ntmax=ntmax, n=10, mode='gpu', center=True)
     np.save(corr_file, corr)
 
 

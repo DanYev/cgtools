@@ -240,7 +240,7 @@ script = 'sbatch.sh'
 pyscript = 'gmx_pipe.py'
 sysdir = 'systems' 
 sysnames = ['8aw3'] # 1btl 8aw3
-runs = ['mdrun_1', 'mdrun_2', ] # 
+runs = ['mdrun_2', ] # 
 
 
 # setup(submit=False, mem='4G')

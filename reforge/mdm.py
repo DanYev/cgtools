@@ -84,7 +84,8 @@ def fft_ccf(*args, mode="serial", **kwargs):
 
 def ccf(*args, **kwargs):
     """Similar to the previous. Unified wrapper for calculating cross-correlations."""
-    rpymath.ccf(*args, **kwargs)
+    corr = rpymath.ccf(*args, **kwargs)
+    return corr
 
 
 def covariance_matrix(positions, dtype=np.float64):
