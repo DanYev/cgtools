@@ -18,7 +18,6 @@ Author: DY
 
 from pathlib import Path
 import shutil
-import numpy as np
 import pytest
 from reforge.mdsystem.gmxmd import *
 from reforge.cli import run

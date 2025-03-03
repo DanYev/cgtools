@@ -77,39 +77,38 @@ def setup_cg_protein_membrane(sysdir, sysname):
     mdsys = GmxSystem(sysdir, sysname)
 
     # 1.1. Need to copy force field and md-parameter files and prepare directories
-    # mdsys.prepare_files() # be careful it can overwrite later files
-    # mdsys.sort_input_pdb(f"{sysname}.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
+    mdsys.prepare_files() # be careful it can overwrite later files
+    mdsys.sort_input_pdb(f"{sysname}.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
 
     # # 1.2.1 Try to clean the input PDB and split the chains based on the type of molecules (protein, RNA/DNA)
     # mdsys.clean_pdb_mm(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
     # mdsys.split_chains()
     # mdsys.clean_chains_mm(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
     
-    # 1.2.2 Same but if we want Go-Model for the proteins
+    # # 1.2.2 Same but if we want Go-Model for the proteins
     # mdsys.clean_pdb_gmx(in_pdb=mdsys.inpdb, clinput='8\n 7\n', ignh='no', renum='yes') # 8 for CHARMM, sometimes you need to refer to AMBER FF
-    # mdsys.split_chains()
+    mdsys.split_chains()
     # mdsys.clean_chains_gmx(clinput='8\n 7\n', ignh='yes', renum='yes')
     # mdsys.get_go_maps(append=True)
 
     # # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually. 
     # mdsys.martinize_proteins_en(ef=500, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
-    # mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500, append=True) # Martini + Go-network FF
+    mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500, append=False) # Martini + Go-network FF
+
+    # 
     mdsys.make_cg_topology(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
     mdsys.make_cg_structure(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
     mdsys.insert_membrane(
         f=mdsys.solupdb, o=mdsys.sysgro, p=mdsys.systop, 
         x=18, y=18, z=25, dm=10.5, 
-        u='DOPC:1', l='POPC:1', sol='W', salt=0.15,
+        u='POPC:1', l='POPC:1', sol='W',
     )
-
-    # 1.4. Coarse graining is hopefully done. Need to add solvent and ions
-    solvent = os.path.join(mdsys.wdir, 'water.gro')
-    mdsys.solvate(cp=mdsys.solupdb, cs=solvent) # all kwargs go to gmx solvate command
+    mdsys.gmx('editconf', f=mdsys.sysgro, o=mdsys.syspdb)
     mdsys.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
 
     # 1.5. Need index files to make selections with GROMACS. Very annoying but wcyd. Order:
     # 1.System 2.Solute 3.Backbone 4.Solvent 5...chains. Can add custom groups using AtomList.write_to_ndx()
-    mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
+    mdsys.make_system_ndx(backbone_atoms=["BB"])
 
 
 def md(sysdir, sysname, runname, ntomp): 
