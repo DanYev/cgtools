@@ -1,7 +1,7 @@
 define                          = -DPOSRES
 integrator                      = md
 dt                              = 0.010 
-nsteps                          = 1000000 ;  1 000 000 * 0.010 ps = 10 ns ps 
+nsteps                          = 1000000 ;  1 000 000 * 0.010 ps = 10 ns 
 nstxout-compressed              = 10000
 compressed-x-precision          = 100
 nstenergy                       = 10000

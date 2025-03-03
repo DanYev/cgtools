@@ -93,11 +93,12 @@ def setup_cg_protein_membrane(sysdir, sysname):
 
     # # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually. 
     # mdsys.martinize_proteins_en(ef=700, el=0.0, eu=0.9, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
-    mdsys.martinize_proteins_go(go_eps=9.414, go_low=0.3, go_up=1.1, p='backbone', pf=500, append=False) # Martini + Go-network FF
+    mdsys.martinize_proteins_go(go_eps=9.414, go_low=0.3, go_up=1.1, p='backbone', pf=500, append=True) # Martini + Go-network FF
     mdsys.make_cg_topology(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
     mdsys.make_cg_structure(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
 
-    # Now we need to insert membrane and 
+    # Now we can insert the protein in a membrane. It may require a few attempts to get the geometry right.
+    # Option 'dm' shifts the membrane along z-axis
     mdsys.insert_membrane(
         f=mdsys.solupdb, o=mdsys.sysgro, p=mdsys.systop, 
         x=18, y=18, z=25, dm=10.5, 
