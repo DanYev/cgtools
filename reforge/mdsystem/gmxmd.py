@@ -118,19 +118,7 @@ class GmxSystem(MDSystem):
                 shutil.copy(file, outpath)
 
     def make_cg_structure(self, **kwargs):
-        """Merges coarse-grained PDB files into a single solute PDB file.
-
-        Parameters
-        ----------
-            kwargs: Additional keyword arguments for the GROMACS editconf command. Defaults:
-                - d: Distance parameter (default: 1.0)
-                - bt: Box type (default: "dodecahedron").
-
-        Uses the AtomList from pdbtools to merge and renumber atoms, then calls the
-        GROMACS 'editconf' command to finalize the solute PDB.
-        """
-        kwargs.setdefault("d", 1.0)
-        kwargs.setdefault("bt", "dodecahedron")
+        """Merges coarse-grained PDB files into a single solute PDB file."""
         logger.info("Merging CG PDB files into a single solute PDB...")
         with cd(self.root):
             cg_pdb_files = [p.name for p in self.cgdir.iterdir()]
@@ -142,8 +130,20 @@ class GmxSystem(MDSystem):
                 all_atoms.extend(atoms)
             all_atoms.renumber()
             all_atoms.write_pdb(self.solupdb)
-            # cli.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
 
+    def make_box(self, **kwargs):
+        """Sets up simulation box with GROMACS editconf command.
+
+        Parameters
+        ----------
+            kwargs: Additional keyword arguments for the GROMACS editconf command. Defaults:
+                - d: Distance parameter (default: 1.0)
+                - bt: Box type (default: "dodecahedron").
+        """
+        kwargs.setdefault("d", 1.0)
+        kwargs.setdefault("bt", "dodecahedron")
+        with cd(self.root):
+            cli.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
 
     def make_cg_topology(self, add_resolved_ions=False, prefix="chain"):
         """Creates the system topology file by including all relevant ITP files and

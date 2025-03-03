@@ -633,7 +633,6 @@ PBC are set to fit the given number of lipids in.
     ("-y",      Option(vector,      1, 0, "Y dimension or first lattice vector of system (nm)")),
     ("-z",      Option(vector,      1, 0, "Z dimension or first lattice vector of system (nm)")),
     ("-box",    Option(readBox,     1, None, "Box in GRO (3 or 9 floats) or PDB (6 floats) format, comma separated")),
-    ("-n",      Option(str,         1, None, "Index file --- TO BE IMPLEMENTED")),
     """
 Membrane/lipid related options.  
 The options -l and -u can be given multiple times. Option -u can be
@@ -1374,11 +1373,16 @@ if solv:
 else:
     solvent, sol = None, []
 
-outfile = 'system.gro'
-with open(outfile, 'w', encoding='utf-8') as file:
-    slen = len(sol) if solvent else 0
-    print("%5d" % (len(protein) + len(membrane) + len(sol)), file=file)
 
+title = 'Protein-Membrane System'
+if options["-o"]:
+    outfile = options["-o"].value
+else:
+    outfile = "system.gro"
+with open(outfile, 'w', encoding='utf-8') as file:
+    file.write("%s\n" % title)
+    slen = len(sol) if solvent else 0
+    file.write("%5d\n" % (len(protein) + len(membrane) + len(sol)))
     id_val = 1
     if protein:
         for i in range(len(protein)):

@@ -97,9 +97,9 @@ def setup_cg_protein_membrane(sysdir, sysname):
     # mdsys.make_cg_topology(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
     # mdsys.make_cg_structure(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
     mdsys.insert_membrane(
-        f=mdsys.solupdb, o=mdsys.syspdb, p=mdsys.systop, 
-        x=20, y=20, z=20, 
-        l='POPC:1', u='POPC:1', sol='W',
+        f=mdsys.solupdb, o=mdsys.sysgro, p=mdsys.systop, 
+        x=18, y=18, z=25, dm=10.5, 
+        l='POPC:1', u='POPC:1', sol='W', salt=0.15,
     )
     exit()
 
