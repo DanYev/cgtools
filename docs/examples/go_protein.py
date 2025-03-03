@@ -15,9 +15,10 @@ from pathlib import Path
 from reforge import cli, io, mdm
 from reforge.mdsystem.gmxmd import GmxSystem, GmxRun
 from reforge.utils import *  # Assuming this imports required utilities
-import nglview as nv
 
-os.chdir('.')
+
+WDIR = '.' # '.' for html, 'examples' for manual
+os.chdir(WDIR)
 cli.run('rm -rf test/*')
 #%%
 # First, we need to initialize an instance of GmxSystem which will take care of pathing
@@ -65,7 +66,7 @@ mdsys.make_cg_structure(bt='dodecahedron', d='1.2', ) # CG structure. Returns md
 
 #%% 
 # Now we need to add solvent and neutralize the system's charge
-solvent = os.path.join(mdsys.wdir, "water.gro")
+solvent = mdsys.root / "water.gro"
 mdsys.solvate(cp=mdsys.solupdb, cs=solvent)
 mdsys.add_bulk_ions(conc=0.15, pname="NA", nname="CL")
 
@@ -73,6 +74,6 @@ mdsys.add_bulk_ions(conc=0.15, pname="NA", nname="CL")
 # In order to work with GROMACS' selections we need to make a .ndx file mdsys.sysndx
 # Order of the groups: 1.System 2.Solute 3.Backbone 4.Solvent 5. Not Water 6...chains... 
 # Can add custom groups using AtomList.write_to_ndx() method
-mdsys.make_sys_ndx(backbone_atoms=["BB"])
+mdsys.make_system_ndx(backbone_atoms=["BB"])
 
 
