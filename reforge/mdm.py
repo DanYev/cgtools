@@ -82,9 +82,9 @@ def fft_ccf(*args, mode="serial", **kwargs):
     raise ValueError("Mode must be 'serial', 'parallel' or 'gpu'.")
 
 
-def ccf(*args, mode="serial", **kwargs):
+def ccf(*args, **kwargs):
     """Similar to the previous. Unified wrapper for calculating cross-correlations."""
-    rpymath.ccf(*args, mode, **kwargs)
+    rpymath.ccf(*args, **kwargs)
 
 
 def covariance_matrix(positions, dtype=np.float64):

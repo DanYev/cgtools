@@ -205,14 +205,13 @@ def tdlrt_analysis(sysdir, sysname, runname):
     e = 100000
     sample_rate = 1
     ntmax = 1000 # how many frames to save
-    tag = 'pv'
-    corr_file = os.path.join(mdrun.lrtdir, f'corr_{tag}.npy')
+    corr_file = os.path.join(mdrun.lrtdir, f'corr_pp.npy')
     # CALC CCF
     u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True)
     ag = u.atoms
     positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e) 
     velocities = io.read_velocities(u, ag, sample_rate=sample_rate, b=b, e=e)
-    corr = mdm.ccf(positions, velocities, ntmax=ntmax, n=5, mode='gpu', center=True)
+    corr = mdm.ccf(positions, positions, ntmax=ntmax, n=2, mode='gpu', center=True)
     np.save(corr_file, corr)
 
 
