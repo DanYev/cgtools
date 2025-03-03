@@ -23,6 +23,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.extlinks",
     "sphinx_gallery.gen_gallery",
+    # "nbsphinx",
 ]
 
 sphinx_gallery_conf = {
