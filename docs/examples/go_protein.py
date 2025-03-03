@@ -68,4 +68,9 @@ mdsys.add_bulk_ions(conc=0.15, pname="NA", nname="CL")
 # Custom groups can be added using AtomList.write_to_ndx() method
 mdsys.make_system_ndx(backbone_atoms=["BB"])
 
-
+#%%
+# One of the little quality of life features of GmxSystem is executing GROMACS commands from your python script
+# with GmxSystem.gmx. This will run the command in the working directory of the system.
+# To take a look at the system, we can use VMD or PyMol, but we need to correct the generated box for
+# the periodic boundary conditions, and we can do it with GROMACS' "trjconv" module. 
+mdsys.gmx("trjconv", clinput='0\n', s=mdsys.syspdb, f=mdsys.syspdb, pbc='atom', ur='compact', o="viz.pdb")
