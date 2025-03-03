@@ -1207,6 +1207,7 @@ if lipL:
     leaf_lo = (-1, list(zip(lip_lo, lower)), lo_lipdx, lo_lipdy)
 
     molecules = list(zip(lipU, num_up)) + list(zip(lipL, num_lo))
+    print(molecules)
     kick = options["-rand"].value
 
     for leaflet, leaf_lip, lipdx, lipdy in [leaf_up, leaf_lo]:
@@ -1337,17 +1338,16 @@ if solv:
     num_sol = [int(ngrid * i / totS) for i in solnums]
 
     if nna:
-        solnames.append("NA+")
+        solnames.append("NA")
         num_sol.append(nna)
-        solv.append("NA+")
+        solv.append("NA")
     if ncl:
-        solnames.append("CL-")
+        solnames.append("CL")
         num_sol.append(ncl)
-        solv.append("CL-")
+        solv.append("CL")
 
     solvent = list(zip([s for i, s in zip(num_sol, solnames) for j in range(i)], grid))
-    molecules = list(zip(solnames, num_sol)) + molecules
-
+    molecules += list(zip(solnames, num_sol))
     sol = []
     for resn, (rndm, x, y, z) in solvent:
         resi += 1
@@ -1402,12 +1402,7 @@ with open(outfile, 'w', encoding='utf-8') as file:
     print("%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f\n" % grobox, file=file)
 
 if options["-p"]:
-    top = open(options["-p"].value, "w")
-    print('#include "martini.itp"\n', file=top)
-    print('[ system ]\n; name\n%s\n\n[ molecules ]\n; name  number' % title, file=top)
-    if protein:
-        print("%-10s %5d" % ("Protein", 1), file=top)
+    top = open(options["-p"].value, "a")
     print("\n".join(["%-10s %7d" % i for i in molecules]), file=top)
     top.close()
-else:
-    print("\n".join(["%-10s %7d" % i for i in molecules]), file=sys.stderr)
+
