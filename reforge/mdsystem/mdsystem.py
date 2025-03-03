@@ -330,33 +330,6 @@ class MDSystem:
             except Exception as e:
                 sys.exit(f"Could not coarse-grain {in_pdb}: {e}")
 
-    def make_cg_solute_pdb(self, **kwargs):
-        """Merges coarse-grained PDB files into a single solute PDB file.
-
-        Parameters
-        ----------
-            kwargs: Additional keyword arguments for the GROMACS editconf command. Defaults:
-                - d: Distance parameter (default: 1.0)
-                - bt: Box type (default: "dodecahedron").
-
-        Uses the AtomList from pdbtools to merge and renumber atoms, then calls the
-        GROMACS 'editconf' command to finalize the solute PDB.
-        """
-        kwargs.setdefault("d", 1.0)
-        kwargs.setdefault("bt", "dodecahedron")
-        logger.info("Merging CG PDB files into a single solute PDB...")
-        with cd(self.root):
-            cg_pdb_files = [p.name for p in self.cgdir.iterdir()]
-            cg_pdb_files = pdbtools.sort_uld(cg_pdb_files)
-            cg_pdb_files = [self.cgdir / fname for fname in cg_pdb_files]
-            all_atoms = AtomList()
-            for file in cg_pdb_files:
-                atoms = pdbtools.pdb2atomlist(file)
-                all_atoms.extend(atoms)
-            all_atoms.renumber()
-            all_atoms.write_pdb(self.solupdb)
-            cli.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
-
     def find_resolved_ions(self, mask=("MG", "ZN", "K")):
         """Identifies resolved ions in the input PDB file and writes them to "ions.pdb".
 

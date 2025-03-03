@@ -47,8 +47,8 @@ class GmxSystem(MDSystem):
     and run the MD simulation.
     """
 
-    MDATDIR = importlib.resources.files("reforge") / "martini" / "data"
-    MMDPDIR = importlib.resources.files("reforge") / "martini" / "data" / "mdp"
+    MDATDIR = importlib.resources.files("reforge") / "martini" / "datdir"
+    MMDPDIR = importlib.resources.files("reforge") / "martini" / "datdir" / "mdp"
     MITPDIR = importlib.resources.files("reforge") / "martini" / "itp"
 
     def __init__(self, sysdir, sysname):
@@ -116,6 +116,34 @@ class GmxSystem(MDSystem):
             if file.name.endswith(".itp"):
                 outpath = self.topdir / file.name
                 shutil.copy(file, outpath)
+
+    def make_cg_structure(self, **kwargs):
+        """Merges coarse-grained PDB files into a single solute PDB file.
+
+        Parameters
+        ----------
+            kwargs: Additional keyword arguments for the GROMACS editconf command. Defaults:
+                - d: Distance parameter (default: 1.0)
+                - bt: Box type (default: "dodecahedron").
+
+        Uses the AtomList from pdbtools to merge and renumber atoms, then calls the
+        GROMACS 'editconf' command to finalize the solute PDB.
+        """
+        kwargs.setdefault("d", 1.0)
+        kwargs.setdefault("bt", "dodecahedron")
+        logger.info("Merging CG PDB files into a single solute PDB...")
+        with cd(self.root):
+            cg_pdb_files = [p.name for p in self.cgdir.iterdir()]
+            cg_pdb_files = pdbtools.sort_uld(cg_pdb_files)
+            cg_pdb_files = [self.cgdir / fname for fname in cg_pdb_files]
+            all_atoms = AtomList()
+            for file in cg_pdb_files:
+                atoms = pdbtools.pdb2atomlist(file)
+                all_atoms.extend(atoms)
+            all_atoms.renumber()
+            all_atoms.write_pdb(self.solupdb)
+            cli.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
+
 
     def make_cg_topology(self, add_resolved_ions=False, prefix="chain"):
         """Creates the system topology file by including all relevant ITP files and

@@ -59,8 +59,8 @@ def setup_cg_protein_rna(sysdir, sysname):
     # mdsys.martinize_proteins_en(ef=700, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
     mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500, append=False) # Martini + Go-network FF
     mdsys.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=True) # Martini RNA FF 
-    mdsys.make_martini_topology_file(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
-    mdsys.make_cgpdb_file(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
+    mdsys.make_cg_topology(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
+    mdsys.make_cg_structure(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
     
     # 1.4. Coarse graining is *hopefully* done. Need to add solvent and ions
     solvent = os.path.join(mdsys.wdir, 'water.gro')

@@ -23,11 +23,14 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.extlinks",
     "sphinx_gallery.gen_gallery",
+    # "nbsphinx",
 ]
 
 sphinx_gallery_conf = {
     'examples_dirs': '../examples',  # folder with your scripts (e.g. your example_c60.py)
     'gallery_dirs': 'auto_examples',
+    'filename_pattern': r'.*',    
+    'plot_gallery': True, 
 }
 
 autosummary_generate = True
