@@ -662,8 +662,6 @@ PBC
     ("-a",      Option(float,       1,        0.60, "Area per lipid (nm*nm)")),
     ("-au",     Option(float,       1,        None, "Area per lipid (nm*nm) for upper layer")),
     ("-asym",   Option(int,         1,        None, "Membrane asymmetry (number of lipids)")),
-    ("-hole",   Option(float,       1,        None, "Make a hole in the membrane with specified radius")),
-    ("-disc",   Option(float,       1,        None, "Make a membrane disc with specified radius")),
     ("-rand",   Option(float,       1,         0.1, "Random kick size (maximum atom displacement)")),
     ("-bd",     Option(float,       1,         0.3, "Bead distance unit for scaling z-coordinates (nm)")),
     """
@@ -676,7 +674,7 @@ Protein related options.
     ("-op",     Option(float,       1,         4.0, "Hydrophobic ratio power for determining orientation")),
     ("-fudge",  Option(float,       1,         0.1, "Fudge factor for allowing lipid-protein overlap")),
     ("-ring",   Option(bool,        0,        None, "Put lipids inside the protein")),
-    ("-dm",     Option(float,       1,        None, "Shift protein with respect to membrane")),
+    ("-dm",     Option(float,       1,         0.0, "Shift protein with respect to membrane")),
     """
 Solvent related options.
 """,
@@ -794,11 +792,11 @@ for i in lipidsx.keys():
 
 # Periodic boundary conditions
 
-# option -box overrides everything
-if options["-box"]:
-    options["-x"].value = options["-box"].value[:3]
-    options["-y"].value = options["-box"].value[3:6]
-    options["-z"].value = options["-box"].value[6:]
+# # option -box overrides everything
+# if options["-box"]:
+#     options["-x"].value = options["-box"].value[:3]
+#     options["-y"].value = options["-box"].value[3:6]
+#     options["-z"].value = options["-box"].value[6:]
 
 # option -pbc keep really overrides everything
 if options["-pbc"].value == "keep" and tm:
@@ -1025,17 +1023,17 @@ else:
                     # the matrix of eigenvectors
                     prot.coord = [(ux*i+uy*j,ux*j-uy*i,k) for i,j,k in zip(x,y,z)]
 
-            ## ii. Randomly
-            elif options["-rotate"].value == "random":
-                ux   = math.cos(R()*2*math.pi)
-                uy   = math.sqrt(1-ux*ux)
-                prot.coord = [(ux*i+uy*j,ux*j-uy*i,k) for i,j,k in prot.coord]
+            # ## ii. Randomly
+            # elif options["-rotate"].value == "random":
+            #     ux   = math.cos(R()*2*math.pi)
+            #     uy   = math.sqrt(1-ux*ux)
+            #     prot.coord = [(ux*i+uy*j,ux*j-uy*i,k) for i,j,k in prot.coord]
 
-            ## iii. Specifically
-            elif options["-rotate"]:
-                ux   = math.cos(float(options["-rotate"].value)*math.pi/180.)
-                uy   = math.sin(float(options["-rotate"].value)*math.pi/180.)
-                prot.coord = [(ux*i+uy*j,ux*j-uy*i,k) for i,j,k in prot.coord]
+            # ## iii. Specifically
+            # elif options["-rotate"]:
+            #     ux   = math.cos(float(options["-rotate"].value)*math.pi/180.)
+            #     uy   = math.sin(float(options["-rotate"].value)*math.pi/180.)
+            #     prot.coord = [(ux*i+uy*j,ux*j-uy*i,k) for i,j,k in prot.coord]
 
 
             
@@ -1060,37 +1058,24 @@ else:
             xshifts.append(xshifts[-1]+pmax[0]+(options["-d"].value or 0))
 
 
-            ## 6. Set box (brick) dimensions
-            if options["-disc"]:
-                pbcx = options["-d"].value + 2*options["-disc"].value
-                if ("square".startswith(options["-pbc"].value) or 
-                    "rectangular".startswith(options["-pbc"].value)):
-                    pbcy = pbcx
-                else:
-                    pbcy  = math.cos(math.pi/6)*pbcx
+            # ## 6. Set box (brick) dimensions
+            # if options["-disc"]:
+            #     pbcx = options["-d"].value + 2*options["-disc"].value
+            #     if ("square".startswith(options["-pbc"].value) or 
+            #         "rectangular".startswith(options["-pbc"].value)):
+            #         pbcy = pbcx
+            #     else:
+            #         pbcy  = math.cos(math.pi/6)*pbcx
+            # else:
+            pbcx = (options["-d"].value or 0) + prng[0]
+            if "square".startswith(options["-pbc"].value):
+                pbcy = pbcx
+            elif "rectangular".startswith(options["-pbc"].value):
+                pbcy = options["-d"].value + prng[1]
             else:
-                pbcx = (options["-d"].value or 0) + prng[0]
-                if "square".startswith(options["-pbc"].value):
-                    pbcy = pbcx
-                elif "rectangular".startswith(options["-pbc"].value):
-                    pbcy = options["-d"].value + prng[1]
-                else:
-                    # This goes for a hexagonal cell as well as for the optimal arrangement
-                    # The latter is hexagonal in the membrane plane anyway...
-                    pbcy  = math.cos(math.pi/6)*pbcx
-                
-
-            ## 7. Adjust PBC for hole
-            # If we need to add a hole, we have to scale the system
-            # The scaling depends on the type of PBC
-            if options["-hole"]:
-                if ("square".startswith(options["-pbc"].value) or 
-                    "rectangular".startswith(options["-pbc"].value)):
-                    scale = 1+options["-hole"].value/min(pbcx,pbcy)
-                else:
-                    area  = options["-hole"].value**2/math.cos(math.pi/6)
-                    scale = 1+area/(pbcx*pbcy)
-                pbcx, pbcy = scale*pbcx, scale*pbcy
+                # This goes for a hexagonal cell as well as for the optimal arrangement
+                # The latter is hexagonal in the membrane plane anyway...
+                pbcy  = math.cos(math.pi/6)*pbcx
 
             pbcx = pbcSetX and pbcSetX[0] or pbcx
             pbcy = pbcSetY and pbcSetY[1] or pbcy
@@ -1250,87 +1235,6 @@ if lipL:
                     ii = int(cx+f*(i-cx)/md)
                     jj = int(cy+f*(j-cy)/md)
                     grid_lo[ii][jj] = False
-
-
-    # If we make a circular patch, we flag the cells further from the 
-    # protein or box center than the given radius as occupied.
-    if options["-disc"]:
-        if protein:
-            cx,cy = protein.center()[:2]            
-        else:
-            cx,cy = 0.5*pbcx, 0.5*pbcy
-        for i in range(len(grid_lo)):
-            for j in range(len(grid_lo[i])):
-                if (i*pbcx/lo_lipids_x - cx)**2 + (j*pbcy/lo_lipids_y - cy)**2 > options["-disc"].value**2:
-                    grid_lo[i][j] = False
-        for i in range(len(grid_up)):
-            for j in range(len(grid_up[i])):
-                if (i*pbcx/up_lipids_x - cx)**2 + (j*pbcy/up_lipids_y - cy)**2 > options["-disc"].value**2:
-                    grid_up[i][j] = False
-
-
-    # If we need to add a hole, we simply flag the corresponding cells
-    # as occupied. The position of the hole depends on the type of PBC,
-    # to ensure an optimal arrangement of holes around the protein. If 
-    # there is no protein, the hole is just put in the center.
-    if options["-hole"]:
-        # Lower leaflet
-        if protein:
-            if ("square".startswith(options["-pbc"].value) or 
-                "rectangular".startswith(options["-pbc"].value)):
-                hx,hy = (0,0)
-            else:
-                hx,hy = (0,int(lo_lipids_y*math.cos(math.pi/6)/9+0.5))
-        else:
-            hx,hy = (int(0.5*lo_lipids_x), int(0.5*lo_lipids_y))
-        hr = int(options["-hole"].value/min(lo_lipdx,lo_lipdy)+0.5)
-        ys = int(lo_lipids_x*box[1][0]/box[0][0]+0.5)
-        print("; Making a hole with radius %f nm centered at grid cell (%d,%d)"%(options["-hole"].value,hx, hy), hr)
-        hr -= 1
-        for ii in range(hx-hr-1,hx+hr+1):
-            for jj in range(hx-hr-1,hx+hr+1):
-                xi, yj = ii, jj
-                if (ii-hx)**2+(jj-hy)**2 < hr**2:
-                    if jj < 0:
-                        xi += ys
-                        yj += lo_lipids_y
-                    if jj >= lo_lipids_y:
-                        xi -= ys
-                        yj -= lo_lipids_y
-                    if xi < 0:
-                        xi += lo_lipids_x
-                    if xi >= lo_lipids_x:
-                        xi -= lo_lipids_x
-                    grid_lo[xi][yj] = False
-                    grid_up[xi][yj] = False
-        # Upper leaflet
-        if protein:
-            if ("square".startswith(options["-pbc"].value) or 
-                "rectangular".startswith(options["-pbc"].value)):
-                hx,hy = (0,0)
-            else:
-                hx,hy = (0,int(up_lipids_y*math.cos(math.pi/6)/9+0.5))
-        else:
-            hx,hy = (int(0.5*up_lipids_x), int(0.5*up_lipids_y))
-        hr = int(options["-hole"].value/min(up_lipdx,up_lipdy)+0.5)
-        ys = int(up_lipids_x*box[1][0]/box[0][0]+0.5)
-        print("; Making a hole with radius %f nm centered at grid cell (%d,%d)"%(options["-hole"].value,hx, hy), hr)
-        hr -= 1
-        for ii in range(hx-hr-1,hx+hr+1):
-            for jj in range(hx-hr-1,hx+hr+1):
-                xi, yj = ii, jj
-                if (ii-hx)**2+(jj-hy)**2 < hr**2:
-                    if jj < 0:
-                        xi += ys
-                        yj += up_lipids_y
-                    if jj >= up_lipids_y:
-                        xi -= ys
-                        yj -= up_lipids_y
-                    if xi < 0:
-                        xi += up_lipids_x
-                    if xi >= up_lipids_x:
-                        xi -= up_lipids_x
-                    grid_up[xi][yj] = False
     
 
     # Set the XY coordinates
