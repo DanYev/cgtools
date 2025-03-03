@@ -78,7 +78,7 @@ def setup_cg_protein_membrane(sysdir, sysname):
 
     # 1.1. Need to copy force field and md-parameter files and prepare directories
     mdsys.prepare_files() # be careful it can overwrite later files
-    mdsys.sort_input_pdb(f"{sysname}.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
+    # mdsys.sort_input_pdb(f"{sysname}.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
 
     # # 1.2.1 Try to clean the input PDB and split the chains based on the type of molecules (protein, RNA/DNA)
     # mdsys.clean_pdb_mm(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
@@ -118,9 +118,9 @@ def md(sysdir, sysname, runname, ntomp):
     mdrun = GmxRun(sysdir, sysname, runname)
     mdrun.prepare_files()
     # Choose appropriate mdp files
-    em_mdp = os.path.join(mdrun.mdpdir, 'em.mdp')
-    eq_mdp = os.path.join(mdrun.mdpdir, 'eq.mdp')
-    md_mdp = os.path.join(mdrun.mdpdir, 'md.mdp')
+    em_mdp = os.path.join(mdrun.mdpdir, 'em_cgmem.mdp')
+    eq_mdp = os.path.join(mdrun.mdpdir, 'eq_cgmem.mdp')
+    md_mdp = os.path.join(mdrun.mdpdir, 'md_cgmem.mdp')
     mdrun.empp(f=em_mdp) # Preprocessing 
     mdrun.mdrun(deffnm='em', ntomp=ntomp) # Actual run
     mdrun.eqpp(f=eq_mdp, c='em.gro', r='em.gro', maxwarn=10) 

@@ -1,6 +1,6 @@
 define                      = -DPOSRES
 integrator                  = steep
-emtol                       = 50.0   ; Stop minimization when the maximum force <100.0 kJ/mol/nm
+emtol                       = 100.0   ; Stop minimization when the maximum force <100.0 kJ/mol/nm
 emstep                      = 0.001  ; nm
 nsteps                      = -1
 nstxout                     = 0
