@@ -99,7 +99,7 @@ def setup_cg_protein_membrane(sysdir, sysname):
     # Option 'dm' shifts the membrane along z-axis
     mdsys.insert_membrane(
         f=mdsys.solupdb, o=mdsys.sysgro, p=mdsys.systop, 
-        x=16, y=16, z=28, dm=10, 
+        x=15, y=15, z=30, dm=10, 
         u='POPC:1', l='POPC:1', sol='W',
     )
 

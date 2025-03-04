@@ -1,7 +1,7 @@
 define                   = -DPOSRES
 integrator               = md
 dt                       = 0.01 
-nsteps                   = 200000 ; 1 000 000 * 0.010 ps = 10 000 ps = 10 ns
+nsteps                   = 100000 ; 1 000 000 * 0.010 ps = 10 000 ps = 10 ns
 nstxout                  = 0 
 nstvout                  = 0
 nstfout                  = 0
@@ -34,7 +34,7 @@ ref-t                    = 300 300
 Pcoupl                   = c-rescale
 Pcoupltype               = semiisotropic
 tau-p                    = 3.0
-compressibility          = 4.5e-5 4.5e-5
+compressibility          = 3.4e-4 3.4e-4
 ref-p                    = 1.0 1.0
 refcoord-scaling         = all
 

@@ -39,8 +39,8 @@ def plot_dfi(system):
     datas, errs = pull_data('dfi*')
     param = {'lw':2}
     xs = [np.arange(len(data)) for data in datas]
-    datas = [data*len(data) for data in datas]
-    errs = [err*len(err) for err in errs]
+    datas = [data for data in datas]
+    errs = [err for err in errs]
     params = [param for data in datas]
     # Plotting
     fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
