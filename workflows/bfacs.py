@@ -60,6 +60,7 @@ def dci_pdbs(system):
         label = f'gdci_{chain}'
         make_pdb(system, label, multiply_by_len=False)
 
+ 
 if __name__ == "__main__":
     sysdir = 'systems' 
     sysname = 'egfr'
