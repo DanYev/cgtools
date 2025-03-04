@@ -144,7 +144,8 @@ def trjconv(sysdir, sysname, runname, fit='rot+trans', **kwargs):
     kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
     k = 1 # NDX groups: 0.System 1.Solute 2.Backbone 3.Solvent 4.Not water 5-.Chains
-    # mdrun.trjconv(clinput=f'0\n', s='md.tpr', f='md.xtc', o='viz.pdb', n=mdrun.sysndx, dt=20000)
+    mdrun.trjconv(clinput=f'0\n', s='md.tpr', f='md.xtc', o='viz.pdb', n=mdrun.sysndx, dt=10000)
+    exit()
     mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.pdb', n=mdrun.sysndx, 
         center='yes', pbc='cluster', ur='compact', e=0)
     mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.xtc', n=mdrun.sysndx, 
