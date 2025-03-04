@@ -87,10 +87,7 @@ def cov_analysis(submit=True, **kwargs):
             dojob(submit, script, pyscript, 'cov_analysis', sysdir, sysname, runname,
                   J=f'cov_{sysname}_{runname}', **kwargs)
 
-
                 
-
-
 def tdlrt_analysis(submit=True, **kwargs):
     """Perform tdlrt analysis for each system and run."""
     kwargs.setdefault('t', '00-01:00:00')
@@ -158,19 +155,20 @@ script = 'sbatch.sh'
 pyscript = 'gmx_pipe.py'
 sysdir = 'systems' 
 sysnames = ['egfr'] # 1btl 8aw3
-runs = ['mdrun_1','mdrun_2', ] # 
+runs = ['mdrun_01', 'mdrun_02', ] 
 
 
-setup(submit=True, mem='4G')
+# setup(submit=True, mem='4G')
 # md(submit=True, ntomp=8, mem='4G', q='grp_sozkan', p='general', t='04-00:00:00',)
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
 # trjconv(submit=True)
 # rms_analysis(submit=True)
 # cov_analysis(submit=True)
-# get_averages(submit=True)
+# get_averages(submit=True, mem='32G')
 # plot(submit=False)
 # cluster(submit=False)
 # get_td_averages(submit=False)
 # tdlrt_figs(submit=True)
 # test(submit=True)
 # sys_job('make_ndx', submit=False)
+# run_job('runjob', submit=True, mem='16G')

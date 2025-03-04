@@ -120,7 +120,7 @@ def plot_asym(system):
     
 if __name__ == '__main__':
     sysdir = 'systems' 
-    sysname = '8aw3'
+    sysname = 'egfr'
     system = gmxmd.GmxSystem(sysdir, sysname)
     plot_dfi(system)
     plot_pdfi(system)

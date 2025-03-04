@@ -144,16 +144,14 @@ def trjconv(sysdir, sysname, runname, fit='rot+trans', **kwargs):
     kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
     k = 1 # NDX groups: 0.System 1.Solute 2.Backbone 3.Solvent 4.Not water 5-.Chains
-    mdrun.trjconv(clinput=f'0\n', s='md.tpr', f='md.xtc', o='viz.pdb', n=mdrun.sysndx, dt=20000)
-    exit()
+    # mdrun.trjconv(clinput=f'0\n', s='md.tpr', f='md.xtc', o='viz.pdb', n=mdrun.sysndx, dt=20000)
     mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.pdb', n=mdrun.sysndx, 
         center='yes', pbc='cluster', ur='compact', e=0)
     mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.xtc', n=mdrun.sysndx, 
         center='yes', pbc='cluster', ur='compact', **kwargs)
-    mdrun.trjconv(clinput='0\n 0\n', s='mdc.pdb', f='mdc.xtc', o='mdc.xtc', pbc='nojump')
+    # mdrun.trjconv(clinput='0\n 0\n', s='mdc.pdb', f='mdc.xtc', o='mdc.xtc', pbc='nojump')
     if fit:
         mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.xtc', o='mdc.xtc', fit=fit)
-        mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.xtc', o='mdv.pdb', dt=100000)
     clean_dir(mdrun.rundir)
     
 
@@ -184,19 +182,18 @@ def cov_analysis(sysdir, sysname, runname):
     mdrun.get_dfi(outtag='dfi')
     mdrun.get_dci(outtag='dci', asym=False)
     mdrun.get_dci(outtag='asym', asym=True)
-    # Calc DCI between chains
-    atoms = io.pdb2atomlist(mdrun.str)
-    backbone_anames = ["BB", "BB2"]
-    bb = atoms.mask(backbone_anames, mode='name')
-    bb.renum() # Renumber atids form 0, needed to mask numpy arrays
-    groups = bb.chains.atids # mask for the arrays
-    labels = [chids[0] for chids in bb.chains.chids]
-    mdrun.get_group_dci(groups=groups, labels=labels, asym=False)
-    # clean_dir(mdrun.covdir, 'covmat*')
+    # # Calc DCI between chains
+    # atoms = io.pdb2atomlist(mdrun.str)
+    # backbone_anames = ["BB", "BB2"]
+    # bb = atoms.mask(backbone_anames, mode='name')
+    # bb.renum() # Renumber atids form 0, needed to mask numpy arrays
+    # groups = bb.chains.atids # mask for the arrays
+    # labels = [chids[0] for chids in bb.chains.chids]
+    # mdrun.get_group_dci(groups=groups, labels=labels, asym=False)
+    # # clean_dir(mdrun.covdir, 'covmat*')
 
 
 def tdlrt_analysis(sysdir, sysname, runname):
-
     mdrun = GmxRun(sysdir, sysname, runname) 
     # CCF params FRAMEDT=20 ps
     b = 0
@@ -224,7 +221,7 @@ def get_averages(sysdir, sysname):
     mdsys.get_mean_sem(pattern='ggdci*.npy') # group-group DCI    
     for chain in mdsys.chains:
         logger.info(f'Processing chain {chain}')
-        msys.get_mean_sem(pattern=f'gdci_{chain}*.npy')
+        mdsys.get_mean_sem(pattern=f'gdci_{chain}*.npy')
 
 
 def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):
@@ -250,8 +247,14 @@ def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):
     return average
 
 
-def test(sysdir, sysname, runname, **kwargs):    
-    print('passed', file=sys.stderr)
+def sysjob(sysdir, sysname):    
+    pass
+
+
+def runjob(sysdir, sysname, runname):    
+    trjconv(sysdir, sysname, runname)
+    rms_analysis(sysdir, sysname, runname)
+    get_averages(sysdir, sysname)
 
         
 if __name__ == '__main__':
@@ -269,7 +272,8 @@ if __name__ == '__main__':
         "tdlrt_analysis": tdlrt_analysis,
         "get_averages": get_averages,
         "get_td_averages": get_td_averages,
-        "test": test,
+        "sysjob": sysjob,
+        "runjob": runjob, 
     }
     if command in commands:   # Then, assuming `command` is the command name (a string)
         commands[command](*args) # `args` is a list/tuple of arguments
