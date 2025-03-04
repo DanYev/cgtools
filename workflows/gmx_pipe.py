@@ -77,41 +77,38 @@ def setup_cg_protein_membrane(sysdir, sysname):
     ### FOR CG PROTEIN+LIPID BILAYERS ###
     mdsys = GmxSystem(sysdir, sysname)
 
-    # 1.1. Need to copy force field and md-parameter files and prepare directories
+    # 1.1. Need to copy force field and md-parameter files and prepare directories.
     mdsys.prepare_files() # be careful it can overwrite later files
-    # mdsys.sort_input_pdb(f"{sysname}.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
+    mdsys.sort_input_pdb(f"{sysname}.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
 
-    # # 1.2.1 Try to clean the input PDB and split the chains based on the type of molecules (protein, RNA/DNA)
+    # # We may need to run mdsys.inpdb through OpenMM's or GROMACS' pdb tools but not always needed.
     # mdsys.clean_pdb_mm(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
-    # mdsys.split_chains()
-    # mdsys.clean_chains_mm(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
+    # mdsys.clean_pdb_gmx(in_pdb=mdsys.inpdb, clinput='8\n 7\n', ignh='no', renum='yes') # 8 for CHARMM, 6 for AMBER FF
     
-    # # 1.2.2 Same but if we want Go-Model for the proteins
-    # mdsys.clean_pdb_gmx(in_pdb=mdsys.inpdb, clinput='8\n 7\n', ignh='no', renum='yes') # 8 for CHARMM, sometimes you need to refer to AMBER FF
+    # 1.2. Splitting chains before the coarse-graining and cleaning if needed.
     mdsys.split_chains()
     # mdsys.clean_chains_gmx(clinput='8\n 7\n', ignh='yes', renum='yes')
+    # mdsys.clean_chains_mm(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
     # mdsys.get_go_maps(append=True)
 
     # # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually. 
     # mdsys.martinize_proteins_en(ef=700, el=0.0, eu=0.9, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
     mdsys.martinize_proteins_go(go_eps=9.414, go_low=0.3, go_up=1.1, p='backbone', pf=500, append=True) # Martini + Go-network FF
     mdsys.make_cg_topology(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
-    mdsys.make_cg_structure(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
-
-    # Now we can insert the protein in a membrane. It may require a few attempts to get the geometry right.
+    # We can now insert the protein in a membrane. It may require a few attempts to get the geometry right.
     # Option 'dm' shifts the membrane along z-axis
     mdsys.insert_membrane(
         f=mdsys.solupdb, o=mdsys.sysgro, p=mdsys.systop, 
-        x=18, y=18, z=25, dm=10.5, 
+        x=16, y=16, z=28, dm=10, 
         u='POPC:1', l='POPC:1', sol='W',
     )
 
-    # Insert membrane generates a .gro file but we want to have a .pdb so we will convert it first and then add ions to the box
+    # 1.4 Insert membrane generates a .gro file but we want to have a .pdb so we will convert it first and then add ions to the box
     mdsys.gmx('editconf', f=mdsys.sysgro, o=mdsys.syspdb)
     mdsys.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
 
     # 1.5. Need index files to make selections with GROMACS. Very annoying but wcyd. Order:
-    # 1.System 2.Solute 3.Backbone 4.Solvent 5...chains. Can add custom groups using AtomList.write_to_ndx()
+    # 0.System 1.Solute 2.Backbone 3.Solvent 4. Not water. 5-. Chains. Custom groups can be added using AtomList.write_to_ndx()
     mdsys.make_system_ndx(backbone_atoms=["BB"])
 
 
@@ -141,23 +138,22 @@ def make_ndx(sysdir, sysname, **kwargs):
     mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
       
     
-def trjconv(sysdir, sysname, runname, mode='solu', fit='rot+trans', **kwargs):
+def trjconv(sysdir, sysname, runname, fit='rot+trans', **kwargs):
     kwargs.setdefault('b', 0) # in ps
     kwargs.setdefault('dt', 1000) # in ps
-    kwargs.setdefault('e', 1000000) # in ps
+    kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
-    if mode == 'solu': # REMOVE SOLVENT # NDX groups: 1.System 2.Solute 3.Backbone 4.Solvent 5...chains...
-        k = 1
-    if mode == 'bb': # JUST FOR BACKBONE ANALYSIS
-        k = 2
-    mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.pdb', n=mdrun.sysndx, 
+    k = 1 # NDX groups: 0.System 1.Solute 2.Backbone 3.Solvent 4.Not water 5-.Chains
+    mdrun.trjconv(clinput=f'0\n', s='md.tpr', f='md.xtc', o='viz.pdb', n=mdrun.sysndx, dt=20000)
+    exit()
+    mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.pdb', n=mdrun.sysndx, 
         center='yes', pbc='cluster', ur='compact', e=0)
-    mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.trr', o='mdc.trr', n=mdrun.sysndx, 
+    mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.xtc', n=mdrun.sysndx, 
         center='yes', pbc='cluster', ur='compact', **kwargs)
-    mdrun.trjconv(clinput='0\n 0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', pbc='nojump')
+    mdrun.trjconv(clinput='0\n 0\n', s='mdc.pdb', f='mdc.xtc', o='mdc.xtc', pbc='nojump')
     if fit:
-        mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdc.trr', fit=fit)
-        # mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.trr', o='mdv.pdb', dt=10000)
+        mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.xtc', o='mdc.xtc', fit=fit)
+        mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.xtc', o='mdv.pdb', dt=100000)
     clean_dir(mdrun.rundir)
     
 

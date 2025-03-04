@@ -1,19 +1,4 @@
-from reforge.cli import sbatch, run
-
-def dojob(submit, *args, **kwargs):
-    """
-    Submit a job if 'submit' is True; otherwise, run it via bash.
-    
-    Parameters:
-        submit (bool): Whether to submit (True) or run (False) the job.
-        *args: Positional arguments for the job.
-        **kwargs: Keyword arguments for the job.
-    """
-    if submit:
-        sbatch(*args, **kwargs)
-    else:
-        run('bash', *args)
-
+from reforge.cli import sbatch, run, dojob
 
 def setup(submit=False, **kwargs): 
     """
@@ -239,12 +224,12 @@ def run_job(jobname, submit=False, **kwargs):
 script = 'sbatch.sh'
 pyscript = 'gmx_pipe.py'
 sysdir = 'systems' 
-sysnames = ['8aw3'] # 1btl 8aw3
-runs = ['mdrun_2', ] # 
+sysnames = ['egfr'] # 1btl 8aw3
+runs = ['mdrun_1','mdrun_2', ] # 
 
 
-# setup(submit=False, mem='4G')
-# md(submit=True, ntomp=8, mem='4G', q='public', p='htc', t='00-04:00:00',)
+setup(submit=True, mem='4G')
+# md(submit=True, ntomp=8, mem='4G', q='grp_sozkan', p='general', t='04-00:00:00',)
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
 # trjconv(submit=True)
 # rms_analysis(submit=True)
@@ -252,7 +237,7 @@ runs = ['mdrun_2', ] #
 # get_averages(submit=True)
 # plot(submit=False)
 # cluster(submit=False)
-tdlrt_analysis(submit=False)
+
 # get_td_averages(submit=False)
 # tdlrt_figs(submit=True)
 # test(submit=True)

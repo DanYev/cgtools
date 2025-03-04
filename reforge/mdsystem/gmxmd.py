@@ -333,6 +333,7 @@ class GmxRun(MDRun):
         self.mdpdir = self.root / "mdp"
         self.str = self.rundir / "mdc.pdb"  # Structure file
         self.trj = self.rundir / "mdc.trr"  # Trajectory file
+        self.trj = self.trj if self.trj.exists() else self.rundir / "mdc.xtc"
 
     def gmx(self, command="-h", clinput=None, clean_wdir=True, **kwargs):
         """Executes a GROMACS command from the run's root directory. 

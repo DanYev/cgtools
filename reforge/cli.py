@@ -119,6 +119,47 @@ def sbatch(script, *args, **kwargs):
     sp.run(command.split(), check=True)
 
 
+def dojob(submit, *args, **kwargs):
+    """Submit or run a job based on the 'submit' flag.
+
+    This function provides a simple interface to either submit a job to SLURM
+    (using the 'sbatch' command) or to run it locally via bash. When `submit` is
+    True, the function calls the `sbatch` function with the given arguments and
+    keyword options, which handles setting SLURM parameters and submitting the job.
+    When `submit` is False, the job is executed immediately using bash.
+
+    Parameters
+    ----------
+    submit : bool
+        If True, submit the job to SLURM using sbatch; if False, run the job locally via bash.
+    *args : tuple of str
+        Positional arguments representing the script and any additional command-line 
+        arguments that should be passed to the job.
+    **kwargs : dict
+        Keyword arguments for job configuration. These are passed to the `sbatch` function
+        when submitting the job. They can include SLURM options (such as 't' for time, 'mem' for memory,
+        etc.) as well as any special keys recognized by `sbatch` (e.g., 'clinput' for standard input).
+    
+    Examples
+    --------
+    To submit a job to SLURM:
+    
+    >>> dojob(True, 'script.sh', 'arg1', 'arg2', t='01:00:00', mem='4G', N='1', c='4')
+    
+    To run the job locally via bash:
+    
+    >>> dojob(False, 'script.sh', 'arg1', 'arg2')
+    
+    Returns
+    -------
+    None
+    """
+    if submit:
+        sbatch(*args, **kwargs)
+    else:
+        run('bash', *args)
+
+
 def gmx(command, gmx_callable="gmx_mpi", **kwargs):
     """Execute a GROMACS command.
 
