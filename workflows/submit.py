@@ -1,5 +1,6 @@
 from reforge.cli import sbatch, run, dojob
 
+
 def setup(submit=False, **kwargs): 
     """
     Set up the system by processing each system name.
@@ -38,14 +39,7 @@ def md(submit=True, ntomp=8, **kwargs):
 
 
 def extend(submit=True, ntomp=8, **kwargs):
-    """
-    Extend simulations by processing each system and run.
-    
-    Parameters:
-        submit (bool): Whether to submit the job.
-        ntomp (int): Number of OpenMP threads.
-        **kwargs: Additional keyword arguments.
-    """
+    """Extend simulations by processing each system and run."""
     kwargs.setdefault('t', '00-04:00:00')
     kwargs.setdefault('N', '1')
     kwargs.setdefault('n', '1')
@@ -61,13 +55,7 @@ def extend(submit=True, ntomp=8, **kwargs):
                 
 
 def trjconv(submit=True, **kwargs):
-    """
-    Convert trajectories for each system and run.
-    
-    Parameters:
-        submit (bool): Whether to submit the job.
-        **kwargs: Additional keyword arguments.
-    """
+    """Convert trajectories for each system and run."""
     for sysname in sysnames:
         for runname in runs:
             dojob(submit, script, pyscript, 'trjconv', sysdir, sysname, runname,
@@ -75,27 +63,23 @@ def trjconv(submit=True, **kwargs):
 
             
 def rms_analysis(submit=True, **kwargs):
-    """
-    Perform RMSD analysis for each system and run.
-    
-    Parameters:
-        submit (bool): Whether to submit the job.
-        **kwargs: Additional keyword arguments.
-    """
+    """Perform RMSD analysis for each system and run."""
     for sysname in sysnames:
         for runname in runs:
             dojob(submit, script, pyscript, 'rms_analysis', sysdir, sysname, runname,
                   J=f'rms_{sysname}_{runname}', **kwargs)
-      
+
+
+def cluster(submit=True, **kwargs):
+    """Run clustering analysis for each system and run."""
+    for sysname in sysnames:
+        for runname in runs:
+            dojob(submit, script, pyscript, 'cluster', sysdir, sysname, runname,
+                  J=f'cluster_{sysname}_{runname}', **kwargs)    
+
 
 def cov_analysis(submit=True, **kwargs):
-    """
-    Perform covariance analysis for each system and run.
-    
-    Parameters:
-        submit (bool): Whether to submit the job.
-        **kwargs: Additional keyword arguments.
-    """
+    """Perform covariance analysis for each system and run."""
     kwargs.setdefault('t', '00-04:00:00')
     kwargs.setdefault('mem', '7G')
     for sysname in sysnames:
@@ -104,28 +88,11 @@ def cov_analysis(submit=True, **kwargs):
                   J=f'cov_{sysname}_{runname}', **kwargs)
 
 
-def cluster(submit=True, **kwargs):
-    """
-    Run clustering analysis for each system and run.
-    
-    Parameters:
-        submit (bool): Whether to submit the job.
-        **kwargs: Additional keyword arguments.
-    """
-    for sysname in sysnames:
-        for runname in runs:
-            dojob(submit, script, pyscript, 'cluster', sysdir, sysname, runname,
-                  J=f'cluster_{sysname}_{runname}', **kwargs)                    
+                
 
 
 def tdlrt_analysis(submit=True, **kwargs):
-    """
-    Perform tdlrt analysis for each system and run.
-    
-    Parameters:
-        submit (bool): Whether to submit the job.
-        **kwargs: Additional keyword arguments.
-    """
+    """Perform tdlrt analysis for each system and run."""
     kwargs.setdefault('t', '00-01:00:00')
     kwargs.setdefault('mem', '30G')
     kwargs.setdefault('G', '1')
@@ -133,31 +100,10 @@ def tdlrt_analysis(submit=True, **kwargs):
         for runname in runs:
             dojob(submit, script, pyscript, 'tdlrt_analysis', sysdir, sysname, runname,
                   J=f'tdlrt_{sysname}_{runname}', **kwargs)
-
-
-def tdlrt_figs(submit=True, **kwargs):
-    """
-    Generate figures from tdlrt analysis for each system and run.
-    
-    Parameters:
-        submit (bool): Whether to submit the job.
-        **kwargs: Additional keyword arguments.
-    """
-    kwargs.setdefault('mem', '7G')
-    for sysname in sysnames:
-        for runname in runs:
-            dojob(submit, script, pyscript, 'tdlrt_figs', sysdir, sysname, runname,
-                  J=f'plot_{sysname}_{runname}', **kwargs)
  
 
 def get_averages(submit=False, **kwargs):
-    """
-    Calculate average values for each system.
-    
-    Parameters:
-        submit (bool): Whether to submit the job.
-        **kwargs: Additional keyword arguments.
-    """
+    """Calculate average values for each system."""
     kwargs.setdefault('mem', '7G')
     for sysname in sysnames:
         dojob(submit, script, pyscript, 'get_averages', sysdir, sysname, 
@@ -165,13 +111,7 @@ def get_averages(submit=False, **kwargs):
 
 
 def get_td_averages(submit=False, **kwargs):
-    """
-    Calculate time-dependent averages for each system.
-    
-    Parameters:
-        submit (bool): Whether to submit the job.
-        **kwargs: Additional keyword arguments.
-    """
+    """Calculate time-dependent averages for each system."""
     kwargs.setdefault('mem', '80G')
     for sysname in sysnames:
         dojob(submit, script, pyscript, 'get_td_averages', sysdir, sysname, 
@@ -179,13 +119,7 @@ def get_td_averages(submit=False, **kwargs):
 
 
 def plot(submit=False, **kwargs):
-    """
-    Generate plots for each system.
-    
-    Parameters:
-        submit (bool): Whether to submit the job.
-        **kwargs: Additional keyword arguments.
-    """
+    """Generate plots for each system."""
     for sysname in sysnames:
         dojob(submit, script, 'plot.py', sysdir, sysname, 
               J='plotting', **kwargs)
@@ -219,8 +153,7 @@ def run_job(jobname, submit=False, **kwargs):
             dojob(submit, script, pyscript, jobname, sysdir, sysname, runname,
                   J=f'{runname}_{jobname}', **kwargs)
 
-
-                
+             
 script = 'sbatch.sh'
 pyscript = 'gmx_pipe.py'
 sysdir = 'systems' 
@@ -237,7 +170,6 @@ setup(submit=True, mem='4G')
 # get_averages(submit=True)
 # plot(submit=False)
 # cluster(submit=False)
-
 # get_td_averages(submit=False)
 # tdlrt_figs(submit=True)
 # test(submit=True)
