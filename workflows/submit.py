@@ -155,7 +155,7 @@ script = 'sbatch.sh'
 pyscript = 'egfr_pipe.py'
 sysdir = 'systems' 
 sysnames = ['egfr'] # 1btl 8aw3
-runs = ['mdrun_1', ] # 'mdrun_2', ] 
+runs = ['mdrun_1', 'mdrun_2', ] 
 
 
 # setup(submit=False, mem='4G')
@@ -163,8 +163,8 @@ runs = ['mdrun_1', ] # 'mdrun_2', ]
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
 # trjconv(submit=True)
 # rms_analysis(submit=True)
-cov_analysis(submit=False)
-# get_averages(submit=True, mem='32G')
+# cov_analysis(submit=True)
+get_averages(submit=True, mem='32G')
 # plot(submit=False)
 # cluster(submit=False)
 # get_td_averages(submit=False)

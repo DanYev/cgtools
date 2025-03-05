@@ -80,6 +80,13 @@ class MDSystem:
         chains = pdbtools.sort_uld(set(atoms.chids))
         return chains
 
+    @property
+    def segments(self):
+        """Same as for chains but for segments IDs"""
+        atoms = io.pdb2atomlist(self.inpdb)
+        segments = pdbtools.sort_uld(set(atoms.segids))
+        return segments
+
     def sort_input_pdb(self, in_pdb="inpdb.pdb"):
         """Sorts and renames atoms and chains in the input PDB file.
 
@@ -461,10 +468,10 @@ class MDRun(MDSystem):
             n (int, optional): Number of covariance matrices to calculate.
             outtag (str, optional): Tag prefix for output files.
         """
-        sample_rate = kwargs.pop('sample_rate', 1)
         b = kwargs.pop('b', 50000)
         e = kwargs.pop('e', 1000000)
-        n = kwargs.pop('b', 10)
+        n = kwargs.pop('n', 10)
+        sample_rate = kwargs.pop('sample_rate', 1)
         outtag = kwargs.pop('outtag', 'covmat')
         logger.info("Calculating covariance matrices...")
         positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e)
@@ -534,7 +541,7 @@ class MDRun(MDSystem):
                 logger.info("  Saved DCI at %s", dci_file_path)
         logger.info("Finished calculating DCIs!")
 
-    def get_group_dci(self, groups, labels, asym=False):
+    def get_group_dci(self, groups, labels, **kwargs):
         """Calculates DCI between specified groups based on perturbation matrices.
 
         Parameters
@@ -543,19 +550,22 @@ class MDRun(MDSystem):
             labels (list): Corresponding labels for the groups.
             asym (bool, optional): If True, computes asymmetric group DCI.
         """
+        intag  = kwargs.pop('intag', "pertmat")
+        outtag  = kwargs.pop('outtag', "dci")
+        asym  = kwargs.pop('asym', False)
         with cd(self.covdir):
-            pert_files = sorted(Path.cwd().glob("pertmat*"))
+            pert_files = sorted([f.name for f in Path.cwd().glob("pertmat*")])
             for pert_file in pert_files:
                 logger.info("  Processing perturbation matrix %s", pert_file)
                 pertmat = np.load(pert_file)
                 logger.info("  Calculating group DCI")
                 dcis = mdm.group_molecule_dci(pertmat, groups=groups, asym=asym)
                 for dci_val, group, group_id in zip(dcis, groups, labels):
-                    dci_file = pert_file.replace("pertmat", f"gdci_{group_id}")
+                    dci_file = pert_file.replace("pertmat", f"g{outtag}_{group_id}")
                     dci_file_path = self.covdir / dci_file
                     np.save(dci_file_path, dci_val)
                     logger.info("  Saved group DCI at %s", dci_file_path)
-                ch_dci_file = pert_file.replace("pertmat", "ggdci")
+                ch_dci_file = pert_file.replace("pertmat", f"gg{outtag}")
                 ch_dci_file_path = self.covdir / ch_dci_file
                 ch_dci = mdm.group_group_dci(pertmat, groups=groups, asym=asym)
                 np.save(ch_dci_file_path, ch_dci)

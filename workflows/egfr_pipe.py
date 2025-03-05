@@ -131,21 +131,17 @@ def make_ndx(sysdir, sysname, **kwargs):
     mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
 
 
-def trjconv(sysdir, sysname, runname, fit='rot+trans', **kwargs):
+def trjconv(sysdir, sysname, runname, **kwargs):
     kwargs.setdefault('b', 0) # in ps
     kwargs.setdefault('dt', 200) # in ps
     kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
     k = 1 # NDX groups: 0.System 1.Solute 2.Backbone 3.Solvent 4.Not water 5-.Chains
     # mdrun.trjconv(clinput=f'0\n', s='md.tpr', f='md.xtc', o='viz.pdb', n=mdrun.sysndx, dt=100000)
-    # mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.pdb', n=mdrun.sysndx, 
-    #     center='yes', pbc='cluster', ur='compact', e=0)
     mdrun.convert_tpr(clinput=f'{k}\n {k}\n', s='md.tpr', n=mdrun.sysndx, o='conv.tpr')
     mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', n=mdrun.sysndx, o='conv.xtc',  
        pbc='nojump', **kwargs)
-    # mdrun.trjconv(clinput='0\n 0\n', s='conv.tpr', f='conv.xtc', o='mdc.xtc', pbc='nojump')
-    if fit:
-        mdrun.trjconv(clinput='0\n0\n0\n', s='conv.tpr', f='conv.xtc', o='mdc.xtc', fit=fit, center='')
+    mdrun.trjconv(clinput='0\n0\n0\n', s='conv.tpr', f='conv.xtc', o='mdc.xtc', fit='rot+trans', center='')
     clean_dir(mdrun.rundir)
     
 
@@ -154,7 +150,7 @@ def rms_analysis(sysdir, sysname, runname, **kwargs):
     kwargs.setdefault('dt', 1000) # in ps
     kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
-    # 2 for backbonea
+    # 2 for backbone
     mdrun.rmsf(clinput='2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='yes', res='yes', **kwargs)
     mdrun.rmsd(clinput='2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='rot+trans', **kwargs)
 
@@ -168,14 +164,15 @@ def cluster(sysdir, sysname, runname, **kwargs):
 
 def cov_analysis(sysdir, sysname, runname):
     mdrun = GmxRun(sysdir, sysname, runname) 
-    # u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True)
-    # ag = u.atoms.select_atoms("name BB or name BB1 or name BB3")
-    # clean_dir(mdrun.covdir, '*npy')
-    # mdrun.get_covmats(u, ag, sample_rate=1, b=50000, e=1000000, n=4, outtag='covmat') #  Begin at b picoseconds, end at e, sample each frame
-    # mdrun.get_pertmats()
-    # mdrun.get_dfi(outtag='dfi')
-    # mdrun.get_dci(outtag='dci', asym=False)
-    # mdrun.get_dci(outtag='asym', asym=True)
+    clean_dir(mdrun.covdir, '*npy')
+    u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True)
+    ag = u.atoms.select_atoms("name BB or name BB1 or name BB3")
+    # Begin at 'b' picoseconds, end at 'e', split into 'n' parts, sample each 'sample_rate' frame
+    mdrun.get_covmats(u, ag, b=50000, e=10000000, n=4, sample_rate=1, outtag='covmat') 
+    mdrun.get_pertmats()
+    mdrun.get_dfi(outtag='dfi')
+    mdrun.get_dci(outtag='dci', asym=False)
+    mdrun.get_dci(outtag='asym', asym=True)
     # Calc DCI between segments
     atoms = io.pdb2atomlist(mdrun.solupdb)
     backbone_anames = ["BB"]
@@ -183,8 +180,6 @@ def cov_analysis(sysdir, sysname, runname):
     bb.renum() # Renumber atids form 0, needed to mask numpy arrays
     groups = bb.segments.atids # mask for the arrays
     labels = [segids[0] for segids in bb.segments.segids]
-    print(labels)
-    exit()
     mdrun.get_group_dci(groups=groups, labels=labels, asym=False)
     # clean_dir(mdrun.covdir, 'covmat*')
 
@@ -215,9 +210,9 @@ def get_averages(sysdir, sysname):
     mdsys.get_mean_sem(pattern='asym*.npy')
     mdsys.get_mean_sem(pattern='rmsf*.npy')
     mdsys.get_mean_sem(pattern='ggdci*.npy') # group-group DCI    
-    for chain in mdsys.chains:
-        logger.info(f'Processing chain {chain}')
-        mdsys.get_mean_sem(pattern=f'gdci_{chain}*.npy')
+    for segment in mdsys.segments:
+        logger.info('Processing segment %s', {segment})
+        mdsys.get_mean_sem(pattern=f'gdci_{segment}*.npy')
 
 
 def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):

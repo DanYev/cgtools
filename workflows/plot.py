@@ -3,13 +3,14 @@ import numpy as np
 import pandas as pd
 import sys
 from reforge import io
-from reforge.mdsystem import gmxmd
-from reforge.plotting import *
+from reforge.mdsystem.mdsystem import MDSystem
 from reforge.mdm import percentile
+from reforge.plotting import *
+from reforge.utils import logger
 
 
 def pull_data(metric):
-    files = io.pull_files(system.datdir, metric)
+    files = io.pull_files(mdsys.datdir, metric)
     datas = [np.load(file) for file in files if '_av' in file]
     errs = [np.load(file) for file in files if '_err' in file]
     return datas, errs
@@ -34,7 +35,8 @@ def set_ax_parameters(ax, xlabel=None, ylabel=None, axtitle=None):
     ax.grid(True, linestyle='--', alpha=0.5)
 
 
-def plot_dfi(system):
+def plot_dfi(mdsys):
+    logger.info("Plotting DFI")
     # Pulling data
     datas, errs = pull_data('dfi*')
     param = {'lw':2}
@@ -46,10 +48,11 @@ def plot_dfi(system):
     fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
     make_errorbar(ax, xs, datas, errs, params, alpha=0.7)
     set_ax_parameters(ax, xlabel='Residue', ylabel='DFI')
-    plot_figure(fig, ax, figname=system.sysname, figpath='png/dfi.png',)
+    plot_figure(fig, ax, figname=mdsys.sysname.upper(), figpath=f'{mdsys.pngdir}/dfi.png',)
 
 
-def plot_pdfi(system):
+def plot_pdfi(mdsys):
+    logger.info("Plotting %DFI")
     # Pulling data
     datas, errs = pull_data('dfi*')
     param = {'lw':2}
@@ -60,10 +63,11 @@ def plot_pdfi(system):
     fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
     make_plot(ax, xs, datas, params)
     set_ax_parameters(ax, xlabel='Residue', ylabel='%DFI')
-    plot_figure(fig, ax, figname=system.sysname.upper(), figpath='png/pdfi.png',)
+    plot_figure(fig, ax, figname=mdsys.sysname.upper(), figpath=f'{mdsys.pngdir}/pdfi.png',)
 
 
-def plot_rmsf(system):
+def plot_rmsf(mdsys):
+    logger.info("Plotting RMSF")
     # Pulling data
     datas, errs = pull_data('rmsf*')
     xs = [np.arange(len(data)) for data in datas]
@@ -74,12 +78,13 @@ def plot_rmsf(system):
     fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
     make_errorbar(ax, xs, datas, errs, params, alpha=0.7)
     set_ax_parameters(ax, xlabel='Residue', ylabel='RMSF (Angstrom)')
-    plot_figure(fig, ax, figname=system.sysname.upper(), figpath='png/rmsf.png',)
+    plot_figure(fig, ax, figname=mdsys.sysname.upper(), figpath=f'{mdsys.pngdir}/rmsf.png',)
 
 
-def plot_rmsd(system):
+def plot_rmsd(mdsys):
+    logger.info("Plotting RMSD")
     # Pulling data
-    files = io.pull_files(system.mddir, 'rmsd*npy')
+    files = io.pull_files(mdsys.mddir, 'rmsd*npy')
     datas = [np.load(file) for file in files]
     labels = [file.split('/')[-3] for file in files]
     xs = [data[0]*1e-3 for data in datas]
@@ -89,10 +94,11 @@ def plot_rmsd(system):
     fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
     make_plot(ax, xs, ys, params)
     set_ax_parameters(ax, xlabel='Time (ns)', ylabel='RMSD (Angstrom)')
-    plot_figure(fig, ax, figname=system.sysname.upper() , figpath='png/rmsd.png',)
+    plot_figure(fig, ax, figname=mdsys.sysname.upper() , figpath=f'{mdsys.pngdir}/rmsd.png',)
 
 
-def plot_dci(system):
+def plot_dci(mdsys):
+    logger.info("Plotting DCI")
     # Pulling data
     datas, errs = pull_data('dci*')
     param = {'lw':2}
@@ -102,10 +108,11 @@ def plot_dci(system):
     fig, ax = init_figure(grid=(1, 1), axsize=(6, 6))
     make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=0, vmax=2)
     set_ax_parameters(ax, xlabel='Residue', ylabel='Residue')
-    plot_figure(fig, ax, figname='DCI', figpath='png/dci.png',)
+    plot_figure(fig, ax, figname=mdsys.sysname.upper(), figpath=f'{mdsys.pngdir}/dci.png',)
 
 
-def plot_asym(system):
+def plot_asym(mdsys):
+    logger.info("Plotting DCI asym")
     # Pulling data
     datas, errs = pull_data('asym*')
     param = {'lw':2}
@@ -115,17 +122,39 @@ def plot_asym(system):
     fig, ax = init_figure(grid=(1, 1), axsize=(6, 6))
     make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=-1, vmax=1)
     set_ax_parameters(ax, xlabel='Residue', ylabel='Residue')
-    plot_figure(fig, ax, figname='DCI asymmetry', figpath='png/asym.png',)
+    plot_figure(fig, ax, figname=mdsys.sysname.upper(), figpath=f'{mdsys.pngdir}/asym.png',)
+
+
+def plot_segment_dci(mdsys, segid):
+    logger.info("Plotting %s DCI", segid)
+    # Pulling data
+    datas, errs = pull_data(f'gdci_{segid}*')
+    param = {'lw':2}
+    xs = [np.arange(len(data)) for data in datas]
+    datas = [data for data in datas]
+    params = [param for data in datas]
+    # Plotting
+    fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
+    make_plot(ax, xs, datas, params)
+    set_ax_parameters(ax, xlabel='Residue', ylabel='DCI')
+    plot_figure(fig, ax, figname=mdsys.sysname.upper() + " " + segid.upper(), 
+        figpath=f'{mdsys.pngdir}/gdci_{segid}.png',)
+
+
+def plot_all_segments(mdsys):
+    for segid in mdsys.segments:   
+        plot_segment_dci(mdsys, segid)
    
     
 if __name__ == '__main__':
     sysdir = 'systems' 
     sysname = 'egfr'
-    system = gmxmd.GmxSystem(sysdir, sysname)
-    plot_dfi(system)
-    plot_pdfi(system)
-    plot_dci(system)
-    plot_asym(system)
-    plot_rmsf(system)
-    plot_rmsd(system)
+    mdsys = MDSystem(sysdir, sysname)
+    # plot_dfi(mdsys)
+    # plot_pdfi(mdsys)
+    # plot_dci(mdsys)
+    # plot_asym(mdsys)
+    # plot_rmsf(mdsys)
+    # plot_rmsd(mdsys)
+    plot_all_segments(mdsys)
 
