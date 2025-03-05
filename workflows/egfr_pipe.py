@@ -180,7 +180,8 @@ def cov_analysis(sysdir, sysname, runname):
     bb.renum() # Renumber atids form 0, needed to mask numpy arrays
     groups = bb.segments.atids # mask for the arrays
     labels = [segids[0] for segids in bb.segments.segids]
-    mdrun.get_group_dci(groups=groups, labels=labels, asym=False)
+    mdrun.get_group_dci(groups=groups, labels=labels, asym=False, outtag='dci')
+    mdrun.get_group_dci(groups=groups, labels=labels, asym=True, outtag='asym')
     # clean_dir(mdrun.covdir, 'covmat*')
 
 

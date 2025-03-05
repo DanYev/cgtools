@@ -26,13 +26,39 @@ def set_ax_parameters(ax, xlabel=None, ylabel=None, axtitle=None):
     ax.set_title(axtitle, fontsize=16)
     # Customize tick parameters
     ax.tick_params(axis='both', which='major', labelsize=14, direction='in', length=5, width=1.5)
+    ax.tick_params(axis='x', which='both', bottom=True, top=False, labelbottom=True, labeltop=False)
+    line_positions, label_positions, labels = grid_labels(mdsys)
+    max_line_pos = max(line_positions)
+    # ax.set_xticks(label_positions)
+    # ax.set_xticklabels(labels, rotation=90)
+    # Add vertical lines
+    for line_pos, label_pos, label in zip(line_positions, label_positions, labels):
+        ax.axvline(x=line_pos, color='k', linestyle=':', label=None)
+        ax.text(label_pos/max_line_pos-0.008, 1.03, label, transform=ax.transAxes, 
+            rotation=90, fontsize=14) 
     # Increase spine width for a bolder look
     for spine in ax.spines.values():
         spine.set_linewidth(1.5)
     # Add a legend with custom font size and no frame
     legend = ax.legend(fontsize=14, frameon=False)
-    # Optionally, add gridlines
-    ax.grid(True, linestyle='--', alpha=0.5)
+   # Autoscale the view to the data
+    ax.relim()         # Recalculate limits based on current artists
+    ax.autoscale_view()  # Update the view to the recalculated limits
+    # Remove padding around the data
+    ax.margins(0)
+
+
+def grid_labels(mdsys):
+    atoms = io.pdb2atomlist(mdsys.solupdb)
+    backbone_anames = ["BB"]
+    bb = atoms.mask(backbone_anames, mode='name')
+    bb.renum() # Renumber atids form 0, needed to mask numpy arrays
+    groups = bb.segments.atids # mask for the arrays
+    labels = [segids[0] for segids in bb.segments.segids]
+    line_positions = [group[0] for group in groups]
+    line_positions.append(groups[-1][-1])
+    label_positions = [group[len(group)//2] for group in groups]
+    return line_positions, label_positions, labels
 
 
 def plot_dfi(mdsys):
@@ -152,10 +178,11 @@ if __name__ == '__main__':
     sysname = 'egfr'
     mdsys = MDSystem(sysdir, sysname)
     plot_dfi(mdsys)
-    plot_pdfi(mdsys)
-    plot_dci(mdsys)
-    plot_asym(mdsys)
-    plot_rmsf(mdsys)
-    plot_rmsd(mdsys)
-    plot_all_segments(mdsys)
+    # plot_pdfi(mdsys)
+    # plot_dci(mdsys)
+    # plot_asym(mdsys)
+    # plot_rmsf(mdsys)
+    # plot_rmsd(mdsys)
+    # plot_all_segments(mdsys)
+    # grid_labels(mdsys)
 
