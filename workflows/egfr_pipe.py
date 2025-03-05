@@ -213,7 +213,7 @@ def get_averages(sysdir, sysname):
     mdsys.get_mean_sem(pattern='rmsf*.npy')
     mdsys.get_mean_sem(pattern='ggdci*.npy') # group-group DCI  
     mdsys.get_mean_sem(pattern='ggasym*.npy') # group-group DCI-ASYM 
-    for segment in mdsys.segments:
+    for segment in mdsys.segments: # by segment
         logger.info('Processing segment %s', {segment})
         mdsys.get_mean_sem(pattern=f'gdci_{segment}*.npy')
         mdsys.get_mean_sem(pattern=f'gasym_{segment}*.npy')

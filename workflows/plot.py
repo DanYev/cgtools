@@ -1,11 +1,8 @@
-import os
-import sys
 import numpy as np
-import pandas as pd
 from reforge import io
 from reforge.mdsystem.mdsystem import MDSystem
 from reforge.mdm import percentile
-from reforge.plotting import *
+from reforge.plotting import init_figure, make_errorbar, make_plot, make_heatmap, plot_figure
 from reforge.utils import logger
 
 
@@ -152,7 +149,6 @@ def plot_rmsd(mdsys):
     make_plot(ax, xs, ys, params)
     ax.set_xlabel('Time (ns)', fontsize=16)
     ax.set_ylabel('RMSD (Angstrom)', fontsize=16)
-    # set_ax_parameters(ax, xlabel='Time (ns)', ylabel='RMSD (Angstrom)')
     plot_figure(fig, ax, figname=mdsys.sysname.upper() , figpath=f'{mdsys.pngdir}/rmsd.png',)
 
 
@@ -230,23 +226,6 @@ def plot_segment_asym(mdsys, segid):
     set_ax_parameters(ax, xlabel='Residue', ylabel='DCI-ASYM')
     plot_figure(fig, ax, figname=mdsys.sysname.upper() + " " + segid.upper(), 
         figpath=f'{mdsys.pngdir}/gasym_{segid}.png',)
-
-
-# def plot_segment_pertmat(mdsys, segid):
-#     logger.info("Plotting %s pertmat", segid)
-#     # Pulling data
-#     datas, errs = pull_data(f'gasym_{segid}*')
-#     param = {'lw':2}
-#     xs = [np.arange(len(data)) for data in datas]
-#     datas = [data for data in datas]
-#     errs = [err for err in errs]
-#     params = [param for data in datas] 
-#     # Plotting
-#     fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
-#     make_errorbar(ax, xs, datas, errs, params, alpha=0.7)
-#     set_ax_parameters(ax, xlabel='Residue', ylabel='Pert')
-#     plot_figure(fig, ax, figname=mdsys.sysname.upper() + " " + segid.upper(), 
-#         figpath=f'{mdsys.pngdir}/gasym_{segid}.png',)
 
 
 def plot_all_segments(mdsys):
