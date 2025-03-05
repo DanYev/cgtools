@@ -1,7 +1,7 @@
 import os
+import sys
 import numpy as np
 import pandas as pd
-import sys
 from reforge import io
 from reforge.mdsystem.mdsystem import MDSystem
 from reforge.mdm import percentile

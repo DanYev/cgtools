@@ -186,19 +186,20 @@ def cov_analysis(sysdir, sysname, runname):
 
 
 def tdlrt_analysis(sysdir, sysname, runname):
+    logging.basicConfig(level=logging.DEBUG)
     mdrun = GmxRun(sysdir, sysname, runname) 
     # CCF params FRAMEDT=20 ps
     b = 0
     e = 10000000
-    sample_rate = 1
+    sample_rate = 10
     ntmax = 1000 # how many frames to save
     corr_file = os.path.join(mdrun.lrtdir, 'corr_pp.npy')
     # CALC CCF
     u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True)
     ag = u.atoms
     positions = io.read_positions(u, ag, sample_rate=sample_rate, b=b, e=e) 
-    velocities = io.read_velocities(u, ag, sample_rate=sample_rate, b=b, e=e)
-    corr = mdm.ccf(positions, positions, ntmax=ntmax, n=10, mode='gpu', center=True)
+    # velocities = io.read_velocities(u, ag, sample_rate=sample_rate, b=b, e=e)
+    corr = mdm.ccf(positions, positions, ntmax=ntmax, n=100, mode='gpu', center=True)
     np.save(corr_file, corr)
 
 
@@ -219,27 +220,12 @@ def get_averages(sysdir, sysname):
     logger.info("Done!")
 
 
-def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):
+def get_td_averages(sysdir, sysname):
     """
     Need to loop for big arrays
     """
     mdsys = GmxSystem(sysdir, sysname)  
-    print('Getting averages', file=sys.stderr)  
-    files = io.pull_files(mdsys.mddir, fname)
-    if loop:
-        print(f'Processing {files[0]}', file=sys.stderr) 
-        average = np.load(files[0])
-        for f in files[1:]:
-            print(f'Processing {f}', file=sys.stderr)  
-            arr = np.load(f)
-            average += arr
-        average /= len(files)
-    else:
-        arrays = [np.load(f) for f in files]
-        average = np.average(arrays, axis=0)
-    np.save(os.path.join(mdsys.datdir, fname), average) 
-    print('Done!', file=sys.stderr)  
-    return average
+    mdsys.get_td_averages(fname='corr_pp.npy')
 
 
 def sysjob(sysdir, sysname):    
@@ -249,7 +235,9 @@ def sysjob(sysdir, sysname):
 def runjob(sysdir, sysname, runname):    
     trjconv(sysdir, sysname, runname)
     rms_analysis(sysdir, sysname, runname)
-    # get_averages(sysdir, sysname)
+    cov_analysis(sysdir, sysname, runname)
+    tdlrt_analysis(sysdir, sysname, runname)
+    get_averages(sysdir, sysname, runname)
 
         
 if __name__ == '__main__':
