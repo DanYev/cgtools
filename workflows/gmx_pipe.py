@@ -169,8 +169,8 @@ def make_ndx(sysdir, sysname, **kwargs):
 
 def trjconv(sysdir, sysname, runname, fit='rot+trans', **kwargs):
     kwargs.setdefault('b', 0) # in ps
-    kwargs.setdefault('dt', 20000) # in ps
-    kwargs.setdefault('e', 700000) # in ps
+    kwargs.setdefault('dt', 200) # in ps
+    kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
     k = 1 # NDX groups: 0.System 1.Solute 2.Backbone 3.Solvent 4.Not water 5-.Chains
     # mdrun.trjconv(clinput=f'0\n', s='md.tpr', f='md.xtc', o='viz.pdb', n=mdrun.sysndx, dt=100000)
@@ -212,13 +212,13 @@ def cov_analysis(sysdir, sysname, runname):
     mdrun.get_dfi(outtag='dfi')
     mdrun.get_dci(outtag='dci', asym=False)
     mdrun.get_dci(outtag='asym', asym=True)
-    # # Calc DCI between chains
+    # # Calc DCI between segments
     # atoms = io.pdb2atomlist(mdrun.str)
     # backbone_anames = ["BB", "BB2"]
     # bb = atoms.mask(backbone_anames, mode='name')
     # bb.renum() # Renumber atids form 0, needed to mask numpy arrays
-    # groups = bb.chains.atids # mask for the arrays
-    # labels = [chids[0] for chids in bb.chains.chids]
+    # groups = bb.segments.atids # mask for the arrays
+    # labels = [segids[0] for segids in bb.segments.segids]
     # mdrun.get_group_dci(groups=groups, labels=labels, asym=False)
     # # clean_dir(mdrun.covdir, 'covmat*')
 

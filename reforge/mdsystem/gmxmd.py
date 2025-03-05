@@ -460,8 +460,7 @@ class GmxRun(MDRun):
         self.gmx('trjconv', clinput=clinput, **kwargs)
 
     def convert_tpr(self, clinput=None, **kwargs):
-        """Converts TPR files using GROMACS convert-tpr.
-        """
+        """Converts TPR files using GROMACS convert-tpr."""
         self.gmx('convert-tpr', clinput=clinput, **kwargs)   
 
     def rmsf(self, clinput=None, **kwargs):
