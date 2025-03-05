@@ -348,6 +348,22 @@ class AtomList(list):
             self[i].vec = nvec
 
     @property
+    def residues(self):
+        """Group atoms by residue and return an AtomListCollection."""
+        new_residue = AtomList()
+        residues = []
+        resid = self.resids[0]
+        for atom in self:
+            if atom.resid != resid:
+                residues.append(new_residue)
+                new_residue = AtomList()
+                resid = atom.resid
+            new_residue.append(atom)
+        if new_residue:
+            residues.append(new_residue)
+        return AtomListCollection(residues)
+
+    @property
     def chains(self):
         """Group atoms by chain identifier and return an AtomListCollection."""
         new_chain = AtomList()
@@ -364,20 +380,20 @@ class AtomList(list):
         return AtomListCollection(chains)
 
     @property
-    def residues(self):
-        """Group atoms by residue and return an AtomListCollection."""
-        new_residue = AtomList()
-        residues = []
-        resid = self.resids[0]
+    def segments(self):
+        """Group atoms by segid identifier and return an AtomListCollection."""
+        new_segment = AtomList()
+        segment = []
+        segid = self.segids[0]
         for atom in self:
-            if atom.resid != resid:
-                residues.append(new_residue)
-                new_residue = AtomList()
-                resid = atom.resid
-            new_residue.append(atom)
-        if new_residue:
-            residues.append(new_residue)
-        return AtomListCollection(residues)
+            if atom.segid != segid:
+                segment.append(new_segment)
+                new_segment = AtomList()
+                segid = atom.segid
+            new_segment.append(atom)
+        if new_segment:
+            segment.append(new_segment)
+        return AtomListCollection(segment)
 
     def renum(self):
         """Renumber atom IDs starting from 0."""
@@ -815,6 +831,11 @@ def update_bfactors(in_pdb, out_pdb, bfactors):
 def sort_uld(alist):
     """Sort a list of characters: uppercase, then lowercase, then digits."""
     return sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
+
+
+def label_segments(in_pdb, out_pdb,):
+    """Label segments based on something"""
+    pass
 
 
 AA_CODE_CONVERTER = {

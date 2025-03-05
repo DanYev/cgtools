@@ -1,5 +1,5 @@
 """
-Gmx Pipe Tutorial
+EGFR Pipeline
 =================
 
 This module serves as a tutorial for setting up and running coarse-grained
@@ -32,46 +32,9 @@ from reforge.utils import *
 
 
 def setup(*args):
-    # setup_cg_protein_rna(*args)
     setup_cg_protein_membrane(*args)
 
 
-def setup_cg_protein_rna(sysdir, sysname):
-    ### FOR CG PROTEIN+/RNA SYSTEMS ###
-    mdsys = GmxSystem(sysdir, sysname)
-
-    # 1.1. Need to copy force field and md-parameter files and prepare directories
-    mdsys.prepare_files() # be careful it can overwrite later files
-    mdsys.sort_input_pdb(f"{sysname}.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
-
-    # # 1.2.1 Try to clean the input PDB and split the chains based on the type of molecules (protein, RNA/DNA)
-    # mdsys.clean_pdb_mm(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
-    # mdsys.split_chains()
-    # mdsys.clean_chains_mm(add_missing_atoms=True, add_hydrogens=True, pH=7.0)  # if didn't work for the whole PDB
-    
-    # 1.2.2 Same but if we want Go-Model for the proteins
-    mdsys.clean_pdb_gmx(in_pdb=mdsys.inpdb, clinput='8\n 7\n', ignh='no', renum='yes') # 8 for CHARMM, sometimes you need to refer to AMBER FF
-    mdsys.split_chains()
-    mdsys.clean_chains_gmx(clinput='8\n 7\n', ignh='yes', renum='yes')
-    mdsys.get_go_maps(append=True)
-
-    # 1.3. COARSE-GRAINING. Done separately for each chain. If don't want to split some of them, it needs to be done manually. 
-    # mdsys.martinize_proteins_en(ef=700, el=0.3, eu=0.8, p='backbone', pf=500, append=False)  # Martini + Elastic network FF 
-    mdsys.martinize_proteins_go(go_eps=10.0, go_low=0.3, go_up=1.0, p='backbone', pf=500, append=False) # Martini + Go-network FF
-    mdsys.martinize_rna(ef=200, el=0.3, eu=1.2, p='backbone', pf=500, append=True) # Martini RNA FF 
-    mdsys.make_cg_topology(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
-    mdsys.make_cg_structure(bt='dodecahedron', d='1.2', ) # CG structure. Returns mdsys.solupdb ("solute.pdb") file
-    
-    # 1.4. Coarse graining is *hopefully* done. Need to add solvent and ions
-    solvent = os.path.join(mdsys.wdir, 'water.gro')
-    mdsys.solvate(cp=mdsys.solupdb, cs=solvent) # all kwargs go to gmx solvate command
-    mdsys.add_bulk_ions(conc=0.15, pname='NA', nname='CL')
-
-    # 1.5. Need index files to make selections with GROMACS. Very annoying but wcyd. Order:
-    # 1.System 2.Solute 3.Backbone 4.Solvent 5...chains. Can add custom groups using AtomList.write_to_ndx()
-    mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
-   
-      
 def setup_cg_protein_membrane(sysdir, sysname):
     ### FOR CG PROTEIN+LIPID BILAYERS ###
     mdsys = GmxSystem(sysdir, sysname)
@@ -79,8 +42,7 @@ def setup_cg_protein_membrane(sysdir, sysname):
     # 1.1. Need to copy force field and md-parameter files and prepare directories.
     mdsys.prepare_files() # be careful it can overwrite later files
     mdsys.sort_input_pdb(f"{sysname}.pdb") # sorts chain and atoms in the input file and returns makes mdsys.inpdb file
-    label_segments(in_pdb=mdsys.inpdb, out_pdb=mdsys.inpdb)
-    
+    label_segments(in_pdb=mdsys.inpdb, out_pdb=mdsys.inpdb)  
     # # We may need to run mdsys.inpdb through OpenMM's or GROMACS' pdb tools but not always needed.
     # mdsys.clean_pdb_mm(add_missing_atoms=False, add_hydrogens=True, pH=7.0)
     # mdsys.clean_pdb_gmx(in_pdb=mdsys.inpdb, clinput='8\n 7\n', ignh='no', renum='yes') # 8 for CHARMM, 6 for AMBER FF
@@ -97,7 +59,6 @@ def setup_cg_protein_membrane(sysdir, sysname):
     mdsys.make_cg_topology(add_resolved_ions=False, prefix='chain') # CG topology. Returns mdsys.systop ("mdsys.top") file
     mdsys.make_cg_structure() # CG topology. Returns mdsys.solupdb ("solute.pdb") file
     label_segments(in_pdb=mdsys.solupdb, out_pdb=mdsys.solupdb)
-
     # We can now insert the protein in a membrane. It may require a few attempts to get the geometry right.
     # Option 'dm' shifts the membrane along z-axis
     mdsys.insert_membrane(
@@ -170,30 +131,26 @@ def make_ndx(sysdir, sysname, **kwargs):
     mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
 
 
-def trjconv(sysdir, sysname, runname, fit='rot+trans', **kwargs):
+def trjconv(sysdir, sysname, runname, **kwargs):
     kwargs.setdefault('b', 0) # in ps
     kwargs.setdefault('dt', 200) # in ps
     kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
     k = 1 # NDX groups: 0.System 1.Solute 2.Backbone 3.Solvent 4.Not water 5-.Chains
     # mdrun.trjconv(clinput=f'0\n', s='md.tpr', f='md.xtc', o='viz.pdb', n=mdrun.sysndx, dt=100000)
-    # mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.pdb', n=mdrun.sysndx, 
-    #     center='yes', pbc='cluster', ur='compact', e=0)
     mdrun.convert_tpr(clinput=f'{k}\n {k}\n', s='md.tpr', n=mdrun.sysndx, o='conv.tpr')
     mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', n=mdrun.sysndx, o='conv.xtc',  
        pbc='nojump', **kwargs)
-    # mdrun.trjconv(clinput='0\n 0\n', s='conv.tpr', f='conv.xtc', o='mdc.xtc', pbc='nojump')
-    if fit:
-        mdrun.trjconv(clinput='0\n0\n0\n', s='conv.tpr', f='conv.xtc', o='mdc.xtc', fit=fit, center='')
+    mdrun.trjconv(clinput='0\n0\n0\n', s='conv.tpr', f='conv.xtc', o='mdc.xtc', fit='rot+trans', center='')
     clean_dir(mdrun.rundir)
     
 
 def rms_analysis(sysdir, sysname, runname, **kwargs):
     kwargs.setdefault('b',  50000) # in ps
-    kwargs.setdefault('dt', 1000) # in ps
+    kwargs.setdefault('dt', 200) # in ps
     kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
-    # 2 for backbonea
+    # 2 for backbone
     mdrun.rmsf(clinput='2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='yes', res='yes', **kwargs)
     mdrun.rmsd(clinput='2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='rot+trans', **kwargs)
 
@@ -207,14 +164,15 @@ def cluster(sysdir, sysname, runname, **kwargs):
 
 def cov_analysis(sysdir, sysname, runname):
     mdrun = GmxRun(sysdir, sysname, runname) 
-    # u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True)
-    # ag = u.atoms.select_atoms("name BB or name BB1 or name BB3")
-    # clean_dir(mdrun.covdir, '*npy')
-    # mdrun.get_covmats(u, ag, sample_rate=1, b=50000, e=1000000, n=4, outtag='covmat') #  Begin at b picoseconds, end at e, sample each frame
-    # mdrun.get_pertmats()
-    # mdrun.get_dfi(outtag='dfi')
-    # mdrun.get_dci(outtag='dci', asym=False)
-    # mdrun.get_dci(outtag='asym', asym=True)
+    clean_dir(mdrun.covdir, '*npy')
+    u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True)
+    ag = u.atoms.select_atoms("name BB or name BB1 or name BB3")
+    # Begin at 'b' picoseconds, end at 'e', split into 'n' parts, sample each 'sample_rate' frame
+    mdrun.get_covmats(u, ag, b=100000, e=10000000, n=10, sample_rate=1, outtag='covmat') 
+    mdrun.get_pertmats()
+    mdrun.get_dfi(outtag='dfi')
+    mdrun.get_dci(outtag='dci', asym=False)
+    mdrun.get_dci(outtag='asym', asym=True)
     # Calc DCI between segments
     atoms = io.pdb2atomlist(mdrun.solupdb)
     backbone_anames = ["BB"]
@@ -222,9 +180,8 @@ def cov_analysis(sysdir, sysname, runname):
     bb.renum() # Renumber atids form 0, needed to mask numpy arrays
     groups = bb.segments.atids # mask for the arrays
     labels = [segids[0] for segids in bb.segments.segids]
-    print(labels)
-    exit()
-    mdrun.get_group_dci(groups=groups, labels=labels, asym=False)
+    mdrun.get_group_dci(groups=groups, labels=labels, asym=False, outtag='dci')
+    mdrun.get_group_dci(groups=groups, labels=labels, asym=True, outtag='asym')
     # clean_dir(mdrun.covdir, 'covmat*')
 
 
@@ -253,10 +210,13 @@ def get_averages(sysdir, sysname):
     mdsys.get_mean_sem(pattern='dci*.npy')
     mdsys.get_mean_sem(pattern='asym*.npy')
     mdsys.get_mean_sem(pattern='rmsf*.npy')
-    mdsys.get_mean_sem(pattern='ggdci*.npy') # group-group DCI    
-    for chain in mdsys.chains:
-        logger.info(f'Processing chain {chain}')
-        mdsys.get_mean_sem(pattern=f'gdci_{chain}*.npy')
+    mdsys.get_mean_sem(pattern='ggdci*.npy') # group-group DCI  
+    mdsys.get_mean_sem(pattern='ggasym*.npy') # group-group DCI-ASYM 
+    for segment in mdsys.segments:
+        logger.info('Processing segment %s', {segment})
+        mdsys.get_mean_sem(pattern=f'gdci_{segment}*.npy')
+        mdsys.get_mean_sem(pattern=f'gasym_{segment}*.npy')
+    logger.info("Done!")
 
 
 def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):

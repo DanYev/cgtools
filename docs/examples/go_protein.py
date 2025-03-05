@@ -15,7 +15,7 @@ import os
 from reforge import cli
 from reforge.mdsystem.gmxmd import GmxSystem, GmxRun
 
-WDIR = '.' # '.' for html, 'examples' for manual
+WDIR = 'docs/examples' # '.' for html, 'examples' for manual
 os.chdir(WDIR)
 cli.run('rm -rf test/*')
 #%%

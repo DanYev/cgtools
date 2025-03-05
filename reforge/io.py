@@ -41,19 +41,26 @@ from reforge.pdbtools import AtomList, System, PDBParser
 
 @timeit
 @memprofit
-def read_positions(u, ag, time_range=(0, 10000000), sample_rate=1, dtype=np.float32):
-    """Read and return positions from an MDAnalysis trajectory.
+def read_positions(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
+    """Extract and return positions from an MDAnalysis trajectory.
+
+    This function reads the positions for a specified atom group from the 
+    trajectory stored in an MDAnalysis Universe. It extracts frames starting 
+    from index `b` up to index `e`, sampling every `sample_rate` frames, and 
+    returns the coordinates in a flattened, contiguous 2D array.
 
     Parameters
     ----------
-    u : MDAnalysis Universe
+    u : MDAnalysis.Universe
         The MDAnalysis Universe containing the trajectory.
-    ag : MDAnalysis AtomGroup
+    ag : MDAnalysis.AtomGroup
         The atom group from which to extract positions.
-    time_range : tuple, optional
-        The beginning and ending times (default is (0, 10000000)).
+    b : int, optional
+        The starting frame index (default is 0).
+    e : int, optional
+        The ending frame index (default is 10000000).
     sample_rate : int, optional
-        Sampling rate (default is 1).
+        The sampling rate for frames (default is 1, meaning every frame is used).
     dtype : data-type, optional
         The data type for the returned array (default is np.float32).
 
@@ -63,7 +70,7 @@ def read_positions(u, ag, time_range=(0, 10000000), sample_rate=1, dtype=np.floa
         A contiguous 2D array with shape (n_coords, n_frames) containing flattened 
         position coordinates.
     """
-    b, e = time_range
+
     logger.info("Reading positions...")
     arr = np.array(
         [ag.positions.flatten() for ts in u.trajectory[::sample_rate] if b < ts.time < e],
@@ -76,29 +83,8 @@ def read_positions(u, ag, time_range=(0, 10000000), sample_rate=1, dtype=np.floa
 
 @timeit
 @memprofit
-def read_velocities(u, ag, time_range=(0, 10000000), sample_rate=1, dtype=np.float32):
-    """Read and return velocities from an MDAnalysis trajectory.
-
-    Parameters
-    ----------
-    u : MDAnalysis Universe
-        The MDAnalysis Universe containing the trajectory.
-    ag : MDAnalysis AtomGroup
-        The atom group from which to extract velocities.
-    time_range : tuple, optional
-        The beginning and ending times (default is (0, 10000000)).
-    sample_rate : int, optional
-        Sampling rate (default is 1).
-    dtype : data-type, optional
-        The data type for the returned array (default is np.float32).
-
-    Returns
-    -------
-    np.ndarray
-        A contiguous 2D array with shape (n_coords, n_frames) containing flattened 
-        velocity vectors.
-    """
-    b, e = time_range
+def read_velocities(u, ag, b=0, e=10000000, sample_rate=1, dtype=np.float32):
+    """Saimilar to the previous. Read and return velocities from an MDAnalysis trajectory."""
     logger.info("Reading velocities...")
     arr = np.array(
         [ag.velocities.flatten() for ts in u.trajectory[::sample_rate] if b < ts.time < e],

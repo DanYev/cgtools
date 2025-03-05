@@ -187,7 +187,7 @@ def make_2d_data(infile, nframes=1000):
     return matrices
 
 
-def make_heatmap(data, outfile="png/heatmap.png"):
+def make_heatmap_td(data, outfile="png/heatmap.png"):
     print("Making a heatmap", file=sys.stderr)
     fig, ax = plt.subplots()
     img = ax.imshow(
@@ -213,7 +213,7 @@ def make_heatmap(data, outfile="png/heatmap.png"):
     return fig, img
 
 
-def make_plot(datas, labels, outfile="png/test.png"):
+def make_plot_td(datas, labels, outfile="png/test.png"):
     print("Making a plot", file=sys.stderr)
     fig, ax = plt.subplots(figsize=(12, 5))
     lines = []
@@ -247,7 +247,7 @@ def make_plot(datas, labels, outfile="png/test.png"):
     return fig, ax, lines
 
 
-def make_plot_t(datas, labels, outfile="png/test.png", dt=0.2):
+def make_plot_t_td(datas, labels, outfile="png/test.png", dt=0.2):
     print("Making a plot", file=sys.stderr)
     # residues = [9, 14, 761, 839, 982, 985, ]
     resp_residues = list(range(6))

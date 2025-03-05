@@ -18,7 +18,6 @@ Author: DY
 
 from pathlib import Path
 import shutil
-import numpy as np
 import pytest
 from reforge.mdsystem.gmxmd import *
 from reforge.cli import run
@@ -80,11 +79,11 @@ def test_martinize_rna():
     assert (Path(mdsys.topdir) / "chain_A.itp").exists()
     assert (Path(mdsys.topdir) / "chain_B.itp").exists()
 
-def test_make_cg_solute_pdb():
+def test_make_cg_structure():
     """
-    Test that make_solute_pdb() creates the solute PDB file.
+    Test that make_cg_structure() creates the solute PDB file.
     """
-    mdsys.make_cg_solute_pdb()
+    mdsys.make_cg_structure_pdb()
     assert mdsys.solupdb.exists()
 
 def test_make_cg_topology():
@@ -93,6 +92,13 @@ def test_make_cg_topology():
     """
     mdsys.make_cg_topology()
     assert mdsys.systop.exists()
+
+def test_make_box():
+    """
+    Test that make_box() creates the simulation box.
+    """
+    mdsys.make_box()
+    assert mdsys.solupdb.exists()
 
 def test_solvate():
     """

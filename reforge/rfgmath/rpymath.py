@@ -47,7 +47,7 @@ from reforge.utils import timeit, memprofit, logger
 
 @memprofit
 @timeit
-def sfft_ccf(x, y, *, ntmax=None, center=False, loop=True, dtype=None):
+def sfft_ccf(x, y, ntmax=None, center=False, loop=True, dtype=None):
     """Compute the correlation function between two signals using a serial FFT-based method.
     
     Parameters:
@@ -95,7 +95,7 @@ def sfft_ccf(x, y, *, ntmax=None, center=False, loop=True, dtype=None):
 
 @memprofit
 @timeit
-def pfft_ccf(x, y, *, ntmax=None, center=False, dtype=None):
+def pfft_ccf(x, y, ntmax=None, center=False, dtype=None):
     """Compute the correlation function using a parallel FFT-based method.
     
     Parameters:
@@ -141,7 +141,7 @@ def pfft_ccf(x, y, *, ntmax=None, center=False, dtype=None):
 
 @memprofit
 @timeit
-def gfft_ccf(x, y, *, ntmax=None, center=True, dtype=None):
+def gfft_ccf(x, y, ntmax=None, center=True, dtype=None):
     """Compute the correlation function on the GPU using FFT.
     
     Parameters:
@@ -197,13 +197,13 @@ def fft_ccf(*args, mode="serial", **kwargs):
         return pfft_ccf(*args, **kwargs)
     if mode == "gpu":
         result = gfft_ccf(*args, **kwargs)
-        return result.get() if hasattr(result, "get") else result
+        return result.get() 
     raise ValueError("Currently 'mode' should be 'serial', 'parallel' or 'gpu'.")
 
 
 @memprofit
 @timeit
-def ccf(xs, ys, *, ntmax=None, n=1, mode="parallel", center=True, dtype=None):
+def ccf(xs, ys, ntmax=None, n=1, mode="parallel", center=True, dtype=None):
     """Compute the average cross-correlation function of two signals by segmenting them.
     
     Parameters:
@@ -242,7 +242,7 @@ def ccf(xs, ys, *, ntmax=None, n=1, mode="parallel", center=True, dtype=None):
 
 @memprofit
 @timeit
-def gfft_conv(x, y, *, loop=False, dtype=None):
+def gfft_conv(x, y, loop=False, dtype=None):
     """Compute element-wise convolution between two signals on the GPU using FFT.
     
     Parameters:
@@ -280,7 +280,7 @@ def gfft_conv(x, y, *, loop=False, dtype=None):
 
 @memprofit
 @timeit
-def sfft_cpsd(x, y, *, ntmax=None, center=True, loop=True, dtype=np.float64):
+def sfft_cpsd(x, y, ntmax=None, center=True, loop=True, dtype=np.float64):
     """Compute the Cross-Power Spectral Density (CPSD) between two signals using FFT.
     
     Parameters:
@@ -322,7 +322,7 @@ def sfft_cpsd(x, y, *, ntmax=None, center=True, loop=True, dtype=np.float64):
 
 @memprofit
 @timeit
-def covariance_matrix(positions, *, dtype=np.float32):
+def covariance_matrix(positions, dtype=np.float32):
     """Calculate the position-position covariance matrix from a set of positions.
     
     The function centers the input positions by subtracting their mean and then
@@ -345,7 +345,7 @@ def covariance_matrix(positions, *, dtype=np.float32):
 ## DCI and DFI Calculations ##
 ##############################################################
 
-def dci(perturbation_matrix, *, asym=False):
+def dci(perturbation_matrix, asym=False):
     """Calculate the Dynamic Coupling Index (DCI) matrix from a perturbation matrix.
     
     Parameters:
@@ -362,7 +362,7 @@ def dci(perturbation_matrix, *, asym=False):
     return dci_val
 
 
-def group_molecule_dci(perturbation_matrix, *, groups=None, asym=False):
+def group_molecule_dci(perturbation_matrix, groups=None, asym=False):
     """Compute the DCI for specified groups of atoms relative to the entire molecule.
     
     Parameters:
@@ -388,7 +388,7 @@ def group_molecule_dci(perturbation_matrix, *, groups=None, asym=False):
     return dcis
 
 
-def group_group_dci(perturbation_matrix, *, groups=None, asym=False):
+def group_group_dci(perturbation_matrix, groups=None, asym=False):
     """Calculate the DCI matrix between different groups of atoms.
     
     Parameters:
@@ -424,7 +424,7 @@ def group_group_dci(perturbation_matrix, *, groups=None, asym=False):
 
 @timeit
 @memprofit
-def inverse_sparse_matrix_cpu(matrix, *, k_singular=6, n_modes=20, dtype=None, **kwargs):
+def inverse_sparse_matrix_cpu(matrix, k_singular=6, n_modes=20, dtype=None, **kwargs):
     """Compute the inverse of a sparse matrix on the CPU using eigen-decomposition.
     
     Parameters:
@@ -454,7 +454,7 @@ def inverse_sparse_matrix_cpu(matrix, *, k_singular=6, n_modes=20, dtype=None, *
 
 @timeit
 @memprofit
-def inverse_matrix_cpu(matrix, *, k_singular=6, n_modes=100, dtype=None, **kwargs):
+def inverse_matrix_cpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs):
     """Compute the inverse of a matrix on the CPU using dense eigen-decomposition.
     
     Parameters:
@@ -482,7 +482,7 @@ def inverse_matrix_cpu(matrix, *, k_singular=6, n_modes=100, dtype=None, **kwarg
 
 @timeit
 @memprofit
-def inverse_sparse_matrix_gpu(matrix, *, k_singular=6, n_modes=20, dtype=None, **kwargs):
+def inverse_sparse_matrix_gpu(matrix, k_singular=6, n_modes=20, dtype=None, **kwargs):
     """Compute the inverse of a sparse matrix on the GPU using eigen-decomposition.
     
     Parameters:
@@ -514,7 +514,7 @@ def inverse_sparse_matrix_gpu(matrix, *, k_singular=6, n_modes=20, dtype=None, *
 
 @timeit
 @memprofit
-def inverse_matrix_gpu(matrix, *, k_singular=6, n_modes=100, dtype=None, **kwargs):
+def inverse_matrix_gpu(matrix, k_singular=6, n_modes=100, dtype=None, **kwargs):
     """Compute the inverse of a matrix on the GPU using dense eigen-decomposition.
     
     Parameters:

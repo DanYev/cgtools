@@ -118,19 +118,7 @@ class GmxSystem(MDSystem):
                 shutil.copy(file, outpath)
 
     def make_cg_structure(self, **kwargs):
-        """Merges coarse-grained PDB files into a single solute PDB file.
-
-        Parameters
-        ----------
-            kwargs: Additional keyword arguments for the GROMACS editconf command. Defaults:
-                - d: Distance parameter (default: 1.0)
-                - bt: Box type (default: "dodecahedron").
-
-        Uses the AtomList from pdbtools to merge and renumber atoms, then calls the
-        GROMACS 'editconf' command to finalize the solute PDB.
-        """
-        kwargs.setdefault("d", 1.0)
-        kwargs.setdefault("bt", "dodecahedron")
+        """Merges coarse-grained PDB files into a single solute PDB file."""
         logger.info("Merging CG PDB files into a single solute PDB...")
         with cd(self.root):
             cg_pdb_files = [p.name for p in self.cgdir.iterdir()]
@@ -142,8 +130,20 @@ class GmxSystem(MDSystem):
                 all_atoms.extend(atoms)
             all_atoms.renumber()
             all_atoms.write_pdb(self.solupdb)
-            # cli.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
 
+    def make_box(self, **kwargs):
+        """Sets up simulation box with GROMACS editconf command.
+
+        Parameters
+        ----------
+            kwargs: Additional keyword arguments for the GROMACS editconf command. Defaults:
+                - d: Distance parameter (default: 1.0)
+                - bt: Box type (default: "dodecahedron").
+        """
+        kwargs.setdefault("d", 1.0)
+        kwargs.setdefault("bt", "dodecahedron")
+        with cd(self.root):
+            cli.gmx("editconf", f=self.solupdb, o=self.solupdb, **kwargs)
 
     def make_cg_topology(self, add_resolved_ions=False, prefix="chain"):
         """Creates the system topology file by including all relevant ITP files and
@@ -333,6 +333,7 @@ class GmxRun(MDRun):
         self.mdpdir = self.root / "mdp"
         self.str = self.rundir / "mdc.pdb"  # Structure file
         self.trj = self.rundir / "mdc.trr"  # Trajectory file
+        self.trj = self.trj if self.trj.exists() else self.rundir / "mdc.xtc"
 
     def gmx(self, command="-h", clinput=None, clean_wdir=True, **kwargs):
         """Executes a GROMACS command from the run's root directory. 
@@ -458,6 +459,10 @@ class GmxRun(MDRun):
         """
         self.gmx('trjconv', clinput=clinput, **kwargs)
 
+    def convert_tpr(self, clinput=None, **kwargs):
+        """Converts TPR files using GROMACS convert-tpr."""
+        self.gmx('convert-tpr', clinput=clinput, **kwargs)   
+
     def rmsf(self, clinput=None, **kwargs):
         """Calculates RMSF using GROMACS rmsf.
 
@@ -473,7 +478,8 @@ class GmxRun(MDRun):
         npy_file = self.rmsdir / "rmsf.npy"
         kwargs.setdefault("s", self.str)
         kwargs.setdefault("f", self.trj)
-        kwargs.setdefault("o", str(xvg_file))
+        kwargs.setdefault("o", xvg_file)
+        kwargs.setdefault("xvg", "none")
         self.gmx('rmsf', clinput=clinput, **kwargs)
         io.xvg2npy(xvg_file, npy_file, usecols=[1])
 
@@ -493,6 +499,7 @@ class GmxRun(MDRun):
         kwargs.setdefault("s", self.str)
         kwargs.setdefault("f", self.trj)
         kwargs.setdefault("o", str(xvg_file))
+        kwargs.setdefault("xvg", "none")
         self.gmx('rms', clinput=clinput, **kwargs)
         io.xvg2npy(xvg_file, npy_file, usecols=[0, 1])
 
@@ -510,6 +517,7 @@ class GmxRun(MDRun):
         kwargs.setdefault("f", "mdc.xtc")
         kwargs.setdefault("s", "mdc.pdb")
         kwargs.setdefault("n", self.sysndx)
+        kwargs.setdefault("xvg", "none")
         self.gmx('rdf', clinput=clinput, **kwargs)
 
     def cluster(self, clinput=None, **kwargs):

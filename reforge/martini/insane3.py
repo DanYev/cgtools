@@ -633,7 +633,6 @@ PBC are set to fit the given number of lipids in.
     ("-y",      Option(vector,      1, 0, "Y dimension or first lattice vector of system (nm)")),
     ("-z",      Option(vector,      1, 0, "Z dimension or first lattice vector of system (nm)")),
     ("-box",    Option(readBox,     1, None, "Box in GRO (3 or 9 floats) or PDB (6 floats) format, comma separated")),
-    ("-n",      Option(str,         1, None, "Index file --- TO BE IMPLEMENTED")),
     """
 Membrane/lipid related options.  
 The options -l and -u can be given multiple times. Option -u can be
@@ -1208,6 +1207,7 @@ if lipL:
     leaf_lo = (-1, list(zip(lip_lo, lower)), lo_lipdx, lo_lipdy)
 
     molecules = list(zip(lipU, num_up)) + list(zip(lipL, num_lo))
+    print(molecules)
     kick = options["-rand"].value
 
     for leaflet, leaf_lip, lipdx, lipdy in [leaf_up, leaf_lo]:
@@ -1338,17 +1338,16 @@ if solv:
     num_sol = [int(ngrid * i / totS) for i in solnums]
 
     if nna:
-        solnames.append("NA+")
+        solnames.append("NA")
         num_sol.append(nna)
-        solv.append("NA+")
+        solv.append("NA")
     if ncl:
-        solnames.append("CL-")
+        solnames.append("CL")
         num_sol.append(ncl)
-        solv.append("CL-")
+        solv.append("CL")
 
     solvent = list(zip([s for i, s in zip(num_sol, solnames) for j in range(i)], grid))
-    molecules = list(zip(solnames, num_sol)) + molecules
-
+    molecules += list(zip(solnames, num_sol))
     sol = []
     for resn, (rndm, x, y, z) in solvent:
         resi += 1
@@ -1374,11 +1373,16 @@ if solv:
 else:
     solvent, sol = None, []
 
-outfile = 'system.gro'
-with open(outfile, 'w', encoding='utf-8') as file:
-    slen = len(sol) if solvent else 0
-    print("%5d" % (len(protein) + len(membrane) + len(sol)), file=file)
 
+title = 'Protein-Membrane System'
+if options["-o"]:
+    outfile = options["-o"].value
+else:
+    outfile = "system.gro"
+with open(outfile, 'w', encoding='utf-8') as file:
+    file.write("%s\n" % title)
+    slen = len(sol) if solvent else 0
+    file.write("%5d\n" % (len(protein) + len(membrane) + len(sol)))
     id_val = 1
     if protein:
         for i in range(len(protein)):
@@ -1398,12 +1402,7 @@ with open(outfile, 'w', encoding='utf-8') as file:
     print("%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f\n" % grobox, file=file)
 
 if options["-p"]:
-    top = open(options["-p"].value, "w")
-    print('#include "martini.itp"\n', file=top)
-    print('[ system ]\n; name\n%s\n\n[ molecules ]\n; name  number' % title, file=top)
-    if protein:
-        print("%-10s %5d" % ("Protein", 1), file=top)
+    top = open(options["-p"].value, "a")
     print("\n".join(["%-10s %7d" % i for i in molecules]), file=top)
     top.close()
-else:
-    print("\n".join(["%-10s %7d" % i for i in molecules]), file=sys.stderr)
+
