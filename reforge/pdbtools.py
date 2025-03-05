@@ -384,7 +384,7 @@ class AtomList(list):
         """Group atoms by segid identifier and return an AtomListCollection."""
         new_segment = AtomList()
         segment = []
-        segid = self.segid[0]
+        segid = self.segids[0]
         for atom in self:
             if atom.segid != segid:
                 segment.append(new_segment)
