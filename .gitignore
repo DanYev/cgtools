@@ -1,6 +1,6 @@
 tmp
 build
-examples
+docs/examples/test
 tests/test
 workflows/systems
 workflows/png
