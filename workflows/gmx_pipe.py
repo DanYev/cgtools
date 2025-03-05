@@ -19,17 +19,16 @@ Author: DY
 Date: 2025-XX-XX
 """
 
+import logging
 import os
-import numpy as np
-import pandas as pd
+from pathlib import Path
 import sys
 import shutil
+import numpy as np
 import MDAnalysis as mda
-from reforge import cli, io, mdm
+from reforge import cli, io, mdm, pdbtools
 from reforge.mdsystem.gmxmd import GmxSystem, GmxRun
 from reforge.utils import *
-import logging
-from pathlib import Path
 
 
 def setup(*args):
@@ -76,6 +75,8 @@ def setup_cg_protein_rna(sysdir, sysname):
 def setup_cg_protein_membrane(sysdir, sysname):
     ### FOR CG PROTEIN+LIPID BILAYERS ###
     mdsys = GmxSystem(sysdir, sysname)
+    label_segments(mdsys)
+    exit()
 
     # 1.1. Need to copy force field and md-parameter files and prepare directories.
     mdsys.prepare_files() # be careful it can overwrite later files
@@ -112,6 +113,34 @@ def setup_cg_protein_membrane(sysdir, sysname):
     mdsys.make_system_ndx(backbone_atoms=["BB"])
 
 
+def label_segments(mdsys):
+    def get_domain_label(resid):
+        if 1 <= resid <= 165:
+            return "ECD1"  # Domain I
+        elif 166 <= resid <= 310:
+            return "ECD2"  # Domain II
+        elif 311 <= resid <= 480:
+            return "ECD3"  # Domain III
+        elif 481 <= resid <= 621:
+            return "ECD4"  # Domain IV
+        elif 622 <= resid <= 644:
+            return "TM  "  # Transmembrane domain (4-character label)
+        elif 645 <= resid <= 682:
+            return "JM  "  # Juxtamembrane segment
+        elif 683 <= resid <= 711:
+            return "UNK "  # Undefined/Not clearly assigned
+        elif 712 <= resid <= 978:
+            return "KD  "  # Kinase domain
+        elif 979 <= resid <= 995:
+            return "CT  "  # C-terminal tail (truncated construct)
+        else:
+            return "UNK "
+    atoms = io.pdb2atomlist(mdsys.solupdb)
+    for atom in atoms:
+        atom.segid = get_domain_label(atom.resid)
+    atoms.write_pdb(mdsys.solupdb)
+
+
 def md(sysdir, sysname, runname, ntomp): 
     mdrun = GmxRun(sysdir, sysname, runname)
     mdrun.prepare_files()
@@ -124,9 +153,9 @@ def md(sysdir, sysname, runname, ntomp):
     mdrun.eqpp(f=eq_mdp, c='em.gro', r='em.gro', maxwarn=10) 
     mdrun.mdrun(deffnm='eq', ntomp=ntomp)
     mdrun.mdpp(f=md_mdp, c='eq.gro', r='eq.gro')
-    mdrun.mdrun(deffnm='md', ntomp=ntomp) 
-    
-    
+    mdrun.mdrun(deffnm='md', ntomp=ntomp)
+
+
 def extend(sysdir, sysname, runname, ntomp):    
     mdsys = GmxSystem(sysdir, sysname)
     mdrun = mdsys.initmd(runname)
@@ -136,23 +165,23 @@ def extend(sysdir, sysname, runname, ntomp):
 def make_ndx(sysdir, sysname, **kwargs):
     mdsys = GmxSystem(sysdir, sysname)
     mdsys.make_sys_ndx(backbone_atoms=["BB", "BB1", "BB3"])
-      
-    
+
+
 def trjconv(sysdir, sysname, runname, fit='rot+trans', **kwargs):
     kwargs.setdefault('b', 0) # in ps
-    kwargs.setdefault('dt', 1000) # in ps
-    kwargs.setdefault('e', 10000000) # in ps
+    kwargs.setdefault('dt', 20000) # in ps
+    kwargs.setdefault('e', 700000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
     k = 1 # NDX groups: 0.System 1.Solute 2.Backbone 3.Solvent 4.Not water 5-.Chains
-    mdrun.trjconv(clinput=f'0\n', s='md.tpr', f='md.xtc', o='viz.pdb', n=mdrun.sysndx, dt=10000)
-    exit()
-    mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.pdb', n=mdrun.sysndx, 
-        center='yes', pbc='cluster', ur='compact', e=0)
-    mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.xtc', n=mdrun.sysndx, 
-        center='yes', pbc='cluster', ur='compact', **kwargs)
-    # mdrun.trjconv(clinput='0\n 0\n', s='mdc.pdb', f='mdc.xtc', o='mdc.xtc', pbc='nojump')
+    # mdrun.trjconv(clinput=f'0\n', s='md.tpr', f='md.xtc', o='viz.pdb', n=mdrun.sysndx, dt=100000)
+    # mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', o='mdc.pdb', n=mdrun.sysndx, 
+    #     center='yes', pbc='cluster', ur='compact', e=0)
+    mdrun.convert_tpr(clinput=f'{k}\n {k}\n', s='md.tpr', n=mdrun.sysndx, o='conv.tpr')
+    mdrun.trjconv(clinput=f'{k}\n {k}\n {k}\n', s='md.tpr', f='md.xtc', n=mdrun.sysndx, o='conv.xtc',  
+       pbc='nojump', **kwargs)
+    # mdrun.trjconv(clinput='0\n 0\n', s='conv.tpr', f='conv.xtc', o='mdc.xtc', pbc='nojump')
     if fit:
-        mdrun.trjconv(clinput='0\n0\n', s='mdc.pdb', f='mdc.xtc', o='mdc.xtc', fit=fit)
+        mdrun.trjconv(clinput='0\n0\n0\n', s='conv.tpr', f='conv.xtc', o='mdc.xtc', fit=fit, center='')
     clean_dir(mdrun.rundir)
     
 
@@ -161,9 +190,9 @@ def rms_analysis(sysdir, sysname, runname, **kwargs):
     kwargs.setdefault('dt', 1000) # in ps
     kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
-    # 2 is for backbone
-    mdrun.rmsf(clinput=f'2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='yes', res='yes', **kwargs)
-    mdrun.rmsd(clinput=f'2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='rot+trans', **kwargs)
+    # 2 for backbonea
+    mdrun.rmsf(clinput='2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='yes', res='yes', **kwargs)
+    mdrun.rmsd(clinput='2\n 2\n', s=mdrun.str, f=mdrun.trj, n=mdrun.sysndx, fit='rot+trans', **kwargs)
 
     
 def cluster(sysdir, sysname, runname, **kwargs):
@@ -255,7 +284,7 @@ def sysjob(sysdir, sysname):
 def runjob(sysdir, sysname, runname):    
     trjconv(sysdir, sysname, runname)
     rms_analysis(sysdir, sysname, runname)
-    get_averages(sysdir, sysname)
+    # get_averages(sysdir, sysname)
 
         
 if __name__ == '__main__':
@@ -281,5 +310,3 @@ if __name__ == '__main__':
     else:
         raise ValueError(f"Unknown command: {command}")
    
-        
-    

@@ -459,6 +459,11 @@ class GmxRun(MDRun):
         """
         self.gmx('trjconv', clinput=clinput, **kwargs)
 
+    def convert_tpr(self, clinput=None, **kwargs):
+        """Converts TPR files using GROMACS convert-tpr.
+        """
+        self.gmx('convert-tpr', clinput=clinput, **kwargs)   
+
     def rmsf(self, clinput=None, **kwargs):
         """Calculates RMSF using GROMACS rmsf.
 
@@ -474,7 +479,7 @@ class GmxRun(MDRun):
         npy_file = self.rmsdir / "rmsf.npy"
         kwargs.setdefault("s", self.str)
         kwargs.setdefault("f", self.trj)
-        kwargs.setdefault("o", str(xvg_file))
+        kwargs.setdefault("o", xvg_file)
         kwargs.setdefault("xvg", "none")
         self.gmx('rmsf', clinput=clinput, **kwargs)
         io.xvg2npy(xvg_file, npy_file, usecols=[1])

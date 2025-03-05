@@ -122,7 +122,7 @@ def plot(submit=False, **kwargs):
               J='plotting', **kwargs)
 
 
-def sys_job(jobname, submit=False, **kwargs):
+def sysjob(jobname, submit=False, **kwargs):
     """
     Submit or run a system-level job for each system.
     
@@ -136,7 +136,7 @@ def sys_job(jobname, submit=False, **kwargs):
               J=f'{sysname}_{jobname}', **kwargs)
 
 
-def run_job(jobname, submit=False, **kwargs):
+def runjob(jobname, submit=False, **kwargs):
     """
     Submit or run a run-level job for each system and run.
     
@@ -158,10 +158,10 @@ sysnames = ['egfr'] # 1btl 8aw3
 runs = ['mdrun_1', 'mdrun_2', ] 
 
 
-# setup(submit=True, mem='4G')
+# setup(submit=False, mem='4G')
 # md(submit=True, ntomp=8, mem='4G', q='grp_sozkan', p='general', t='04-00:00:00',)
 # extend(submit=True, ntomp=8, mem='2G', q='grp_sozkan', p='general', t='03-00:00:00',)
-trjconv(submit=True)
+# trjconv(submit=True)
 # rms_analysis(submit=True)
 # cov_analysis(submit=True)
 # get_averages(submit=True, mem='32G')
@@ -170,5 +170,5 @@ trjconv(submit=True)
 # get_td_averages(submit=False)
 # tdlrt_figs(submit=True)
 # test(submit=True)
-# sys_job('make_ndx', submit=False)
-# run_job('runjob', submit=True, mem='16G')
+# sysjob('make_ndx', submit=False)
+runjob('runjob', submit=True, mem='16G')

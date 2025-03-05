@@ -817,6 +817,11 @@ def sort_uld(alist):
     return sorted(alist, key=lambda x: (x.isdigit(), x.islower(), x.isupper(), x))
 
 
+def label_segments(in_pdb, out_pdb,):
+    """Label segments based on something"""
+    pass
+
+
 AA_CODE_CONVERTER = {
     "A": "ALA", "C": "CYS", "D": "ASP", "E": "GLU", "F": "PHE",
     "G": "GLY", "H": "HIS", "I": "ILE", "K": "LYS", "L": "LEU",
