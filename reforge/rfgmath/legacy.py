@@ -127,18 +127,17 @@ def perturbation_matrix_cpu(covariance_matrix, dtype=np.float64):
 
 @timeit
 @memprofit
-def td_perturbation_matrix_cpu(ccf, normalize=True, dtype=np.float64):
+def td_perturbation_matrix_cpu(ccf, dtype=np.float64):
     """Calculates perturbation matrix from a covariance matrix or a hessian on
     CPU The result is normalized such that the total sum of the matrix elements
     is equal to 1."""
-    m = ccf.shape[0] // 3
-    n = ccf.shape[1] // 3
-    blocks = ccf.reshape(m, 3, n, 3).swapaxes(1, 2)
-    perturbation_matrix = np.sum(blocks**2, axis=(-2, -1))
-    perturbation_matrix = np.sqrt(perturbation_matrix)
-    if normalize:
-        perturbation_matrix /= np.sum(perturbation_matrix)
-    return perturbation_matrix
+    pertmat = ccf**2
+    pertmat = pertmat.reshape((pertmat.shape[0] // 3, pertmat.shape[1] // 3, 3, 3, pertmat.shape[2]))
+    pertmat = np.sum(pertmat, axis=(2, 3))
+    pertmat = np.sqrt(pertmat)
+    norm = pertmat.shape[0] * pertmat.shape[1] / np.sum(pertmat[:, :, 0])
+    pertmat *= norm
+    return pertmat
 
 
 def pad_matrix_if_odd(M):

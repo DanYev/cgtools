@@ -45,7 +45,7 @@ def response_force(mat_t):
     f = np.tile(f, (nx // 3, ny // 3))
     force = np.einsum("ij,k->ijk", f, t)
     dforce = np.einsum("ij,k->ijk", f, dt)
-    conv = lrt.gfft_conv(dforce, mat_t)
+    conv = mdm.gfft_conv(dforce, mat_t)
     mat_0 = mat_t[:, :, 0][:, :, None]
     force_0 = force[:, :, 0][:, :, None]
     resp = mat_0 * force - mat_t * force_0 + conv
@@ -159,15 +159,10 @@ def make_1d_plots(sysdir, sysnames):
     animate_1d(fig, ax, lines, datas, outfile, dt=0.2)
 
 
-def make_2d_plots(sysdir, sysnames):
-    print("Plotting", file=sys.stderr)
-    datas = []
-    # datas = [[np.array([1, 2, 3]), np.array([1, 2.5, 3])], [np.array([3, 4, 5]), np.array([1, 2.5, 3])]]
-    for n, sysname in enumerate(sysnames):
-        system = gmxSystem(sysdir, sysname)
-        infile = os.path.join(system.datdir, f'corr_pp_slow.npy')
-        data = make_2d_data(infile, nframes=5000)
-        datas.append(data)
+def make_2d_plot(mdsys):
+    logger.info("Animating")
+    infile = mdsys.datdir / "corr_pp.npy"
+    data = make_2d_data(infile, nframes=1000)
     outfile = os.path.join('png', f'fast_{"_".join(sysnames)}.mp4')
     fig, ax, lines = make_plot(datas, sysnames, outfile="png/test.png")
     animate_1d(fig, ax, lines, datas, outfile, dt=0.2)
@@ -177,4 +172,4 @@ if __name__ == '__main__':
     sysdir = 'systems' 
     sysname = 'egfr'
     mdsys = MDSystem(sysdir, sysname)
-    make_2d_plots(sysdir, sysname)
+    make_2d_plots(mdsys)

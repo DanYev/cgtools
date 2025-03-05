@@ -264,7 +264,7 @@ def perturbation_matrix_old(np.ndarray[double, ndim=2] covariance_matrix,
 @cython.wraparound(False)
 @timeit
 @memprofit
-def perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.ndarray:
+def perturbation_matrix_old2(np.ndarray[double, ndim=2] covariance_matrix) -> np.ndarray:
     """
     Compute a perturbation matrix from a covariance matrix.
 
@@ -336,7 +336,7 @@ def perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.ndar
 @cython.wraparound(False)
 @timeit
 @memprofit
-def td_perturbation_matrix(np.ndarray[double, ndim=2] ccf, bint normalize=True) -> np.ndarray:
+def perturbation_matrix(np.ndarray[double, ndim=2] ccf, bint normalize=True) -> np.ndarray:
     """
     Calculate the perturbation matrix from a covariance (or Hessian) matrix using block-wise norms.
 
@@ -374,9 +374,63 @@ def td_perturbation_matrix(np.ndarray[double, ndim=2] ccf, bint normalize=True) 
             sum_val += perturbation_matrix[i, j]
     
     if normalize and sum_val != 0.0:
+        norm = n * m / sum_val  
         for i in range(m):
             for j in range(n):
-                perturbation_matrix[i, j] /= sum_val  
-                perturbation_matrix[i, j] *= n * m
+                perturbation_matrix[i, j] *= norm
                 
     return perturbation_matrix
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@timeit
+@memprofit
+def td_perturbation_matrix(np.ndarray[double, ndim=3] ccf, bint normalize=True) -> np.ndarray:
+    """
+    Calculate the time-dependent perturbation matrix from a td-correlation matrix using block-wise norms.
+
+    The input covariance matrix 'ccf' is expected to have shape (3*m, 3*n, nt). For each block (i,j, it),
+    the perturbation value is computed as the square root of the sum of the squares of the corresponding
+    3x3 block elements.
+
+    Parameters
+    ----------
+    ccf : ndarray of double, 3D
+        Input covariance matrix with shape (3*m, 3*n, nt).
+    normalize : bool, optional
+        If True, the output perturbation matrix is normalized so that the total sum of its elements equals 1
+        (default is True).
+
+    Returns
+    -------
+    perturbation_matrix : ndarray of double, 3D
+        An (m, n, nt) matrix of perturbation values computed from the blocks of ccf.
+    """
+    cdef int m = ccf.shape[0] // 3
+    cdef int n = ccf.shape[1] // 3
+    cdef int nt = ccf.shape[2]
+    cdef int i, j, it, a, b
+    cdef double temp, sum_val = 0.0
+    cdef np.ndarray[double, ndim=3] perturbation_matrix = np.empty((m, n, nt), dtype=np.float64)
+    
+    # Compute the block-wise norm for each (i,j,it) block.
+    for it in range(nt):
+        for i in range(m):
+            for j in range(n):
+                temp = 0.0
+                for a in range(3):
+                    for b in range(3):
+                        temp += ccf[3*i + a, 3*j + b, ] * ccf[3*i + a, 3*j + b]
+                perturbation_matrix[i, j, it] = sqrt(temp)
+                if it == 0:
+                    sum_val += perturbation_matrix[i, j, it]
+    
+    if normalize and sum_val != 0.0:
+        norm = n * m / sum_val  
+        for i in range(m):
+            for j in range(n):
+                for it in range(nt):
+                    perturbation_matrix[i, j, nt] *= norm
+                
+    return perturbation_matrix    

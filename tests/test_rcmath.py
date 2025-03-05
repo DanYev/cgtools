@@ -83,7 +83,7 @@ def test_perturbation_matrix_old():
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-4, atol=1e-4)
 
 
-def test_perturbation_matrix():
+def test_perturbation_matrix_old2():
     """
     Compare the CPU-based perturbation matrix outputs between legacy and new implementations.
 
@@ -100,7 +100,7 @@ def test_perturbation_matrix():
     A = np.random.rand(3 * m, 3 * m)
     covmat = (A + A.T) / 2
     legacy_result = legacy.perturbation_matrix_cpu(covmat)
-    new_result = rcmath.perturbation_matrix(covmat)
+    new_result = rcmath.perturbation_matrix_old2(covmat)
     np.testing.assert_allclose(new_result, legacy_result, rtol=1e-6, atol=1e-6)
 
 
@@ -117,8 +117,9 @@ def test_td_perturbation_matrix():
     Returns:
         None
     """
-    m = 200
-    A = np.random.rand(3 * m, 3 * m)
+    m = 20
+    nt = 100
+    A = np.random.rand(3 * m, 3 * m, nt)
     covmat = (A + A.T) / 2
     legacy_result = legacy.td_perturbation_matrix_cpu(covmat, normalize=True)
     new_result = rcmath.td_perturbation_matrix(covmat, normalize=True)
