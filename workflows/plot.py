@@ -108,7 +108,7 @@ def plot_dci(mdsys):
     fig, ax = init_figure(grid=(1, 1), axsize=(6, 6))
     make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=0, vmax=2)
     set_ax_parameters(ax, xlabel='Residue', ylabel='Residue')
-    plot_figure(fig, ax, figname=mdsys.sysname.upper(), figpath=f'{mdsys.pngdir}/dci.png',)
+    plot_figure(fig, ax, figname=f"{mdsys.sysname.upper()} DCI", figpath=f'{mdsys.pngdir}/dci.png',)
 
 
 def plot_asym(mdsys):
@@ -122,7 +122,7 @@ def plot_asym(mdsys):
     fig, ax = init_figure(grid=(1, 1), axsize=(6, 6))
     make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=-1, vmax=1)
     set_ax_parameters(ax, xlabel='Residue', ylabel='Residue')
-    plot_figure(fig, ax, figname=mdsys.sysname.upper(), figpath=f'{mdsys.pngdir}/asym.png',)
+    plot_figure(fig, ax, figname=f"{mdsys.sysname.upper()} DCI-ASYM", figpath=f'{mdsys.pngdir}/asym.png',)
 
 
 def plot_segment_dci(mdsys, segid):
@@ -132,10 +132,11 @@ def plot_segment_dci(mdsys, segid):
     param = {'lw':2}
     xs = [np.arange(len(data)) for data in datas]
     datas = [data for data in datas]
-    params = [param for data in datas]
+    errs = [err for err in errs]
+    params = [param for data in datas] 
     # Plotting
     fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
-    make_plot(ax, xs, datas, params)
+    make_errorbar(ax, xs, datas, errs, params, alpha=0.7)
     set_ax_parameters(ax, xlabel='Residue', ylabel='DCI')
     plot_figure(fig, ax, figname=mdsys.sysname.upper() + " " + segid.upper(), 
         figpath=f'{mdsys.pngdir}/gdci_{segid}.png',)
@@ -150,11 +151,11 @@ if __name__ == '__main__':
     sysdir = 'systems' 
     sysname = 'egfr'
     mdsys = MDSystem(sysdir, sysname)
-    # plot_dfi(mdsys)
-    # plot_pdfi(mdsys)
-    # plot_dci(mdsys)
-    # plot_asym(mdsys)
-    # plot_rmsf(mdsys)
-    # plot_rmsd(mdsys)
+    plot_dfi(mdsys)
+    plot_pdfi(mdsys)
+    plot_dci(mdsys)
+    plot_asym(mdsys)
+    plot_rmsf(mdsys)
+    plot_rmsd(mdsys)
     plot_all_segments(mdsys)
 

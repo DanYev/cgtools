@@ -213,6 +213,7 @@ def get_averages(sysdir, sysname):
     for segment in mdsys.segments:
         logger.info('Processing segment %s', {segment})
         mdsys.get_mean_sem(pattern=f'gdci_{segment}*.npy')
+    logger.info("Done!")
 
 
 def get_td_averages(sysdir, sysname, loop=True, fname='corr_pv.npy'):
