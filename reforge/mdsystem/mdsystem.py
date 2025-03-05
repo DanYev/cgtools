@@ -492,7 +492,7 @@ class MDRun(MDSystem):
                 logger.info("  Processing covariance matrix %s", cov_file)
                 covmat = np.load(self.covdir / cov_file)
                 logger.info("  Calculating perturbation matrix")
-                pertmat = mdm.perturbation_matrix(covmat)
+                pertmat = mdm.td_perturbation_matrix(covmat)
                 pert_file = cov_file.replace(intag, outtag)
                 logger.info("  Saving perturbation matrix at %s", pert_file)
                 np.save(self.covdir / pert_file, pertmat)

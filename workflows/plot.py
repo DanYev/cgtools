@@ -29,13 +29,44 @@ def set_ax_parameters(ax, xlabel=None, ylabel=None, axtitle=None):
     ax.tick_params(axis='x', which='both', bottom=True, top=False, labelbottom=True, labeltop=False)
     line_positions, label_positions, labels = grid_labels(mdsys)
     max_line_pos = max(line_positions)
-    # ax.set_xticks(label_positions)
-    # ax.set_xticklabels(labels, rotation=90)
     # Add vertical lines
     for line_pos, label_pos, label in zip(line_positions, label_positions, labels):
         ax.axvline(x=line_pos, color='k', linestyle=':', label=None)
         ax.text(label_pos/max_line_pos-0.008, 1.03, label, transform=ax.transAxes, 
             rotation=90, fontsize=14) 
+    # Increase spine width for a bolder look
+    for spine in ax.spines.values():
+        spine.set_linewidth(1.5)
+    # Add a legend with custom font size and no frame
+    legend = ax.legend(fontsize=14, frameon=False)
+   # Autoscale the view to the data
+    ax.relim()         # Recalculate limits based on current artists
+    ax.autoscale_view()  # Update the view to the recalculated limits
+    # Remove padding around the data
+    ax.margins(0)
+
+
+def set_hm_parameters(ax, xlabel=None, ylabel=None, axtitle=None):
+    """
+    ax - matplotlib ax object
+    """
+    # Set axis labels and title with larger font sizes
+    ax.set_xlabel(xlabel, fontsize=16)
+    ax.set_ylabel(ylabel, fontsize=16)
+    ax.set_title(axtitle, fontsize=16)
+    # Customize tick parameters
+    ax.tick_params(axis='both', which='major', labelsize=14, direction='in', length=5, width=1.5)
+    ax.tick_params(axis='x', which='both', bottom=True, top=False, labelbottom=True, labeltop=False)
+    line_positions, label_positions, labels = grid_labels(mdsys)
+    max_line_pos = max(line_positions)
+    # Add grid
+    for line_pos, label_pos, label in zip(line_positions, label_positions, labels):
+        ax.axvline(x=line_pos, color='k', linestyle=':', label=None)
+        ax.axhline(y=line_pos, color='k', linestyle=':', label=None)
+        ax.text(label_pos/max_line_pos-0.008, 1.01, label, transform=ax.transAxes, 
+            rotation=90, fontsize=14) 
+        ax.text(1.01, 0.992-label_pos/max_line_pos, label, transform=ax.transAxes, 
+            fontsize=14) 
     # Increase spine width for a bolder look
     for spine in ax.spines.values():
         spine.set_linewidth(1.5)
@@ -133,9 +164,9 @@ def plot_dci(mdsys):
     datas = [data for data in datas]
     data = datas[0]
     # Plotting
-    fig, ax = init_figure(grid=(1, 1), axsize=(10, 10))
+    fig, ax = init_figure(grid=(1, 1), axsize=(12, 12))
     make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=0, vmax=2)
-    set_ax_parameters(ax, xlabel='Residue', ylabel='Residue')
+    set_hm_parameters(ax, xlabel='Residue', ylabel='Residue')
     plot_figure(fig, ax, figname=f"{mdsys.sysname.upper()} DCI", figpath=f'{mdsys.pngdir}/dci.png',)
 
 
@@ -147,10 +178,24 @@ def plot_asym(mdsys):
     datas = [data for data in datas]
     data = datas[0]
     # Plotting
-    fig, ax = init_figure(grid=(1, 1), axsize=(10, 10))
+    fig, ax = init_figure(grid=(1, 1), axsize=(12, 12))
     make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=-1, vmax=1)
-    set_ax_parameters(ax, xlabel='Residue', ylabel='Residue')
+    set_hm_parameters(ax, xlabel='Residue', ylabel='Residue')
     plot_figure(fig, ax, figname=f"{mdsys.sysname.upper()} DCI-ASYM", figpath=f'{mdsys.pngdir}/asym.png',)
+
+
+def plot_pert(mdsys):
+    logger.info("Plotting pertmat")
+    # Pulling data
+    datas, errs = pull_data('pert*')
+    param = {'lw':2}
+    datas = [data for data in datas]
+    data = datas[0]
+    # Plotting
+    fig, ax = init_figure(grid=(1, 1), axsize=(12, 12))
+    make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=0, vmax=2)
+    set_hm_parameters(ax, xlabel='Residue', ylabel='Residue')
+    plot_figure(fig, ax, figname=f"{mdsys.sysname.upper()} PertMat", figpath=f'{mdsys.pngdir}/pert.png',)
 
 
 def plot_segment_dci(mdsys, segid):
@@ -187,6 +232,23 @@ def plot_segment_asym(mdsys, segid):
         figpath=f'{mdsys.pngdir}/gasym_{segid}.png',)
 
 
+# def plot_segment_pertmat(mdsys, segid):
+#     logger.info("Plotting %s pertmat", segid)
+#     # Pulling data
+#     datas, errs = pull_data(f'gasym_{segid}*')
+#     param = {'lw':2}
+#     xs = [np.arange(len(data)) for data in datas]
+#     datas = [data for data in datas]
+#     errs = [err for err in errs]
+#     params = [param for data in datas] 
+#     # Plotting
+#     fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
+#     make_errorbar(ax, xs, datas, errs, params, alpha=0.7)
+#     set_ax_parameters(ax, xlabel='Residue', ylabel='Pert')
+#     plot_figure(fig, ax, figname=mdsys.sysname.upper() + " " + segid.upper(), 
+#         figpath=f'{mdsys.pngdir}/gasym_{segid}.png',)
+
+
 def plot_all_segments(mdsys):
     for segid in mdsys.segments:   
         plot_segment_dci(mdsys, segid)
@@ -197,11 +259,11 @@ if __name__ == '__main__':
     sysdir = 'systems' 
     sysname = 'egfr'
     mdsys = MDSystem(sysdir, sysname)
+    plot_rmsf(mdsys)
+    plot_rmsd(mdsys)    
     plot_dfi(mdsys)
     plot_pdfi(mdsys)
     plot_dci(mdsys)
     plot_asym(mdsys)
-    plot_rmsf(mdsys)
-    plot_rmsd(mdsys)
+    plot_pert(mdsys)    
     plot_all_segments(mdsys)
-

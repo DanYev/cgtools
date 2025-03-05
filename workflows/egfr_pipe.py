@@ -189,7 +189,7 @@ def tdlrt_analysis(sysdir, sysname, runname):
     mdrun = GmxRun(sysdir, sysname, runname) 
     # CCF params FRAMEDT=20 ps
     b = 0
-    e = 1000000
+    e = 10000000
     sample_rate = 1
     ntmax = 1000 # how many frames to save
     corr_file = os.path.join(mdrun.lrtdir, 'corr_pp.npy')

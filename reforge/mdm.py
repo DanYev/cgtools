@@ -140,12 +140,12 @@ def calc_and_save_covmats(positions, outdir, n=1, outtag="covmat", dtype=np.floa
 ## DFI / DCI Calculations
 ##############################################################
 
-def perturbation_matrix(cov_mat, dtype=np.float64):
+def perturbation_matrix(covmat, dtype=np.float64):
     """Compute the perturbation matrix from a covariance matrix.
 
     Parameters
     ----------
-    cov_mat : np.ndarray
+    covmat : np.ndarray
         The covariance matrix.
     dtype : data-type, optional
         Desired data type (default is np.float64).
@@ -155,18 +155,17 @@ def perturbation_matrix(cov_mat, dtype=np.float64):
     np.ndarray
         The computed perturbation matrix.
     """
-    cov_mat = cov_mat.astype(np.float64)
-    # pylint: disable=c-extension-no-member
-    pertmat = rcmath.perturbation_matrix(cov_mat)
+    covmat = covmat.astype(np.float64)
+    pertmat = rcmath.perturbation_matrix(covmat)
     return pertmat
 
 
-def td_perturbation_matrix(cov_mat, dtype=np.float64):
+def td_perturbation_matrix(covmat, dtype=np.float64):
     """Compute the block-wise (td) perturbation matrix from a covariance matrix.
 
     Parameters
     ----------
-    cov_mat : np.ndarray
+    covmat : np.ndarray
         The covariance matrix.
     dtype : data-type, optional
         Desired data type (default is np.float64).
@@ -176,9 +175,8 @@ def td_perturbation_matrix(cov_mat, dtype=np.float64):
     np.ndarray
         The computed block-wise perturbation matrix.
     """
-    cov_mat = cov_mat.astype(np.float64)
-    # pylint: disable=c-extension-no-member
-    pertmat = rcmath.td_perturbation_matrix(cov_mat)
+    covmat = covmat.astype(np.float64)
+    pertmat = rcmath.td_perturbation_matrix(covmat)
     return pertmat
 
 

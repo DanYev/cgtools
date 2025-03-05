@@ -327,6 +327,7 @@ def perturbation_matrix(np.ndarray[double, ndim=2] covariance_matrix) -> np.ndar
         for i in range(m):
             for j in range(n):
                 perturbation_matrix[i, j] /= sum_val
+                perturbation_matrix[i, j] *= n * m
 
     return perturbation_matrix
 
@@ -375,6 +376,7 @@ def td_perturbation_matrix(np.ndarray[double, ndim=2] ccf, bint normalize=True) 
     if normalize and sum_val != 0.0:
         for i in range(m):
             for j in range(n):
-                perturbation_matrix[i, j] /= sum_val
-    
+                perturbation_matrix[i, j] /= sum_val  
+                perturbation_matrix[i, j] *= n * m
+                
     return perturbation_matrix
