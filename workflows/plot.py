@@ -118,6 +118,7 @@ def plot_rmsd(mdsys):
     params = [{'lw':2, 'label':label} for label in labels]
     # Plotting
     fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
+    make_plot(ax, xs, ys, params)
     ax.set_xlabel('Time (ns)', fontsize=16)
     ax.set_ylabel('RMSD (Angstrom)', fontsize=16)
     # set_ax_parameters(ax, xlabel='Time (ns)', ylabel='RMSD (Angstrom)')
@@ -132,7 +133,7 @@ def plot_dci(mdsys):
     datas = [data for data in datas]
     data = datas[0]
     # Plotting
-    fig, ax = init_figure(grid=(1, 1), axsize=(8, 8))
+    fig, ax = init_figure(grid=(1, 1), axsize=(10, 10))
     make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=0, vmax=2)
     set_ax_parameters(ax, xlabel='Residue', ylabel='Residue')
     plot_figure(fig, ax, figname=f"{mdsys.sysname.upper()} DCI", figpath=f'{mdsys.pngdir}/dci.png',)
@@ -146,7 +147,7 @@ def plot_asym(mdsys):
     datas = [data for data in datas]
     data = datas[0]
     # Plotting
-    fig, ax = init_figure(grid=(1, 1), axsize=(8, 8))
+    fig, ax = init_figure(grid=(1, 1), axsize=(10, 10))
     make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=-1, vmax=1)
     set_ax_parameters(ax, xlabel='Residue', ylabel='Residue')
     plot_figure(fig, ax, figname=f"{mdsys.sysname.upper()} DCI-ASYM", figpath=f'{mdsys.pngdir}/asym.png',)
@@ -172,7 +173,7 @@ def plot_segment_dci(mdsys, segid):
 def plot_segment_asym(mdsys, segid):
     logger.info("Plotting %s ASYM", segid)
     # Pulling data
-    datas, errs = pull_data(f'gdci_{segid}*')
+    datas, errs = pull_data(f'gasym_{segid}*')
     param = {'lw':2}
     xs = [np.arange(len(data)) for data in datas]
     datas = [data for data in datas]
@@ -183,7 +184,7 @@ def plot_segment_asym(mdsys, segid):
     make_errorbar(ax, xs, datas, errs, params, alpha=0.7)
     set_ax_parameters(ax, xlabel='Residue', ylabel='DCI-ASYM')
     plot_figure(fig, ax, figname=mdsys.sysname.upper() + " " + segid.upper(), 
-        figpath=f'{mdsys.pngdir}/gdci_{segid}.png',)
+        figpath=f'{mdsys.pngdir}/gasym_{segid}.png',)
 
 
 def plot_all_segments(mdsys):
