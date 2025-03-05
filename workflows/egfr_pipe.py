@@ -147,7 +147,7 @@ def trjconv(sysdir, sysname, runname, **kwargs):
 
 def rms_analysis(sysdir, sysname, runname, **kwargs):
     kwargs.setdefault('b',  50000) # in ps
-    kwargs.setdefault('dt', 1000) # in ps
+    kwargs.setdefault('dt', 200) # in ps
     kwargs.setdefault('e', 10000000) # in ps
     mdrun = GmxRun(sysdir, sysname, runname)
     # 2 for backbone
@@ -168,7 +168,7 @@ def cov_analysis(sysdir, sysname, runname):
     u = mda.Universe(mdrun.str, mdrun.trj, in_memory=True)
     ag = u.atoms.select_atoms("name BB or name BB1 or name BB3")
     # Begin at 'b' picoseconds, end at 'e', split into 'n' parts, sample each 'sample_rate' frame
-    mdrun.get_covmats(u, ag, b=50000, e=10000000, n=4, sample_rate=1, outtag='covmat') 
+    mdrun.get_covmats(u, ag, b=100000, e=10000000, n=10, sample_rate=1, outtag='covmat') 
     mdrun.get_pertmats()
     mdrun.get_dfi(outtag='dfi')
     mdrun.get_dci(outtag='dci', asym=False)
@@ -210,10 +210,12 @@ def get_averages(sysdir, sysname):
     mdsys.get_mean_sem(pattern='dci*.npy')
     mdsys.get_mean_sem(pattern='asym*.npy')
     mdsys.get_mean_sem(pattern='rmsf*.npy')
-    mdsys.get_mean_sem(pattern='ggdci*.npy') # group-group DCI    
+    mdsys.get_mean_sem(pattern='ggdci*.npy') # group-group DCI  
+    mdsys.get_mean_sem(pattern='ggasym*.npy') # group-group DCI-ASYM 
     for segment in mdsys.segments:
         logger.info('Processing segment %s', {segment})
         mdsys.get_mean_sem(pattern=f'gdci_{segment}*.npy')
+        mdsys.get_mean_sem(pattern=f'gasym_{segment}*.npy')
     logger.info("Done!")
 
 

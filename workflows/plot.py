@@ -118,8 +118,9 @@ def plot_rmsd(mdsys):
     params = [{'lw':2, 'label':label} for label in labels]
     # Plotting
     fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
-    make_plot(ax, xs, ys, params)
-    set_ax_parameters(ax, xlabel='Time (ns)', ylabel='RMSD (Angstrom)')
+    ax.set_xlabel('Time (ns)', fontsize=16)
+    ax.set_ylabel('RMSD (Angstrom)', fontsize=16)
+    # set_ax_parameters(ax, xlabel='Time (ns)', ylabel='RMSD (Angstrom)')
     plot_figure(fig, ax, figname=mdsys.sysname.upper() , figpath=f'{mdsys.pngdir}/rmsd.png',)
 
 
@@ -131,7 +132,7 @@ def plot_dci(mdsys):
     datas = [data for data in datas]
     data = datas[0]
     # Plotting
-    fig, ax = init_figure(grid=(1, 1), axsize=(6, 6))
+    fig, ax = init_figure(grid=(1, 1), axsize=(8, 8))
     make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=0, vmax=2)
     set_ax_parameters(ax, xlabel='Residue', ylabel='Residue')
     plot_figure(fig, ax, figname=f"{mdsys.sysname.upper()} DCI", figpath=f'{mdsys.pngdir}/dci.png',)
@@ -145,7 +146,7 @@ def plot_asym(mdsys):
     datas = [data for data in datas]
     data = datas[0]
     # Plotting
-    fig, ax = init_figure(grid=(1, 1), axsize=(6, 6))
+    fig, ax = init_figure(grid=(1, 1), axsize=(8, 8))
     make_heatmap(ax, data, cmap='bwr', interpolation=None, vmin=-1, vmax=1)
     set_ax_parameters(ax, xlabel='Residue', ylabel='Residue')
     plot_figure(fig, ax, figname=f"{mdsys.sysname.upper()} DCI-ASYM", figpath=f'{mdsys.pngdir}/asym.png',)
@@ -168,9 +169,27 @@ def plot_segment_dci(mdsys, segid):
         figpath=f'{mdsys.pngdir}/gdci_{segid}.png',)
 
 
+def plot_segment_asym(mdsys, segid):
+    logger.info("Plotting %s ASYM", segid)
+    # Pulling data
+    datas, errs = pull_data(f'gdci_{segid}*')
+    param = {'lw':2}
+    xs = [np.arange(len(data)) for data in datas]
+    datas = [data for data in datas]
+    errs = [err for err in errs]
+    params = [param for data in datas] 
+    # Plotting
+    fig, ax = init_figure(grid=(1, 1), axsize=(12, 5))
+    make_errorbar(ax, xs, datas, errs, params, alpha=0.7)
+    set_ax_parameters(ax, xlabel='Residue', ylabel='DCI-ASYM')
+    plot_figure(fig, ax, figname=mdsys.sysname.upper() + " " + segid.upper(), 
+        figpath=f'{mdsys.pngdir}/gdci_{segid}.png',)
+
+
 def plot_all_segments(mdsys):
     for segid in mdsys.segments:   
         plot_segment_dci(mdsys, segid)
+        plot_segment_asym(mdsys, segid)
    
     
 if __name__ == '__main__':
@@ -178,11 +197,10 @@ if __name__ == '__main__':
     sysname = 'egfr'
     mdsys = MDSystem(sysdir, sysname)
     plot_dfi(mdsys)
-    # plot_pdfi(mdsys)
-    # plot_dci(mdsys)
-    # plot_asym(mdsys)
-    # plot_rmsf(mdsys)
-    # plot_rmsd(mdsys)
-    # plot_all_segments(mdsys)
-    # grid_labels(mdsys)
+    plot_pdfi(mdsys)
+    plot_dci(mdsys)
+    plot_asym(mdsys)
+    plot_rmsf(mdsys)
+    plot_rmsd(mdsys)
+    plot_all_segments(mdsys)
 
